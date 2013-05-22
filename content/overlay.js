@@ -1,13 +1,5 @@
 var ARIA_LANDMARKS = {
-	/** Start preference variables **/
 	prefs: null,
-	nextLandmarkNavPref: null,
-	previousLandmarkNavPref: null,
-	shiftKeyNavPref: false,
-	controlKeyNavPref: false,
-	borderTypePref: "momentary",
-	/** End preference variables **/
-
 	menu: null,
 	selectedIndex: 0,           // Index of currently selected landmark in menu
 	previousSelectedIndex: -1,  // Index of previously selected landmark in menu
@@ -173,9 +165,11 @@ var ARIA_LANDMARKS = {
 
 	// Set focus on the selected landmark
 	focusElement: function (selectedIndex) {
+		var borderTypePref = this.prefs.getCharPref("borderType");
+
 		// Remove border on previously selected DOM element
 		var previouslySelectedElement = this.landmarkedElements[this.previousSelectedIndex];
-		if ((this.borderTypePref == "persistent" || this.borderTypePref == "momentary") && previouslySelectedElement) {
+		if ((borderTypePref == "persistent" || borderTypePref == "momentary") && previouslySelectedElement) {
 			this.removeBorder(previouslySelectedElement);
 		}
 
@@ -187,10 +181,10 @@ var ARIA_LANDMARKS = {
 
 		element.focus();
 
-		if (this.borderTypePref == "persistent" || this.borderTypePref == "momentary") {
+		if (borderTypePref == "persistent" || borderTypePref == "momentary") {
 			element.style.outline = "medium solid red";
 
-			if (this.borderTypePref == "momentary") {
+			if (borderTypePref == "momentary") {
 				setTimeout(function(){ARIA_LANDMARKS.removeBorder(element)}, 250);
 			}
 		}
@@ -265,39 +259,76 @@ var ARIA_LANDMARKS = {
 			.getService(Components.interfaces.nsIPrefService)
 			.getBranch("extensions.landmarks.");
 		this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+		this.prefs.addObserver("", this, false);
 
-		// Set user's navigation preferences
-		this.nextLandmarkNavPref = this.prefs.getCharPref("nextLandmark");
-		this.previousLandmarkNavPref = this.prefs.getCharPref("previousLandmark");
-		this.borderTypePref = this.prefs.getCharPref("borderType");
-		this.shiftKeyNavPref = this.prefs.getBoolPref("shiftKey");
-		this.controlKeyNavPref = this.prefs.getBoolPref("controlKey");
+		this.reflectPreferences();
+	},
 
-		// Set values for navigation keys in the keyset
+	observe: function(subject, topic, data) {
+		if (topic != "nsPref:changed") {
+			return;
+		}
+
+		this.reflectPreferences();
+	},
+
+	reflectPreferences: function() {
+		// If a preference has changed /away/ from persistent borders,
+		// remove any border that might be there now.
+		// TODO: this could be DRY'd up a bit (similar code above).
+		var borderTypePref = this.prefs.getCharPref("borderType");
+		var previouslySelectedElement =
+			this.landmarkedElements[this.previousSelectedIndex];
+
+		if (borderTypePref != "persistent" && previouslySelectedElement) {
+			this.removeBorder(previouslySelectedElement);
+		}
+
+		// The whole keyset has to be removed and recreated to cause
+		// the browser to reflect the changes.
+		//
+		// For some reason if an id is set on the keyset in the XUL,
+		// the key elements have no effect, hence this long-winded way
+		// of doing things.
+		var old_keyset = document.getElementById('nextLandmark').parentNode;
+		var keyset_parent = old_keyset.parentNode;
+		keyset_parent.removeChild(old_keyset);
+
 		var modifiers = this.getModifiers();
-		var nextNavKey = document.getElementById("nextLandmark");
-		var previousNavKey = document.getElementById("previousLandmark");
-		if (nextNavKey) {
-			nextNavKey.setAttribute("key", this.nextLandmarkNavPref);
-			if (modifiers) {
-				nextNavKey.setAttribute("modifiers", modifiers);
-			}
+
+		var nextNavKey = document.createElement('key');
+		nextNavKey.setAttribute('id', 'nextLandmark');
+		nextNavKey.setAttribute('oncommand',
+			'ARIA_LANDMARKS.nextLandmark(event);');
+		nextNavKey.setAttribute('key',
+			this.prefs.getCharPref("nextLandmark"));
+		if (modifiers) {
+			nextNavKey.setAttribute("modifiers", modifiers);
 		}
-		if (previousNavKey) {
-			previousNavKey.setAttribute("key", this.previousLandmarkNavPref);
-			if (modifiers) {
-				previousNavKey.setAttribute("modifiers", modifiers);
-			}
+
+		var previousNavKey = document.createElement('key');
+		previousNavKey.setAttribute('id', 'previousLandmark');
+		previousNavKey.setAttribute('oncommand',
+			'ARIA_LANDMARKS.previousLandmark(event);');
+		previousNavKey.setAttribute('key',
+			this.prefs.getCharPref("previousLandmark"));
+		if (modifiers) {
+			previousNavKey.setAttribute("modifiers", modifiers);
 		}
+
+		var new_keyset = document.createElement('keyset');
+		new_keyset.appendChild(nextNavKey);
+		new_keyset.appendChild(previousNavKey);
+		keyset_parent.appendChild(new_keyset);
 	},
 
 	// Get the modifier keys user may have set in preferences
 	getModifiers: function() {
 		var modifiers = null;
-		if (this.shiftKeyNavPref) {
+		if (this.prefs.getBoolPref("shiftKey")) {
 			modifiers = "shift";
 		}
-		if (this.controlKeyNavPref) {
+		if (this.prefs.getBoolPref("controlKey")) {
 			if (modifiers) {
 				modifiers += " " + "control";
 			} else {
@@ -313,4 +344,6 @@ var ARIA_LANDMARKS = {
 	}
 };
 
-window.addEventListener("load", function(e) { ARIA_LANDMARKS.startup(); }, false);
+window.addEventListener("load", function(e) {
+	ARIA_LANDMARKS.startup();
+}, false);

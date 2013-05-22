@@ -1,19 +1,15 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://landmarks/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://landmarks/locale/overlay.dtd">
-<overlay id="helloworld-overlay"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="overlay.js"/>
-
-   <keyset>
-     <key id="nextLandmark" key="n" oncommand="ARIA_LANDMARKS.nextLandmark(event);"/>
-     <key id="previousLandmark" key="p" oncommand="ARIA_LANDMARKS.previousLandmark();"/>
-   </keyset>
-
+<overlay id="landmarks-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="overlay.js" />
+  <keyset>
+    <key id="nextLandmark" />
+    <key id="previousLandmark" />
+  </keyset>
   <menupopup id="menu_ToolsPopup">
-	<menu id="file-menu" label="&ibm.haac.landmarks.label;">
-		<menupopup id="landmarkPopup" onpopupshowing="ARIA_LANDMARKS.makeLandmarksInit()">
-		</menupopup>
-	</menu>
+    <menu id="file-menu" label="&amp;ibm.haac.landmarks.label;">
+      <menupopup id="landmarkPopup" onpopupshowing="ARIA_LANDMARKS.makeLandmarksInit()"></menupopup>
+    </menu>
   </menupopup>
 </overlay>
