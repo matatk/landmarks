@@ -11,6 +11,10 @@
     </preferences>
     <groupbox>
       <caption label="Navigation keys and modifiers" />
+      <vbox style="padding: 5px">
+        <description value="Note: Some key settings may interfere with other applications'" />
+        <description value="shortcut keys or your browser's shortcut keys." />
+      </vbox>
       <hbox style="padding-bottom: 5px;">
         <hbox style="padding-top: 5px;">
           <vbox align="right">
@@ -104,9 +108,5 @@
         </radiogroup>
       </vbox>
     </groupbox>
-    <vbox style="padding: 5px">
-      <description value="Note: Some key setting may interfere with other application shortcut keys or" />
-      <description value="your browser's shortcut keys." />
-    </vbox>
   </prefpane>
 </prefwindow>
