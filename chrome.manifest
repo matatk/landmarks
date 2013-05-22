@@ -1,7 +1,3 @@
 content	landmarks	content/
 overlay	chrome://browser/content/browser.xul	chrome://landmarks/content/overlay.xul
-
 locale	landmarks	en-US	locale/en-US/
-
-skin	landmarks	classic/1.0	skin/
-style	chrome://global/content/customizeToolbar.xul	chrome://landmarks/skin/overlay.css

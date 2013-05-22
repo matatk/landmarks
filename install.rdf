@@ -6,7 +6,7 @@
 
     <em:id>ariaLandmarkNav@ibm.com</em:id>
     <em:name>WAI-ARIA landmark keyboard navigation</em:name>
-    <em:version>2013-05-21</em:version>
+    <em:version>2013-05-22</em:version>
     <em:description>Helps keyboard-only users navigate a Web page via WAI-ARIA landmarks.</em:description>
     <em:creator>David Todd</em:creator>
     <!-- optional items -->
