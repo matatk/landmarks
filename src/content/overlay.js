@@ -51,7 +51,8 @@ var ARIA_LANDMARKS = {
 	makeLandmarks: function() {
 		this.landmarkedElements = [];
 		var doc = this.getHTMLDocReference();
-		ARIA_LANDMARKS.makeLandmarkMenu(doc.getElementsByTagName("body")[0], 0);
+		ARIA_LANDMARKS.makeLandmarkMenu(
+			doc.getElementsByTagName("body")[0], 0);
 	},
 
 	// Recursive function for building XUL landmark menu
@@ -182,7 +183,7 @@ var ARIA_LANDMARKS = {
 		element.focus();
 
 		if (borderTypePref == "persistent" || borderTypePref == "momentary") {
-			element.style.outline = "medium solid red";
+			this.addBorder(element);
 
 			if (borderTypePref == "momentary") {
 				setTimeout(function(){ARIA_LANDMARKS.removeBorder(element)}, 250);
@@ -197,6 +198,10 @@ var ARIA_LANDMARKS = {
 		}
 
 		this.previousSelectedIndex = selectedIndex;
+	},
+
+	addBorder: function(element) {
+		element.style.outline = "medium solid red";
 	},
 
 	removeBorder: function(element) {
@@ -240,12 +245,13 @@ var ARIA_LANDMARKS = {
 	// HTML page load event listener
 	onPageLoad: function() {
 		// Refresh landmarks list
+		// FIXME ONLY IF THIS IS A WEB PAGE AND NOT A CHROME PAGE
+		// OR: do we attach the extn to each tab?
 		ARIA_LANDMARKS.previousSelectedIndex = -1;
 		ARIA_LANDMARKS.makeLandmarks();
 	},
 
-	// Window load event listener - called when plugin
-	// starts up & when the preferences window appears.
+	// Window load event listener - called when plugin starts up
 	startup: function() {
 		// Listen for a page load so that landmarks array can be refreshed.
 		// Fixes problem where nav keys don't work after a page refresh.
@@ -273,16 +279,23 @@ var ARIA_LANDMARKS = {
 	},
 
 	reflectPreferences: function() {
-		// If a preference has changed /away/ from persistent borders,
-		// remove any border that might be there now.
-		// TODO: this could be DRY'd up a bit (similar code above).
+		// Remove or add a border as required.
 		var borderTypePref = this.prefs.getCharPref("borderType");
 		var previouslySelectedElement =
 			this.landmarkedElements[this.previousSelectedIndex];
 
-		if (borderTypePref != "persistent" && previouslySelectedElement) {
-			this.removeBorder(previouslySelectedElement);
+		if (previouslySelectedElement) {
+			switch (borderTypePref) {
+				case "persistent":
+					this.addBorder(previouslySelectedElement);
+					break;
+				default:
+					this.removeBorder(previouslySelectedElement);
+					break;
+			}
 		}
+		// TODO: if there is no previously selected element, it's because
+		//       we are now on a different browser tab.
 
 		// The whole keyset has to be removed and recreated to cause
 		// the browser to reflect the changes.
@@ -337,11 +350,6 @@ var ARIA_LANDMARKS = {
 		}
 		return modifiers
 	},
-
-	debug: function(arg1, arg2) {
-		var ps = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-		ps.alert(null, arg1, arg2 );
-	}
 };
 
 window.addEventListener("load", function(e) {
