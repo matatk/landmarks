@@ -8,7 +8,7 @@
     <key id="previousLandmark" />
   </keyset>
   <menupopup id="menu_ToolsPopup">
-    <menu id="file-menu" label="&amp;ibm.haac.landmarks.label;">
+    <menu id="file-menu" label="&ibm.haac.landmarks.label;">
       <menupopup id="landmarkPopup" onpopupshowing="ARIA_LANDMARKS.makeLandmarksInit()"></menupopup>
     </menu>
   </menupopup>

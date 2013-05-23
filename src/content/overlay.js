@@ -246,7 +246,7 @@ var ARIA_LANDMARKS = {
 	onPageLoad: function() {
 		// Refresh landmarks list
 		// FIXME ONLY IF THIS IS A WEB PAGE AND NOT A CHROME PAGE
-		// OR: do we attach the extn to each tab?
+		//       OR: do we attach the extn to each tab?
 		ARIA_LANDMARKS.previousSelectedIndex = -1;
 		ARIA_LANDMARKS.makeLandmarks();
 	},
@@ -294,8 +294,8 @@ var ARIA_LANDMARKS = {
 					break;
 			}
 		}
-		// TODO: if there is no previously selected element, it's because
-		//       we are now on a different browser tab.
+		// FIXME: if there is no previously selected element, it's because
+		//        we are now on a different browser tab.
 
 		// The whole keyset has to be removed and recreated to cause
 		// the browser to reflect the changes.
