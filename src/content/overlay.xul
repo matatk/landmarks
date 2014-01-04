@@ -9,7 +9,7 @@
   </keyset>
   <menupopup id="menu_ToolsPopup">
     <menu id="file-menu" label="&ibm.haac.landmarks.label;">
-      <menupopup id="landmarkPopup" onpopupshowing="ARIA_LANDMARKS.makeLandmarksInit()"></menupopup>
+      <menupopup id="landmarkPopup"></menupopup>
     </menu>
   </menupopup>
 </overlay>

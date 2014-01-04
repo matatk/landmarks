@@ -1,12 +1,19 @@
-var ARIA_LANDMARKS = {
-	prefs: null,
-	menu: null,
-	selectedIndex: 0,           // Index of currently selected landmark in menu
-	previousSelectedIndex: -1,  // Index of previously selected landmark in menu
-	landmarkedElements: [],     // Array of landmarked elements
+var ARIA_LANDMARKS = (function() {
+	// TODO:
+	//   * Write test for labelled vs non-labelled region/application/form landmarks
+	//   * See if there are unnecessary makeLandmarksInit() calls due to tab switch and page load detection
+	//     and remove them.
+
+	var pub = {};  // stuff in here will be available to call from outside
+
+	var prefs = null;
+	var menu = null;
+	var selectedIndex = 0;           // Index of currently selected landmark in menu
+	var previousSelectedIndex = -1;  // Index of previously selected landmark in menu
+	var landmarkedElements = [];     // Array of landmarked elements
 
 	// List of landmarks to navigate
-	landmarks: {
+	var landmarks = {
 		application: true,
 		banner: true,
 		complementary: true,
@@ -16,50 +23,134 @@ var ARIA_LANDMARKS = {
 		navigation: true,
 		region: true,
 		search: true
-	},
+	};
 
 	// mapping of HTML5 elements to implicit roles
-	implicitRoles: {
+	var implicitRoles = {
 		HEADER: 'banner',       // must not be in a <section> or <article>
 		FOOTER: 'contentinfo',  // must not be in a <section> or <article>
 		MAIN: 'main',
 		ASIDE: 'complementary',
 		NAV: 'navigation'
-	},
+	};
 
-	makeLandmarksInit: function() {
-		this.menu = document.getElementById("landmarkPopup");
 
-		// Remove all of the items currently in the popup menu
-		for(var i = this.menu.childNodes.length - 1; i >= 0; i--) {
-			this.menu.removeChild(this.menu.childNodes.item(i));
+	//
+	// Public Functions
+	//
+
+	// Window load event listener - called when plugin starts up
+	pub.startup = function() {
+		console.log('LANDMARKS: startup function called');
+		// Listen for a page load so that landmarks array can be refreshed.
+		// Fixes problem where nav keys don't work after a page refresh.
+		var appcontent = document.getElementById("appcontent");   // browser  
+		if(appcontent) {
+			appcontent.addEventListener("DOMContentLoaded", onPageLoad, true);  
 		}
 
-		this.selectedIndex = 0;
-		this.makeLandmarks();
+		// Keep track of tab changes...
+		gBrowser.tabContainer.addEventListener("TabSelect", onTabChange, false);
+
+		// Register to receive notifications when preferences change
+		prefs = Components.classes["@mozilla.org/preferences-service;1"]
+			.getService(Components.interfaces.nsIPrefService)
+			.getBranch("extensions.landmarks.");
+		prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+		prefs.addObserver("", this, false);
+
+		reflectPreferences();
+	}
+
+	pub.observe = function(subject, topic, data) {
+		console.log('LANDMARKS: prefs observer called');
+		if (topic != "nsPref:changed") {
+			return;
+		}
+		reflectPreferences();
+	};
+
+	// According to <http://forums.mozillazine.org/viewtopic.php?f=19&t=2696969>
+	// it is not possible to use addEventListener on <key> elements :-/.
+
+	// Advance to next landmark via hot key
+	pub.nextLandmark = function() {
+		console.log('LANDMARKS: next landmark');
+		if (landmarkedElements.length == 0) {
+			alert('LANDMARKS: nextLandmark: 0 landmarks; making...');
+			makeLandmarks();
+		}
+		var landmarkCount = landmarkedElements.length;
+		focusElement( (previousSelectedIndex + 1) % landmarkCount );
+	}
+
+	// Advance to previous landmark via hot key
+	pub.previousLandmark = function() {
+		console.log('LANDMARKS: previous landmark');
+		if (landmarkedElements.length == 0) {
+			alert('LANDMARKS: previousLandmark: 0 landmarks; making...');
+			makeLandmarks();
+		}
+		var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
+		focusElement(selectedLandmark);
+	}
+
+
+	//
+	// Private functions
+	//
+
+	// HTML page load event listener
+	function onPageLoad() {
+		console.log('LANDMARKS: page loaded...');
+		refresh();
+	};
+
+	// browser tab change listener
+	function onTabChange() {
+		//var browser = gBrowser.selectedBrowser;
+		console.log('LANDMARKS: tab changed...');
+		refresh();
+	}
+
+	function refresh() {
+		previousSelectedIndex = -1;
+		makeLandmarksInit();
+	}
+
+	function makeLandmarksInit() {
+		console.log('LANDMARKS: makeLandmarksInit');
+		menu = document.getElementById("landmarkPopup");
+
+		// Remove all of the items currently in the popup menu
+		while (menu.firstChild) {
+			menu.removeChild(menu.firstChild);
+		}
+
+		selectedIndex = 0;
+		makeLandmarks();
 
 		// Put "no landmarks" message in menu if no landmarks are found
-		if (this.menu.childNodes.length == 0) {
+		if (menu.childNodes.length == 0) {
 			var tempItem = document.createElement("menuitem");
 			tempItem.setAttribute("label", "No landmarks found");
 			tempItem.setAttribute("disabled", "true");
-			this.menu.appendChild(tempItem);
+			menu.appendChild(tempItem);
 		}
-	},
+	}
 
 	// Populate the landmarks array
-	makeLandmarks: function() {
-		this.landmarkedElements = [];
-		var doc = this.getHTMLDocReference();
-		ARIA_LANDMARKS.makeLandmarkMenu(
-			doc.getElementsByTagName("body")[0], 0);
-	},
+	function makeLandmarks() {
+		landmarkedElements = [];
+		var doc = getHTMLDocReference();
+		makeLandmarkMenu(doc.getElementsByTagName("body")[0], 0);
+	}
 
 	// Recursive function for building XUL landmark menu
-	makeLandmarkMenu: function(currentElement, depth) {
+	function makeLandmarkMenu(currentElement, depth) {
 		if (currentElement) {
 			var role;
-			var i=0;
+			var i = 0;
 			var currentElementChild = currentElement.childNodes[i];
 
 			while (currentElementChild) {
@@ -68,7 +159,7 @@ var ARIA_LANDMARKS = {
 					var name = currentElementChild.tagName;
 					if (name) {
 						try {
-							role = ARIA_LANDMARKS.implicitRoles[currentElementChild.tagName];
+							role = implicitRoles[currentElementChild.tagName];
 						} catch(e) {
 							role = null;
 						}
@@ -91,90 +182,79 @@ var ARIA_LANDMARKS = {
 					}
 
 					// Add it if it's a landmark
-					if (role && ARIA_LANDMARKS.isLandmark(role, currentElementChild)) {
-						if (this.menu) {
-							var lastLandmarkedElement = this.landmarkedElements[this.landmarkedElements.length-1];
+					if (role && isLandmark(role, currentElementChild)) {
+						if (menu) {
+							var lastLandmarkedElement = landmarkedElements[landmarkedElements.length - 1];
 
 							// Indicate nested elements in the menu by prefixing with hyphens
-							if (this.isDescendant(lastLandmarkedElement, currentElementChild)) {
+							if (isDescendant(lastLandmarkedElement, currentElementChild)) {
 								++depth;
 							}
 							for (var j=0; j < depth; ++j) {
 								role = "-" + role;
 							}
 
-							var label = ARIA_LANDMARKS.getLabel(currentElementChild);
+							var label = getLabel(currentElementChild);
 							if (label != null) {
 								role = role + ": " + label;
 							}
 
 							var tempItem = document.createElement("menuitem");
 							tempItem.setAttribute("label", role);
-							tempItem.setAttribute("oncommand", "ARIA_LANDMARKS.focusElement(" + this.selectedIndex + ")");
-							this.menu.appendChild(tempItem);
+							// We want to take a copy of whatever the current selectedIndex is;
+							// to do this, we need to introduce an inner scope to capture the
+							// value of the variable...
+							(function(index) {
+								tempItem.addEventListener("command", function(){focusElement(index)});
+							})(selectedIndex);
+							menu.appendChild(tempItem);
+						} else {
+							alert('LANDMARKS: error: makeLandmarkMenu: no menu.');
 						}
-						this.landmarkedElements.push(currentElementChild);
-						++this.selectedIndex;
+						landmarkedElements.push(currentElementChild);
+						++selectedIndex;
 					}
 				}
 
 				// Recursively traverse the tree structure of the child node
-				ARIA_LANDMARKS.makeLandmarkMenu(currentElementChild, depth);
+				makeLandmarkMenu(currentElementChild, depth);
 				i++;
 				currentElementChild = currentElement.childNodes[i];
 			}
 		}
-	},
+	}
 
 	// Return a reference to an HTML document
-	getHTMLDocReference: function() {
+	function getHTMLDocReference() {
 		try {
 			return window.content.document;
 		} catch(e) {
 			return window.opener.parent.content.document;
 		}
-	},
+	}
 
-	// Advance to next landmark via hot key
-	nextLandmark: function(event) {
-		if (this.landmarkedElements.length == 0) {
-			this.makeLandmarks();
+	function isDescendant(parent, child) {
+		var node = child.parentNode;
+		while (node != null) {
+			if (node == parent) {
+				return true;
+			}
+			node = node.parentNode;
 		}
-		var landmarkCount = this.landmarkedElements.length;
-		this.focusElement( (this.previousSelectedIndex + 1) % landmarkCount );
-	},
-
-	// Advance to previous landmark via hot key
-	previousLandmark: function() {
-		if (this.landmarkedElements.length == 0) {
-			this.makeLandmarks();
-		}
-		var selectedLandmark = (this.previousSelectedIndex <= 0) ? this.landmarkedElements.length - 1 : this.previousSelectedIndex - 1;
-		this.focusElement(selectedLandmark);
-	},
-
-	isDescendant: function(parent, child) {
-	     var node = child.parentNode;
-	     while (node != null) {
-	         if (node == parent) {
-	             return true;
-	         }
-	         node = node.parentNode;
-	     }
-	     return false;
-	},
+		return false;
+	}
 
 	// Set focus on the selected landmark
-	focusElement: function (selectedIndex) {
-		var borderTypePref = this.prefs.getCharPref("borderType");
+	function focusElement(selectedIndex) {
+		var borderTypePref = prefs.getCharPref("borderType");
 
 		// Remove border on previously selected DOM element
-		var previouslySelectedElement = this.landmarkedElements[this.previousSelectedIndex];
+		var previouslySelectedElement = landmarkedElements[previousSelectedIndex];
 		if ((borderTypePref == "persistent" || borderTypePref == "momentary") && previouslySelectedElement) {
-			this.removeBorder(previouslySelectedElement);
+			removeBorder(previouslySelectedElement);
 		}
 
-		var element = this.landmarkedElements[selectedIndex];
+		var element = landmarkedElements[selectedIndex];
 		var tabindex = element.getAttribute("tabindex");
 		if (tabindex == null || tabindex == "0") {
 			element.setAttribute("tabindex", "-1");
@@ -183,10 +263,10 @@ var ARIA_LANDMARKS = {
 		element.focus();
 
 		if (borderTypePref == "persistent" || borderTypePref == "momentary") {
-			this.addBorder(element);
+			addBorder(element);
 
 			if (borderTypePref == "momentary") {
-				setTimeout(function(){ARIA_LANDMARKS.removeBorder(element)}, 250);
+				setTimeout(function(){removeBorder(element)}, 500);
 			}
 		}
 
@@ -197,41 +277,41 @@ var ARIA_LANDMARKS = {
 			element.setAttribute("tabindex", "0");
 		}
 
-		this.previousSelectedIndex = selectedIndex;
-	},
+		previousSelectedIndex = selectedIndex;
+	}
 
-	addBorder: function(element) {
+	function addBorder(element) {
 		element.style.outline = "medium solid red";
-	},
+	}
 
-	removeBorder: function(element) {
+	function removeBorder(element) {
 		element.style.outline = "";
-	},
+	}
 
-	isLandmark: function(role, element) {
+	function isLandmark(role, element) {
 		// Region, application and form are counted as landmarks only when they have labels
 		if (role == "region" || role == "application" || role == "form") {
-			return !!ARIA_LANDMARKS.getLabel(element);
+			return !!getLabel(element);
 		}
-		return this.landmarks[role];
-	},
+		return landmarks[role];
+	}
 
 	// Get the landmark label if specified
-	getLabel: function(element) {
+	function getLabel(element) {
 		var label = element.getAttribute("aria-label");
 
 		if (label == null) {
 			var labelID = element.getAttribute("aria-labelledby");
 			if (labelID != null) {
-				var doc = this.getHTMLDocReference();
+				var doc = getHTMLDocReference();
 				var labelElement = doc.getElementById(labelID);
-				label = ARIA_LANDMARKS.getInnerText(labelElement);
+				label = getInnerText(labelElement);
 			}
 		}
 		return label;
-	},
+	}
 
-	getInnerText: function(element) {
+	function getInnerText(element) {
 		var text = null;
 
 		if (element) {
@@ -240,57 +320,20 @@ var ARIA_LANDMARKS = {
 				text = element.textContent;
 		}
 		return text;
-	},
+	}
 
-	// HTML page load event listener
-	onPageLoad: function() {
-		// Refresh landmarks list
-		// FIXME ONLY IF THIS IS A WEB PAGE AND NOT A CHROME PAGE
-		//       OR: do we attach the extn to each tab?
-		ARIA_LANDMARKS.previousSelectedIndex = -1;
-		ARIA_LANDMARKS.makeLandmarks();
-	},
-
-	// Window load event listener - called when plugin starts up
-	startup: function() {
-		// Listen for a page load so that landmarks array can be refreshed.
-		// Fixes problem where nav keys don't work after a page refresh.
-		var appcontent = document.getElementById("appcontent");   // browser  
-		if(appcontent) {
-			appcontent.addEventListener("DOMContentLoaded", this.onPageLoad, true);  
-		}
-
-		// Register to receive notifications when preferences change
-		this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-			.getService(Components.interfaces.nsIPrefService)
-			.getBranch("extensions.landmarks.");
-		this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-		this.prefs.addObserver("", this, false);
-
-		this.reflectPreferences();
-	},
-
-	observe: function(subject, topic, data) {
-		if (topic != "nsPref:changed") {
-			return;
-		}
-
-		this.reflectPreferences();
-	},
-
-	reflectPreferences: function() {
+	function reflectPreferences() {
+		console.log('LANDMARKS: reflectPreferences called');
 		// Remove or add a border as required.
-		var borderTypePref = this.prefs.getCharPref("borderType");
-		var previouslySelectedElement =
-			this.landmarkedElements[this.previousSelectedIndex];
-
+		var borderTypePref = prefs.getCharPref("borderType");
+		var previouslySelectedElement = landmarkedElements[previousSelectedIndex];
 		if (previouslySelectedElement) {
 			switch (borderTypePref) {
 				case "persistent":
-					this.addBorder(previouslySelectedElement);
+					addBorder(previouslySelectedElement);
 					break;
 				default:
-					this.removeBorder(previouslySelectedElement);
+					removeBorder(previouslySelectedElement);
 					break;
 			}
 		}
@@ -307,41 +350,39 @@ var ARIA_LANDMARKS = {
 		var keyset_parent = old_keyset.parentNode;
 		keyset_parent.removeChild(old_keyset);
 
-		var modifiers = this.getModifiers();
+		var modifiers = getModifiers();
 
 		var nextNavKey = document.createElement('key');
 		nextNavKey.setAttribute('id', 'nextLandmark');
-		nextNavKey.setAttribute('oncommand',
-			'ARIA_LANDMARKS.nextLandmark(event);');
-		nextNavKey.setAttribute('key',
-			this.prefs.getCharPref("nextLandmark"));
+		nextNavKey.setAttribute('key', prefs.getCharPref("nextLandmark"));
 		if (modifiers) {
 			nextNavKey.setAttribute("modifiers", modifiers);
 		}
+		//nextNavKey.addEventListener("command", function(){nextLandmark()});
+		nextNavKey.setAttribute("oncommand", "ARIA_LANDMARKS.nextLandmark();");
 
 		var previousNavKey = document.createElement('key');
 		previousNavKey.setAttribute('id', 'previousLandmark');
-		previousNavKey.setAttribute('oncommand',
-			'ARIA_LANDMARKS.previousLandmark(event);');
-		previousNavKey.setAttribute('key',
-			this.prefs.getCharPref("previousLandmark"));
+		previousNavKey.setAttribute('key', prefs.getCharPref("previousLandmark"));
 		if (modifiers) {
 			previousNavKey.setAttribute("modifiers", modifiers);
 		}
+		//previousNavKey.addEventListener("command", function(){previousLandmark()});
+		previousNavKey.setAttribute("oncommand", "ARIA_LANDMARKS.previousLandmark();");
 
 		var new_keyset = document.createElement('keyset');
 		new_keyset.appendChild(nextNavKey);
 		new_keyset.appendChild(previousNavKey);
 		keyset_parent.appendChild(new_keyset);
-	},
+	}
 
 	// Get the modifier keys user may have set in preferences
-	getModifiers: function() {
+	function getModifiers() {
 		var modifiers = null;
-		if (this.prefs.getBoolPref("shiftKey")) {
+		if (prefs.getBoolPref("shiftKey")) {
 			modifiers = "shift";
 		}
-		if (this.prefs.getBoolPref("controlKey")) {
+		if (prefs.getBoolPref("controlKey")) {
 			if (modifiers) {
 				modifiers += " " + "control";
 			} else {
@@ -349,9 +390,9 @@ var ARIA_LANDMARKS = {
 			}
 		}
 		return modifiers
-	},
-};
+	}
 
-window.addEventListener("load", function(e) {
-	ARIA_LANDMARKS.startup();
-}, false);
+	return pub;
+})();
+
+window.addEventListener("load", function(e){ARIA_LANDMARKS.startup();}, false);
