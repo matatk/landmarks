@@ -41,7 +41,7 @@ var ARIA_LANDMARKS = (function() {
 
 	// Window load event listener - called when plugin starts up
 	pub.startup = function() {
-		console.log('LANDMARKS: startup function called');
+		//console.log('LANDMARKS: startup function called');
 		// Listen for a page load so that landmarks array can be refreshed.
 		// Fixes problem where nav keys don't work after a page refresh.
 		var appcontent = document.getElementById("appcontent");   // browser  
@@ -63,36 +63,35 @@ var ARIA_LANDMARKS = (function() {
 	}
 
 	pub.observe = function(subject, topic, data) {
-		console.log('LANDMARKS: prefs observer called');
+		//console.log('LANDMARKS: prefs observer called');
 		if (topic != "nsPref:changed") {
 			return;
 		}
 		reflectPreferences();
 	};
 
-	// According to <http://forums.mozillazine.org/viewtopic.php?f=19&t=2696969>
-	// it is not possible to use addEventListener on <key> elements :-/.
+	// From <http://forums.mozillazine.org/viewtopic.php?f=19&t=2696969>, it
+	// is not possible to use addEventListener on <key> elements, hence these
+	// functions have to be public...
 
 	// Advance to next landmark via hot key
 	pub.nextLandmark = function() {
-		console.log('LANDMARKS: next landmark');
 		if (landmarkedElements.length == 0) {
-			alert('LANDMARKS: nextLandmark: 0 landmarks; making...');
-			makeLandmarks();
+			msg_no_landmarks();
+		} else {
+			var landmarkCount = landmarkedElements.length;
+			focusElement( (previousSelectedIndex + 1) % landmarkCount );
 		}
-		var landmarkCount = landmarkedElements.length;
-		focusElement( (previousSelectedIndex + 1) % landmarkCount );
 	}
 
 	// Advance to previous landmark via hot key
 	pub.previousLandmark = function() {
-		console.log('LANDMARKS: previous landmark');
 		if (landmarkedElements.length == 0) {
-			alert('LANDMARKS: previousLandmark: 0 landmarks; making...');
-			makeLandmarks();
+			msg_no_landmarks();
+		} else {
+			var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
+			focusElement(selectedLandmark);
 		}
-		var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
-		focusElement(selectedLandmark);
 	}
 
 
@@ -102,14 +101,14 @@ var ARIA_LANDMARKS = (function() {
 
 	// HTML page load event listener
 	function onPageLoad() {
-		console.log('LANDMARKS: page loaded...');
+		//console.log('LANDMARKS: page loaded...');
 		refresh();
 	};
 
 	// browser tab change listener
 	function onTabChange() {
 		//var browser = gBrowser.selectedBrowser;
-		console.log('LANDMARKS: tab changed...');
+		//console.log('LANDMARKS: tab changed...');
 		refresh();
 	}
 
@@ -119,7 +118,7 @@ var ARIA_LANDMARKS = (function() {
 	}
 
 	function makeLandmarksInit() {
-		console.log('LANDMARKS: makeLandmarksInit');
+		//console.log('LANDMARKS: makeLandmarksInit');
 		menu = document.getElementById("landmarkPopup");
 
 		// Remove all of the items currently in the popup menu
@@ -183,6 +182,7 @@ var ARIA_LANDMARKS = (function() {
 
 					// Add it if it's a landmark
 					if (role && isLandmark(role, currentElementChild)) {
+						// TODO this check shouldn't be here
 						if (menu) {
 							var lastLandmarkedElement = landmarkedElements[landmarkedElements.length - 1];
 
@@ -208,8 +208,6 @@ var ARIA_LANDMARKS = (function() {
 								tempItem.addEventListener("command", function(){focusElement(index)});
 							})(selectedIndex);
 							menu.appendChild(tempItem);
-						} else {
-							alert('LANDMARKS: error: makeLandmarkMenu: no menu.');
 						}
 						landmarkedElements.push(currentElementChild);
 						++selectedIndex;
@@ -323,7 +321,7 @@ var ARIA_LANDMARKS = (function() {
 	}
 
 	function reflectPreferences() {
-		console.log('LANDMARKS: reflectPreferences called');
+		//console.log('LANDMARKS: reflectPreferences called');
 		// Remove or add a border as required.
 		var borderTypePref = prefs.getCharPref("borderType");
 		var previouslySelectedElement = landmarkedElements[previousSelectedIndex];
@@ -390,6 +388,10 @@ var ARIA_LANDMARKS = (function() {
 			}
 		}
 		return modifiers
+	}
+
+	function msg_no_landmarks() {
+		alert("No landmarks were found on this page.");
 	}
 
 	return pub;

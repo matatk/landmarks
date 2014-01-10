@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>ariaLandmarkNav@ibm.com</em:id>
     <em:name>WAI-ARIA landmark keyboard navigation</em:name>
-    <em:version>2014-01-04</em:version>
+    <em:version>2014-01-10</em:version>
     <em:description>Helps keyboard-only users navigate a Web page via WAI-ARIA landmarks.</em:description>
     <em:creator>David Todd, Matthew Tylee Atkinson</em:creator>
     <em:optionsURL>chrome://landmarks/content/options.xul</em:optionsURL>
