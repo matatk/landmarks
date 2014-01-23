@@ -1,112 +1,112 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://landmarks/locale/overlay.dtd">
 <prefwindow id="ibm-landmarks-prefs" title="Landmark navigation preferences" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <prefpane id="ibm-landmark-pane" label="Landmark navigation preferences">
-    <preferences>
-      <preference id="nextLandmarkNavPref" name="extensions.landmarks.nextLandmark" type="string" />
-      <preference id="previousLandmarkNavPref" name="extensions.landmarks.previousLandmark" type="string" />
-      <preference id="borderType" name="extensions.landmarks.borderType" type="string" />
-      <preference id="controlKey" name="extensions.landmarks.controlKey" type="bool" />
-      <preference id="shiftKey" name="extensions.landmarks.shiftKey" type="bool" />
-    </preferences>
-    <groupbox>
-      <caption label="Navigation keys and modifiers" />
-      <vbox style="padding: 5px">
-        <description value="Note: Some key settings may interfere with other applications'" />
-        <description value="shortcut keys or your browser's shortcut keys." />
-      </vbox>
-      <hbox style="padding-bottom: 5px;">
-        <hbox style="padding-top: 5px;">
-          <vbox align="right">
-            <spacer style="height: 3px;" />
-            <label control="nextLandmarkMenu" value="Next landmark: " />
-            <spacer style="height: 10px;" />
-            <label control="previousLandmarkMenu" value="Previous landmark: " />
-          </vbox>
-          <vbox>
-            <menulist id="nextLandmarkMenu" preference="nextLandmarkNavPref">
-              <menupopup>
-                <menuitem label="a" value="a" />
-                <menuitem label="b" value="b" />
-                <menuitem label="c" value="c" />
-                <menuitem label="d" value="d" />
-                <menuitem label="e" value="e" />
-                <menuitem label="f" value="f" />
-                <menuitem label="g" value="g" />
-                <menuitem label="h" value="h" />
-                <menuitem label="i" value="i" />
-                <menuitem label="j" value="j" />
-                <menuitem label="k" value="k" />
-                <menuitem label="l" value="l" />
-                <menuitem label="m" value="m" />
-                <menuitem label="n" value="n" />
-                <menuitem label="o" value="o" />
-                <menuitem label="p" value="p" />
-                <menuitem label="q" value="q" />
-                <menuitem label="r" value="r" />
-                <menuitem label="s" value="s" />
-                <menuitem label="t" value="t" />
-                <menuitem label="u" value="u" />
-                <menuitem label="v" value="v" />
-                <menuitem label="w" value="w" />
-                <menuitem label="x" value="x" />
-                <menuitem label="y" value="y" />
-                <menuitem label="z" value="z" />
-              </menupopup>
-            </menulist>
-            <menulist id="previousLandmarkMenu" preference="previousLandmarkNavPref">
-              <menupopup>
-                <menuitem label="a" value="a" />
-                <menuitem label="b" value="b" />
-                <menuitem label="c" value="c" />
-                <menuitem label="d" value="d" />
-                <menuitem label="e" value="e" />
-                <menuitem label="f" value="f" />
-                <menuitem label="g" value="g" />
-                <menuitem label="h" value="h" />
-                <menuitem label="i" value="i" />
-                <menuitem label="j" value="j" />
-                <menuitem label="k" value="k" />
-                <menuitem label="l" value="l" />
-                <menuitem label="m" value="m" />
-                <menuitem label="n" value="n" />
-                <menuitem label="o" value="o" />
-                <menuitem label="p" value="p" />
-                <menuitem label="q" value="q" />
-                <menuitem label="r" value="r" />
-                <menuitem label="s" value="s" />
-                <menuitem label="t" value="t" />
-                <menuitem label="u" value="u" />
-                <menuitem label="v" value="v" />
-                <menuitem label="w" value="w" />
-                <menuitem label="x" value="x" />
-                <menuitem label="y" value="y" />
-                <menuitem label="z" value="z" />
-              </menupopup>
-            </menulist>
-          </vbox>
-        </hbox>
-        <spacer style="width: 55px;" />
-        <groupbox>
-          <caption label="Key modifiers" />
-          <hbox>
-            <checkbox label="Control" preference="controlKey" />
-            <spacer style="width: 10px;" />
-            <checkbox label="Shift" preference="shiftKey" />
-          </hbox>
-        </groupbox>
-      </hbox>
-    </groupbox>
-    <spacer style="height: 10px" />
-    <groupbox>
-      <caption label="Border around focused element" />
-      <vbox style="padding-top:5px; padding-bottom: 5px;">
-        <radiogroup preference="borderType">
-          <radio value="none" label="No border drawn around focused element." />
-          <radio value="persistent" label="Persistent border drawn around focused element." />
-          <radio value="momentary" label="Momentary border drawn around focused element." />
-        </radiogroup>
-      </vbox>
-    </groupbox>
-  </prefpane>
+	<prefpane id="ibm-landmark-pane" label="Landmark navigation preferences">
+		<preferences>
+			<preference id="nextLandmarkNavPref" name="extensions.landmarks.nextLandmark" type="string"/>
+			<preference id="previousLandmarkNavPref" name="extensions.landmarks.previousLandmark" type="string"/>
+			<preference id="borderType" name="extensions.landmarks.borderType" type="string"/>
+			<preference id="controlKey" name="extensions.landmarks.controlKey" type="bool"/>
+			<preference id="shiftKey" name="extensions.landmarks.shiftKey" type="bool"/>
+		</preferences>
+		<groupbox>
+			<caption label="&ibm.haac.landmarks.prefs.group.keys;"/>
+			<hbox>
+				<label value="&ibm.haac.landmarks.prefs.note;:"/>
+				<vbox>
+					<label value="&ibm.haac.landmarks.prefs.desc1;"/>
+					<label value="&ibm.haac.landmarks.prefs.desc2;"/>
+				</vbox>
+			</hbox>
+			<separator class="thin"/>
+			<hbox>
+				<vbox>
+					<hbox align="right">
+						<label control="nextLandmarkMenu" value="&ibm.haac.landmarks.prefs.next;: "/>
+						<menulist id="nextLandmarkMenu" preference="nextLandmarkNavPref">
+							<menupopup>
+								<menuitem label="a" value="a"/>
+								<menuitem label="b" value="b"/>
+								<menuitem label="c" value="c"/>
+								<menuitem label="d" value="d"/>
+								<menuitem label="e" value="e"/>
+								<menuitem label="f" value="f"/>
+								<menuitem label="g" value="g"/>
+								<menuitem label="h" value="h"/>
+								<menuitem label="i" value="i"/>
+								<menuitem label="j" value="j"/>
+								<menuitem label="k" value="k"/>
+								<menuitem label="l" value="l"/>
+								<menuitem label="m" value="m"/>
+								<menuitem label="n" value="n"/>
+								<menuitem label="o" value="o"/>
+								<menuitem label="p" value="p"/>
+								<menuitem label="q" value="q"/>
+								<menuitem label="r" value="r"/>
+								<menuitem label="s" value="s"/>
+								<menuitem label="t" value="t"/>
+								<menuitem label="u" value="u"/>
+								<menuitem label="v" value="v"/>
+								<menuitem label="w" value="w"/>
+								<menuitem label="x" value="x"/>
+								<menuitem label="y" value="y"/>
+								<menuitem label="z" value="z"/>
+							</menupopup>
+						</menulist>
+					</hbox>
+					<hbox align="right">
+						<label control="previousLandmarkMenu" value="&ibm.haac.landmarks.prefs.prev;: "/>
+						<menulist id="previousLandmarkMenu" preference="previousLandmarkNavPref">
+							<menupopup>
+								<menuitem label="a" value="a"/>
+								<menuitem label="b" value="b"/>
+								<menuitem label="c" value="c"/>
+								<menuitem label="d" value="d"/>
+								<menuitem label="e" value="e"/>
+								<menuitem label="f" value="f"/>
+								<menuitem label="g" value="g"/>
+								<menuitem label="h" value="h"/>
+								<menuitem label="i" value="i"/>
+								<menuitem label="j" value="j"/>
+								<menuitem label="k" value="k"/>
+								<menuitem label="l" value="l"/>
+								<menuitem label="m" value="m"/>
+								<menuitem label="n" value="n"/>
+								<menuitem label="o" value="o"/>
+								<menuitem label="p" value="p"/>
+								<menuitem label="q" value="q"/>
+								<menuitem label="r" value="r"/>
+								<menuitem label="s" value="s"/>
+								<menuitem label="t" value="t"/>
+								<menuitem label="u" value="u"/>
+								<menuitem label="v" value="v"/>
+								<menuitem label="w" value="w"/>
+								<menuitem label="x" value="x"/>
+								<menuitem label="y" value="y"/>
+								<menuitem label="z" value="z"/>
+							</menupopup>
+						</menulist>
+					</hbox>
+				</vbox>
+				<groupbox>
+					<caption label="&ibm.haac.landmarks.prefs.group.mods;"/>
+					<hbox>
+						<checkbox label="&ibm.haac.landmarks.prefs.control;" preference="controlKey"/>
+						<checkbox label="&ibm.haac.landmarks.prefs.shift;" preference="shiftKey"/>
+					</hbox>
+				</groupbox>
+			</hbox>
+		</groupbox>
+		<groupbox>
+			<caption label=""/>
+			<vbox>
+				<radiogroup preference="borderType">
+					<radio value="none" label="&ibm.haac.landmarks.prefs.none;"/>
+					<radio value="persistent" label="&ibm.haac.landmarks.prefs.persistent;"/>
+					<radio value="momentary" label="&ibm.haac.landmarks.prefs.momentary;"/>
+				</radiogroup>
+			</vbox>
+		</groupbox>
+	</prefpane>
 </prefwindow>

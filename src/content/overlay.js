@@ -227,6 +227,7 @@ var ARIA_LANDMARKS = (function() {
 		try {
 			return window.content.document;
 		} catch(e) {
+			alert('window.content.document failed; using window.openenr.parent.content.document instead...');
 			return window.opener.parent.content.document;
 		}
 	}

@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<?xml-stylesheet href="chrome://landmarks/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://landmarks/locale/overlay.dtd">
 <overlay id="landmarks-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script src="overlay.js" />

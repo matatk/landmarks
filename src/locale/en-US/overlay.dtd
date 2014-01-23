@@ -1,1 +1,17 @@
 <!ENTITY ibm.haac.landmarks.label "Landmarks">
+
+<!ENTITY ibm.haac.landmarks.prefs.group.keys "Navigation keys and modifiers">
+<!ENTITY ibm.haac.landmarks.prefs.note "Note">
+<!ENTITY ibm.haac.landmarks.prefs.desc1 "Some key settings may interfere with other applications'">
+<!ENTITY ibm.haac.landmarks.prefs.desc2 "shortcut keys or your browser's shortcut keys.">
+<!ENTITY ibm.haac.landmarks.prefs.next "Next landmark">
+<!ENTITY ibm.haac.landmarks.prefs.prev "Previous landmark">
+
+<!ENTITY ibm.haac.landmarks.prefs.group.mods "Key modifiers">
+<!ENTITY ibm.haac.landmarks.prefs.control "Control">
+<!ENTITY ibm.haac.landmarks.prefs.shift "Shift">
+
+<!ENTITY ibm.haac.landmarks.prefs.group.border "Border around focused element">
+<!ENTITY ibm.haac.landmarks.prefs.none "No border drawn around focused element.">
+<!ENTITY ibm.haac.landmarks.prefs.persistent "Persistent border drawn around focused element.">
+<!ENTITY ibm.haac.landmarks.prefs.momentary "Momentary border drawn around focused element.">
