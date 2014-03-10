@@ -22,6 +22,8 @@ Installation
 
 To install the extension, download the landmarks.xpi file (from the [releases page](https://github.com/matatk/landmarks/releases)) then drag it over a Firefox window and release.  Then follow the installation instructions.
 
+You can build the code into an XPI file.  On UNIX-like systems, use `build.sh` and on Windows you can use `build.bat`.  There are also scripts that build and then open Firefox to install the extension: `install-mac.sh` and `install-windows.bat`.
+
 Navigating Landmarks
 ---------------------
 

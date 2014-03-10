@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!--
 © Copyright IBM Corp. 2012
 © Copyright The Paciello Group 2013-2014
 
@@ -20,24 +18,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
--->
-<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
-     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
-  <Description about="urn:mozilla:install-manifest">
-    <em:id>ariaLandmarkNav@ibm.com</em:id>
-    <em:name>WAI-ARIA landmark keyboard navigation</em:name>
-    <em:version>(development version)</em:version>
-    <em:description>Helps keyboard-only users navigate a Web page via WAI-ARIA landmarks.</em:description>
-    <em:creator>David Todd, Matthew Tylee Atkinson</em:creator>
-    <em:optionsURL>chrome://landmarks/content/options.xul</em:optionsURL>
-
-    <!-- Firefox -->
-    <em:targetApplication>
-      <Description>
-        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-        <em:minVersion>3.6</em:minVersion>
-        <em:maxVersion>27.*.*</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-  </Description>
-</RDF>
