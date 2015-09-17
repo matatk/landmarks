@@ -1,25 +1,25 @@
 /*
-© Copyright IBM Corp. 2012
-© Copyright The Paciello Group 2013-2014
+   © Copyright IBM Corp. 2012
+   © Copyright The Paciello Group 2013-2015
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+   */
 
 var ARIA_LANDMARKS = (function() {
 	var pub = {};  // stuff in here will be available to call from outside
@@ -32,14 +32,14 @@ var ARIA_LANDMARKS = (function() {
 
 	// List of landmarks to navigate
 	var landmarks = {
-		application: true,
+		application: true,    // must have a label
 		banner: true,
 		complementary: true,
 		contentinfo: true,
-		form: true,
+		form: true,           // must have a label
 		main: true,
 		navigation: true,
-		region: true,
+		region: true,         // must have a label
 		search: true
 	};
 
@@ -62,9 +62,9 @@ var ARIA_LANDMARKS = (function() {
 		//console.log('LANDMARKS: startup function called');
 		// Listen for a page load so that landmarks array can be refreshed.
 		// Fixes problem where nav keys don't work after a page refresh.
-		var appcontent = document.getElementById("appcontent");   // browser  
+		var appcontent = document.getElementById("appcontent");   // browser
 		if(appcontent) {
-			appcontent.addEventListener("DOMContentLoaded", onPageLoad, true);  
+			appcontent.addEventListener("DOMContentLoaded", onPageLoad, true);
 		}
 
 		// Keep track of tab changes...
@@ -72,13 +72,13 @@ var ARIA_LANDMARKS = (function() {
 
 		// Register to receive notifications when preferences change
 		prefs = Components.classes["@mozilla.org/preferences-service;1"]
-			.getService(Components.interfaces.nsIPrefService)
-			.getBranch("extensions.landmarks.");
+		.getService(Components.interfaces.nsIPrefService)
+		.getBranch("extensions.landmarks.");
 		prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
 		prefs.addObserver("", this, false);
 
 		reflectPreferences();
-	}
+	};
 
 	pub.observe = function(subject, topic, data) {
 		//console.log('LANDMARKS: prefs observer called');
@@ -94,23 +94,23 @@ var ARIA_LANDMARKS = (function() {
 
 	// Advance to next landmark via hot key
 	pub.nextLandmark = function() {
-		if (landmarkedElements.length == 0) {
+		if (landmarkedElements.length === 0) {
 			msg_no_landmarks();
 		} else {
 			var landmarkCount = landmarkedElements.length;
 			focusElement( (previousSelectedIndex + 1) % landmarkCount );
 		}
-	}
+	};
 
 	// Advance to previous landmark via hot key
 	pub.previousLandmark = function() {
-		if (landmarkedElements.length == 0) {
+		if (landmarkedElements.length === 0) {
 			msg_no_landmarks();
 		} else {
 			var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
 			focusElement(selectedLandmark);
 		}
-	}
+	};
 
 
 	//
@@ -121,7 +121,7 @@ var ARIA_LANDMARKS = (function() {
 	function onPageLoad() {
 		//console.log('LANDMARKS: page loaded...');
 		refresh();
-	};
+	}
 
 	// browser tab change listener
 	function onTabChange() {
@@ -145,10 +145,12 @@ var ARIA_LANDMARKS = (function() {
 		}
 
 		selectedIndex = 0;
-		makeLandmarks();
+		landmarkedElements = [];
+		var doc = getHTMLDocReference();
+		makeLandmarksMenu(doc.getElementsByTagName("body")[0], 0);
 
 		// Put "no landmarks" message in menu if no landmarks are found
-		if (menu.childNodes.length == 0) {
+		if (menu.childNodes.length === 0) {
 			var tempItem = document.createElement("menuitem");
 			tempItem.setAttribute("label", "No landmarks found");
 			tempItem.setAttribute("disabled", "true");
@@ -156,15 +158,8 @@ var ARIA_LANDMARKS = (function() {
 		}
 	}
 
-	// Populate the landmarks array
-	function makeLandmarks() {
-		landmarkedElements = [];
-		var doc = getHTMLDocReference();
-		makeLandmarkMenu(doc.getElementsByTagName("body")[0], 0);
-	}
-
 	// Recursive function for building XUL landmark menu
-	function makeLandmarkMenu(currentElement, depth) {
+	function makeLandmarksMenu(currentElement, depth) {
 		if (currentElement) {
 			var role;
 			var i = 0;
@@ -182,6 +177,7 @@ var ARIA_LANDMARKS = (function() {
 						}
 
 						// Perform containment checks
+						// TODO: how far up should the containment check go (current is just one level)?
 						if (name == 'HEADER' || name == 'FOOTER') {
 							var parent_name = currentElement.tagName;
 							if (parent_name == 'SECTION' || parent_name == 'ARTICLE') {
@@ -200,40 +196,43 @@ var ARIA_LANDMARKS = (function() {
 
 					// Add it if it's a landmark
 					if (role && isLandmark(role, currentElementChild)) {
-						// TODO this check shouldn't be here
-						if (menu) {
-							var lastLandmarkedElement = landmarkedElements[landmarkedElements.length - 1];
+						var lastLandmarkedElement = landmarkedElements[landmarkedElements.length - 1];
 
-							// Indicate nested elements in the menu by prefixing with hyphens
-							if (isDescendant(lastLandmarkedElement, currentElementChild)) {
-								++depth;
-							}
-							for (var j=0; j < depth; ++j) {
-								role = "-" + role;
-							}
-
-							var label = getLabel(currentElementChild);
-							if (label != null) {
-								role = role + ": " + label;
-							}
-
-							var tempItem = document.createElement("menuitem");
-							tempItem.setAttribute("label", role);
-							// We want to take a copy of whatever the current selectedIndex is;
-							// to do this, we need to introduce an inner scope to capture the
-							// value of the variable...
-							(function(index) {
-								tempItem.addEventListener("command", function(){focusElement(index)});
-							})(selectedIndex);
-							menu.appendChild(tempItem);
+						// Indicate nested elements in the menu by prefixing with hyphens
+						if (isDescendant(lastLandmarkedElement, currentElementChild)) {
+							++depth;
 						}
+						for (var j=0; j < depth; ++j) {
+							role = "-" + role;
+						}
+
+						var label = getARIAProvidedLabel(currentElementChild);
+						if (label !== null) {
+							role = role + ": " + label;
+						}
+
+						var tempItem = document.createElement("menuitem");
+						tempItem.setAttribute("label", role);
+						// When the menu item is activated, we should focus this
+						// element on the page.
+						//
+						// We want to take a copy of whatever the current
+						// selectedIndex is; to do this, we need to introduce an
+						// inner scope to capture the value of the variable...
+						(function(index) {
+							tempItem.addEventListener("command", function() {
+								focusElement(index);
+							});
+						})(selectedIndex);
+						menu.appendChild(tempItem);
+
 						landmarkedElements.push(currentElementChild);
 						++selectedIndex;
 					}
 				}
 
 				// Recursively traverse the tree structure of the child node
-				makeLandmarkMenu(currentElementChild, depth);
+				makeLandmarksMenu(currentElementChild, depth);
 				i++;
 				currentElementChild = currentElement.childNodes[i];
 			}
@@ -252,7 +251,7 @@ var ARIA_LANDMARKS = (function() {
 
 	function isDescendant(parent, child) {
 		var node = child.parentNode;
-		while (node != null) {
+		while (node !== null) {
 			if (node == parent) {
 				return true;
 			}
@@ -273,7 +272,7 @@ var ARIA_LANDMARKS = (function() {
 
 		var element = landmarkedElements[selectedIndex];
 		var tabindex = element.getAttribute("tabindex");
-		if (tabindex == null || tabindex == "0") {
+		if (tabindex === null || tabindex == "0") {
 			element.setAttribute("tabindex", "-1");
 		}
 
@@ -283,12 +282,12 @@ var ARIA_LANDMARKS = (function() {
 			addBorder(element);
 
 			if (borderTypePref == "momentary") {
-				setTimeout(function(){removeBorder(element)}, 500);
+				setTimeout(function() { removeBorder(element); }, 1000);
 			}
 		}
 
 		// Restore tabindex value
-		if (tabindex == null) {
+		if (tabindex === null) {
 			element.removeAttribute("tabindex");
 		} else if (tabindex == "0") {
 			element.setAttribute("tabindex", "0");
@@ -306,20 +305,21 @@ var ARIA_LANDMARKS = (function() {
 	}
 
 	function isLandmark(role, element) {
-		// Region, application and form are counted as landmarks only when they have labels
+		// Region, application and form are counted as landmarks only when
+		// they have labels
 		if (role == "region" || role == "application" || role == "form") {
-			return !!getLabel(element);
+			return !!getARIAProvidedLabel(element);
 		}
 		return landmarks[role];
 	}
 
 	// Get the landmark label if specified
-	function getLabel(element) {
+	function getARIAProvidedLabel(element) {
 		var label = element.getAttribute("aria-label");
 
-		if (label == null) {
+		if (label === null) {
 			var labelID = element.getAttribute("aria-labelledby");
-			if (labelID != null) {
+			if (labelID !== null) {
 				var doc = getHTMLDocReference();
 				var labelElement = doc.getElementById(labelID);
 				label = getInnerText(labelElement);
@@ -333,7 +333,7 @@ var ARIA_LANDMARKS = (function() {
 
 		if (element) {
 			text = element.innerText;
-			if (text == undefined)
+			if (text === undefined)
 				text = element.textContent;
 		}
 		return text;
@@ -375,7 +375,6 @@ var ARIA_LANDMARKS = (function() {
 		if (modifiers) {
 			nextNavKey.setAttribute("modifiers", modifiers);
 		}
-		//nextNavKey.addEventListener("command", function(){nextLandmark()});
 		nextNavKey.setAttribute("oncommand", "ARIA_LANDMARKS.nextLandmark();");
 
 		var previousNavKey = document.createElement('key');
@@ -384,7 +383,6 @@ var ARIA_LANDMARKS = (function() {
 		if (modifiers) {
 			previousNavKey.setAttribute("modifiers", modifiers);
 		}
-		//previousNavKey.addEventListener("command", function(){previousLandmark()});
 		previousNavKey.setAttribute("oncommand", "ARIA_LANDMARKS.previousLandmark();");
 
 		var new_keyset = document.createElement('keyset');
@@ -406,7 +404,7 @@ var ARIA_LANDMARKS = (function() {
 				modifiers = "control";
 			}
 		}
-		return modifiers
+		return modifiers;
 	}
 
 	function msg_no_landmarks() {
@@ -416,4 +414,6 @@ var ARIA_LANDMARKS = (function() {
 	return pub;
 })();
 
-window.addEventListener("load", function(e){ARIA_LANDMARKS.startup();}, false);
+window.addEventListener("load", function(e) {
+	ARIA_LANDMARKS.startup();
+}, false);

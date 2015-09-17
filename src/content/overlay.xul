@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 © Copyright IBM Corp. 2012
-© Copyright The Paciello Group 2013-2014
+© Copyright The Paciello Group 2013-2015
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,14 @@ THE SOFTWARE.
 -->
 <!DOCTYPE overlay SYSTEM "chrome://landmarks/locale/overlay.dtd">
 <overlay id="landmarks-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="overlay.js" />
-  <keyset>
-    <key id="nextLandmark" />
-    <key id="previousLandmark" />
-  </keyset>
-  <menupopup id="menu_ToolsPopup">
-    <menu id="file-menu" label="&ibm.haac.landmarks.label;">
-      <menupopup id="landmarkPopup"></menupopup>
-    </menu>
-  </menupopup>
+	<script src="overlay.js" />
+	<keyset>
+		<key id="nextLandmark" />
+		<key id="previousLandmark" />
+	</keyset>
+	<menupopup id="menu_ToolsPopup">
+		<menu id="file-menu" label="&ibm.haac.landmarks.label;">
+			<menupopup id="landmarkPopup"></menupopup>
+		</menu>
+	</menupopup>
 </overlay>
