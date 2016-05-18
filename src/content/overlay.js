@@ -137,7 +137,7 @@ var ARIA_LANDMARKS = (function() {
 
 	function makeLandmarksInit() {
 		//console.log('LANDMARKS: makeLandmarksInit');
-		menu = document.getElementById("landmarkPopup");
+		menu = document.getElementById("landmarksMenuPopup");
 
 		// Remove all of the items currently in the popup menu
 		while (menu.firstChild) {

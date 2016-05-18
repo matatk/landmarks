@@ -29,8 +29,8 @@ THE SOFTWARE.
 		<key id="previousLandmark" />
 	</keyset>
 	<menupopup id="menu_ToolsPopup">
-		<menu id="file-menu" label="&ibm.haac.landmarks.label;">
-			<menupopup id="landmarkPopup"></menupopup>
+		<menu id="landmarksToolsMenuItem" label="&ibm.haac.landmarks.label;">
+			<menupopup id="landmarksMenuPopup"></menupopup>
 		</menu>
 	</menupopup>
 </overlay>
