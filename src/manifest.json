@@ -1,0 +1,36 @@
+{
+	"manifest_version": 2,
+	"name": "Landmarks",
+	"version": "1.0",
+
+	"description": "FIXME",
+	"icons": {
+		"48": "icons/border-48.png"
+	},
+
+	"applications": {
+		"gecko": {
+			"id": "ariaLandmarkNav@ibm.com",
+			"strict_min_version": "45.0"
+		}
+	},
+
+	"permissions": [
+		"tabs"
+	],
+
+	"browser_action": {
+		"default_title": "Landmarks"
+	},
+
+	"background": {
+		"scripts": ["background.js"]
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": ["content.js"]
+		}
+	]
+}
