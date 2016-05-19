@@ -1,12 +1,16 @@
 {
 	"manifest_version": 2,
-	"name": "Landmarks",
+	"name": "WAI-ARIA Landmark Keyboard Navigation",
 	"version": "1.0",
 
-	"description": "FIXME",
+	"description": "Allows you to navigate a web page via WAI-ARIA landmarks using the keyboard (also provides a menu).",
 	"icons": {
 		"48": "icons/border-48.png"
 	},
+
+	"author": "David Todd, Matthew Tylee Atkinson",
+	"short_name": "Landmarks",
+	"homepage_url": "https://github.com/matatk/landmarks",
 
 	"applications": {
 		"gecko": {
@@ -20,7 +24,8 @@
 	],
 
 	"browser_action": {
-		"default_title": "Landmarks"
+		"default_title": "Landmarks",
+		"default_popup": "popup.html"
 	},
 
 	"background": {

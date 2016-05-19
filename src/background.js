@@ -1,5 +1,5 @@
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-	makeLandmarks(tabs[0].id, "background.js run");
+	landmarksLog(tabs[0].id, "background.js run");
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
@@ -8,19 +8,15 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	}
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		if (tabId == tabs[0].id) {
-			makeLandmarks(tabId, "user navigated within a tab");
+			landmarksLog(tabId, "user navigated within a tab");
 		}
 	});
 });
 
 chrome.tabs.onActivated.addListener(function (activeInfo) {
-	makeLandmarks(activeInfo.tabId, "new tab became active");
+	landmarksLog(activeInfo.tabId, "new tab became active");
 });
 
-chrome.browserAction.onClicked.addListener(function (tab) {
-	console.log("landmarks browserAction clicked; tab", tab.id)
-});
-
-function makeLandmarks(tabId, message) {
-	console.log(tabId, message);
+function landmarksLog(tabId, message) {
+	console.landmarksLog(tabId, message);
 }

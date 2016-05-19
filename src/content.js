@@ -269,3 +269,13 @@ function doForEach(nodeList, callback) {
 }
 
 refresh();
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	if (request == "get-landmarks") {
+		var output = '';
+		landmarkedElements.forEach(function (landmark) {
+			output += landmark + '\n';
+		});
+		sendResponse(output);
+	}
+});
