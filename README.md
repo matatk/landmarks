@@ -1,6 +1,8 @@
 Landmarks
 =========
 
+**BORKEDNESS; CONVERSION TO WEBEXTENSION:** This is presently broken because it is unsigned and Firefox now requires signed add-ons.  I am in the process of converting it to using the new, relatively cross-browser, WebExtensions API (in the [`convert-to-webextension`](https://github.com/matatk/landmarks/tree/convert-to-webextension) branch) and will merge that in here ASAP.
+
 This repository contains a Firefox extension that enables keyboard
 navigation of WAI-ARIA landmarks (including [implicit landmarks in HTML5
 elements](http://www.w3.org/html/wg/drafts/html/master/dom.html#sec-strong-native-semantics)).
