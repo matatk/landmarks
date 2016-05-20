@@ -18,5 +18,5 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
 });
 
 function landmarksLog(tabId, message) {
-	console.landmarksLog(tabId, message);
+	console.log(tabId, message);
 }

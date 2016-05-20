@@ -1,0 +1,12 @@
+{
+  "name": "landmarks",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "grunt": "~0.4",
+    "grunt-contrib-clean": "~1.0",
+    "grunt-respimg": "~1.1",
+    "load-grunt-tasks": "~3.5",
+    "time-grunt": "~1.3"
+  }
+}

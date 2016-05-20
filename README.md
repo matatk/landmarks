@@ -1,6 +1,8 @@
 Landmarks
 =========
 
+**FIXME:** This is now out-of-date wrt the WebExtension.
+
 This repository contains a Firefox extension that enables keyboard
 navigation of WAI-ARIA landmarks (including [implicit landmarks in HTML5
 elements](http://www.w3.org/html/wg/drafts/html/master/dom.html#sec-strong-native-semantics)).

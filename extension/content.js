@@ -40,11 +40,11 @@ var landmarks = [
 
 // mapping of HTML5 elements to implicit roles
 var implicitRoles = {
-	HEADER: 'banner',       // must not be in a <section> or <article>
-	FOOTER: 'contentinfo',  // must not be in a <section> or <article>
-	MAIN: 'main',
-	ASIDE: 'complementary',
-	NAV: 'navigation'
+	HEADER: 'banner',         // must not be in a <section> or <article>
+	FOOTER: 'contentinfo',    // must not be in a <section> or <article>
+	MAIN:   'main',
+	ASIDE:  'complementary',
+	NAV:    'navigation'
 };
 
 
@@ -77,7 +77,8 @@ function previousLandmark () {
 // Private functions (DOM-focused)
 //
 
-// to be called on page load; tab change; navigation within tab
+// This script is injected, and the following function should be called,
+// on page load/tab navigation
 function refresh() {
 	previousSelectedIndex = -1;
 	selectedIndex = 0;
@@ -86,7 +87,7 @@ function refresh() {
 	console.log(landmarkedElements);
 }
 
-// Recursive function for building XUL landmark menu
+// Recursive function for building list of landmarks on the page
 function getLandmarks(currentElement, depth) {
 	if (!currentElement) return;
 
