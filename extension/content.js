@@ -55,32 +55,7 @@ var implicitRoles = {
 
 
 //
-// Public functions
-//
-
-// Advance to next landmark via hot key
-function nextLandmark () {
-	if (landmarkedElements.length === 0) {
-		msg_no_landmarks();
-	} else {
-		var landmarkCount = landmarkedElements.length;
-		focusElement( (previousSelectedIndex + 1) % landmarkCount );
-	}
-}
-
-// Advance to previous landmark via hot key
-function previousLandmark () {
-	if (landmarkedElements.length === 0) {
-		msg_no_landmarks();
-	} else {
-		var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
-		focusElement(selectedLandmark);
-	}
-}
-
-
-//
-// Private functions (DOM-focused)
+// Identifying Landmarks
 //
 
 // This script is injected, and the following function should be called,
@@ -158,17 +133,6 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 	return role;
 }
 
-
-// Abstracts the data storage format away from simply getting the last-
-// landmarked DOM node
-function getLastLandmarkedElement() {
-	var lastInfo = landmarkedElements[landmarkedElements.length - 1];
-	if (lastInfo) {
-		return lastInfo.element;
-	}
-}
-
-
 function isDescendant(parent, child) {
 	var node = child.parentNode;
 
@@ -221,27 +185,72 @@ function getInnerText(element) {
 
 
 //
-// Internal
+// Utilities
 //
 
+// forEach for NodeList (as opposed to Arrays)
+function doForEach(nodeList, callback) {
+	for (var i = 0; i < nodeList.length; i++) {
+		callback(nodeList[i]);
+	}
+}
+
+// Abstracts the data storage format away from simply getting the last-
+// landmarked DOM node
+function getLastLandmarkedElement() {
+	var lastInfo = landmarkedElements[landmarkedElements.length - 1];
+	if (lastInfo) {
+		return lastInfo.element;
+	}
+}
+
+
+//
+// Focusing
+//
+
+// Advance to next landmark via hot key
+function nextLandmark() {
+	if (landmarkedElements.length === 0) {
+		msg_no_landmarks();
+	} else {
+		var landmarkCount = landmarkedElements.length;
+		focusElement( (previousSelectedIndex + 1) % landmarkCount );
+	}
+}
+
+// Advance to previous landmark via hot key
+function previousLandmark() {
+	if (landmarkedElements.length === 0) {
+		msg_no_landmarks();
+	} else {
+		var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
+		focusElement(selectedLandmark);
+	}
+}
+
 // Set focus on the selected landmark
-function focusElement(selectedIndex) {
-	var borderTypePref = prefs.getCharPref("borderType");
+function focusElement(index) {
+	var borderTypePref = 'persistent'; //prefs.getCharPref("borderType");
 
 	// Remove border on previously selected DOM element
-	var previouslySelectedElement = landmarkedElements[previousSelectedIndex];
-	if ((borderTypePref == "persistent" || borderTypePref == "momentary") && previouslySelectedElement) {
-		removeBorder(previouslySelectedElement);
+	if (previousSelectedIndex >= 0) {
+		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
+		if ((borderTypePref == "persistent" || borderTypePref == "momentary") && previouslySelectedElement) {  // TODO need last check?
+			removeBorder(previouslySelectedElement);
+		}
 	}
 
-	var element = landmarkedElements[selectedIndex];
-	var tabindex = element.getAttribute("tabindex");
-	if (tabindex === null || tabindex == "0") {
+	// Ensure that the element is focusable
+	var element = landmarkedElements[index].element;
+	var originalTabindex = element.getAttribute("tabindex");
+	if (originalTabindex === null || originalTabindex == "0") {
 		element.setAttribute("tabindex", "-1");
 	}
 
 	element.focus();
 
+	// Add the border and set a timer to remove it (if required by user)
 	if (borderTypePref == "persistent" || borderTypePref == "momentary") {
 		addBorder(element);
 
@@ -251,12 +260,13 @@ function focusElement(selectedIndex) {
 	}
 
 	// Restore tabindex value
-	if (tabindex === null) {
+	if (originalTabindex === null) {
 		element.removeAttribute("tabindex");
-	} else if (tabindex == "0") {
+	} else if (originalTabindex == "0") {
 		element.setAttribute("tabindex", "0");
 	}
 
+	selectedIndex = index;
 	previousSelectedIndex = selectedIndex;
 }
 
@@ -274,22 +284,8 @@ function msg_no_landmarks() {
 
 
 //
-// Utilities
-//
-
-function doForEach(nodeList, callback) {
-	for (var i = 0; i < nodeList.length; i++) {
-		callback(nodeList[i]);
-	}
-}
-
-
-//
 // Extension Bootstroapping and Messaging
 //
-
-refresh();
-
 
 // Filter the full-featured landmarkedElements array into something that the
 // browser-chrome-based part can use. Send all info except the DOM element.
@@ -305,9 +301,13 @@ function filterLandmarks() {
 	return list;
 }
 
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-	if (request == "get-landmarks") {
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+	if (message.request == 'get-landmarks') {
 		sendResponse(filterLandmarks());
+	} else if (message.request == 'focus-landmark') {
+		selectedIndex = message.index;
+		focusElement(selectedIndex); // TODO make elegant!
 	}
 });
+
+refresh();
