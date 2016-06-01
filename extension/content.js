@@ -25,6 +25,12 @@ var selectedIndex = 0;           // Currently selected landmark in menu
 var previousSelectedIndex = -1;  // Previously selected landmark in menu
 var landmarkedElements = [];     // Array of landmarked elements
 
+// Each member of landmarkedElements is an array itself, of the form:
+// 0 - depth                      (int)
+// 1 - [ARIA] role                (string)
+// 2 - [author-supplied] label    (string or null)
+// 3 - the in-memory DOM element  (HTML*Element)
+
 // List of landmarks to navigate
 var landmarks = [
 	"application",    // must have a label
@@ -84,7 +90,6 @@ function refresh() {
 	selectedIndex = 0;
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName("body")[0], 0);
-	console.log(landmarkedElements);
 }
 
 // Recursive function for building list of landmarks on the page
@@ -109,18 +114,12 @@ function getLandmarks(currentElement, depth) {
 
 			// Add the element if it should be considered a landmark
 			if (role && isLandmark(role, label, currentElementChild)) {
-				var lastLandmarkedElement = landmarkedElements[landmarkedElements.length - 1];
+				var lastLandmarkedElement = getLastLandmarkedElement();
 
-				// FIXME think this doesn't currently work; all depths are 0
 				if (isDescendant(lastLandmarkedElement, currentElementChild)) {
 					++depth;
 				}
 
-				// Add to array:
-				//		depth
-				//		[ARIA] role
-				//		[author-supplied] label
-				//		the in-memory DOM element
 				landmarkedElements.push([depth, role, label, currentElementChild]);
 			}
 		}
@@ -152,6 +151,16 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 	}
 
 	return role;
+}
+
+
+// Abstracts the data storage format away from simply getting the last-
+// landmarked DOM node
+function getLastLandmarkedElement() {
+	var lastInfo = landmarkedElements[landmarkedElements.length - 1];
+	if (lastInfo) {
+		return lastInfo[3];
+	}
 }
 
 
@@ -268,6 +277,11 @@ function doForEach(nodeList, callback) {
 		callback(nodeList[i]);
 	}
 }
+
+
+//
+// Extension Bootstroapping and Messaging
+//
 
 refresh();
 
