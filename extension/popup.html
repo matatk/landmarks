@@ -24,11 +24,26 @@ function getLandmarkName(landmark) {
 
 function receiveLandmarks(response) {
 	var html_code = '<ul>';
+	var previous_depth = 0;
+
 	response.forEach(function (landmark) {
+		var depth_change = landmark.depth - previous_depth;
+
+		if (depth_change > 0) {
+			html_code += '<ul>';
+		}
+
+		if (depth_change < 0) {
+			html_code += '</ul>';
+		}
+
 		html_code += '<li>';
 		html_code += getLandmarkName(landmark);
 		html_code += '</li>';
+
+		previous_depth = landmark.depth;
 	});
+
 	html_code += '</ul>';
 	document.getElementById('landmarks').innerHTML = html_code;
 }
