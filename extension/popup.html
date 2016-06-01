@@ -4,16 +4,33 @@
 		<meta charset="UTF-8">
 	</head>
 	<body>
-		<pre id="landmarks">
-(no landmarks found)
-		</pre>
+		<div id="landmarks">
+			<p>(no landmarks found)</p>
+		</div>
 		<script>
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 	chrome.tabs.sendMessage(tabs[0].id, "get-landmarks", receiveLandmarks);
 });
 
+
+function getLandmarkName(landmark) {
+	if (landmark.label) {
+		return landmark.label + " (" + landmark.role + ")";
+	} else {
+		return landmark.role;
+	}
+}
+
+
 function receiveLandmarks(response) {
-	document.getElementById('landmarks').innerHTML = response;
+	var html_code = '<ul>';
+	response.forEach(function (landmark) {
+		html_code += '<li>';
+		html_code += getLandmarkName(landmark);
+		html_code += '</li>';
+	});
+	html_code += '</ul>';
+	document.getElementById('landmarks').innerHTML = html_code;
 }
 		</script>
 	</body>

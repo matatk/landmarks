@@ -25,11 +25,11 @@ var selectedIndex = 0;           // Currently selected landmark in menu
 var previousSelectedIndex = -1;  // Previously selected landmark in menu
 var landmarkedElements = [];     // Array of landmarked elements
 
-// Each member of landmarkedElements is an array itself, of the form:
-// 0 - depth                      (int)
-// 1 - [ARIA] role                (string)
-// 2 - [author-supplied] label    (string or null)
-// 3 - the in-memory DOM element  (HTML*Element)
+// Each member of landmarkedElements is an object of the form:
+//   depth: (int)
+//   [ARIA] role: (string)
+//   [author-supplied] label: (string or null)
+//   [the in-memory DOM] element: (HTML*Element)
 
 // List of landmarks to navigate
 var landmarks = [
@@ -120,7 +120,12 @@ function getLandmarks(currentElement, depth) {
 					++depth;
 				}
 
-				landmarkedElements.push([depth, role, label, currentElementChild]);
+				landmarkedElements.push({
+					depth: depth,
+					role: role,
+					label: label,
+					element: currentElementChild
+				});
 			}
 		}
 
@@ -159,7 +164,7 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 function getLastLandmarkedElement() {
 	var lastInfo = landmarkedElements[landmarkedElements.length - 1];
 	if (lastInfo) {
-		return lastInfo[3];
+		return lastInfo.element;
 	}
 }
 
@@ -285,12 +290,24 @@ function doForEach(nodeList, callback) {
 
 refresh();
 
+
+// Filter the full-featured landmarkedElements array into something that the
+// browser-chrome-based part can use. Send all info except the DOM element.
+function filterLandmarks() {
+	list = [];
+	landmarkedElements.forEach(function (landmark) {
+		list.push({
+			depth: landmark.depth,
+			role: landmark.role,
+			label: landmark.label
+		});
+	});
+	return list;
+}
+
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 	if (request == "get-landmarks") {
-		var output = '';
-		landmarkedElements.forEach(function (landmark) {
-			output += landmark + '\n';
-		});
-		sendResponse(output);
+		sendResponse(filterLandmarks());
 	}
 });
