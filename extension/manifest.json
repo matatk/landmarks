@@ -49,5 +49,20 @@
 			"matches": ["*://*/*"],
 			"js": ["content.js"]
 		}
-	]
+	],
+
+	"commands": {
+		"next-landmark": {
+			"suggested_key": {
+				"default": "Alt+Shift+N"
+			},
+			"description": "Move to and highlight the next landmark"
+		},
+		"prev-landmark": {
+			"suggested_key": {
+				"default": "Alt+Shift+P"
+			},
+			"description": "Move to and highlight the previous landmark"
+		}
+	}
 }

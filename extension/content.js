@@ -21,9 +21,9 @@
    THE SOFTWARE.
    */
 
-var selectedIndex = 0;           // Currently selected landmark in menu
-var previousSelectedIndex = -1;  // Previously selected landmark in menu
-var landmarkedElements = [];     // Array of landmarked elements
+var selectedIndex = null;          // Currently selected landmark in menu
+var previousSelectedIndex = null;  // Previously selected landmark in menu
+var landmarkedElements = [];       // Array of landmarked elements
 
 // Each member of landmarkedElements is an object of the form:
 //   depth: (int)
@@ -57,15 +57,6 @@ var implicitRoles = {
 //
 // Identifying Landmarks
 //
-
-// This script is injected, and the following function should be called,
-// on page load/tab navigation
-function refresh() {
-	previousSelectedIndex = -1;
-	selectedIndex = 0;
-	landmarkedElements = [];
-	getLandmarks(document.getElementsByTagName("body")[0], 0);
-}
 
 // Recursive function for building list of landmarks on the page
 function getLandmarks(currentElement, depth) {
@@ -309,5 +300,14 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 		focusElement(selectedIndex); // TODO make elegant!
 	}
 });
+
+// This script is injected, and the following function should be called,
+// on page load/tab navigation
+function refresh() {
+	previousSelectedIndex = -1;
+	selectedIndex = -1;
+	landmarkedElements = [];
+	getLandmarks(document.getElementsByTagName("body")[0], 0);
+}
 
 refresh();
