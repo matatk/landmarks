@@ -33,7 +33,7 @@ var landmarkedElements = [];     // Array of landmarked elements
 
 // List of landmarks to navigate
 var landmarks = [
-	"application",    // must have a label
+	"application",    // must have a label -- TODO decide if should remove
 	"banner",
 	"complementary",
 	"contentinfo",

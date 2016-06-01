@@ -33,10 +33,15 @@ module.exports = function(grunt) {
 			}
 		},
 
-		clean: [
-			"extension/*.png"
-		]
+		clean: {
+			png: [
+				"extension/*.png",
+			],
+			todo: [
+				"extension/*.svg"  // TODO remove after image-gen sorted out
+			]
+		}
 	});
 
-	grunt.registerTask('default', ['respimg']);
+	grunt.registerTask('default', ['respimg', 'clean:todo']);
 };
