@@ -293,7 +293,6 @@ function filterLandmarks() {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-	console.log(message);
 	if (message.request == 'get-landmarks') {
 		if (landmarkedElements.length > 0) {
 			sendResponse(filterLandmarks());
@@ -314,7 +313,6 @@ function refresh() {
 	selectedIndex = -1;
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName("body")[0], 0);
-	console.log(landmarkedElements);
 }
 
 refresh();
