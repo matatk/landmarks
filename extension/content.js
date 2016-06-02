@@ -281,7 +281,7 @@ function msg_no_landmarks() {
 // Filter the full-featured landmarkedElements array into something that the
 // browser-chrome-based part can use. Send all info except the DOM element.
 function filterLandmarks() {
-	list = [];
+	var list = [];
 	landmarkedElements.forEach(function (landmark) {
 		list.push({
 			depth: landmark.depth,
@@ -295,7 +295,11 @@ function filterLandmarks() {
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	console.log(message);
 	if (message.request == 'get-landmarks') {
-		sendResponse(filterLandmarks());
+		if (landmarkedElements.length > 0) {
+			sendResponse(filterLandmarks());
+		} else {
+			sendResponse(null);
+		}
 	} else if (message.request == 'focus-landmark') {
 		// TODO make elegant!
 		selectedIndex = message.index;

@@ -20,6 +20,7 @@ function buttonForElement(landmark, index) {
 // nested list to mirror the structure of those landmarks
 function receiveLandmarks(response) {
 	console.log('receiveLandmarks', response);
+	if (response === undefined) return;  // TODO why is this not null?
 	var html = '<ul>';
 	var previous_depth = 0;
 
