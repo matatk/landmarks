@@ -293,11 +293,13 @@ function filterLandmarks() {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+	console.log(message);
 	if (message.request == 'get-landmarks') {
 		sendResponse(filterLandmarks());
 	} else if (message.request == 'focus-landmark') {
+		// TODO make elegant!
 		selectedIndex = message.index;
-		focusElement(selectedIndex); // TODO make elegant!
+		focusElement(selectedIndex);
 	}
 });
 
@@ -308,6 +310,7 @@ function refresh() {
 	selectedIndex = -1;
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName("body")[0], 0);
+	console.log(landmarkedElements);
 }
 
 refresh();
