@@ -47,44 +47,6 @@ module.exports = function(grunt) {
 			}
 		},
 
-		copy: {
-			firefox: {
-				files: [{
-					expand: true,
-					cwd: 'src/static/',
-					src: ['*.js', '*.html'],
-					dest: 'extension/firefox/'
-				}]
-			},
-			chrome: {
-				files: [{
-					expand: true,
-					cwd: 'src/static/',
-					src: ['*.js', '*.html'],
-					dest: 'extension/chrome/'
-				}]
-			}
-		},
-
-		json_merge: {
-			firefox: {
-				files: {
-					'extension/firefox/manifest.json': [
-						'src/build/manifest.common.json',
-						'src/build/manifest.firefox.json'
-					]
-				}
-			},
-			chrome: {
-				files: {
-					'extension/chrome/manifest.json': [
-						'src/build/manifest.common.json',
-						'src/build/manifest.chrome.json'
-					]
-				}
-			}
-		},
-
 		clean: {
 			built: [
 				'extension/',
@@ -95,19 +57,35 @@ module.exports = function(grunt) {
 		}
 	});
 
-	grunt.registerTask('firefox', [
-		'respimg:firefox',
-		'copy:firefox',
-		'json_merge:firefox',
-		'clean:todo'
-	]);
+	// The following task declarations are even more repetitive,
+	// so declare them in a loop
+	['firefox', 'chrome'].forEach(function(browser) {
+		grunt.config.set('json_merge.' + browser, {
+			files: [{
+				dest: 'extension/' + browser + '/manifest.json',
+				src: [
+					'src/build/manifest.common.json',
+					'src/build/manifest.' + browser + '.json'
+				]
+			}]
+		});
 
-	grunt.registerTask('chrome', [
-		'respimg:chrome',
-		'copy:chrome',
-		'json_merge:chrome',
-		'clean:todo'
-	]);
+		grunt.config.set('copy.' + browser, {
+			files: [{
+				expand: true,
+				cwd: 'src/static/',
+				src: ['*.js', '*.html'],
+				dest: 'extension/' + browser + '/'
+			}]
+		});
+
+		grunt.registerTask(browser, [
+			'respimg:' + browser,
+			'copy:' + browser,
+			'json_merge:' + browser,
+			'clean:todo'
+		]);
+	});
 
 	grunt.registerTask('default', [
 		'clean:built',
