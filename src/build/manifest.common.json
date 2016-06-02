@@ -4,40 +4,14 @@
 	"version": "0.1.0",
 
 	"description": "Allows you to navigate a web page via WAI-ARIA landmarks using the keyboard (also provides a menu).",
-	"icons": {
-		"16": "landmarks-w16.png",
-		"48": "landmarks-w48.png",
-		"96": "landmarks-w96.png",
-		"128": "landmarks-w128.png"
-	},
 
 	"author": "David Todd, Matthew Tylee Atkinson",
 	"short_name": "Landmarks",
 	"homepage_url": "https://github.com/matatk/landmarks",
 
-	"applications": {
-		"gecko": {
-			"id": "ariaLandmarkNav@ibm.com",
-			"strict_min_version": "45.0"
-		}
-	},
-
 	"permissions": [
 		"activeTab"
 	],
-
-	"browser_action": {
-		"default_title": "Landmarks",
-		"default_icon": {
-			"18": "landmarks-w18.png",
-			"19": "landmarks-w19.png",
-			"32": "landmarks-w32.png",
-			"36": "landmarks-w36.png",
-			"38": "landmarks-w38.png",
-			"64": "landmarks-w64.png"
-		},
-		"default_popup": "popup.html"
-	},
 
 	"background": {
 		"scripts": ["background.js"]

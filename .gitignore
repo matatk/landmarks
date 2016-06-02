@@ -1,4 +1,4 @@
 .DS_Store
 *.swp
 node_modules
-extension/*.png
+extension
