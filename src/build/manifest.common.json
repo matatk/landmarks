@@ -1,12 +1,10 @@
 {
 	"manifest_version": 2,
 	"name": "WAI-ARIA Landmark Keyboard Navigation",
-	"version": "0.1.0",
-
-	"description": "Allows you to navigate a web page via WAI-ARIA landmarks using the keyboard (also provides a menu).",
-
-	"author": "David Todd, Matthew Tylee Atkinson",
 	"short_name": "Landmarks",
+	"version": "0.1.0",
+	"description": "Allows you to navigate a web page via WAI-ARIA landmarks using the keyboard (also provides a menu).",
+	"author": "David Todd, Matthew Tylee Atkinson",
 	"homepage_url": "https://github.com/matatk/landmarks",
 
 	"permissions": [
