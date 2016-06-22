@@ -297,12 +297,10 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 		if (landmarkedElements.length > 0) {
 			sendResponse(filterLandmarks());
 		} else {
-			sendResponse(null);
+			sendResponse([]);  // null/undefined could be ambiguous
 		}
 	} else if (message.request == 'focus-landmark') {
-		// TODO make elegant!
-		selectedIndex = message.index;
-		focusElement(selectedIndex);
+		focusElement(message.index);
 	}
 });
 

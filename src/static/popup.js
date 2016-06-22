@@ -10,11 +10,21 @@
 // If not, put a message there stating such.
 function handleLandmarksResponse(response) {
 	var display = document.getElementById('landmarks');
-	display.innerHTML = "";
-	if (response === undefined) {
-		display.innerHTML = "<p>No landmarks</p>";
+	display.innerHTML = '';
+	if (response === null) {  // would this happen? TODO
+		display.innerHTML = '<p>null</p>';
+	} else if (response === undefined) {  // script not run (various reasons)
+		display.innerHTML = '<p>undefined</p>';
+	} else if (Array.isArray(response)) {
+		// Content script would normally send back an array
+		if (response.length === 0) {
+			display.innerHTML = '<p>no landmarks</p>';
+		} else {
+			makeLandmarksTree(response, display);
+		}
 	} else {
-		makeLandmarksTree(response, display);
+		display.innerHTML = '<p>Unexpected response from content script:</p>' +
+			'<pre>' + response + '</pre>';
 	}
 }
 
