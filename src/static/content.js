@@ -34,15 +34,15 @@ var alreadyGotLandmarks = false;
 
 // List of landmarks to navigate
 var landmarks = [
-	"application",    // must have a label -- TODO decide if should remove
-	"banner",
-	"complementary",
-	"contentinfo",
-	"form",           // must have a label
-	"main",
-	"navigation",
-	"region",         // must have a label
-	"search"
+	'application',    // must have a label -- TODO decide if should remove
+	'banner',
+	'complementary',
+	'contentinfo',
+	'form',           // must have a label
+	'main',
+	'navigation',
+	'region',         // must have a label
+	'search'
 ];
 
 // mapping of HTML5 elements to implicit roles
@@ -70,7 +70,7 @@ function getLandmarks(currentElement, depth) {
 
 			// Elements with explicitly-set rolees
 			if (currentElementChild.getAttribute) {
-				var tempRole = currentElementChild.getAttribute("role");
+				var tempRole = currentElementChild.getAttribute('role');
 				if (tempRole) {
 					role = tempRole;
 				}
@@ -141,7 +141,7 @@ function isDescendant(parent, child) {
 function isLandmark(role, label, element) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
-	if (role == "region" || role == "application" || role == "form") {
+	if (role == 'region' || role == 'application' || role == 'form') {
 		return label !== null;
 	}
 
@@ -150,10 +150,10 @@ function isLandmark(role, label, element) {
 
 // Get the landmark label if specified
 function getARIAProvidedLabel(element) {
-	var label = element.getAttribute("aria-label");
+	var label = element.getAttribute('aria-label');
 
 	if (label === null) {
-		var labelID = element.getAttribute("aria-labelledby");
+		var labelID = element.getAttribute('aria-labelledby');
 		if (labelID !== null) {
 			var labelElement = document.getElementById(labelID);
 			label = getInnerText(labelElement);
@@ -207,7 +207,7 @@ function nextLandmark() {
 		msg_no_landmarks();
 	} else {
 		var landmarkCount = landmarkedElements.length;
-		focusElement( (previousSelectedIndex + 1) % landmarkCount );
+		focusElement((previousSelectedIndex + 1) % landmarkCount);
 	}
 }
 
@@ -223,39 +223,39 @@ function previousLandmark() {
 
 // Set focus on the selected landmark
 function focusElement(index) {
-	var borderTypePref = 'persistent'; //prefs.getCharPref("borderType");
+	var borderTypePref = 'persistent'; //prefs.getCharPref('borderType');
 
 	// Remove border on previously selected DOM element
 	if (previousSelectedIndex >= 0) {
 		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
-		if ((borderTypePref == "persistent" || borderTypePref == "momentary") && previouslySelectedElement) {  // TODO need last check?
+		if ((borderTypePref == 'persistent' || borderTypePref == 'momentary') && previouslySelectedElement) {  // TODO need last check?
 			removeBorder(previouslySelectedElement);
 		}
 	}
 
 	// Ensure that the element is focusable
 	var element = landmarkedElements[index].element;
-	var originalTabindex = element.getAttribute("tabindex");
-	if (originalTabindex === null || originalTabindex == "0") {
-		element.setAttribute("tabindex", "-1");
+	var originalTabindex = element.getAttribute('tabindex');
+	if (originalTabindex === null || originalTabindex == '0') {
+		element.setAttribute('tabindex', '-1');
 	}
 
 	element.focus();
 
 	// Add the border and set a timer to remove it (if required by user)
-	if (borderTypePref == "persistent" || borderTypePref == "momentary") {
+	if (borderTypePref == 'persistent' || borderTypePref == 'momentary') {
 		addBorder(element);
 
-		if (borderTypePref == "momentary") {
+		if (borderTypePref == 'momentary') {
 			setTimeout(function() { removeBorder(element); }, 1000);
 		}
 	}
 
 	// Restore tabindex value
 	if (originalTabindex === null) {
-		element.removeAttribute("tabindex");
-	} else if (originalTabindex == "0") {
-		element.setAttribute("tabindex", "0");
+		element.removeAttribute('tabindex');
+	} else if (originalTabindex == '0') {
+		element.setAttribute('tabindex', '0');
 	}
 
 	selectedIndex = index;
@@ -263,15 +263,15 @@ function focusElement(index) {
 }
 
 function addBorder(element) {
-	element.style.outline = "medium solid red";
+	element.style.outline = 'medium solid red';
 }
 
 function removeBorder(element) {
-	element.style.outline = "";
+	element.style.outline = '';
 }
 
 function msg_no_landmarks() {
-	alert("No landmarks were found on this page.");
+	alert('No landmarks were found on this page.');
 }
 
 
@@ -284,7 +284,7 @@ function refresh() {
 	previousSelectedIndex = -1;
 	selectedIndex = -1;
 	landmarkedElements = [];
-	getLandmarks(document.getElementsByTagName("body")[0], 0);
+	getLandmarks(document.getElementsByTagName('body')[0], 0);
 	alreadyGotLandmarks = true;
 }
 

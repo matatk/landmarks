@@ -79,7 +79,7 @@ function makeLandmarksTree(landmarks, container) {
 // otherwise the name is just 'role'
 function landmarkName(landmark) {
 	if (landmark.label) {
-		return landmark.label + " (" + landmark.role + ")";
+		return landmark.label + ' (' + landmark.role + ')';
 	} else {
 		return landmark.role;
 	}

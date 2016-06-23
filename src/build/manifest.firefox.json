@@ -16,6 +16,10 @@
 		"default_popup": "popup.html"
 	},
 
+	"options_ui": {
+		"page": "options.html"
+	},
+
 	"applications": {
 		"gecko": {
 			"id": "ariaLandmarkNav@ibm.com",

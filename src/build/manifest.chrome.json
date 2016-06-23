@@ -13,5 +13,10 @@
 			"38": "landmarks-w38.png"
 		},
 		"default_popup": "popup.html"
+	},
+
+	"options_ui": {
+		"page": "options.html",
+		"chrome_style": true
 	}
 }
