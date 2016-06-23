@@ -21,9 +21,10 @@
    THE SOFTWARE.
    */
 
-var selectedIndex = null;          // Currently selected landmark in menu
-var previousSelectedIndex = null;  // Previously selected landmark in menu
+var selectedIndex = null;          // Currently selected landmark
+var previousSelectedIndex = null;  // Previously selected landmark
 var landmarkedElements = [];       // Array of landmarked elements
+var alreadyGotLandmarks = false;
 
 // Each member of landmarkedElements is an object of the form:
 //   depth: (int)
@@ -284,6 +285,7 @@ function refresh() {
 	selectedIndex = -1;
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName("body")[0], 0);
+	alreadyGotLandmarks = true;
 }
 
 // Filter the full-featured landmarkedElements array into something that the
@@ -304,7 +306,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (message.request == 'get-landmarks') {
 		// If the document loaded, try to get and send the landmarks...
 		if (document.readyState === 'complete') {
-			refresh();
+			if (!alreadyGotLandmarks) {
+				refresh();
+			}
 
 			if (landmarkedElements.length > 0) {
 				sendResponse(filterLandmarks());
