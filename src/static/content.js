@@ -278,6 +278,14 @@ function msg_no_landmarks() {
 // Extension Bootstroapping and Messaging
 //
 
+// Initialise the globals and get the landmarked elements on the page
+function refresh() {
+	previousSelectedIndex = -1;
+	selectedIndex = -1;
+	landmarkedElements = [];
+	getLandmarks(document.getElementsByTagName("body")[0], 0);
+}
+
 // Filter the full-featured landmarkedElements array into something that the
 // browser-chrome-based part can use. Send all info except the DOM element.
 function filterLandmarks() {
@@ -294,23 +302,18 @@ function filterLandmarks() {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (message.request == 'get-landmarks') {
-		if (landmarkedElements.length > 0) {
-			sendResponse(filterLandmarks());
-		} else {
-			sendResponse([]);  // null/undefined could be ambiguous
+		// If the document loaded, try to get and send the landmarks...
+		if (document.readyState === 'complete') {
+			refresh();
+
+			if (landmarkedElements.length > 0) {
+				sendResponse(filterLandmarks());
+			} else {
+				sendResponse([]);  // null/undefined could be ambiguous
+			}
 		}
+		// Don't send a response if we don't know yet
 	} else if (message.request == 'focus-landmark') {
 		focusElement(message.index);
 	}
 });
-
-// This script is injected, and the following function should be called,
-// on page load/tab navigation
-function refresh() {
-	previousSelectedIndex = -1;
-	selectedIndex = -1;
-	landmarkedElements = [];
-	getLandmarks(document.getElementsByTagName("body")[0], 0);
-}
-
-refresh();

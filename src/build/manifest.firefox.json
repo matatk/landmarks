@@ -5,6 +5,7 @@
 	},
 
 	"browser_action": {
+		"browser_style": true,
 		"default_title": "Landmarks",
 		"default_icon": {
 			"18": "landmarks-w18.png",

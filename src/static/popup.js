@@ -11,11 +11,15 @@
 function handleLandmarksResponse(response) {
 	var display = document.getElementById('landmarks');
 	display.innerHTML = '';
-	if (response === null) {  // would this happen? TODO
-		display.innerHTML = '<p>null</p>';
-	} else if (response === undefined) {  // script not run (various reasons)
-		display.innerHTML = '<p>undefined</p>';
-	} else if (Array.isArray(response)) {
+
+	if (chrome.runtime.lastError) {
+		display.innerHTML = '<p>Error: ' + chrome.runtime.lastError.message +
+			'</p><p>The page may not have finished loading yet; please try ' +
+			'again shortly.</p>';
+		return;
+	}
+
+	if (Array.isArray(response)) {
 		// Content script would normally send back an array
 		if (response.length === 0) {
 			display.innerHTML = '<p>no landmarks</p>';
@@ -90,7 +94,7 @@ function focusLandmark(index) {
 }
 
 // Work out the current tab with a query, then send a message to it
-// FIXME is there a more elegant way of doing this?
+// Pattern from: https://developer.chrome.com/extensions/messaging
 function sendToActiveTab(message, callback) {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		chrome.tabs.sendMessage(tabs[0].id, message, callback);
