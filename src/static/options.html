@@ -5,15 +5,22 @@
 		<title></title>
 	</head>
 	<body>
-		<div>
-			<label>
-				Border type:
-				<select id="border_type">
-					<option value="momentary">Momentary</option>
-					<option value="persistent">Persistent</option>
-					<option value="none">None</option>
-				</select>
-			</label>
-		</div>
+			<div>
+				<label>
+					Border type:
+					<select id="border_type">
+						<option value="momentary">Momentary</option>
+						<option value="persistent">Persistent</option>
+						<option value="none">None</option>
+					</select>
+				</label>
+			</div>
+
+			<div>
+				<button id="save">Save</button>
+				<span role="alert" id="status"></span>
+			</div>
+
+		<script src="options.js"></script>
 	</body>
 </html>
