@@ -24,7 +24,7 @@
 var selectedIndex = null;          // Currently selected landmark
 var previousSelectedIndex = null;  // Previously selected landmark
 var landmarkedElements = [];       // Array of landmarked elements
-var alreadyGotLandmarks = false;
+var gotLandmarks = false;
 
 // Each member of landmarkedElements is an object of the form:
 //   depth: (int)
@@ -64,7 +64,7 @@ function getLandmarks(currentElement, depth) {
 	if (!currentElement) return;
 
 	doForEach (currentElement.childNodes, function (currentElementChild) {
-		if (currentElementChild.nodeType == 1) {
+		if (currentElementChild.nodeType === 1) {
 			// Support HTML5 elements' native roles
 			var role = getRoleFromTagNameAndContainment(currentElementChild, currentElement);
 
@@ -114,9 +114,9 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 
 		// Perform containment checks
 		// TODO: how far up should the containment check go (current is just one level -- what about interleaving <div>s)?
-		if (name == 'HEADER' || name == 'FOOTER') {
+		if (name === 'HEADER' || name === 'FOOTER') {
 			var parent_name = parentElement.tagName;
-			if (parent_name == 'SECTION' || parent_name == 'ARTICLE') {
+			if (parent_name === 'SECTION' || parent_name === 'ARTICLE') {
 				role = null;
 			}
 		}
@@ -129,7 +129,7 @@ function isDescendant(parent, child) {
 	var node = child.parentNode;
 
 	while (node !== null) {
-		if (node == parent) {
+		if (node === parent) {
 			return true;
 		}
 		node = node.parentNode;
@@ -141,7 +141,7 @@ function isDescendant(parent, child) {
 function isLandmark(role, label, element) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
-	if (role == 'region' || role == 'application' || role == 'form') {
+	if (role === 'region' || role === 'application' || role === 'form') {
 		return label !== null;
 	}
 
@@ -201,34 +201,37 @@ function getLastLandmarkedElement() {
 // Focusing
 //
 
-// Advance to next landmark via hot key
-function nextLandmark() {
-	if (landmarkedElements.length === 0) {
-		msg_no_landmarks();
-	} else {
-		var landmarkCount = landmarkedElements.length;
-		focusElement((previousSelectedIndex + 1) % landmarkCount);
+function adjacentLandmark(delta) {
+	// User may use the keyboard commands before landmarks have been found
+	if (!gotLandmarks) {
+		findLandmarks();
 	}
-}
 
-// Advance to previous landmark via hot key
-function previousLandmark() {
 	if (landmarkedElements.length === 0) {
-		msg_no_landmarks();
+		alert('No landmarks were found on this page.');
 	} else {
-		var selectedLandmark = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
-		focusElement(selectedLandmark);
+		var newSelectedIndex = -1;
+		if (delta > 0) {
+			newSelectedIndex = (previousSelectedIndex + 1) % landmarkedElements.length;
+		} else if (delta < 0) {
+			newSelectedIndex = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
+		} else {
+			console.error("adjacentLandmark: Delta should be negative or positive");
+		}
+		focusElement(newSelectedIndex);
 	}
 }
 
 // Set focus on the selected landmark
+// This is only triggered from the pop-up (after landmarks have been found) or
+//     from adjacentLandmark (also after landmarks have been found).
 function focusElement(index) {
 	var borderTypePref = 'persistent'; //prefs.getCharPref('borderType');
 
 	// Remove border on previously selected DOM element
 	if (previousSelectedIndex >= 0) {
 		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
-		if ((borderTypePref == 'persistent' || borderTypePref == 'momentary') && previouslySelectedElement) {  // TODO need last check?
+		if ((borderTypePref === 'persistent' || borderTypePref === 'momentary') && previouslySelectedElement) {  // TODO need last check?
 			removeBorder(previouslySelectedElement);
 		}
 	}
@@ -236,17 +239,17 @@ function focusElement(index) {
 	// Ensure that the element is focusable
 	var element = landmarkedElements[index].element;
 	var originalTabindex = element.getAttribute('tabindex');
-	if (originalTabindex === null || originalTabindex == '0') {
+	if (originalTabindex === null || originalTabindex === '0') {
 		element.setAttribute('tabindex', '-1');
 	}
 
 	element.focus();
 
 	// Add the border and set a timer to remove it (if required by user)
-	if (borderTypePref == 'persistent' || borderTypePref == 'momentary') {
+	if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
 		addBorder(element);
 
-		if (borderTypePref == 'momentary') {
+		if (borderTypePref === 'momentary') {
 			setTimeout(function() { removeBorder(element); }, 1000);
 		}
 	}
@@ -254,7 +257,7 @@ function focusElement(index) {
 	// Restore tabindex value
 	if (originalTabindex === null) {
 		element.removeAttribute('tabindex');
-	} else if (originalTabindex == '0') {
+	} else if (originalTabindex === '0') {
 		element.setAttribute('tabindex', '0');
 	}
 
@@ -270,22 +273,18 @@ function removeBorder(element) {
 	element.style.outline = '';
 }
 
-function msg_no_landmarks() {
-	alert('No landmarks were found on this page.');
-}
-
 
 //
 // Extension Bootstroapping and Messaging
 //
 
 // Initialise the globals and get the landmarked elements on the page
-function refresh() {
+function findLandmarks() {
 	previousSelectedIndex = -1;
 	selectedIndex = -1;
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName('body')[0], 0);
-	alreadyGotLandmarks = true;
+	gotLandmarks = true;
 }
 
 // Filter the full-featured landmarkedElements array into something that the
@@ -303,11 +302,11 @@ function filterLandmarks() {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-	if (message.request == 'get-landmarks') {
+	if (message.request === 'get-landmarks') {
 		// If the document loaded, try to get and send the landmarks...
 		if (document.readyState === 'complete') {
-			if (!alreadyGotLandmarks) {
-				refresh();
+			if (!gotLandmarks) {
+				findLandmarks();
 			}
 
 			if (landmarkedElements.length > 0) {
@@ -316,8 +315,19 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 				sendResponse([]);  // null/undefined could be ambiguous
 			}
 		}
-		// Don't send a response if we don't know yet
-	} else if (message.request == 'focus-landmark') {
+		// Don't send a response if the document hasn't loaded yet.
+	} else if (message.request === 'focus-landmark') {
+		// Triggered by clicking on an item in the pop-up, or indirectly
+		//     via one of the keyboard shortcuts
 		focusElement(message.index);
+	} else if (message.request === 'next-landmark') {
+		// Triggered by keyboard shortcut
+		adjacentLandmark(+1);
+	} else if (message.request === 'prev-landmark') {
+		// Triggered by keyboard shortcut
+		adjacentLandmark(-1);
+	} else {
+		console.error('Content script received unknown message:', message,
+			'from', sender);
 	}
 });

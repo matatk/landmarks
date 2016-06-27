@@ -95,6 +95,7 @@ function focusLandmark(index) {
 
 // Work out the current tab with a query, then send a message to it
 // Pattern from: https://developer.chrome.com/extensions/messaging
+// TODO: DRY (repeated in background script)
 function sendToActiveTab(message, callback) {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		chrome.tabs.sendMessage(tabs[0].id, message, callback);
