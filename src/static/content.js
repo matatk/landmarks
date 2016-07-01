@@ -228,13 +228,7 @@ function adjacentLandmark(delta) {
 function focusElement(index) {
 	var borderTypePref = 'persistent'; //prefs.getCharPref('borderType');
 
-	// Remove border on previously selected DOM element
-	if (previousSelectedIndex >= 0) {
-		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
-		if ((borderTypePref === 'persistent' || borderTypePref === 'momentary') && previouslySelectedElement) {  // TODO need last check?
-			removeBorder(previouslySelectedElement);
-		}
-	}
+	removeBorderOnPreviouslySelectedElement();
 
 	// Ensure that the element is focusable
 	var element = landmarkedElements[index].element;
@@ -265,6 +259,15 @@ function focusElement(index) {
 	previousSelectedIndex = selectedIndex;
 }
 
+function removeBorderOnPreviouslySelectedElement() {
+	if (previousSelectedIndex >= 0) {
+		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
+		// TODO re-insert check for border preference?
+		// TODO do we need to check that the DOM element exists, as we did?
+		removeBorder(previouslySelectedElement);
+	}
+}
+
 function addBorder(element) {
 	element.style.outline = 'medium solid red';
 }
@@ -285,6 +288,7 @@ function findLandmarks() {
 	landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName('body')[0], 0);
 	gotLandmarks = true;
+	console.log('Landmarks found: ' + landmarkedElements.length);
 }
 
 // Filter the full-featured landmarkedElements array into something that the
@@ -305,6 +309,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (message.request === 'get-landmarks') {
 		// If the document loaded, try to get and send the landmarks...
 		if (document.readyState === 'complete') {
+			// Only get landmarks if we've not already got them.
 			if (!gotLandmarks) {
 				findLandmarks();
 			}
@@ -326,6 +331,14 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	} else if (message.request === 'prev-landmark') {
 		// Triggered by keyboard shortcut
 		adjacentLandmark(-1);
+	} else if (message.request === 'trigger-refresh') {
+		// On sites that use single-page style techniques to transition (such
+		// as YouTube and GitHub) we monitor in the background script for when
+		// the History API is used to update the URL of the page (indicating
+		// that its content has changed substantially). When this happens, we
+		// should treat it as a new page, and fetch landmarks again when asked.
+		removeBorderOnPreviouslySelectedElement();
+		gotLandmarks = false;
 	} else {
 		console.error('Content script received unknown message:', message,
 			'from', sender);
