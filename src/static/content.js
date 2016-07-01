@@ -226,37 +226,41 @@ function adjacentLandmark(delta) {
 // This is only triggered from the pop-up (after landmarks have been found) or
 //     from adjacentLandmark (also after landmarks have been found).
 function focusElement(index) {
-	var borderTypePref = 'persistent'; //prefs.getCharPref('borderType');
+	getWrapper({
+		'border_type': 'momentary'
+	}, function(items) {
+		var borderTypePref = items.border_type;
 
-	removeBorderOnPreviouslySelectedElement();
+		removeBorderOnPreviouslySelectedElement();
 
-	// Ensure that the element is focusable
-	var element = landmarkedElements[index].element;
-	var originalTabindex = element.getAttribute('tabindex');
-	if (originalTabindex === null || originalTabindex === '0') {
-		element.setAttribute('tabindex', '-1');
-	}
-
-	element.focus();
-
-	// Add the border and set a timer to remove it (if required by user)
-	if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
-		addBorder(element);
-
-		if (borderTypePref === 'momentary') {
-			setTimeout(function() { removeBorder(element); }, 1000);
+		// Ensure that the element is focusable
+		var element = landmarkedElements[index].element;
+		var originalTabindex = element.getAttribute('tabindex');
+		if (originalTabindex === null || originalTabindex === '0') {
+			element.setAttribute('tabindex', '-1');
 		}
-	}
 
-	// Restore tabindex value
-	if (originalTabindex === null) {
-		element.removeAttribute('tabindex');
-	} else if (originalTabindex === '0') {
-		element.setAttribute('tabindex', '0');
-	}
+		element.focus();
 
-	selectedIndex = index;
-	previousSelectedIndex = selectedIndex;
+		// Add the border and set a timer to remove it (if required by user)
+		if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
+			addBorder(element);
+
+			if (borderTypePref === 'momentary') {
+				setTimeout(function() { removeBorder(element); }, 1000);
+			}
+		}
+
+		// Restore tabindex value
+		if (originalTabindex === null) {
+			element.removeAttribute('tabindex');
+		} else if (originalTabindex === '0') {
+			element.setAttribute('tabindex', '0');
+		}
+
+		selectedIndex = index;
+		previousSelectedIndex = selectedIndex;
+	});
 }
 
 function removeBorderOnPreviouslySelectedElement() {
@@ -280,6 +284,12 @@ function removeBorder(element) {
 //
 // Extension Bootstroapping and Messaging
 //
+
+// TODO: DRY also in options script
+function getWrapper(options, action) {
+	var area = chrome.storage.sync || chrome.storage.local;
+	area.get(options, action);
+}
 
 // Initialise the globals and get the landmarked elements on the page
 function findLandmarks() {

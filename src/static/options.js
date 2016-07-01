@@ -1,13 +1,13 @@
 function saveOptions() {
 	var border_type = document.getElementById('border_type').value;
 	setWrapper({
-		border_type: border_type
+		'border_type': border_type
 	});
 }
 
 function restoreOptions() {
 	getWrapper({
-		border_type: '',
+		'border_type': '',
 	}, function(items) {
 		document.getElementById('border_type').value = items.border_type;
 	});
@@ -15,6 +15,7 @@ function restoreOptions() {
 
 // Wrappers to support Firefox (which doesn't have storage.sync)
 // and handle the status update.
+// TODO: DRY also in content script
 function getWrapper(options, action) {
 	var area = chrome.storage.sync || chrome.storage.local;
 	area.get(options, action);
