@@ -21,38 +21,38 @@
    THE SOFTWARE.
    */
 
-var selectedIndex = null;          // Currently selected landmark
-var previousSelectedIndex = null;  // Previously selected landmark
-var landmarkedElements = [];       // Array of landmarked elements
-var gotLandmarks = false;
+let g_gotLandmarks = false;          // Have we already found landmarks?
+let g_selectedIndex = null;          // Currently selected landmark
+let g_previousSelectedIndex = null;  // Previously selected landmark
+let g_landmarkedElements = [];       // Array of landmarked elements
 
-// Each member of landmarkedElements is an object of the form:
+// Each member of g_landmarkedElements is an object of the form:
 //   depth: (int)
 //   [ARIA] role: (string)
 //   [author-supplied] label: (string or null)
 //   [the in-memory DOM] element: (HTML*Element)
 
 // List of landmarks to navigate
-var landmarks = [
-	'application',    // must have a label -- TODO decide if should remove
-	'banner',
-	'complementary',
-	'contentinfo',
-	'form',           // must have a label
-	'main',
-	'navigation',
-	'region',         // must have a label
-	'search'
-];
+const regionTypes = Object.freeze([
+		'application',    // must have a label -- TODO decide if should remove
+		'banner',
+		'complementary',
+		'contentinfo',
+		'form',           // must have a label
+		'main',
+		'navigation',
+		'region',         // must have a label
+		'search'
+]);
 
-// mapping of HTML5 elements to implicit roles
-var implicitRoles = {
+// Mapping of HTML5 elements to implicit roles
+const implicitRoles = Object.freeze({
 	HEADER: 'banner',         // must not be in a <section> or <article>
 	FOOTER: 'contentinfo',    // must not be in a <section> or <article>
 	MAIN:   'main',
 	ASIDE:  'complementary',
 	NAV:    'navigation'
-};
+});
 
 
 //
@@ -87,7 +87,7 @@ function getLandmarks(currentElement, depth) {
 					++depth;
 				}
 
-				landmarkedElements.push({
+				g_landmarkedElements.push({
 					depth: depth,
 					role: role,
 					label: label,
@@ -145,7 +145,7 @@ function isLandmark(role, label, element) {
 		return label !== null;
 	}
 
-	return landmarks.indexOf(role) > -1;
+	return regionTypes.indexOf(role) > -1;
 }
 
 // Get the landmark label if specified
@@ -190,7 +190,7 @@ function doForEach(nodeList, callback) {
 // Abstracts the data storage format away from simply getting the last-
 // landmarked DOM node
 function getLastLandmarkedElement() {
-	var lastInfo = landmarkedElements[landmarkedElements.length - 1];
+	var lastInfo = g_landmarkedElements[g_landmarkedElements.length - 1];
 	if (lastInfo) {
 		return lastInfo.element;
 	}
@@ -203,18 +203,18 @@ function getLastLandmarkedElement() {
 
 function adjacentLandmark(delta) {
 	// User may use the keyboard commands before landmarks have been found
-	if (!gotLandmarks) {
+	if (!g_gotLandmarks) {
 		findLandmarks();
 	}
 
-	if (landmarkedElements.length === 0) {
+	if (g_landmarkedElements.length === 0) {
 		alert('No landmarks were found on this page.');
 	} else {
 		var newSelectedIndex = -1;
 		if (delta > 0) {
-			newSelectedIndex = (previousSelectedIndex + 1) % landmarkedElements.length;
+			newSelectedIndex = (g_previousSelectedIndex + 1) % g_landmarkedElements.length;
 		} else if (delta < 0) {
-			newSelectedIndex = (previousSelectedIndex <= 0) ? landmarkedElements.length - 1 : previousSelectedIndex - 1;
+			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1;
 		} else {
 			console.error("adjacentLandmark: Delta should be negative or positive");
 		}
@@ -234,7 +234,7 @@ function focusElement(index) {
 		removeBorderOnPreviouslySelectedElement();
 
 		// Ensure that the element is focusable
-		var element = landmarkedElements[index].element;
+		var element = g_landmarkedElements[index].element;
 		var originalTabindex = element.getAttribute('tabindex');
 		if (originalTabindex === null || originalTabindex === '0') {
 			element.setAttribute('tabindex', '-1');
@@ -258,14 +258,14 @@ function focusElement(index) {
 			element.setAttribute('tabindex', '0');
 		}
 
-		selectedIndex = index;
-		previousSelectedIndex = selectedIndex;
+		g_selectedIndex = index;
+		g_previousSelectedIndex = g_selectedIndex;
 	});
 }
 
 function removeBorderOnPreviouslySelectedElement() {
-	if (previousSelectedIndex >= 0) {
-		var previouslySelectedElement = landmarkedElements[previousSelectedIndex].element;
+	if (g_previousSelectedIndex >= 0) {
+		var previouslySelectedElement = g_landmarkedElements[g_previousSelectedIndex].element;
 		// TODO re-insert check for border preference?
 		// TODO do we need to check that the DOM element exists, as we did?
 		removeBorder(previouslySelectedElement);
@@ -293,19 +293,19 @@ function getWrapper(options, action) {
 
 // Initialise the globals and get the landmarked elements on the page
 function findLandmarks() {
-	previousSelectedIndex = -1;
-	selectedIndex = -1;
-	landmarkedElements = [];
+	g_previousSelectedIndex = -1;
+	g_selectedIndex = -1;
+	g_landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName('body')[0], 0);
-	gotLandmarks = true;
-	console.log('Landmarks found: ' + landmarkedElements.length);
+	g_gotLandmarks = true;
+	console.log('Landmarks found: ' + g_landmarkedElements.length);
 }
 
-// Filter the full-featured landmarkedElements array into something that the
+// Filter the full-featured g_landmarkedElements array into something that the
 // browser-chrome-based part can use. Send all info except the DOM element.
 function filterLandmarks() {
 	var list = [];
-	landmarkedElements.forEach(function (landmark) {
+	g_landmarkedElements.forEach(function (landmark) {
 		list.push({
 			depth: landmark.depth,
 			role: landmark.role,
@@ -316,41 +316,48 @@ function filterLandmarks() {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-	if (message.request === 'get-landmarks') {
-		// If the document loaded, try to get and send the landmarks...
-		if (document.readyState === 'complete') {
-			// Only get landmarks if we've not already got them.
-			if (!gotLandmarks) {
-				findLandmarks();
-			}
+	switch (message.request) {
+		case 'get-landmarks':
+			// If the document loaded, try to get and send the landmarks...
+			if (document.readyState === 'complete') {
+				// Only get landmarks if we've not already got them.
+				if (!g_gotLandmarks) {
+					findLandmarks();
+				}
 
-			if (landmarkedElements.length > 0) {
-				sendResponse(filterLandmarks());
-			} else {
-				sendResponse([]);  // null/undefined could be ambiguous
+				if (g_landmarkedElements.length > 0) {
+					sendResponse(filterLandmarks());
+				} else {
+					sendResponse([]);  // null/undefined could be ambiguous
+				}
 			}
-		}
-		// Don't send a response if the document hasn't loaded yet.
-	} else if (message.request === 'focus-landmark') {
-		// Triggered by clicking on an item in the pop-up, or indirectly
-		//     via one of the keyboard shortcuts
-		focusElement(message.index);
-	} else if (message.request === 'next-landmark') {
-		// Triggered by keyboard shortcut
-		adjacentLandmark(+1);
-	} else if (message.request === 'prev-landmark') {
-		// Triggered by keyboard shortcut
-		adjacentLandmark(-1);
-	} else if (message.request === 'trigger-refresh') {
-		// On sites that use single-page style techniques to transition (such
-		// as YouTube and GitHub) we monitor in the background script for when
-		// the History API is used to update the URL of the page (indicating
-		// that its content has changed substantially). When this happens, we
-		// should treat it as a new page, and fetch landmarks again when asked.
-		removeBorderOnPreviouslySelectedElement();
-		gotLandmarks = false;
-	} else {
-		console.error('Content script received unknown message:', message,
-			'from', sender);
+			// Don't send a response if the document hasn't loaded yet.
+			break;
+		case 'focus-landmark':
+			// Triggered by clicking on an item in the pop-up, or indirectly
+			//     via one of the keyboard shortcuts
+			focusElement(message.index);
+			break;
+		case 'next-landmark':
+			// Triggered by keyboard shortcut
+			adjacentLandmark(+1);
+			break;
+		case 'prev-landmark':
+			// Triggered by keyboard shortcut
+			adjacentLandmark(-1);
+			break;
+		case 'trigger-refresh':
+			// On sites that use single-page style techniques to transition
+			// (such as YouTube and GitHub) we monitor in the background script
+			// for when the History API is used to update the URL of the page
+			// (indicating that its content has changed substantially). When
+			// this happens, we should treat it as a new page, and fetch
+			// landmarks again when asked.
+			removeBorderOnPreviouslySelectedElement(); // TODO rapid nav error
+			g_gotLandmarks = false;
+			break;
+		default:
+			console.error('Content script received unknown message:',
+					message, 'from', sender);
 	}
 });
