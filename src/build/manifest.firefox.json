@@ -1,17 +1,17 @@
 {
 	"icons": {
-		"48": "landmarks-w48.png",
-		"96": "landmarks-w96.png"
+		"48": "landmarks-48.png",
+		"96": "landmarks-96.png"
 	},
 
 	"browser_action": {
 		"browser_style": true,
 		"default_title": "Landmarks",
 		"default_icon": {
-			"18": "landmarks-w18.png",
-			"32": "landmarks-w32.png",
-			"36": "landmarks-w36.png",
-			"64": "landmarks-w64.png"
+			"18": "landmarks-18.png",
+			"32": "landmarks-32.png",
+			"36": "landmarks-36.png",
+			"64": "landmarks-64.png"
 		},
 		"default_popup": "popup.html"
 	},

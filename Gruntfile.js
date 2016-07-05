@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 
-		respimg: {
+		svg2png: {
 			chrome: {
 				options: {
 					widths: [
@@ -16,13 +16,10 @@ module.exports = function(grunt) {
 						38,  // Chrome  (tooblar x2)
 						48,  // Both    (general)
 						128  // Chrome  (store)
-					],
-					optimize: false
+					]
 				},
 				files: [{
-					expand: true,
-					cwd: 'src/build/',
-					src: ['*.svg'],
+					src: 'src/build/*.svg',
 					dest: 'extension/chrome/'
 				}]
 			},
@@ -35,13 +32,10 @@ module.exports = function(grunt) {
 						48,  // Both    (general)
 						64,  // Firefox (menu panel x2)
 						96   // Firefox (general x2)
-					],
-					optimize: false
+					]
 				},
 				files: [{
-					expand: true,
-					cwd: 'src/build/',
-					src: ['*.svg'],
+					src: 'src/build/*.svg',
 					dest: 'extension/firefox/'
 				}]
 			}
@@ -51,13 +45,46 @@ module.exports = function(grunt) {
 			options: {
 				jshintrc: true
 			}
-		},
-
-		clean: {
-			todo: [
-				'extension/**/*.svg'  // TODO remove after image-gen sorted out
-			]
 		}
+	});
+
+	// As I can't seem to find a grunt package to actually do this...
+	grunt.registerMultiTask('svg2png', 'Convert SVGs to PNGs via ImageMagick', function() {
+		var path = require('path');
+		var widths = this.data.options.widths;
+		var conversionsDone = 0;
+
+		this.files.forEach(function(f) {
+			f.src.filter(function(filepath) {
+				widths.forEach(function(width) {
+					// Assume filename ends in '.svg'
+					var baseFileName = path.basename(filepath).slice(0, -4);
+					var options = {
+						cmd: 'convert',
+						stdio: 'inherit',
+						args: [
+							'-resize',
+							width + 'x' + width,
+							filepath,
+							f.dest + baseFileName + '-' + width + '.png'
+						]
+					};
+
+					grunt.verbose.writeln('Conversion task:', options);
+
+					grunt.util.spawn(options, function(error, result, code) {
+						if (error) {
+							grunt.log.error('convert exit code:', code);
+							throw(error);
+						} else {
+							conversionsDone += 1;
+							grunt.verbose.writeln(conversionsDone,
+								'SVG to PNG conversions complete.');
+						}
+					});
+				});
+			});
+		});
 	});
 
 	// The following task declarations are even more repetitive,
@@ -66,6 +93,12 @@ module.exports = function(grunt) {
 		grunt.config.set('clean.' + browser, [
 			'extension/' + browser
 		]);
+
+		grunt.config.set('mkdir.' + browser, {
+			options: {
+				create: ['extension/' + browser]
+			}
+		});
 
 		grunt.config.set('json_merge.' + browser, {
 			files: [{
@@ -92,11 +125,11 @@ module.exports = function(grunt) {
 
 		grunt.registerTask(browser, [
 			'clean:' + browser,
-			'respimg:' + browser,
+			'mkdir:' + browser,
+			'svg2png:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
 			'jshint:' + browser,
-			'clean:todo'
 		]);
 	});
 
