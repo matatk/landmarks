@@ -47,10 +47,13 @@ module.exports = function(grunt) {
 			}
 		},
 
+		jshint: {
+			options: {
+				jshintrc: true
+			}
+		},
+
 		clean: {
-			built: [
-				'extension/',
-			],
 			todo: [
 				'extension/**/*.svg'  // TODO remove after image-gen sorted out
 			]
@@ -60,13 +63,17 @@ module.exports = function(grunt) {
 	// The following task declarations are even more repetitive,
 	// so declare them in a loop
 	['firefox', 'chrome'].forEach(function(browser) {
+		grunt.config.set('clean.' + browser, [
+			'extension/' + browser
+		]);
+
 		grunt.config.set('json_merge.' + browser, {
 			files: [{
-				dest: 'extension/' + browser + '/manifest.json',
 				src: [
 					'src/build/manifest.common.json',
 					'src/build/manifest.' + browser + '.json'
-				]
+				],
+				dest: 'extension/' + browser + '/manifest.json'
 			}]
 		});
 
@@ -79,16 +86,21 @@ module.exports = function(grunt) {
 			}]
 		});
 
+		grunt.config.set('jshint.' + browser, [
+			'extension/' + browser + '/*.js'
+		]);
+
 		grunt.registerTask(browser, [
+			'clean:' + browser,
 			'respimg:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
+			'jshint:' + browser,
 			'clean:todo'
 		]);
 	});
 
 	grunt.registerTask('default', [
-		'clean:built',
 		'chrome',
 		'firefox'
 	]);
