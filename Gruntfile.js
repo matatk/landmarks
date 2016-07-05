@@ -63,6 +63,8 @@ module.exports = function(grunt) {
 						cmd: 'convert',
 						stdio: 'inherit',
 						args: [
+							'-background',
+							'transparent',
 							'-resize',
 							width + 'x' + width,
 							filepath,
