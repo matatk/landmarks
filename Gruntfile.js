@@ -2,6 +2,11 @@ module.exports = function(grunt) {
 	require('load-grunt-tasks')(grunt);
 	require('time-grunt')(grunt);
 
+	var packageJSON = require('./package.json');
+	const extName = packageJSON.name;
+	const extVersion = packageJSON.version;
+	const extFileNameZip = extName + '-' + extVersion + '.zip';
+
 	// Project configuration
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -19,7 +24,7 @@ module.exports = function(grunt) {
 					]
 				},
 				files: [{
-					src: 'src/build/*.svg',
+					src: 'src/assemble/*.svg',
 					dest: 'extension/chrome/'
 				}]
 			},
@@ -35,7 +40,7 @@ module.exports = function(grunt) {
 					]
 				},
 				files: [{
-					src: 'src/build/*.svg',
+					src: 'src/assemble/*.svg',
 					dest: 'extension/firefox/'
 				}]
 			}
@@ -93,22 +98,35 @@ module.exports = function(grunt) {
 	// so declare them in a loop
 	['firefox', 'chrome'].forEach(function(browser) {
 		grunt.config.set('clean.' + browser, [
-			'extension/' + browser
+			'extension/' + browser,
+			'build/' + browser
 		]);
 
 		grunt.config.set('mkdir.' + browser, {
 			options: {
-				create: ['extension/' + browser]
+				create: [
+					'extension/' + browser,
+					'build/' + browser
+				]
 			}
 		});
 
 		grunt.config.set('json_merge.' + browser, {
 			files: [{
 				src: [
-					'src/build/manifest.common.json',
-					'src/build/manifest.' + browser + '.json'
+					'src/assemble/manifest.common.json',
+					'src/assemble/manifest.' + browser + '.json'
 				],
 				dest: 'extension/' + browser + '/manifest.json'
+			}]
+		});
+
+		grunt.config.set('replace.' + browser, {
+			src: 'extension/' + browser + '/manifest.json',
+			overwrite: true,
+			replacements: [{
+				from: '@version@',
+				to: extVersion
 			}]
 		});
 
@@ -125,13 +143,21 @@ module.exports = function(grunt) {
 			'extension/' + browser + '/*.js'
 		]);
 
+		grunt.config.set('zip.' + browser, {
+			cwd: 'extension/' + browser,
+			src: 'extension/' + browser + '/*',
+			dest: 'build/' + browser + '/' + extFileNameZip
+		});
+
 		grunt.registerTask(browser, [
 			'clean:' + browser,
 			'mkdir:' + browser,
 			'svg2png:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
+			'replace:' + browser,
 			'jshint:' + browser,
+			'zip:' + browser
 		]);
 	});
 

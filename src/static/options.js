@@ -7,7 +7,7 @@ function saveOptions() {
 
 function restoreOptions() {
 	getWrapper({
-		'border_type': '',
+		'border_type': 'momentary',
 	}, function(items) {
 		document.getElementById('border_type').value = items.border_type;
 	});
