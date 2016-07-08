@@ -221,9 +221,7 @@ a {
     font-size: 1rem; } }
 
 .site-footer {
-  padding-top: 2rem;
-  margin-top: 2rem;
-  border-top: solid 1px #eff0f1; }
+  padding: 2rem 1rem; }
 
 .site-footer-owner {
   display: block;
