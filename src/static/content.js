@@ -21,10 +21,10 @@
    THE SOFTWARE.
    */
 
-let g_gotLandmarks = false;          // Have we already found landmarks?
-let g_selectedIndex = null;          // Currently selected landmark
-let g_previousSelectedIndex = null;  // Previously selected landmark
-let g_landmarkedElements = [];       // Array of landmarked elements
+let g_gotLandmarks = false;        // Have we already found landmarks?
+let g_selectedIndex = -1;          // Currently selected landmark
+let g_previousSelectedIndex = -1;  // Previously selected landmark
+let g_landmarkedElements = [];     // Array of landmarked elements
 
 // Each member of g_landmarkedElements is an object of the form:
 //   depth: (int)
@@ -63,7 +63,7 @@ const implicitRoles = Object.freeze({
 function getLandmarks(currentElement, depth) {
 	if (!currentElement) return;
 
-	doForEach (currentElement.childNodes, function (currentElementChild) {
+	doForEach (currentElement.childNodes, function(currentElementChild) {
 		if (currentElementChild.nodeType === 1) {
 			// Support HTML5 elements' native roles
 			var role = getRoleFromTagNameAndContainment(currentElementChild, currentElement);
@@ -203,8 +203,11 @@ function getLastLandmarkedElement() {
 
 function adjacentLandmark(delta) {
 	// User may use the keyboard commands before landmarks have been found
+	// However, the content script will run and find any landmarks very soon
+	// after the page has loaded, so it is not necessary to duplicate that
+	// effort here.
 	if (!g_gotLandmarks) {
-		findLandmarks();
+		return;
 	}
 
 	if (g_landmarkedElements.length === 0) {
@@ -216,7 +219,7 @@ function adjacentLandmark(delta) {
 		} else if (delta < 0) {
 			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1;
 		} else {
-			console.error("adjacentLandmark: Delta should be negative or positive");
+			throw("Landmarks: adjacentLandmark: delta should be -ve or +ve");
 		}
 		focusElement(newSelectedIndex);
 	}
@@ -265,6 +268,7 @@ function focusElement(index) {
 
 function removeBorderOnPreviouslySelectedElement() {
 	if (g_previousSelectedIndex >= 0) {
+		// TODO sometimes there's an undefined error here (due to no landmarks?)
 		var previouslySelectedElement = g_landmarkedElements[g_previousSelectedIndex].element;
 		// TODO re-insert check for border preference?
 		// TODO do we need to check that the DOM element exists, as we did?
@@ -298,14 +302,14 @@ function findLandmarks() {
 	g_landmarkedElements = [];
 	getLandmarks(document.getElementsByTagName('body')[0], 0);
 	g_gotLandmarks = true;
-	console.log('Landmarks found: ' + g_landmarkedElements.length);
+	console.log('Landmarks: found ' + g_landmarkedElements.length);
 }
 
 // Filter the full-featured g_landmarkedElements array into something that the
-// browser-chrome-based part can use. Send all info except the DOM element.
+// browser-chrome-based part can use; send all info except the DOM element.
 function filterLandmarks() {
 	var list = [];
-	g_landmarkedElements.forEach(function (landmark) {
+	g_landmarkedElements.forEach(function(landmark) {
 		list.push({
 			depth: landmark.depth,
 			role: landmark.role,
@@ -315,23 +319,18 @@ function filterLandmarks() {
 	return list;
 }
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+// Act on requests from the background or popup scripts
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	// FIXME Check here for document being ready (*not* !g_gotLandmarks).
+	//       If the user asks for landmarks before they are ready, then they
+	//       will get a 'no landmarks' result in the pop-up!
 	switch (message.request) {
 		case 'get-landmarks':
-			// If the document loaded, try to get and send the landmarks...
-			if (document.readyState === 'complete') {
-				// Only get landmarks if we've not already got them.
-				if (!g_gotLandmarks) {
-					findLandmarks();
-				}
-
-				if (g_landmarkedElements.length > 0) {
-					sendResponse(filterLandmarks());
-				} else {
-					sendResponse([]);  // null/undefined could be ambiguous
-				}
+			if (g_landmarkedElements.length > 0) {
+				sendResponse(filterLandmarks());
+			} else {
+				sendResponse([]);  // null/undefined could be ambiguous
 			}
-			// Don't send a response if the document hasn't loaded yet.
 			break;
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
@@ -355,9 +354,38 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 			// landmarks again when asked.
 			removeBorderOnPreviouslySelectedElement(); // TODO rapid nav error
 			g_gotLandmarks = false;
+			findLandmarks();
+			sendUpdateBadgeMessage();
 			break;
 		default:
-			console.error('Content script received unknown message:',
-					message, 'from', sender);
+			throw('Landmarks: content script received unknown message:',
+				message, 'from', sender);
 	}
 });
+
+function sendUpdateBadgeMessage() {
+	// Let the background script know how many landmarks were found, so
+	// that it can update the browser action badge.
+	chrome.runtime.sendMessage({
+		request: 'update-badge',
+		landmarks: g_landmarkedElements.length
+	});
+}
+
+
+//
+// Content Script Entry Point
+//
+
+function bootstrap() {
+	// Run on script injection
+	if (document.readyState === 'complete') {
+		findLandmarks();
+		sendUpdateBadgeMessage();
+	} else {
+		console.log('Landmarks: document not ready yet; retrying in 1s');
+		setTimeout(bootstrap, 1000);
+	}
+}
+
+setTimeout(bootstrap, 1000);

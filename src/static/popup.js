@@ -9,6 +9,8 @@
 //
 // If not, put a message there stating such.
 function handleLandmarksResponse(response) {
+	console.log('Landmarks: popup: got:', response);
+	// FIXME why is this sometimes getting undefined?
 	var display = document.getElementById('landmarks');
 	display.innerHTML = '';
 
@@ -22,13 +24,17 @@ function handleLandmarksResponse(response) {
 	if (Array.isArray(response)) {
 		// Content script would normally send back an array
 		if (response.length === 0) {
-			display.innerHTML = '<p>no landmarks</p>';
+			display.innerHTML = '<p>No landmarks.</p>';
 		} else {
 			makeLandmarksTree(response, display);
 		}
+	} else if (response === null) {
+		// FIXME this is not being fired yet
+		display.innerHTML = '<p>The page has not yet been checked for ' +
+			'landmarks; please try again.</p>';
 	} else {
-		display.innerHTML = '<p>Unexpected response from content script:</p>' +
-			'<pre>' + response + '</pre>';
+		display.innerHTML = '<p>Error: unexpected response from ' +
+			'content script: ' + response + '</p>';
 	}
 }
 
@@ -88,8 +94,8 @@ function landmarkName(landmark) {
 // When a landmark's corresponding button in the UI is clicked, focus it
 function focusLandmark(index) {
 	sendToActiveTab({
-		'request': 'focus-landmark',
-		'index': index
+		request: 'focus-landmark',
+		index: index
 	});
 }
 
@@ -104,5 +110,5 @@ function sendToActiveTab(message, callback) {
 
 // When the pop-up opens, grab and process the list of page landmarks
 document.addEventListener('DOMContentLoaded', function() {
-	sendToActiveTab({'request': 'get-landmarks'}, handleLandmarksResponse);
+	sendToActiveTab({request: 'get-landmarks'}, handleLandmarksResponse);
 });
