@@ -40,3 +40,28 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 		});
 	}
 });
+
+// Listen for URL change events on the tab and disable the browser action if
+// the URL does not start with 'http://' or 'https://'
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+	if (!changeInfo.url) {
+		return;
+	}
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		if (tabId == tabs[0].id) {
+			checkBrowserActionState(tabId, changeInfo.url);
+		}
+	});
+});
+
+function checkBrowserActionState(tabId, url) {
+	if (startsWith(url, 'http://') || startsWith(url, 'https://')) {
+		chrome.browserAction.enable(tabId);
+	} else {
+		chrome.browserAction.disable(tabId);
+	}
+}
+
+function startsWith(string, pattern) {
+	return string.substring(0, pattern.length) == pattern;
+}
