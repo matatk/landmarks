@@ -1,6 +1,6 @@
 {
 	"manifest_version": 2,
-	"name": "WAI-ARIA Landmark Keyboard Navigation",
+	"name": "Landmark Navigation via Keyboard or Pop-up",
 	"short_name": "Landmarks",
 	"version": "@version@",
 	"description": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu.",
