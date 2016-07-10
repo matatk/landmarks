@@ -63,7 +63,7 @@ const implicitRoles = Object.freeze({
 function getLandmarks(currentElement, depth) {
 	if (!currentElement) return;
 
-	doForEach (currentElement.childNodes, function(currentElementChild) {
+	doForEach(currentElement.childNodes, function(currentElementChild) {
 		if (currentElementChild.nodeType === 1) {
 			// Support HTML5 elements' native roles
 			var role = getRoleFromTagNameAndContainment(currentElementChild, currentElement);
@@ -207,6 +207,7 @@ function adjacentLandmark(delta) {
 	// after the page has loaded, so it is not necessary to duplicate that
 	// effort here.
 	if (!g_gotLandmarks) {
+		alert('This page has not yet been scanned for landmarks; please try again.');
 		return;
 	}
 
@@ -219,7 +220,7 @@ function adjacentLandmark(delta) {
 		} else if (delta < 0) {
 			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1;
 		} else {
-			throw("Landmarks: adjacentLandmark: delta should be -ve or +ve");
+			throw("Landmarks: adjacentLandmark: delta should be negative or positive");
 		}
 		focusElement(newSelectedIndex);
 	}
