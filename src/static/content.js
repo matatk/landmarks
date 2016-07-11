@@ -188,7 +188,7 @@ function doForEach(nodeList, callback) {
 }
 
 // Abstracts the data storage format away from simply getting the last-
-// landmarked DOM node
+// landmarked DOM node (HTML*Element object)
 function getLastLandmarkedElement() {
 	var lastInfo = g_landmarkedElements[g_landmarkedElements.length - 1];
 	if (lastInfo) {
@@ -202,10 +202,9 @@ function getLastLandmarkedElement() {
 //
 
 function adjacentLandmark(delta) {
-	// User may use the keyboard commands before landmarks have been found
+	// The user may use the keyboard commands before landmarks have been found
 	// However, the content script will run and find any landmarks very soon
-	// after the page has loaded, so it is not necessary to duplicate that
-	// effort here.
+	// after the page has loaded.
 	if (!g_gotLandmarks) {
 		alert('This page has not yet been scanned for landmarks; please try again.');
 		return;
@@ -227,8 +226,9 @@ function adjacentLandmark(delta) {
 }
 
 // Set focus on the selected landmark
+//
 // This is only triggered from the pop-up (after landmarks have been found) or
-//     from adjacentLandmark (also after landmarks have been found).
+// from adjacentLandmark (also after landmarks have been found).
 function focusElement(index) {
 	getWrapper({
 		'border_type': 'momentary'
@@ -320,22 +320,25 @@ function filterLandmarks() {
 	return list;
 }
 
-// Act on requests from the background or popup scripts
+// Act on requests from the background or pop-up scripts
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	// FIXME Check here for document being ready (*not* !g_gotLandmarks).
-	//       If the user asks for landmarks before they are ready, then they
-	//       will get a 'no landmarks' result in the pop-up!
 	switch (message.request) {
 		case 'get-landmarks':
-			if (g_landmarkedElements.length > 0) {
-				sendResponse(filterLandmarks());
-			} else {
-				sendResponse([]);  // null/undefined could be ambiguous
+			// The pop-up is requesting the list of landmarks on the page
+
+			if (!g_gotLandmarks) {
+				sendResponse('wait');
 			}
+			// We only guard for landmarks having been found here because the
+			// other messages still need to be handled regardless (or, in some
+			// cases, won't be recieved until after the pop-up has been
+			// displayed, so this check only needs to be here).
+
+			sendResponse(filterLandmarks());
 			break;
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
-			//     via one of the keyboard shortcuts
+			// via one of the keyboard shortcuts (if landmarks are present)
 			focusElement(message.index);
 			break;
 		case 'next-landmark':
@@ -353,7 +356,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			removeBorderOnPreviouslySelectedElement(); // TODO rapid nav error
+			removeBorderOnPreviouslySelectedElement();  // TODO rapid nav error
 			g_gotLandmarks = false;
 			findLandmarks();
 			sendUpdateBadgeMessage();
@@ -378,15 +381,25 @@ function sendUpdateBadgeMessage() {
 // Content Script Entry Point
 //
 
+const attemptInterval = 1000;
+const maximumAttempts = 10;
+let landmarkFindingAttempts = 0;
+
 function bootstrap() {
-	// Run on script injection
+	landmarkFindingAttempts += 1;
 	if (document.readyState === 'complete') {
 		findLandmarks();
 		sendUpdateBadgeMessage();
 	} else {
-		console.log('Landmarks: document not ready yet; retrying in 1s');
-		setTimeout(bootstrap, 1000);
+		if (landmarkFindingAttempts <= maximumAttempts) {
+			console.log('Landmarks: document not ready; retrying. (Attempt ' +
+				String(landmarkFindingAttempts) + ')');
+			setTimeout(bootstrap, attemptInterval);
+		} else {
+			throw('Landmarks: unable to find landmarks after ' +
+				String(maximumAttempts) + 'attempts.');
+		}
 	}
 }
 
-setTimeout(bootstrap, 1000);
+setTimeout(bootstrap, attemptInterval);

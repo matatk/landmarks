@@ -28,8 +28,7 @@ function handleLandmarksResponse(response) {
 		} else {
 			makeLandmarksTree(response, display);
 		}
-	} else if (response === null) {
-		// FIXME this is not being fired yet
+	} else if (response === 'wait') {
 		display.innerHTML = '<p>The page has not yet been checked for ' +
 			'landmarks; please try again.</p>';
 	} else {

@@ -28,15 +28,16 @@ function sendToActiveTab(message, callback) {
 // Listen for URL change events on the tab and disable the browser action if
 // the URL does not start with 'http://' or 'https://'
 //
-// Note: the content script will send an 'update-badge' message back to us when
-//       the landmarks have been found.
+// Notes:
+//  * This used to be wrapped in a query for the active tab, but on browser
+//    startup, URL changes are going on in all tabs.
+//  * The content script will send an 'update-badge' message back to us when
+//    the landmarks have been found.
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (!changeInfo.url) {
 		return;
 	}
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		checkBrowserActionState(tabId, changeInfo.url);
-	});
+	checkBrowserActionState(tabId, changeInfo.url);
 });
 
 function checkBrowserActionState(tabId, url) {
@@ -52,9 +53,12 @@ function startsWith(string, pattern) {
 }
 
 // If the page uses 'single-page app' techniques to load in new components --
-// as YouTube and GitHub do -- then the landmarks can change. Therefore we need
-// to monitor for the History API having been used to update the URL of the
-// page without there having been a full reload.  To handle youtube video page
+// as YouTube and GitHub do -- then the landmarks can change. We assume that if
+// the structure of the page is changing so much that it is effectively a new
+// page, then the developer would've followed best practice and used the
+// History API to update the URL of the page, so that this 'new' page can be
+// recognised as such and be bookmarked by the user. Therefore we monitor for
+// use of the History API to trigger a new search for landmarks on the page.
 //
 // Thanks: http://stackoverflow.com/a/36818991/1485308
 //
@@ -82,6 +86,19 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 // Browser action badge updating
 //
 
+// When the content script has loaded and any landmarks found, it will let us
+// konw, so we can set the browser action badge.
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	switch (message.request) {
+		case 'update-badge':
+			landmarksBadgeUpdate(sender.tab.id, message.landmarks);
+			break;
+		default:
+			throw('Landmarks: background script received unknown message:',
+					message, 'from', sender);
+	}
+});
+
 // Given a tab ID and number, set the browser action badge
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 	console.log('Landmarks: set badge of tab', tabId, 'to', numberOfLandmarks);
@@ -102,16 +119,3 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 		throw('Landmarks: invalid number of regions:', numberOfLandmarks);
 	}
 }
-
-// When the content script has loaded and any landmarks found, it will let us
-// konw, so we can set the browser action badge.
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	switch (message.request) {
-		case 'update-badge':
-			landmarksBadgeUpdate(sender.tab.id, message.landmarks);
-			break;
-		default:
-			throw('Landmarks: background script received unknown message:',
-					message, 'from', sender);
-	}
-});
