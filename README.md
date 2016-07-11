@@ -1,11 +1,15 @@
 Landmarks
 =========
 
-This is a browser extension (for Firefox and Chrome) that enables navigation of WAI-ARIA landmarks, via the keyboard or via a pop-up (from the extension's toolbar button).
+This is a browser extension (for Firefox and Chrome) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu (from the extension's toolbar button).
 
 Landmarks provide a quick way to broadly signpost the function of different areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
-**Firefox users: This extension has been moved to the new WebExtension API so it can once again be used in Firefox. However, Firefox will only support keyboard commands for WebExtensions from version 48 (to be released on 2016-08-02). It works fully with Firefox Developer Edition already. Currently if you want to use it with Firefox, you will need to [build it yourself](#development). A version will be posted to Firefox Add-ons for easy installation shortly.**
+The following sections explain how to install and use the extension.
+
+If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)---in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
+
+**Firefox users: Firefox now requires extensions to be signed. As getting the extension signed required some effort, it seemed like an appropriate time to also convert to the new and cross-browser WebExtension API. However, Firefox will only support keyboard commands for WebExtensions from version 48 (to be released on 2016-08-02). It works fully with Firefox Developer Edition already. Currently if you want to use it with Firefox, you will need to [build it yourself](#development). A version will be posted to Firefox Add-ons for easy installation shortly.**
 
 Installation
 ------------
@@ -95,12 +99,13 @@ If landmark labels are present via `aria-label` or `aria-labelledby`, the labels
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
 
-Please consider implementing landmarks on your site; here is some information to help you do so...
+As described at start of this document, landmarks can really help various people get a quick overview of your site, and navigate it much more effectively. This can save them *a lot* of time, so please consider implementing landmarks on your site; here is some information to help you do so...
 
 -   [Léonie Watson demonstrates landmarks (video)](https://www.youtube.com/watch?v=IhWMou12_Vk)
 -   [Using WAI-ARIA Landmarks (The Paciello Group 'blog article)](https://www.paciellogroup.com/blog/2013/02/using-wai-aria-landmarks-2013/)
 -   [W3C Advice on using Landmarks](http://www.w3.org/TR/WCAG20-TECHS/ARIA11.html)
+    -   If you're using HTML5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page may well inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a site-wide and page-local set of navigation links). The W3C documentation has all the details.
 
-It is important to ensure that landmarks are not over-used, because their power comes from providing an overview of the content of the page. The heading hierarchy for the page can be relied upon for more fine-grained navigation when a user has reached the section (landmark area) they need.
+Just bear in mind: it's important that landmarks are not over-used, because their power comes from providing a concise overview of the content of the page. The heading hierarchy for the page can be relied upon for more fine-grained navigation within a particular area of a page.
 
-A good rule of thumb when implementing landmarks: use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
+Here's a good rule of thumb when implementing landmarks: use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
