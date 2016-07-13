@@ -1,0 +1,37 @@
+{
+	"extensionShortName": {
+		"message": "Landmarks"
+	},
+
+	"extensionFullName": {
+		"message": "Landmark Navigation via Keyboard or Pop-up"
+	},
+
+	"extensionDescription": {
+		"message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
+	},
+
+	"nextLandmarkShortcutDescription": {
+		"message": "Move to and highlight the next landmark"
+	},
+
+	"previousLandmarkShortcutDescription": {
+		"message": "Move to and highlight the previous landmark"
+	},
+
+	"errorWord": {
+		"message": "Error"
+	},
+
+	"errorGettingLandmarksFromContentScript": {
+		"message": "The page may not have finished loading yet; please try again shortly"
+	},
+
+	"noLandmarksFound": {
+		"message": "No landmarks found"
+	},
+
+	"pageNotLoadedYet": {
+		"message": "The page has not yet been checked for landmarks; please try again"
+	}
+}

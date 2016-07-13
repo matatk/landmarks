@@ -206,12 +206,12 @@ function adjacentLandmark(delta) {
 	// However, the content script will run and find any landmarks very soon
 	// after the page has loaded.
 	if (!g_gotLandmarks) {
-		alert('This page has not yet been scanned for landmarks; please try again.');
+		alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.');
 		return;
 	}
 
 	if (g_landmarkedElements.length === 0) {
-		alert('No landmarks were found on this page.');
+		alert(chrome.i18n.getMessage('noLandmarksFound') + '.');
 	} else {
 		var newSelectedIndex = -1;
 		if (delta > 0) {

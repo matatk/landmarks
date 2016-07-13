@@ -10,31 +10,42 @@
 // If not, put a message there stating such.
 function handleLandmarksResponse(response) {
 	console.log('Landmarks: popup: got:', response);
-	// FIXME why is this sometimes getting undefined?
+
 	var display = document.getElementById('landmarks');
 	display.innerHTML = '';
 
 	if (chrome.runtime.lastError) {
-		display.innerHTML = '<p>Error: ' + chrome.runtime.lastError.message +
-			'</p><p>The page may not have finished loading yet; please try ' +
-			'again shortly.</p>';
+		paras(display, [
+			errorString() + chrome.runtime.lastError.message,
+			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
+		]);
 		return;
 	}
 
 	if (Array.isArray(response)) {
 		// Content script would normally send back an array
 		if (response.length === 0) {
-			display.innerHTML = '<p>No landmarks.</p>';
+			paras(display, chrome.i18n.getMessage('noLandmarksFound'));
 		} else {
 			makeLandmarksTree(response, display);
 		}
 	} else if (response === 'wait') {
-		display.innerHTML = '<p>The page has not yet been checked for ' +
-			'landmarks; please try again.</p>';
+		paras(display, chrome.i18n.getMessage('pageNotLoadedYet'));
 	} else {
-		display.innerHTML = '<p>Error: unexpected response from ' +
-			'content script: ' + response + '</p>';
+		paras(display, errorString() + 'content script sent: ' + response);
 	}
+}
+
+// Set an element's innerHTML string to be a paragraph containing message or,
+// if message is an array, a paragraph for each element of message
+function paras(element, message) {
+	element.innerHTML = '<p>' +
+		(Array.isArray(message) ? message.join('</p><p>') : message) + '</p>';
+}
+
+// Return localised "Error: " string
+function errorString() {
+	return chrome.i18n.getMessage('errorWord') + ': ';
 }
 
 // Go through the landmarks identified for the page and create an HTML

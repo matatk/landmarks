@@ -136,6 +136,11 @@ module.exports = function(grunt) {
 				cwd: 'src/static/',
 				src: ['*.js', '*.html'],
 				dest: 'extension/' + browser + '/'
+			},{
+				expand: true,
+				cwd: 'src/static/',
+				src: '_locales/**',
+				dest: 'extension/' + browser + '/'
 			}]
 		});
 
