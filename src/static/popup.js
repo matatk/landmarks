@@ -11,7 +11,7 @@
 function handleLandmarksResponse(response) {
 	console.log('Landmarks: popup: got:', response);
 
-	var display = document.getElementById('landmarks');
+	const display = document.getElementById('landmarks');
 	display.innerHTML = '';
 
 	if (chrome.runtime.lastError) {
@@ -51,13 +51,13 @@ function errorString() {
 // Go through the landmarks identified for the page and create an HTML
 // nested list to mirror the structure of those landmarks
 function makeLandmarksTree(landmarks, container) {
-	var previous_depth = 0;
-	var root = document.createElement('ul');  // start of tree
-	var base = root;                          // anchor for sub-trees
-	var previous_item = null;                 // last item to be created
+	let previous_depth = 0;
+	const root = document.createElement('ul');  // start of tree
+	let base = root;                            // anchor for sub-trees
+	let previous_item = null;                   // last item to be created
 
 	landmarks.forEach(function(landmark, index) {
-		var depth_change = landmark.depth - previous_depth;
+		let depth_change = landmark.depth - previous_depth;
 
 		// When nesting increases, attach a new <ul> to the last-created <li>
 		if (depth_change > 0) {
@@ -74,8 +74,8 @@ function makeLandmarksTree(landmarks, container) {
 		// If nesting hasn't changed, stick with the current base
 
 		// Create the <li> for this landmark
-		var item = document.createElement('li');
-		var button = document.createElement('button');
+		const item = document.createElement('li');
+		const button = document.createElement('button');
 		button.appendChild(document.createTextNode(landmarkName(landmark)));
 		button.addEventListener('click', function() {
 			focusLandmark(index);

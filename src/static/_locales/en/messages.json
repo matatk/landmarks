@@ -11,6 +11,8 @@
 		"message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
 	},
 
+
+
 	"nextLandmarkShortcutDescription": {
 		"message": "Move to and highlight the next landmark"
 	},
@@ -18,6 +20,8 @@
 	"previousLandmarkShortcutDescription": {
 		"message": "Move to and highlight the previous landmark"
 	},
+
+
 
 	"errorWord": {
 		"message": "Error"
@@ -33,5 +37,31 @@
 
 	"pageNotLoadedYet": {
 		"message": "The page has not yet been checked for landmarks; please try again"
+	},
+
+
+
+	"prefsBorderType": {
+		"message": "Border type:"
+	},
+
+	"prefsMomentary": {
+		"message": "Momentary"
+	},
+
+	"prefsPersistent": {
+		"message": "Persistent"
+	},
+
+	"prefsNone": {
+		"message": "None"
+	},
+
+	"prefsSaveButton": {
+		"message": "Save"
+	},
+
+	"prefsSaved": {
+		"message": "Options saved"
 	}
 }

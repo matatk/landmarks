@@ -2,7 +2,7 @@ module.exports = function(grunt) {
 	require('load-grunt-tasks')(grunt);
 	require('time-grunt')(grunt);
 
-	var packageJSON = require('./package.json');
+	const packageJSON = require('./package.json');
 	const extName = packageJSON.name;
 	const extVersion = packageJSON.version;
 	const extFileNameZip = extName + '-' + extVersion + '.zip';
@@ -55,16 +55,16 @@ module.exports = function(grunt) {
 
 	// As I can't seem to find a grunt package to actually do this...
 	grunt.registerMultiTask('svg2png', 'Convert SVGs to PNGs via ImageMagick', function() {
-		var path = require('path');
-		var widths = this.data.options.widths;
-		var conversionsDone = 0;
+		const path = require('path');
+		const widths = this.data.options.widths;
+		let conversionsDone = 0;
 
 		this.files.forEach(function(f) {
 			f.src.filter(function(filepath) {
 				widths.forEach(function(width) {
 					// Assume filename ends in '.svg'
-					var baseFileName = path.basename(filepath).slice(0, -4);
-					var options = {
+					const baseFileName = path.basename(filepath).slice(0, -4);
+					const options = {
 						cmd: 'convert',
 						stdio: 'inherit',
 						args: [

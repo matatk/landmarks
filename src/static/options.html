@@ -6,18 +6,17 @@
 	</head>
 	<body>
 		<div>
-			<label>
-				Border type:
-				<select id="border_type">
-					<option value="momentary">Momentary</option>
-					<option value="persistent">Persistent</option>
-					<option value="none">None</option>
-				</select>
-			</label>
+			<label for="border-type" data-message="prefsBorderType"></label>
+
+			<select id="border-type">
+				<option value="momentary" data-message="prefsMomentary"></option>
+				<option value="persistent" data-message="prefsPersistent"></option>
+				<option value="none" data-message="prefsNone"></option>
+			</select>
 		</div>
 
 		<div>
-			<button id="save">Save</button>
+			<button id="save" data-message="prefsSaveButton"></button>
 			<span role="alert" id="status"></span>
 		</div>
 

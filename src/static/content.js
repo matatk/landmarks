@@ -24,7 +24,7 @@
 let g_gotLandmarks = false;        // Have we already found landmarks?
 let g_selectedIndex = -1;          // Currently selected landmark
 let g_previousSelectedIndex = -1;  // Previously selected landmark
-let g_landmarkedElements = [];     // Array of landmarked elements
+const g_landmarkedElements = [];   // Array of landmarked elements
 
 // Each member of g_landmarkedElements is an object of the form:
 //   depth: (int)
@@ -66,22 +66,22 @@ function getLandmarks(currentElement, depth) {
 	doForEach(currentElement.childNodes, function(currentElementChild) {
 		if (currentElementChild.nodeType === 1) {
 			// Support HTML5 elements' native roles
-			var role = getRoleFromTagNameAndContainment(currentElementChild, currentElement);
+			let role = getRoleFromTagNameAndContainment(currentElementChild, currentElement);
 
 			// Elements with explicitly-set rolees
 			if (currentElementChild.getAttribute) {
-				var tempRole = currentElementChild.getAttribute('role');
+				const tempRole = currentElementChild.getAttribute('role');
 				if (tempRole) {
 					role = tempRole;
 				}
 			}
 
 			// The element may or may not have a label
-			var label = getARIAProvidedLabel(currentElementChild);
+			const label = getARIAProvidedLabel(currentElementChild);
 
 			// Add the element if it should be considered a landmark
 			if (role && isLandmark(role, label, currentElementChild)) {
-				var lastLandmarkedElement = getLastLandmarkedElement();
+				const lastLandmarkedElement = getLastLandmarkedElement();
 
 				if (isDescendant(lastLandmarkedElement, currentElementChild)) {
 					++depth;
@@ -102,8 +102,8 @@ function getLandmarks(currentElement, depth) {
 }
 
 function getRoleFromTagNameAndContainment(childElement, parentElement) {
-	var name = childElement.tagName;
-	var role = null;
+	const name = childElement.tagName;
+	let role = null;
 
 	if (name) {
 		try {
@@ -115,7 +115,7 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 		// Perform containment checks
 		// TODO: how far up should the containment check go (current is just one level -- what about interleaving <div>s)?
 		if (name === 'HEADER' || name === 'FOOTER') {
-			var parent_name = parentElement.tagName;
+			const parent_name = parentElement.tagName;
 			if (parent_name === 'SECTION' || parent_name === 'ARTICLE') {
 				role = null;
 			}
@@ -126,7 +126,7 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 }
 
 function isDescendant(parent, child) {
-	var node = child.parentNode;
+	let node = child.parentNode;
 
 	while (node !== null) {
 		if (node === parent) {
@@ -150,12 +150,12 @@ function isLandmark(role, label, element) {
 
 // Get the landmark label if specified
 function getARIAProvidedLabel(element) {
-	var label = element.getAttribute('aria-label');
+	let label = element.getAttribute('aria-label');
 
 	if (label === null) {
-		var labelID = element.getAttribute('aria-labelledby');
+		const labelID = element.getAttribute('aria-labelledby');
 		if (labelID !== null) {
-			var labelElement = document.getElementById(labelID);
+			const labelElement = document.getElementById(labelID);
 			label = getInnerText(labelElement);
 		}
 	}
@@ -164,7 +164,7 @@ function getARIAProvidedLabel(element) {
 }
 
 function getInnerText(element) {
-	var text = null;
+	let text = null;
 
 	if (element) {
 		text = element.innerText;
@@ -182,7 +182,7 @@ function getInnerText(element) {
 
 // forEach for NodeList (as opposed to Arrays)
 function doForEach(nodeList, callback) {
-	for (var i = 0; i < nodeList.length; i++) {
+	for (let i = 0; i < nodeList.length; i++) {
 		callback(nodeList[i]);
 	}
 }
@@ -190,7 +190,7 @@ function doForEach(nodeList, callback) {
 // Abstracts the data storage format away from simply getting the last-
 // landmarked DOM node (HTML*Element object)
 function getLastLandmarkedElement() {
-	var lastInfo = g_landmarkedElements[g_landmarkedElements.length - 1];
+	const lastInfo = g_landmarkedElements[g_landmarkedElements.length - 1];
 	if (lastInfo) {
 		return lastInfo.element;
 	}
@@ -213,7 +213,7 @@ function adjacentLandmark(delta) {
 	if (g_landmarkedElements.length === 0) {
 		alert(chrome.i18n.getMessage('noLandmarksFound') + '.');
 	} else {
-		var newSelectedIndex = -1;
+		let newSelectedIndex = -1;
 		if (delta > 0) {
 			newSelectedIndex = (g_previousSelectedIndex + 1) % g_landmarkedElements.length;
 		} else if (delta < 0) {
@@ -233,13 +233,13 @@ function focusElement(index) {
 	getWrapper({
 		'border_type': 'momentary'
 	}, function(items) {
-		var borderTypePref = items.border_type;
+		const borderTypePref = items.border_type;
 
 		removeBorderOnPreviouslySelectedElement();
 
 		// Ensure that the element is focusable
-		var element = g_landmarkedElements[index].element;
-		var originalTabindex = element.getAttribute('tabindex');
+		const element = g_landmarkedElements[index].element;
+		const originalTabindex = element.getAttribute('tabindex');
 		if (originalTabindex === null || originalTabindex === '0') {
 			element.setAttribute('tabindex', '-1');
 		}
@@ -270,7 +270,7 @@ function focusElement(index) {
 function removeBorderOnPreviouslySelectedElement() {
 	if (g_previousSelectedIndex >= 0) {
 		// TODO sometimes there's an undefined error here (due to no landmarks?)
-		var previouslySelectedElement = g_landmarkedElements[g_previousSelectedIndex].element;
+		const previouslySelectedElement = g_landmarkedElements[g_previousSelectedIndex].element;
 		// TODO re-insert check for border preference?
 		// TODO do we need to check that the DOM element exists, as we did?
 		removeBorder(previouslySelectedElement);
@@ -292,7 +292,7 @@ function removeBorder(element) {
 
 // TODO: DRY also in options script
 function getWrapper(options, action) {
-	var area = chrome.storage.sync || chrome.storage.local;
+	const area = chrome.storage.sync || chrome.storage.local;
 	area.get(options, action);
 }
 
@@ -300,7 +300,7 @@ function getWrapper(options, action) {
 function findLandmarks() {
 	g_previousSelectedIndex = -1;
 	g_selectedIndex = -1;
-	g_landmarkedElements = [];
+	g_landmarkedElements.length = 0;
 	getLandmarks(document.getElementsByTagName('body')[0], 0);
 	g_gotLandmarks = true;
 	console.log('Landmarks: found ' + g_landmarkedElements.length);
@@ -309,7 +309,7 @@ function findLandmarks() {
 // Filter the full-featured g_landmarkedElements array into something that the
 // browser-chrome-based part can use; send all info except the DOM element.
 function filterLandmarks() {
-	var list = [];
+	const list = [];
 	g_landmarkedElements.forEach(function(landmark) {
 		list.push({
 			depth: landmark.depth,
