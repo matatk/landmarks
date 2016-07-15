@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 
-		svg2png: {
+		magick_svg2png: {
 			chrome: {
 				options: {
 					widths: [
@@ -51,47 +51,6 @@ module.exports = function(grunt) {
 				jshintrc: true
 			}
 		}
-	});
-
-	// As I can't seem to find a grunt package to actually do this...
-	grunt.registerMultiTask('svg2png', 'Convert SVGs to PNGs via ImageMagick', function() {
-		const path = require('path');
-		const widths = this.data.options.widths;
-		let conversionsDone = 0;
-
-		this.files.forEach(function(f) {
-			f.src.filter(function(filepath) {
-				widths.forEach(function(width) {
-					// Assume filename ends in '.svg'
-					const baseFileName = path.basename(filepath).slice(0, -4);
-					const options = {
-						cmd: 'convert',
-						stdio: 'inherit',
-						args: [
-							'-background',
-							'transparent',
-							'-resize',
-							width + 'x' + width,
-							filepath,
-							f.dest + baseFileName + '-' + width + '.png'
-						]
-					};
-
-					grunt.verbose.writeln('Conversion task:', options);
-
-					grunt.util.spawn(options, function(error, result, code) {
-						if (error) {
-							grunt.log.error('convert exit code:', code);
-							throw(error);
-						} else {
-							conversionsDone += 1;
-							grunt.verbose.writeln(conversionsDone,
-								'SVG to PNG conversions complete.');
-						}
-					});
-				});
-			});
-		});
 	});
 
 	// The following task declarations are even more repetitive,
@@ -157,7 +116,7 @@ module.exports = function(grunt) {
 		grunt.registerTask(browser, [
 			'clean:' + browser,
 			'mkdir:' + browser,
-			'svg2png:' + browser,
+			'magick_svg2png:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
 			'replace:' + browser,
