@@ -1,6 +1,7 @@
 /*
-   © Copyright IBM Corp. 2012
-   © Copyright Matthew Tylee Atkinson, The Paciello Group 2013-2016
+   Copyright © 2012 IBM Corp.
+   Copyright © 2013-2016 The Paciello Group
+   Copyright © 2016 Matthew Tylee Atkinson
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
