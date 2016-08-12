@@ -9,14 +9,12 @@ The following sections explain how to install and use the extension.
 
 If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)---in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
-**Firefox users: Firefox now requires extensions to be signed. As getting the extension signed required some effort, it seemed like an appropriate time to also convert to the new and cross-browser WebExtension API. However, Firefox will only support keyboard commands for WebExtensions from version 48 (to be released on 2016-08-02). It works fully with Firefox Developer Edition already. Currently if you want to use it with Firefox, you will need to [build it yourself](#development). A version will be posted to Firefox Add-ons for easy installation shortly.**
-
 Installation
 ------------
 
 **Chrome:** FIXME
 
-**Firefox:** you can test the current code locally as per [the Development section](#development) below. Bear in mind that you will need Firefox 48 for keyboard shortcut support, and that Firefox Developer Edition is currently recommended.
+**Firefox:** FIXME
 
 Navigating Landmarks
 --------------------
@@ -35,6 +33,8 @@ If you're using Chrome, you can change these shortcuts: visit the Chrome extensi
 Firefox does not yet provide a UI for changing keyboard shortcuts for WebExtensions.
 
 ### Via Toolbar Pop-up
+
+If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an "L") will be badged with the number of landmarks found.
 
 1.  Activate the Landmarks toolbar button. A pop-up will appear. If landmarks are present on the page, they will be shown in a nested list, reflecting the structure of the landmarks on the page.
 
@@ -69,8 +69,7 @@ You can build and run the current code locally as follows.
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
-Test Pages
-----------
+### Test Pages
 
 -   ARIA landmarks: http://www.html5accessibility.com/tests/roles-land.html
 -   HTML 5 structural elements: http://www.html5accessibility.com/tests/structural-elements.html
@@ -114,3 +113,9 @@ Acknowledgements
 ----------------
 
 This is a fork of the [original landmarks extension](https://github.com/davidtodd/landmarks) written by [davidtodd](https://github.com/davidtodd) at IBM. Thanks to [stevefaulkner](https://github.com/stevefaulkner) for suggesting I work on this, and for feature suggestions (and again to [davidtodd](https://github.com/davidtodd) for supporting me doing so), and to [The Paciello Group](https://www.paciellogroup.com) for donating a significant chunk of the development time.
+
+Changes
+-------
+
+-   2.0.0 - nth of August 2016 - First WebExtension Release
+
