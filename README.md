@@ -117,5 +117,4 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.0 - nth of August 2016 - First WebExtension Release
-
+-   2.0.2 - 12th of August 2016 - First WebExtension Release
