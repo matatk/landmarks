@@ -109,7 +109,7 @@ module.exports = function(grunt) {
 
 		grunt.config.set('zip.' + browser, {
 			cwd: 'extension/' + browser,
-			src: 'extension/' + browser + '/*',
+			src: 'extension/' + browser + '/**/*',
 			dest: 'build/' + browser + '/' + extFileNameZip
 		});
 
