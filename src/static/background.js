@@ -25,7 +25,7 @@ function sendToActiveTab(message, callback) {
 // Navigation Events
 //
 
-// Listen for URL change events on the tab and disable the browser action if
+// Listen for URL change events on all tabs and disable the browser action if
 // the URL does not start with 'http://' or 'https://'
 //
 // Notes:

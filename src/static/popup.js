@@ -15,32 +15,54 @@ function handleLandmarksResponse(response) {
 	display.innerHTML = '';
 
 	if (chrome.runtime.lastError) {
-		paras(display, [
-			errorString() + chrome.runtime.lastError.message,
-			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
+		display.innerHTML = paras([
+				errorString() + chrome.runtime.lastError.message,
+				chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		]);
+		addReloadButton(display);
 		return;
 	}
 
 	if (Array.isArray(response)) {
 		// Content script would normally send back an array
 		if (response.length === 0) {
-			paras(display, chrome.i18n.getMessage('noLandmarksFound'));
+			display.innerHTML = paras(
+					chrome.i18n.getMessage('noLandmarksFound'));
 		} else {
 			makeLandmarksTree(response, display);
 		}
 	} else if (response === 'wait') {
-		paras(display, chrome.i18n.getMessage('pageNotLoadedYet'));
+		display.innerHTML = paras(chrome.i18n.getMessage('pageNotLoadedYet'));
 	} else {
-		paras(display, errorString() + 'content script sent: ' + response);
+		display.innerHTML = paras(
+				errorString() + 'content script sent: ' + response);
 	}
 }
 
-// Set an element's innerHTML string to be a paragraph containing message or,
+// Return a string corresponding to an HTML paragraph containing message or,
 // if message is an array, a paragraph for each element of message
-function paras(element, message) {
-	element.innerHTML = '<p>' +
-		(Array.isArray(message) ? message.join('</p><p>') : message) + '</p>';
+function paras(message) {
+	return '<p>' +
+		(Array.isArray(message) ? message.join('</p><p>') : message) +
+		'</p>';
+}
+
+// Create a button that reloads the current page and add it to an element
+// (Needs to be done this way to avoid CSP violation)
+function addReloadButton(element) {
+	const button = document.createElement('button');
+	button.appendChild(document.createTextNode(
+				chrome.i18n.getMessage('tryReloading')));
+	button.addEventListener('click', reloadActivePage);
+	element.appendChild(button);
+}
+
+// Function to reload the page in the current tab
+function reloadActivePage() {
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		chrome.tabs.reload(tabs[0].tabId);
+	});
+	window.close();
 }
 
 // Return localised "Error: " string
