@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<div>
+			<label for="border-type" data-message="prefsBorderType"></label>
+
+			<select id="border-type">
+				<option value="momentary" data-message="prefsMomentary"></option>
+				<option value="persistent" data-message="prefsPersistent"></option>
+				<option value="none" data-message="prefsNone"></option>
+			</select>
+		</div>
+
+		<div>
+			<button id="save" data-message="prefsSaveButton"></button>
+			<span role="alert" id="status"></span>
+		</div>
+
+		<script src="options.js"></script>
+	</body>
+</html>

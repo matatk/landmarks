@@ -1,4 +1,7 @@
-landmarks.xpi
 .DS_Store
 *.swp
-src/install.rdf
+node_modules
+extension
+build
+_site
+landmarks-chrome-out.png

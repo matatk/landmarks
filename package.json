@@ -1,0 +1,18 @@
+{
+  "name": "landmarks",
+  "version": "2.0.2",
+  "private": true,
+  "devDependencies": {
+    "grunt": "~1.0",
+    "grunt-contrib-clean": "~1.0",
+    "grunt-contrib-copy": "~1.0",
+    "grunt-contrib-jshint": "~1.0",
+    "grunt-json-merge": "~0.2",
+    "grunt-magick-svg2png": "github:matatk/grunt-magick-svg2png",
+    "grunt-mkdir": "~1.0",
+    "grunt-text-replace": "~0.4",
+    "grunt-zip": "~0.17",
+    "load-grunt-tasks": "~3.5",
+    "time-grunt": "~1.4"
+  }
+}

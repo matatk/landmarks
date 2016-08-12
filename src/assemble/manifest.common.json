@@ -1,0 +1,40 @@
+{
+	"manifest_version": 2,
+	"name": "__MSG_extensionFullName__",
+	"short_name": "__MSG_extensionShortName__",
+	"version": "@version@",
+	"description": "__MSG_extensionDescription__",
+	"author": "David Todd, Matthew Tylee Atkinson",
+	"homepage_url": "http://matatk.agrip.org.uk/landmarks/",
+	"default_locale": "en",
+
+	"permissions": [
+		"activeTab", "storage", "webNavigation", "tabs"
+	],
+
+	"background": {
+		"scripts": ["background.js"]
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": ["content.js"]
+		}
+	],
+
+	"commands": {
+		"next-landmark": {
+			"suggested_key": {
+				"default": "Alt+Shift+N"
+			},
+			"description": "__MSG_nextLandmarkShortcutDescription__"
+		},
+		"prev-landmark": {
+			"suggested_key": {
+				"default": "Alt+Shift+P"
+			},
+			"description": "__MSG_previousLandmarkShortcutDescription__"
+		}
+	}
+}

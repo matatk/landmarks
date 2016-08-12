@@ -1,0 +1,1 @@
+convert -format png -trim +repage -background none -resize 1280x800 -gravity center -extent 1280x800 landmarks-chrome.png landmarks-chrome-out.png
