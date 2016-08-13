@@ -1,0 +1,5 @@
+This extension allows you to navigate a web page via its WAI-ARIA landmarks, using the keyboard or a pop-up menu. Information on how to use it is available at http://matatk.agrip.org.uk/landmarks
+
+As the extension is developed in my own time, I am not able to guarantee timely support, though will be doing what I can to help, and concentrating on fixing bugs and adding features where this makes sense.
+
+Please read the general information at http://matatk.agrip.org.uk/landmarks and report any problems via https://github.com/matatk/landmarks/issues (please check that your issue has not already been reported first; thanks!)

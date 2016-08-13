@@ -12,9 +12,8 @@ If you're a web author/developer, check out the information below on [why landma
 Installation
 ------------
 
-**Chrome:** FIXME
-
-**Firefox:** FIXME
+- **Firefox:** [Install via Mozilla Add-ons (review pending)](https://addons.mozilla.org/en-US/firefox/addon/landmarks/)
+- **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
 
 Navigating Landmarks
 --------------------
