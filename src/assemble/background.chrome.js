@@ -22,8 +22,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
 		// Inject content script manually
 		chrome.tabs.query({}, function(tabs) {
-			for(var i in tabs) {
-				chrome.tabs.executeScript(tabs[i].id, {file: "content.js"});
+			for(let i in tabs) {
+				if (/^https?:\/\//.test(tabs[i].url)) {
+					chrome.tabs.executeScript(tabs[i].id, {file: "content.js"});
+				}
+				// Chrome: if the user is browsing the Chrome Web Store, this
+				//         raises "The extensions gallery cannot be scripted",
+				//         because the Chrome Web Store is special-cased. That
+				//         doesn't seem worth worrying about.
 			}
 		});
 	}
