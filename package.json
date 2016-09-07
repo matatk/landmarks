@@ -1,10 +1,11 @@
 {
   "name": "landmarks",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "private": true,
   "devDependencies": {
     "grunt": "~1.0",
     "grunt-contrib-clean": "~1.0",
+    "grunt-contrib-concat": "~1.0",
     "grunt-contrib-copy": "~1.0",
     "grunt-contrib-jshint": "~1.0",
     "grunt-json-merge": "~0.2",

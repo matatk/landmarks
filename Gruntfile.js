@@ -103,6 +103,16 @@ module.exports = function(grunt) {
 			}]
 		});
 
+		// For the background script, there are some Chrome-specific extras
+		const background_includes = ['src/assemble/background.js'];
+		if (browser === 'chrome') {
+			background_includes.push('src/assemble/background.chrome.js');
+		}
+		grunt.config.set('concat.' + browser, {
+			src: background_includes,
+			dest: 'extension/' + browser + '/background.js'
+		});
+
 		grunt.config.set('jshint.' + browser, [
 			'extension/' + browser + '/*.js'
 		]);
@@ -120,6 +130,7 @@ module.exports = function(grunt) {
 			'copy:' + browser,
 			'json_merge:' + browser,
 			'replace:' + browser,
+			'concat:' + browser,
 			'jshint:' + browser,
 			'zip:' + browser
 		]);

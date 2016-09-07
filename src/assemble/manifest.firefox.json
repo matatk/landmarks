@@ -6,24 +6,11 @@
 
 	"browser_action": {
 		"browser_style": true,
-		"default_title": "Landmarks",
 		"default_icon": {
 			"18": "landmarks-18.png",
 			"32": "landmarks-32.png",
 			"36": "landmarks-36.png",
 			"64": "landmarks-64.png"
-		},
-		"default_popup": "popup.html"
-	},
-
-	"options_ui": {
-		"page": "options.html"
-	},
-
-	"applications": {
-		"gecko": {
-			"id": "ariaLandmarkNav@ibm.com",
-			"strict_min_version": "48.0"
 		}
 	}
 }

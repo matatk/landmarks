@@ -36,5 +36,14 @@
 			},
 			"description": "__MSG_previousLandmarkShortcutDescription__"
 		}
+	},
+
+	"options_ui": {
+		"page": "options.html"
+	},
+
+	"browser_action": {
+		"default_title": "Landmarks",
+		"default_popup": "popup.html"
 	}
 }
