@@ -117,4 +117,10 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.2 - 12th of August 2016 - First WebExtension Release
+-   2.0.3 - 23rd of September 2016
+    * When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
+    * Automatically re-inject the content script on Chrome when the extension is updated (or injected it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
+    * Locale is now en_GB (instead of en).
+    * Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
+-   2.0.2 - 12th of August 2016
+    * First WebExtension Release
