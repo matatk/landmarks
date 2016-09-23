@@ -6,7 +6,7 @@
 	"description": "__MSG_extensionDescription__",
 	"author": "David Todd, Matthew Tylee Atkinson",
 	"homepage_url": "http://matatk.agrip.org.uk/landmarks/",
-	"default_locale": "en",
+	"default_locale": "en_GB",
 
 	"permissions": [
 		"activeTab", "storage", "webNavigation", "tabs"

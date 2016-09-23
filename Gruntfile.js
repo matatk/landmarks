@@ -11,37 +11,41 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 
-		magick_svg2png: {
+		rasterize: {
 			chrome: {
 				options: {
-					widths: [
-						16,  // Chrome  (favicon)
-						19,  // Chrome  (toolbar)
-						32,  // Chrome  (Windows) + Firefox (menu panel)
-						38,  // Chrome  (tooblar x2)
-						48,  // Both    (general)
-						128  // Chrome  (store)
+					sizes: [
+						{ width: 16 },  // Chrome  (favicon)
+						{ width: 19 },  // Chrome  (toolbar)
+						{ width: 32 },  // Chrome  (Windows) + Firefox (menu panel)
+						{ width: 38 },  // Chrome  (tooblar x2)
+						{ width: 48 },  // Both    (general)
+						{ width: 128 }  // Chrome  (store)
 					]
 				},
 				files: [{
-					src: 'src/assemble/*.svg',
-					dest: 'extension/chrome/'
+					expand: true,
+					cwd: 'src/assemble/',
+					src: 'landmarks.svg',
+					dest: '../../extension/chrome/'
 				}]
 			},
 			firefox: {
 				options: {
-					widths: [
-						18,  // Firefox (toolbar)
-						32,  // Firefox (menu panel) + Chrome (Windows)
-						36,  // Firefox (toolbar x2)
-						48,  // Both    (general)
-						64,  // Firefox (menu panel x2)
-						96   // Firefox (general x2)
+					sizes: [
+						{ width: 18 },  // Firefox (toolbar)
+						{ width: 32 },  // Firefox (menu panel) + Chrome (Windows)
+						{ width: 36 },  // Firefox (toolbar x2)
+						{ width: 48 },  // Both    (general)
+						{ width: 64 },  // Firefox (menu panel x2)
+						{ width: 96 }   // Firefox (general x2)
 					]
 				},
 				files: [{
-					src: 'src/assemble/*.svg',
-					dest: 'extension/firefox/'
+					expand: true,
+					cwd: 'src/assemble/',
+					src: 'landmarks.svg',
+					dest: '../../extension/firefox/'
 				}]
 			}
 		},
@@ -126,7 +130,7 @@ module.exports = function(grunt) {
 		grunt.registerTask(browser, [
 			'clean:' + browser,
 			'mkdir:' + browser,
-			'magick_svg2png:' + browser,
+			'rasterize:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
 			'replace:' + browser,
