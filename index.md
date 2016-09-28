@@ -62,7 +62,7 @@ Development
 
 You can build and run the current code locally as follows.
 
-1.  Clone this repository to your computer.
+1.  Clone [the Landmarks repository on GitHub](https://github.com/matatk/landmarks) to your computer.
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
 3.  Run `grunt` to build both the Firefox and Chrome versions, or `grunt firefox` or `grunt chrome` to build just one. The built versions of the extension are placed in the `extensions/<browser>/` directories and zip files for each will be stored in `build/<browser>/`.
 4.  To test the extension locally in your browser...
@@ -71,8 +71,8 @@ You can build and run the current code locally as follows.
 
 ### Test Pages
 
--   ARIA landmarks: http://www.html5accessibility.com/tests/roles-land.html
--   HTML 5 structural elements: http://www.html5accessibility.com/tests/structural-elements.html
+-   [HTML5Accessibility: ARIA landmarks](http://www.html5accessibility.com/tests/roles-land.html)
+-   [HTML5Accessibility: structural elements](http://www.html5accessibility.com/tests/structural-elements.html)
 
 This Extension's Support for Landmarks
 --------------------------------------
@@ -119,7 +119,7 @@ Changes
 
 -   2.0.3 - 23rd of September 2016
     * When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
-    * Automatically re-inject the content script on Chrome when the extension is updated (or injected it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
+    * Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
     * Locale is now en_GB (instead of en).
     * Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
 -   2.0.2 - 12th of August 2016
