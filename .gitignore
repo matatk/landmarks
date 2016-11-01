@@ -2,6 +2,6 @@
 *.swp
 node_modules
 extension
-build
 _site
 landmarks-chrome-out.png
+landmarks-*.zip

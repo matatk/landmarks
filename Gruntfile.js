@@ -5,7 +5,6 @@ module.exports = function(grunt) {
 	const packageJSON = require('./package.json');
 	const extName = packageJSON.name;
 	const extVersion = packageJSON.version;
-	const extFileNameZip = extName + '-' + extVersion + '.zip';
 
 	// Project configuration
 	grunt.initConfig({
@@ -62,14 +61,13 @@ module.exports = function(grunt) {
 	['firefox', 'chrome'].forEach(function(browser) {
 		grunt.config.set('clean.' + browser, [
 			'extension/' + browser,
-			'build/' + browser
+			zipFileName(browser)
 		]);
 
 		grunt.config.set('mkdir.' + browser, {
 			options: {
 				create: [
 					'extension/' + browser,
-					'build/' + browser
 				]
 			}
 		});
@@ -124,7 +122,7 @@ module.exports = function(grunt) {
 		grunt.config.set('zip.' + browser, {
 			cwd: 'extension/' + browser,
 			src: 'extension/' + browser + '/**/*',
-			dest: 'build/' + browser + '/' + extFileNameZip
+			dest: zipFileName(browser)
 		});
 
 		grunt.registerTask(browser, [
@@ -144,4 +142,8 @@ module.exports = function(grunt) {
 		'chrome',
 		'firefox'
 	]);
+
+	function zipFileName(browser) {
+		return extName + '-' + extVersion + '-' + browser + '.zip';
+	}
 };

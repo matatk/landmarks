@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "private": true,
   "devDependencies": {
     "grunt": "~1.0",
@@ -10,7 +10,7 @@
     "grunt-contrib-jshint": "~1.0",
     "grunt-json-merge": "~0.2",
     "grunt-mkdir": "~1.0",
-    "grunt-phantom-rasterize": "github:matatk/grunt-phantom-rasterize#4136ea6e1691d3df1e016fe56071994b3a336458",
+    "grunt-phantom-rasterize": "matatk/grunt-phantom-rasterize#move-to-phantomjs-2",
     "grunt-text-replace": "~0.4",
     "grunt-zip": "~0.17",
     "load-grunt-tasks": "~3.5",

@@ -252,7 +252,7 @@ function focusElement(index) {
 			addBorder(element);
 
 			if (borderTypePref === 'momentary') {
-				setTimeout(function() { removeBorder(element); }, 1000);
+				setTimeout(function() { removeBorder(element); }, 2000);
 			}
 		}
 
