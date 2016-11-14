@@ -118,11 +118,12 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.4 - ??th of November 2016
+-   2.0.4 - ??? of November 2016
+    * Clean up the appearance of the popup.
     * Increase 'momentary' highlight duration to two seconds, from one second.
     * Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
-    * Use my latest fork of grunt-phantom-rasterize, which has been updated to use more recent PhantomJS and work on macOS Sierra.
-    * Build system improvements.
+    * Use my latest fork of grunt-phantom-rasterize, which has been updated to use more recent PhantomJS and work on macOS Sierra (unfortunately it now runs much slower).
+    * Track builds with Travis CI.
 -   2.0.3 - 23rd of September 2016
     * When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
     * Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
