@@ -1,0 +1,26 @@
+ul {
+	margin: 0;
+	padding: 0;
+}
+
+ul ul {
+	padding-left: 2em;
+}
+
+li {
+	display: block;
+}
+
+button {
+	margin: 0.25em;
+}
+
+body {
+	padding: 0.5em;
+}
+
+h1 {
+	font-size: 1em;
+	padding: 0.25em;
+	margin: 0;
+}

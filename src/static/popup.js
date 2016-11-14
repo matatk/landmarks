@@ -142,5 +142,7 @@ function sendToActiveTab(message, callback) {
 
 // When the pop-up opens, grab and process the list of page landmarks
 document.addEventListener('DOMContentLoaded', function() {
+	document.getElementById('heading').innerText =
+		chrome.i18n.getMessage('popupHeading');
 	sendToActiveTab({request: 'get-landmarks'}, handleLandmarksResponse);
 });
