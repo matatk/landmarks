@@ -95,7 +95,7 @@ module.exports = function(grunt) {
 			files: [{
 				expand: true,
 				cwd: 'src/static/',
-				src: ['*.js', '*.html'],
+				src: ['*.js', '*.html', '*.css'],
 				dest: 'extension/' + browser + '/'
 			},{
 				expand: true,

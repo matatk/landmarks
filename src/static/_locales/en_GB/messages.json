@@ -13,6 +13,7 @@
 
 
 
+
 	"nextLandmarkShortcutDescription": {
 		"message": "Move to and highlight the next landmark"
 	},
@@ -22,6 +23,11 @@
 	},
 
 
+
+
+	"popupHeading": {
+		"message": "Landmarks on page"
+	},
 
 	"errorWord": {
 		"message": "Error"
@@ -42,6 +48,7 @@
 	"tryReloading": {
 		"message": "Try reloading the page"
 	},
+
 
 
 
