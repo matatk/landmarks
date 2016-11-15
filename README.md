@@ -64,8 +64,15 @@ Development
 You can build and run the current code locally as follows.
 
 1.  Clone [the Landmarks repository on GitHub](https://github.com/matatk/landmarks) to your computer.
+
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
-3.  Run `grunt` to build both the Firefox and Chrome versions, or `grunt firefox` or `grunt chrome` to build just one. The built versions of the extension are placed in the `extensions/<browser>/` directories and zip files for each will be created in the root of the checked-out repository.
+
+3.  Run `grunt` to build both the Firefox and Chrome versions, or `grunt firefox` or `grunt chrome` to build just one.
+
+    The built versions of the extension are placed in the `build/<browser>/` directories and zip files for each will be created in the root of the checked-out repository.
+
+    Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached. You can clean out the cache (as well as built extensions and zip files) by issuing `grunt clean`.
+
 4.  To test the extension locally in your browser...
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).

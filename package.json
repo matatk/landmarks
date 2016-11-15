@@ -10,6 +10,7 @@
     "grunt-contrib-jshint": "~1.0",
     "grunt-json-merge": "~0.2",
     "grunt-mkdir": "~1.0",
+    "grunt-newer": "~1.2",
     "grunt-phantom-rasterize": "matatk/grunt-phantom-rasterize#move-to-phantomjs-2",
     "grunt-text-replace": "~0.4",
     "grunt-zip": "~0.17",

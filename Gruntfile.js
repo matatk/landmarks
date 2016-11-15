@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = function(grunt) {
 	require('load-grunt-tasks')(grunt);
 	require('time-grunt')(grunt);
@@ -5,6 +7,10 @@ module.exports = function(grunt) {
 	const packageJSON = require('./package.json');
 	const extName = packageJSON.name;
 	const extVersion = packageJSON.version;
+	const builtExtensionsDir = 'build';
+	const srcStaticDir = path.join('src', 'static');
+	const srcAssembleDir = path.join('src', 'assemble');
+	const pngCacheDir = 'cache';
 
 	// Project configuration
 	grunt.initConfig({
@@ -24,9 +30,9 @@ module.exports = function(grunt) {
 				},
 				files: [{
 					expand: true,
-					cwd: 'src/assemble/',
+					cwd: srcAssembleDir,
 					src: 'landmarks.svg',
-					dest: '../../extension/chrome/'
+					dest: path.join('..', '..', pngCacheDir)
 				}]
 			},
 			firefox: {
@@ -42,9 +48,9 @@ module.exports = function(grunt) {
 				},
 				files: [{
 					expand: true,
-					cwd: 'src/assemble/',
+					cwd: srcAssembleDir,
 					src: 'landmarks.svg',
-					dest: '../../extension/firefox/'
+					dest: path.join('..', '..', pngCacheDir)
 				}]
 			}
 		},
@@ -53,6 +59,10 @@ module.exports = function(grunt) {
 			options: {
 				jshintrc: true
 			}
+		},
+
+		clean: {
+			cache: [pngCacheDir]
 		}
 	});
 
@@ -60,14 +70,14 @@ module.exports = function(grunt) {
 	// so declare them in a loop
 	['firefox', 'chrome'].forEach(function(browser) {
 		grunt.config.set('clean.' + browser, [
-			'extension/' + browser,
+			path.join(builtExtensionsDir, browser),
 			zipFileName(browser)
 		]);
 
 		grunt.config.set('mkdir.' + browser, {
 			options: {
 				create: [
-					'extension/' + browser,
+					path.join(builtExtensionsDir, browser),
 				]
 			}
 		});
@@ -75,15 +85,15 @@ module.exports = function(grunt) {
 		grunt.config.set('json_merge.' + browser, {
 			files: [{
 				src: [
-					'src/assemble/manifest.common.json',
-					'src/assemble/manifest.' + browser + '.json'
+					path.join(srcAssembleDir, 'manifest.common.json'),
+					path.join(srcAssembleDir, 'manifest.' + browser + '.json')
 				],
-				dest: 'extension/' + browser + '/manifest.json'
+				dest: path.join(builtExtensionsDir, browser, 'manifest.json')
 			}]
 		});
 
 		grunt.config.set('replace.' + browser, {
-			src: 'extension/' + browser + '/manifest.json',
+			src: path.join(builtExtensionsDir, browser, 'manifest.json'),
 			overwrite: true,
 			replacements: [{
 				from: '@version@',
@@ -94,41 +104,46 @@ module.exports = function(grunt) {
 		grunt.config.set('copy.' + browser, {
 			files: [{
 				expand: true,
-				cwd: 'src/static/',
+				cwd: srcStaticDir,
 				src: ['*.js', '*.html', '*.css'],
-				dest: 'extension/' + browser + '/'
-			},{
+				dest: path.join(builtExtensionsDir, browser)
+			}, {
 				expand: true,
-				cwd: 'src/static/',
+				cwd: srcStaticDir,
 				src: '_locales/**',
-				dest: 'extension/' + browser + '/'
+				dest: path.join(builtExtensionsDir, browser)
+			}, {
+				expand: true,
+				cwd: pngCacheDir,
+				src: '*.png',
+				dest: path.join(builtExtensionsDir, browser)
 			}]
 		});
 
 		// For the background script, there are some Chrome-specific extras
-		const background_includes = ['src/assemble/background.js'];
+		const background_includes = [path.join(srcAssembleDir, 'background.js')];
 		if (browser === 'chrome') {
-			background_includes.push('src/assemble/background.chrome.js');
+			background_includes.push(path.join(srcAssembleDir, 'background.chrome.js'));
 		}
 		grunt.config.set('concat.' + browser, {
 			src: background_includes,
-			dest: 'extension/' + browser + '/background.js'
+			dest: path.join(builtExtensionsDir, browser, 'background.js')
 		});
 
 		grunt.config.set('jshint.' + browser, [
-			'extension/' + browser + '/*.js'
+			path.join(builtExtensionsDir, browser, '/*.js')
 		]);
 
 		grunt.config.set('zip.' + browser, {
-			cwd: 'extension/' + browser,
-			src: 'extension/' + browser + '/**/*',
+			cwd: path.join(builtExtensionsDir, browser),
+			src: path.join(builtExtensionsDir, browser, '/**/*'),
 			dest: zipFileName(browser)
 		});
 
 		grunt.registerTask(browser, [
 			'clean:' + browser,
 			'mkdir:' + browser,
-			'rasterize:' + browser,
+			'newer:rasterize:' + browser,
 			'copy:' + browser,
 			'json_merge:' + browser,
 			'replace:' + browser,
