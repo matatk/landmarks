@@ -15,7 +15,7 @@
 chrome.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
 		// Show website and get it to display an appropriate notice
-		let base_url = 'http://matatk.agrip.org.uk/landmarks/#!';
+		const base_url = 'http://matatk.agrip.org.uk/landmarks/#!';
 		chrome.tabs.create({
 			url: base_url + details.reason
 		});

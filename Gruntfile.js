@@ -55,12 +55,6 @@ module.exports = function(grunt) {
 			}
 		},
 
-		jshint: {
-			options: {
-				jshintrc: true
-			}
-		},
-
 		clean: {
 			cache: [pngCacheDir]
 		}
@@ -130,7 +124,7 @@ module.exports = function(grunt) {
 			dest: path.join(builtExtensionsDir, browser, 'background.js')
 		});
 
-		grunt.config.set('jshint.' + browser, [
+		grunt.config.set('eslint.' + browser, [
 			path.join(builtExtensionsDir, browser, '/*.js')
 		]);
 
@@ -148,7 +142,7 @@ module.exports = function(grunt) {
 			'json_merge:' + browser,
 			'replace:' + browser,
 			'concat:' + browser,
-			'jshint:' + browser,
+			'eslint:' + browser,
 			'zip:' + browser
 		]);
 	});

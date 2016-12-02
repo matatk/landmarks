@@ -35,15 +35,15 @@ const g_landmarkedElements = [];   // Array of landmarked elements
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-		'application',    // must have a label -- TODO decide if should remove
-		'banner',
-		'complementary',
-		'contentinfo',
-		'form',           // must have a label
-		'main',
-		'navigation',
-		'region',         // must have a label
-		'search'
+	'application',    // must have a label -- TODO decide if should remove
+	'banner',
+	'complementary',
+	'contentinfo',
+	'form',           // must have a label
+	'main',
+	'navigation',
+	'region',         // must have a label
+	'search'
 ]);
 
 // Mapping of HTML5 elements to implicit roles

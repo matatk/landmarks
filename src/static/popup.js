@@ -16,8 +16,8 @@ function handleLandmarksResponse(response) {
 
 	if (chrome.runtime.lastError) {
 		display.innerHTML = paras([
-				errorString() + chrome.runtime.lastError.message,
-				chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
+			errorString() + chrome.runtime.lastError.message,
+			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		]);
 		addReloadButton(display);
 		return;
@@ -79,7 +79,7 @@ function makeLandmarksTree(landmarks, container) {
 	let previous_item = null;                   // last item to be created
 
 	landmarks.forEach(function(landmark, index) {
-		let depth_change = landmark.depth - previous_depth;
+		const depth_change = landmark.depth - previous_depth;
 
 		// When nesting increases, attach a new <ul> to the last-created <li>
 		if (depth_change > 0) {
