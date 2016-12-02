@@ -10,9 +10,9 @@
   },
   "rules": {
     "indent": ["error", "tab", { "SwitchCase": 1 }],
-    "no-var": 2,
-    "prefer-const": 1,
+    "no-var": "error",
+    "prefer-const": "warn",
     "no-console": "warn",
-    "no-unused-vars": 1
+    "no-unused-vars": "warn"
   }
 }
