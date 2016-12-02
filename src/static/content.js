@@ -220,7 +220,7 @@ function adjacentLandmark(delta) {
 		} else if (delta < 0) {
 			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1;
 		} else {
-			throw("Landmarks: adjacentLandmark: delta should be negative or positive");
+			throw('Landmarks: adjacentLandmark: delta should be negative or positive');
 		}
 		focusElement(newSelectedIndex);
 	}

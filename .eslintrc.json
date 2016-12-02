@@ -10,6 +10,7 @@
   },
   "rules": {
     "indent": ["error", "tab", { "SwitchCase": 1 }],
+    "quotes": ["error", "single", { "avoidEscape": true }],
     "no-var": "error",
     "prefer-const": "warn",
     "no-console": "warn",
