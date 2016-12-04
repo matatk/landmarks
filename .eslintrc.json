@@ -9,23 +9,26 @@
     "chrome": true
   },
   "rules": {
-    "indent": ["error", "tab", { "SwitchCase": 1 }],
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-var": "error",
-    "prefer-const": "warn",
-    "no-console": "off",
+    "indent": ["error", "tab", { "SwitchCase": 1 }],
+    "brace-style": "error",
+    "curly": ["error", "multi-line"],
     "no-unused-vars": "warn",
+    "block-scoped-var": "error",
+    "no-var": "error",
+    "prefer-const": "error",
     "space-before-function-paren": ["error", "never"],
     "space-before-blocks": "error",
     "no-lone-blocks": "error",
-    "no-else-return": "warn",
-    "no-lonely-if": "warn",
+    "no-else-return": "error",
+    "no-lonely-if": "error",
     "no-loop-func": "warn",
-    "no-throw-literal": "warn",
-    "camelcase": "warn",
-    "capitalized-comments": "warn",
-    "space-infix-ops": "warn",
-    "block-scoped-var": "warn",
-    "curly": "warn"
+    "no-throw-literal": "error",
+    "space-infix-ops": "error",
+    "space-unary-ops": "error",
+    "spaced-comment": "error",
+    "no-unexpected-multiline": "error",
+    "func-call-spacing": "error",
+    "no-console": "warn"
   }
 }

@@ -10,13 +10,14 @@
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
     "build:all": "npm run clean:all && npm run _build -- all",
 
-    "clean:firefox": "rimraf build/firefox",
-    "clean:chrome": "rimraf build/chrome",
+    "clean:firefox": "rimraf build/firefox landmarks-*-firefox.zip",
+    "clean:chrome": "rimraf build/chrome landmarks-*-chrome.zip",
     "clean:all": "npm run clean:firefox && npm run clean:chrome",
 
     "clean:cache": "rimraf build/png-cache"
   },
   "devDependencies": {
+    "archiver": "~1.2",
     "chalk": "~1.1",
     "deepmerge": "~1.3",
     "eslint": "~3.11",
