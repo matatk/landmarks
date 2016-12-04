@@ -13,6 +13,8 @@
     "indent": ["error", "tab", { "SwitchCase": 1 }],
     "brace-style": "error",
     "curly": ["error", "multi-line"],
+    "no-unexpected-multiline": "error",
+    "semi": ["error", "never"],
     "no-unused-vars": "warn",
     "block-scoped-var": "error",
     "no-var": "error",
@@ -27,7 +29,6 @@
     "space-infix-ops": "error",
     "space-unary-ops": "error",
     "spaced-comment": "error",
-    "no-unexpected-multiline": "error",
     "func-call-spacing": "error",
     "no-console": "warn"
   }
