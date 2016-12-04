@@ -99,7 +99,7 @@ function mergeManifest(browser) {
 	merged.version = extVersion
 	fse.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
-		JSON.stringify(merged)
+		JSON.stringify(merged, null, 2)
 	)
 	console.log(chalk.green(`✔ manifest.json written for ${browser}.`))
 }
