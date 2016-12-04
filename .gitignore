@@ -5,4 +5,4 @@ build
 _site
 landmarks-chrome-out.png
 landmarks-*.zip
-cache
+npm-debug.log

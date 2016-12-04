@@ -2,19 +2,19 @@
   "name": "landmarks",
   "version": "2.0.4",
   "private": true,
+  "scripts": {
+    "prebuild": "eslint .",
+    "build": "node scripts/build.js all",
+    "clean": "rimraf build/firefox && rimraf build/chrome",
+    "predeepclean": "npm run clean",
+    "deepclean": "rimraf build/png-cache/*"
+  },
   "devDependencies": {
-    "grunt": "~1.0",
-    "grunt-contrib-clean": "~1.0",
-    "grunt-contrib-concat": "~1.0",
-    "grunt-contrib-copy": "~1.0",
-    "grunt-eslint": "~19.0.0",
-    "grunt-json-merge": "~0.2",
-    "grunt-mkdir": "~1.0",
-    "grunt-newer": "sevarubbo/grunt-newer",
-    "grunt-phantom-rasterize": "matatk/grunt-phantom-rasterize#move-to-phantomjs-2",
-    "grunt-text-replace": "~0.4",
-    "grunt-zip": "~0.17",
-    "load-grunt-tasks": "~3.5",
-    "time-grunt": "~1.4"
+    "chalk": "~1.1",
+    "deepmerge": "~1.3",
+    "eslint": "~3.11",
+    "fs-extra": "~1.0",
+    "rimraf": "~2.5",
+    "svg2png": "~4.1"
   }
 }
