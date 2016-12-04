@@ -22,7 +22,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
 		// Inject content script manually
 		chrome.tabs.query({}, function(tabs) {
-			for(let i in tabs) {
+			for(const i in tabs) {
 				if (/^https?:\/\//.test(tabs[i].url)) {
 					chrome.tabs.executeScript(tabs[i].id, {file: 'content.js'});
 				}

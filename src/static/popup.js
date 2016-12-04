@@ -118,9 +118,9 @@ function makeLandmarksTree(landmarks, container) {
 function landmarkName(landmark) {
 	if (landmark.label) {
 		return landmark.label + ' (' + landmark.role + ')';
-	} else {
-		return landmark.role;
 	}
+
+	return landmark.role;
 }
 
 // When a landmark's corresponding button in the UI is clicked, focus it

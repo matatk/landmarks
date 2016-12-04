@@ -81,7 +81,7 @@ function getLandmarks(currentElement, depth) {
 			const label = getARIAProvidedLabel(currentElementChild);
 
 			// Add the element if it should be considered a landmark
-			if (role && isLandmark(role, label, currentElementChild)) {
+			if (role && isLandmark(role, label)) {
 				const lastLandmarkedElement = getLastLandmarkedElement();
 
 				if (isDescendant(lastLandmarkedElement, currentElementChild)) {
@@ -110,7 +110,7 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 		try {
 			role = implicitRoles[childElement.tagName];
 		} catch(e) {
-			//role = null;
+			// role = null;
 		}
 
 		// Perform containment checks
@@ -139,7 +139,7 @@ function isDescendant(parent, child) {
 	return false;
 }
 
-function isLandmark(role, label, element) {
+function isLandmark(role, label) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
 	if (role === 'region' || role === 'application' || role === 'form') {
@@ -169,8 +169,9 @@ function getInnerText(element) {
 
 	if (element) {
 		text = element.innerText;
-		if (text === undefined)
+		if (text === undefined)			{
 			text = element.textContent;
+		}
 	}
 
 	return text;
@@ -220,7 +221,7 @@ function adjacentLandmark(delta) {
 		} else if (delta < 0) {
 			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1;
 		} else {
-			throw('Landmarks: adjacentLandmark: delta should be negative or positive');
+			throw new Error('Landmarks: adjacentLandmark: delta should be negative or positive');
 		}
 		focusElement(newSelectedIndex);
 	}
@@ -252,7 +253,9 @@ function focusElement(index) {
 			addBorder(element);
 
 			if (borderTypePref === 'momentary') {
-				setTimeout(function() { removeBorder(element); }, 2000);
+				setTimeout(function() {
+					removeBorder(element);
+				}, 2000);
 			}
 		}
 
@@ -391,15 +394,13 @@ function bootstrap() {
 	if (document.readyState === 'complete') {
 		findLandmarks();
 		sendUpdateBadgeMessage();
+	} else if (landmarkFindingAttempts <= maximumAttempts) {
+		console.log('Landmarks: document not ready; retrying. (Attempt ' +
+			String(landmarkFindingAttempts) + ')');
+		setTimeout(bootstrap, attemptInterval);
 	} else {
-		if (landmarkFindingAttempts <= maximumAttempts) {
-			console.log('Landmarks: document not ready; retrying. (Attempt ' +
-				String(landmarkFindingAttempts) + ')');
-			setTimeout(bootstrap, attemptInterval);
-		} else {
-			throw('Landmarks: unable to find landmarks after ' +
-				String(maximumAttempts) + 'attempts.');
-		}
+		throw new Error('Landmarks: unable to find landmarks after ' +
+			String(maximumAttempts) + 'attempts.');
 	}
 }
 
