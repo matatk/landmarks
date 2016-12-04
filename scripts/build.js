@@ -57,7 +57,7 @@ function logStep(name) {
 }
 
 
-// Check we got only one argument and it's valid
+// Check we got only one argument and it's valid; return list of builds to make
 function checkBuildMode() {
 	const args = process.argv.slice(2);
 
@@ -69,7 +69,7 @@ function checkBuildMode() {
 		return validBrowsers;
 	}
 
-	return args[0];
+	return args;
 }
 
 

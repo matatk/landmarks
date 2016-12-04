@@ -3,11 +3,18 @@
   "version": "2.0.4",
   "private": true,
   "scripts": {
-    "prebuild": "eslint .",
-    "build": "node scripts/build.js all",
-    "clean": "rimraf build/firefox && rimraf build/chrome",
-    "predeepclean": "npm run clean",
-    "deepclean": "rimraf build/png-cache/*"
+    "pre_build": "eslint .",
+    "_build": "node scripts/build.js",
+
+    "build:firefox": "npm run clean:firefox && npm run _build -- firefox",
+    "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
+    "build:all": "npm run clean:all && npm run _build -- all",
+
+    "clean:firefox": "rimraf build/firefox",
+    "clean:chrome": "rimraf build/chrome",
+    "clean:all": "npm run clean:firefox && npm run clean:chrome",
+
+    "clean:cache": "rimraf build/png-cache"
   },
   "devDependencies": {
     "chalk": "~1.1",
