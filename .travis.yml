@@ -7,4 +7,4 @@ cache:
 install:
   - npm install
 script:
-  - grunt default
+  - npm run build:all

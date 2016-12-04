@@ -64,9 +64,22 @@ Development
 You can build and run the current code locally as follows.
 
 1.  Clone [the Landmarks repository on GitHub](https://github.com/matatk/landmarks) to your computer.
+
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
-3.  Run `grunt` to build both the Firefox and Chrome versions, or `grunt firefox` or `grunt chrome` to build just one. The built versions of the extension are placed in the `extensions/<browser>/` directories and zip files for each will be created in the root of the checked-out repository.
-4.  To test the extension locally in your browser...
+
+3.  Run the build script to build one or all of the extensions:
+
+    - `npm run build:firefox`
+    - `npm run build:chrome`
+    - `npm run build:all`
+
+    The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
+
+    Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+    
+    You can remove the `build/<browser>/` directories with `npm run clean:firefox`/`chrome`/`all` as with the build scripts above.
+
+4.  To load and use the extension locally in your browser...
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
@@ -118,12 +131,13 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.4 - ??? of November 2016
+-   2.0.4 - ??? of December 2016
     * Clean up the appearance of the popup.
     * Increase 'momentary' highlight duration to two seconds, from one second.
     * Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
-    * Use my latest fork of grunt-phantom-rasterize, which has been updated to use more recent PhantomJS and work on macOS Sierra (unfortunately it now runs much slower).
+    * Drop Grunt and switch to just using NPM and scripts for building the extensions.
     * Track builds with Travis CI.
+    * Use ESLint and EditorConfig code standards and quality tools.
 -   2.0.3 - 23rd of September 2016
     * When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
     * Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)

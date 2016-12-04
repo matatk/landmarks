@@ -5,19 +5,19 @@
 // Command support requires Chrome, or Firefox 48 or Developer Edition
 chrome.commands.onCommand.addListener(function(command) {
 	if (command === 'next-landmark') {
-		sendToActiveTab({request: 'next-landmark'});
+		sendToActiveTab({request: 'next-landmark'})
 	} else if (command === 'prev-landmark') {
-		sendToActiveTab({request: 'prev-landmark'});
+		sendToActiveTab({request: 'prev-landmark'})
 	}
-});
+})
 
 // Work out the current tab with a query, then send a message to it
 // Pattern from: https://developer.chrome.com/extensions/messaging
 // TODO: DRY (repeated in popup script)
 function sendToActiveTab(message, callback) {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.sendMessage(tabs[0].id, message, callback);
-	});
+		chrome.tabs.sendMessage(tabs[0].id, message, callback)
+	})
 }
 
 
@@ -35,21 +35,21 @@ function sendToActiveTab(message, callback) {
 //    the landmarks have been found.
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (!changeInfo.url) {
-		return;
+		return
 	}
-	checkBrowserActionState(tabId, changeInfo.url);
-});
+	checkBrowserActionState(tabId, changeInfo.url)
+})
 
 function checkBrowserActionState(tabId, url) {
 	if (startsWith(url, 'http://') || startsWith(url, 'https://')) {
-		chrome.browserAction.enable(tabId);
+		chrome.browserAction.enable(tabId)
 	} else {
-		chrome.browserAction.disable(tabId);
+		chrome.browserAction.disable(tabId)
 	}
 }
 
 function startsWith(string, pattern) {
-	return string.substring(0, pattern.length) == pattern;
+	return string.substring(0, pattern.length) == pattern
 }
 
 // If the page uses 'single-page app' techniques to load in new components --
@@ -74,12 +74,12 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 			chrome.tabs.sendMessage(
 				details.tabId,
 				{request: 'trigger-refresh'}
-			);
+			)
 			// Note: The content script on the page will respond by sending
 			//       an 'update-badge' request back to us.
-		});
+		})
 	}
-});
+})
 
 
 //
@@ -91,31 +91,31 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	switch (message.request) {
 		case 'update-badge':
-			landmarksBadgeUpdate(sender.tab.id, message.landmarks);
-			break;
+			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
+			break
 		default:
 			throw('Landmarks: background script received unknown message:',
-					message, 'from', sender);
+				message, 'from', sender)
 	}
-});
+})
 
 // Given a tab ID and number, set the browser action badge
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
-	console.log('Landmarks: set badge of tab', tabId, 'to', numberOfLandmarks);
+	console.log('Landmarks: set badge of tab', tabId, 'to', numberOfLandmarks)
 	if (Number.isInteger(numberOfLandmarks)) {
 		// Content script would normally send back an array
 		if (numberOfLandmarks === 0) {
 			chrome.browserAction.setBadgeText({
 				text: '',
 				tabId: tabId
-			});
+			})
 		} else {
 			chrome.browserAction.setBadgeText({
 				text: String(numberOfLandmarks),
 				tabId: tabId
-			});
+			})
 		}
 	} else {
-		throw('Landmarks: invalid number of regions:', numberOfLandmarks);
+		throw('Landmarks: invalid number of regions:', numberOfLandmarks)
 	}
 }
