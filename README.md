@@ -76,7 +76,7 @@ You can build and run the current code locally as follows.
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
     Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
-    
+
     You can remove the `build/<browser>/` directories with `npm run clean:firefox`/`chrome`/`all` as with the build scripts above.
 
 4.  To load and use the extension locally in your browser...
@@ -131,7 +131,7 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.4 - ??? of December 2016
+-   2.0.4 - 4th of December 2016
     * Clean up the appearance of the popup.
     * Increase 'momentary' highlight duration to two seconds, from one second.
     * Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
