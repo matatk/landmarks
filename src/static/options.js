@@ -1,3 +1,5 @@
+'use strict'
+
 const borderTypeId = 'border-type'
 
 function saveOptions() {

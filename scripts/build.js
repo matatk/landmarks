@@ -59,11 +59,11 @@ function logStep(name) {
 function checkBuildMode() {
 	const args = process.argv.slice(2)
 
-	if (args.length !== 1 || buildModes.indexOf(args[0]) == -1) {
+	if (args.length !== 1 || buildModes.indexOf(args[0]) === -1) {
 		error(`Invalid build mode requested: expected one of [${buildModes}] but received '${args}'`)
 	}
 
-	if (args[0] == 'all') {
+	if (args[0] === 'all') {
 		return validBrowsers
 	}
 
@@ -121,10 +121,10 @@ function copyBackgroundScript(browser) {
 
 
 // Get PNG files from the cache (which will generate them if needed)
-function getPngs(browser) {
+function getPngs(cache, browser) {
 	logStep('Generating/copying in PNG files...')
 	browserPngSizes[browser].forEach((size) => {
-		const pngPath = pc.getPngPath(size)
+		const pngPath = cache.getPngPath(size)
 		const basename = path.basename(pngPath)
 		fse.copySync(pngPath, path.join(pathToBuild(browser), basename))
 	})
@@ -170,6 +170,6 @@ browsers.forEach((browser) => {
 	copyStaticFiles(browser)
 	mergeManifest(browser)
 	copyBackgroundScript(browser)
-	getPngs(browser)
+	getPngs(pc, browser)
 	makeZip(browser)
 })

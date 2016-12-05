@@ -21,6 +21,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
    */
+'use strict'
 
 let g_gotLandmarks = false        // Have we already found landmarks?
 let g_selectedIndex = -1          // Currently selected landmark

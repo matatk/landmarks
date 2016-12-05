@@ -134,6 +134,7 @@ Changes
 -   2.0.5 - 5th of December 2016
     * No user-facing changes.
     * Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
+    * Add more code robustosity checks with ESLint.
 -   2.0.4 - 4th of December 2016
     * Clean up the appearance of the popup.
     * Increase 'momentary' highlight duration to two seconds, from one second.
