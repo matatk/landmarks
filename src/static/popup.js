@@ -1,3 +1,5 @@
+'use strict'
+
 // Handle incoming landmarks message response
 //
 // If there are landmarks, then the response will be a list of objects that

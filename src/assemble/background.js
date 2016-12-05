@@ -1,3 +1,5 @@
+'use strict'
+
 //
 // Keyboard Shortcut Handling
 //
@@ -49,7 +51,7 @@ function checkBrowserActionState(tabId, url) {
 }
 
 function startsWith(string, pattern) {
-	return string.substring(0, pattern.length) == pattern
+	return string.substring(0, pattern.length) === pattern
 }
 
 // If the page uses 'single-page app' techniques to load in new components --

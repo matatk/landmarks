@@ -6,6 +6,11 @@ const chalk = require('chalk')
 const svg2png = require('svg2png')
 
 module.exports = function(cacheDir, svgPath) {
+	// Initialisation
+	const svgModified = fse.statSync(svgPath).mtime
+	fse.ensureDirSync(cacheDir)
+
+
 	// Return the full path to the desired PNG
 	function pngPath(size) {
 		return path.join(cacheDir, 'landmarks-' + size + '.png')
@@ -32,10 +37,6 @@ module.exports = function(cacheDir, svgPath) {
 		fse.writeFileSync(outputPath, pngBuffer)
 	}
 
-
-	// Initialisation
-	const svgModified = fse.statSync(svgPath).mtime
-	fse.ensureDirSync(cacheDir)
 
 	// Public API implementation
 	return {

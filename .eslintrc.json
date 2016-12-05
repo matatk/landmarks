@@ -9,6 +9,7 @@
     "chrome": true
   },
   "rules": {
+    "strict": ["error", "global"],
     "quotes": ["error", "single", { "avoidEscape": true }],
     "indent": ["error", "tab", { "SwitchCase": 1 }],
     "brace-style": "error",
@@ -16,9 +17,19 @@
     "no-unexpected-multiline": "error",
     "semi": ["error", "never"],
     "no-unused-vars": "warn",
+    "no-unused-expressions": "error",
+    "no-use-before-define": ["error", { "functions": false }],
+    "no-bitwise": "error",
+    "wrap-iife": "error",
+    "new-cap": "error",
+    "no-undef": "error",
+    "no-caller": "error",
     "block-scoped-var": "error",
     "no-var": "error",
     "prefer-const": "error",
+    "eqeqeq": "error",
+    "no-eq-null": "error",
+    "no-labels": "error",
     "space-before-function-paren": ["error", "never"],
     "space-before-blocks": "error",
     "no-lone-blocks": "error",
@@ -30,6 +41,6 @@
     "space-unary-ops": "error",
     "spaced-comment": "error",
     "func-call-spacing": "error",
-    "no-console": "warn"
+    "no-console": "off"
   }
 }
