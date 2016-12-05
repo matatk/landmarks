@@ -142,7 +142,7 @@ function makeZip(browser) {
 	logStep('Createing ZIP file...')
 	const outputFileName = zipFileName(browser)
 	const output = fse.createWriteStream(outputFileName)
-	const archive = archiver('zip', { store: true })
+	const archive = archiver('zip')
 
 	output.on('close', function() {
 		console.log(chalk.green('✔ ') + archive.pointer() + ' total bytes for ' + outputFileName)
