@@ -61,12 +61,12 @@ const implicitRoles = Object.freeze({
 // Identifying Landmarks
 //
 
-// Recursive function for building list of landmarks on the page
+// Recursive function for building list of landmarks from a given root element
 function getLandmarks(currentElement, depth) {
 	if (!currentElement) return
 
 	doForEach(currentElement.childNodes, function(currentElementChild) {
-		if (currentElementChild.nodeType === 1) {
+		if (currentElementChild.nodeType === Node.ELEMENT_NODE) {
 			// Support HTML5 elements' native roles
 			let role = getRoleFromTagNameAndContainment(currentElementChild, currentElement)
 
@@ -150,7 +150,6 @@ function isLandmark(role, label) {
 	return regionTypes.indexOf(role) > -1
 }
 
-// Get the landmark label if specified
 function getARIAProvidedLabel(element) {
 	let label = element.getAttribute('aria-label')
 
@@ -170,7 +169,7 @@ function getInnerText(element) {
 
 	if (element) {
 		text = element.innerText
-		if (text === undefined)			{
+		if (text === undefined) {
 			text = element.textContent
 		}
 	}

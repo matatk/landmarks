@@ -1,46 +1,85 @@
 {
-  "extends": "eslint:recommended",
   "env": {
-    "node": true,
     "es6": true,
-    "browser": true
+    "node": true
   },
-  "globals": {
-    "chrome": true
-  },
+  "extends": "eslint:recommended",
+  "root": true,
   "rules": {
-    "strict": ["error", "global"],
-    "quotes": ["error", "single", { "avoidEscape": true }],
-    "indent": ["error", "tab", { "SwitchCase": 1 }],
-    "brace-style": "error",
-    "curly": ["error", "multi-line"],
-    "no-unexpected-multiline": "error",
-    "semi": ["error", "never"],
-    "no-unused-vars": "warn",
-    "no-unused-expressions": "error",
-    "no-use-before-define": ["error", { "functions": false }],
-    "no-bitwise": "error",
-    "wrap-iife": "error",
-    "new-cap": "error",
-    "no-undef": "error",
-    "no-caller": "error",
     "block-scoped-var": "error",
-    "no-var": "error",
-    "prefer-const": "error",
+    "brace-style": "error",
+    "camelcase": "warn",
+    "curly": [
+      "error",
+      "multi-line"
+    ],
     "eqeqeq": "error",
+    "func-call-spacing": "error",
+    "indent": [
+      "error",
+      "tab",
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "new-cap": "error",
+    "no-bitwise": "error",
+    "no-caller": "error",
+    "no-console": "off",
+    "no-else-return": "error",
     "no-eq-null": "error",
     "no-labels": "error",
-    "space-before-function-paren": ["error", "never"],
-    "space-before-blocks": "error",
     "no-lone-blocks": "error",
-    "no-else-return": "error",
     "no-lonely-if": "error",
     "no-loop-func": "warn",
     "no-throw-literal": "error",
+    "no-undef": "error",
+    "no-unexpected-multiline": "error",
+    "no-unused-expressions": "error",
+    "no-unused-vars": "warn",
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false
+      }
+    ],
+    "no-var": "error",
+    "one-var": [
+      "error",
+      "never"
+    ],
+    "prefer-const": "error",
+    "quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ],
+    "semi": [
+      "error",
+      "never"
+    ],
+    "space-before-blocks": "error",
+    "space-before-function-paren": [
+      "error",
+      "never"
+    ],
     "space-infix-ops": "error",
     "space-unary-ops": "error",
     "spaced-comment": "error",
-    "func-call-spacing": "error",
-    "no-console": "off"
+    "strict": [
+      "error",
+      "global"
+    ],
+    "use-isnan": "error",
+    "valid-jsdoc": "warn",
+    "valid-typeof": "warn",
+    "vars-on-top": "warn",
+    "wrap-iife": [
+      "error",
+      "inside"
+    ],
+    "yoda": "error"
   }
 }

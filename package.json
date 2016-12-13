@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "private": true,
   "scripts": {
     "pre_build": "eslint .",
@@ -14,15 +14,18 @@
     "clean:chrome": "rimraf build/chrome landmarks-*-chrome.zip",
     "clean:all": "npm run clean:firefox && npm run clean:chrome",
 
-    "clean:cache": "rimraf build/png-cache"
+    "clean:cache": "rimraf build/png-cache",
+
+    "test": "node test/test.js"
   },
   "devDependencies": {
-    "archiver": "~1.2",
+    "archiver": "~1.3",
     "chalk": "~1.1",
     "deepmerge": "~1.3",
-    "eslint": "~3.11",
+    "eslint": "~3.12",
     "fs-extra": "~1.0",
     "rimraf": "~2.5",
-    "svg2png": "~4.1"
+    "svg2png": "~4.1",
+    "test": "~0.6"
   }
 }
