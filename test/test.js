@@ -5,6 +5,8 @@ const path = require('path')
 const fixturesDir = path.join(__dirname, 'fixtures')
 const dataDir = path.join(__dirname, 'data')
 
+const codePath = path.join(__dirname, '..', 'src', 'static', 'content.js')
+
 // Tiny helper functions
 const fixturePath = fileName => path.join(fixturesDir, fileName)
 const dataPath = fileName => path.join(dataDir, fileName)
@@ -21,6 +23,7 @@ function createAllTests() {
 
 function createTest(testName, testFixture, testData) {
 	exports['test ' + testName] = function(assert) {
+		const code = require(codePath)
 		const fixture = fs.readFileSync(testFixture)
 		const data = fs.readFileSync(testData)
 		console.log('setting up test', testName, testFixture, fixture.length, testData, data.length)

@@ -59,6 +59,7 @@ const implicitRoles = Object.freeze({
 
 //
 // Identifying Landmarks
+//   -- uses DOM API only
 //
 
 // Recursive function for building list of landmarks from a given root element
@@ -177,9 +178,34 @@ function getInnerText(element) {
 	return text
 }
 
+// Initialise the globals and get the landmarked elements on the page
+function findLandmarks() {
+	g_previousSelectedIndex = -1
+	g_selectedIndex = -1
+	g_landmarkedElements.length = 0
+	getLandmarks(document.getElementsByTagName('body')[0], 0)
+	g_gotLandmarks = true
+	console.log('Landmarks: found ' + g_landmarkedElements.length)
+}
+
+// Filter the full-featured g_landmarkedElements array into something that the
+// browser-chrome-based part can use; send all info except the DOM element.
+function filterLandmarks() {
+	const list = []
+	g_landmarkedElements.forEach(function(landmark) {
+		list.push({
+			depth: landmark.depth,
+			role: landmark.role,
+			label: landmark.label
+		})
+	})
+	return list
+}
+
 
 //
 // Utilities
+//   -- uses DOM API only
 //
 
 // forEach for NodeList (as opposed to Arrays)
@@ -201,6 +227,7 @@ function getLastLandmarkedElement() {
 
 //
 // Focusing
+//   -- uses DOM and chrome APIs
 //
 
 function adjacentLandmark(delta) {
@@ -298,30 +325,6 @@ function removeBorder(element) {
 function getWrapper(options, action) {
 	const area = chrome.storage.sync || chrome.storage.local
 	area.get(options, action)
-}
-
-// Initialise the globals and get the landmarked elements on the page
-function findLandmarks() {
-	g_previousSelectedIndex = -1
-	g_selectedIndex = -1
-	g_landmarkedElements.length = 0
-	getLandmarks(document.getElementsByTagName('body')[0], 0)
-	g_gotLandmarks = true
-	console.log('Landmarks: found ' + g_landmarkedElements.length)
-}
-
-// Filter the full-featured g_landmarkedElements array into something that the
-// browser-chrome-based part can use; send all info except the DOM element.
-function filterLandmarks() {
-	const list = []
-	g_landmarkedElements.forEach(function(landmark) {
-		list.push({
-			depth: landmark.depth,
-			role: landmark.role,
-			label: landmark.label
-		})
-	})
-	return list
 }
 
 // Act on requests from the background or pop-up scripts
