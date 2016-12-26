@@ -5,6 +5,7 @@
   "scripts": {
     "pre_build": "eslint .",
     "_build": "node scripts/build.js",
+    "post_build": "eslint build",
 
     "build:firefox": "npm run clean:firefox && npm run _build -- firefox",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",

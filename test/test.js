@@ -5,7 +5,7 @@ const path = require('path')
 const fixturesDir = path.join(__dirname, 'fixtures')
 const dataDir = path.join(__dirname, 'data')
 
-const codePath = path.join(__dirname, '..', 'src', 'static', 'content.js')
+const codePath = path.join(__dirname, '..', 'src', 'assemble', 'content.head.js')
 
 // Tiny helper functions
 const fixturePath = fileName => path.join(fixturesDir, fileName)

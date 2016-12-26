@@ -1,5 +1,4 @@
 'use strict'
-
 const path = require('path')
 const fse = require('fs-extra')
 const chalk = require('chalk')
@@ -120,6 +119,19 @@ function copyBackgroundScript(browser) {
 }
 
 
+// Copy over content.js
+function copyContentScript(browser) {
+	logStep('Copying content script...')
+	const basename = 'content.head.js'
+	fse.copySync(
+		path.join(srcAssembleDir, basename),
+		path.join(pathToBuild(browser), basename))
+	fse.appendFileSync(
+		path.join(pathToBuild(browser), basename),
+		fse.readFileSync(path.join(srcAssembleDir, 'content.tail.js')))
+}
+
+
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(cache, browser) {
 	logStep('Generating/copying in PNG files...')
@@ -158,6 +170,16 @@ function makeZip(browser) {
 }
 
 
+// Copy ESLint RC file from src/ to build/
+function copyESLintRC() {
+	logStep('Copying src ESLint config to build directory...')
+	const basename = '.eslintrc.json'
+	fse.copySync(
+		path.join('src', basename),
+		path.join('build', basename))
+}
+
+
 // Build process
 console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 const browsers = checkBuildMode()
@@ -170,6 +192,9 @@ browsers.forEach((browser) => {
 	copyStaticFiles(browser)
 	mergeManifest(browser)
 	copyBackgroundScript(browser)
+	copyContentScript(browser)
 	getPngs(pc, browser)
 	makeZip(browser)
 })
+
+copyESLintRC()
