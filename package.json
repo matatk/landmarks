@@ -3,7 +3,10 @@
   "version": "2.0.6",
   "private": true,
   "scripts": {
-    "pre_build": "eslint .",
+    "pretest": "eslint .",
+    "test": "node test/test.js",
+
+    "pre_build": "npm test",
     "_build": "node scripts/build.js",
     "post_build": "eslint build",
 
@@ -15,9 +18,7 @@
     "clean:chrome": "rimraf build/chrome landmarks-*-chrome.zip",
     "clean:all": "npm run clean:firefox && npm run clean:chrome",
 
-    "clean:cache": "rimraf build/png-cache",
-
-    "test": "node test/test.js"
+    "clean:cache": "rimraf build/png-cache"
   },
   "devDependencies": {
     "archiver": "~1.3",

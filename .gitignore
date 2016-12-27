@@ -6,3 +6,4 @@ _site
 landmarks-chrome-out.png
 landmarks-*.zip
 npm-debug.log
+test/test-code-in-harness.js
