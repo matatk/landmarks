@@ -1,6 +1,7 @@
 'use strict'
 const fs = require('fs')
 const path = require('path')
+const jsdom = require('jsdom').jsdom
 
 const codePath = path.join(__dirname, '..', 'src', 'assemble', 'content.head.js')
 const testHarnessPath = path.join(__dirname, 'test-harness.js')
@@ -25,11 +26,14 @@ function createAllTests() {
 function createTest(testName, testFixture, testData) {
 	exports['test ' + testName] = function(assert) {
 		const testCode = require(testCodePath)
-		testCode.test()
 		const fixture = fs.readFileSync(testFixture)
-		const data = fs.readFileSync(testData)
-		console.log('setting up test', testName, testFixture, fixture.length, testData, data.length)
-		assert.ok(true, 'dummy assertion for ' + testName)
+		const data = require(testData)
+
+		const doc = jsdom(fixture)
+		const win = doc.defaultView
+		const foundLandmarks = testCode.testFindLandmarks(doc, win)
+
+		assert.deepEqual(foundLandmarks, data.expected, testName)
 	}
 }
 
