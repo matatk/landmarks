@@ -3,7 +3,6 @@
 
 //
 // Focusing
-//   -- uses DOM and chrome APIs
 //
 
 function adjacentLandmark(delta) {

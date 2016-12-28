@@ -81,34 +81,33 @@ const nonBodySectioningElementsAndMain = Object.freeze(
 
 //
 // Identifying Landmarks
-//   -- uses DOM API only
 //
 
 // Recursive function for building list of landmarks from a given root element
-function getLandmarks(currentElement, depth) {
-	if (!currentElement) return
+function getLandmarks(element, depth) {
+	if (!element) return
 
-	doForEach(currentElement.childNodes, function(currentElementChild) {
-		if (currentElementChild.nodeType === Node.ELEMENT_NODE) {
+	doForEach(element.childNodes, function(elementChild) {
+		if (elementChild.nodeType === Node.ELEMENT_NODE) {
 			// Support HTML5 elements' native roles
-			let role = getRoleFromTagNameAndContainment(currentElementChild, currentElement)
+			let role = getRoleFromTagNameAndContainment(elementChild)
 
 			// Elements with explicitly-set rolees
-			if (currentElementChild.getAttribute) {
-				const tempRole = currentElementChild.getAttribute('role')
+			if (elementChild.getAttribute) {
+				const tempRole = elementChild.getAttribute('role')
 				if (tempRole) {
 					role = tempRole
 				}
 			}
 
 			// The element may or may not have a label
-			const label = getARIAProvidedLabel(currentElementChild)
+			const label = getARIAProvidedLabel(elementChild)
 
 			// Add the element if it should be considered a landmark
 			if (role && isLandmark(role, label)) {
 				const lastLandmarkedElement = getLastLandmarkedElement()
 
-				if (isDescendant(lastLandmarkedElement, currentElementChild)) {
+				if (isDescendant(lastLandmarkedElement, elementChild)) {
 					++depth
 				}
 
@@ -116,18 +115,18 @@ function getLandmarks(currentElement, depth) {
 					depth: depth,
 					role: role,
 					label: label,
-					element: currentElementChild
+					element: elementChild
 				})
 			}
 		}
 
 		// Recursively traverse the tree structure of the child node
-		getLandmarks(currentElementChild, depth)
+		getLandmarks(elementChild, depth)
 	})
 }
 
-function getRoleFromTagNameAndContainment(childElement, parentElement) {
-	const name = childElement.tagName
+function getRoleFromTagNameAndContainment(element) {
+	const name = element.tagName
 	let role = null
 
 	if (name) {
@@ -135,9 +134,8 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 			role = implicitRoles[name]
 		}
 
-		// Perform containment checks
 		if (name === 'HEADER' || name === 'FOOTER') {
-			if (!isChildOfTopLevelSection(childElement)) {
+			if (!isChildOfTopLevelSection(element)) {
 				role = null
 			}
 		}
@@ -163,7 +161,7 @@ function isChildOfTopLevelSection(element) {
 	let ancestor = element.parentNode
 
 	while (ancestor !== document.body) {
-		if (nonBodySectioningElementsAndMain.indexOf(ancestor.tagName) > -1) {
+		if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
 			return false
 		}
 		ancestor = ancestor.parentNode
@@ -180,7 +178,7 @@ function isLandmark(role, label) {
 	}
 
 	// Is the role (which may have been explicitly set) a valid landmark type?
-	return regionTypes.indexOf(role) > -1
+	return regionTypes.includes(role)
 }
 
 function getARIAProvidedLabel(element) {
@@ -237,7 +235,6 @@ function filterLandmarks() {
 
 //
 // Utilities
-//   -- uses DOM API only
 //
 
 // forEach for NodeList (as opposed to Arrays)
