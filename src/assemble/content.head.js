@@ -40,21 +40,43 @@ const regionTypes = Object.freeze([
 	'banner',
 	'complementary',
 	'contentinfo',
-	'form',           // must have a label
+	'form',           // must have a label -- TODO add test
 	'main',
 	'navigation',
-	'region',         // must have a label
+	'region',         // must have a label -- TODO add test
 	'search'
 ])
 
 // Mapping of HTML5 elements to implicit roles
 const implicitRoles = Object.freeze({
-	HEADER: 'banner',         // must not be in a <section> or <article>
-	FOOTER: 'contentinfo',    // must not be in a <section> or <article>
+	HEADER: 'banner',         // not in all cases; per note -- TODO add test
+	FOOTER: 'contentinfo',    // not in all cases; per note
 	MAIN:   'main',
 	ASIDE:  'complementary',
 	NAV:    'navigation'
 })
+
+// Sectioning content elements
+const sectioningContentElements = Object.freeze([
+	'ARTICLE',
+	'ASIDE',
+	'NAV',
+	'SECTION'
+])
+
+// Non-<body> sectioning root elements
+const nonBodySectioningRootElements = Object.freeze([
+	'BLOCKQUOTE',
+	'DETAILS',
+	'FIELDSET',
+	'FIGURE',
+	'TD'
+])
+
+// non-<body> sectioning elements and <main>
+const nonBodySectioningElementsAndMain = Object.freeze(
+	sectioningContentElements.concat(nonBodySectioningRootElements, 'MAIN')
+)
 
 
 //
@@ -109,17 +131,13 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 	let role = null
 
 	if (name) {
-		try {
-			role = implicitRoles[childElement.tagName]
-		} catch(e) {
-			// role = null;
+		if (implicitRoles.hasOwnProperty(name)) {
+			role = implicitRoles[name]
 		}
 
 		// Perform containment checks
-		// TODO: how far up should the containment check go (current is just one level -- what about interleaving <div>s)?
 		if (name === 'HEADER' || name === 'FOOTER') {
-			const parent_name = parentElement.tagName
-			if (parent_name === 'SECTION' || parent_name === 'ARTICLE') {
+			if (!isChildOfTopLevelSection(childElement)) {
 				role = null
 			}
 		}
@@ -131,7 +149,7 @@ function getRoleFromTagNameAndContainment(childElement, parentElement) {
 function isDescendant(parent, child) {
 	let node = child.parentNode
 
-	while (node !== null) {
+	while (node !== document.body) {
 		if (node === parent) {
 			return true
 		}
@@ -141,6 +159,19 @@ function isDescendant(parent, child) {
 	return false
 }
 
+function isChildOfTopLevelSection(element) {
+	let ancestor = element.parentNode
+
+	while (ancestor !== document.body) {
+		if (nonBodySectioningElementsAndMain.indexOf(ancestor.tagName) > -1) {
+			return false
+		}
+		ancestor = ancestor.parentNode
+	}
+
+	return true
+}
+
 function isLandmark(role, label) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
@@ -148,6 +179,7 @@ function isLandmark(role, label) {
 		return label !== null
 	}
 
+	// Is the role (which may have been explicitly set) a valid landmark type?
 	return regionTypes.indexOf(role) > -1
 }
 

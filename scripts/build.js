@@ -122,12 +122,12 @@ function copyBackgroundScript(browser) {
 // Copy over content.js
 function copyContentScript(browser) {
 	logStep('Copying content script...')
-	const basename = 'content.head.js'
+	const destName = 'content.js'
 	fse.copySync(
-		path.join(srcAssembleDir, basename),
-		path.join(pathToBuild(browser), basename))
+		path.join(srcAssembleDir, 'content.head.js'),
+		path.join(pathToBuild(browser), destName))
 	fse.appendFileSync(
-		path.join(pathToBuild(browser), basename),
+		path.join(pathToBuild(browser), destName),
 		fse.readFileSync(path.join(srcAssembleDir, 'content.tail.js')))
 }
 
