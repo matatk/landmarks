@@ -75,15 +75,21 @@ You can build and run the current code locally as follows.
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
-    Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
-
-    You can remove the `build/<browser>/` directories with `npm run clean:firefox`/`chrome`/`all` as with the build scripts above.
-
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
+Some further info on the test/build process:
+
+- Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
+
+- You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
+
+- Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+
 ### Test Pages
+
+The following pages are incorporated into the automated test suite, but you can also visit them in-browser to try out the extension's UI.
 
 -   [HTML5Accessibility: ARIA landmarks](http://www.html5accessibility.com/tests/roles-land.html)
 -   [HTML5Accessibility: structural elements](http://www.html5accessibility.com/tests/structural-elements.html)
@@ -131,6 +137,9 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.0.6 - ???th of January 2017
+    * Add a test suite to ensure landmarks are identified correctly.
+    * Various internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
     * No user-facing changes.
     * Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
