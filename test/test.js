@@ -32,9 +32,8 @@ function createTest(testName, testFixture, testData) {
 
 		const LandmarksFinder = require(testCodePath)
 		const lf = new LandmarksFinder(doc.defaultView, doc)
-		const filteredFoundLandmarks = lf.filter(lf.find())
-
-		assert.deepEqual(filteredFoundLandmarks, data.expected, testName)
+		lf.find()
+		assert.deepEqual(lf.filter(), data.expected, testName)
 	}
 }
 

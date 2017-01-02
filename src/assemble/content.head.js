@@ -91,6 +91,10 @@ function getInnerText(element) {
 //
 
 function LandmarksFinder(win, doc) {
+	//
+	// Identifying Landmarks
+	//
+
 	let landmarks = []
 	// Each member of this array is an object of the form:
 	//   depth: (int)            -- indicates nesting of landmarks
@@ -98,10 +102,7 @@ function LandmarksFinder(win, doc) {
 	//   label: (string or null) -- author-supplied label
 	//   element: (HTML*Element) -- in-memory element
 
-
-	//
-	// Identifying Landmarks -- functions that refer to document or window
-	//
+	// The following functions refer to document or window, hence are in here
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth) {
@@ -215,17 +216,25 @@ function LandmarksFinder(win, doc) {
 
 
 	//
+	// Keeping track of landmark navigation
+	//
+
+	let currentlySelectedIndex
+
+
+	//
 	// Public API
 	//
 
 	this.find = function() {
 		landmarks = []
 		getLandmarks(doc.body, 0)
+		currentlySelectedIndex = -1
 		return landmarks
 	}
 
-	// This is effectively a static method; does not refer to instance vars
-	this.filter = function(landmarks) {
+	// TODO could possibly call this before .find() is called
+	this.filter = function() {
 		const list = []
 		landmarks.forEach(function(landmark) {
 			list.push({
@@ -235,5 +244,38 @@ function LandmarksFinder(win, doc) {
 			})
 		})
 		return list
+	}
+
+	// TODO could possibly call this before .find() is called
+	this.numberOfLandmarks = function() {
+		return landmarks.length
+	}
+
+	this.currentLandmarkElement = function() {
+		if (landmarks.length === 0) return
+		return landmarks[currentlySelectedIndex].element
+	}
+
+	function updateSelectedIndexAndReturnElement(index) {
+		currentlySelectedIndex = index
+		console.log('now currently selected', index, landmarks[index])
+		return landmarks[index].element
+	}
+
+	this.nextLandmarkElement = function() {
+		if (landmarks.length === 0) return
+		const newSelectedIndex = (currentlySelectedIndex + 1) % landmarks.length
+		return updateSelectedIndexAndReturnElement(newSelectedIndex)
+	}
+
+	this.previousLandmarkElement = function() {
+		if (landmarks.length === 0) return
+		const newSelectedIndex = (currentlySelectedIndex <= 0) ? landmarks.length - 1 : currentlySelectedIndex - 1
+		return updateSelectedIndexAndReturnElement(newSelectedIndex)
+	}
+
+	// TODO check for index error
+	this.landmarkElement = function(index) {
+		return updateSelectedIndexAndReturnElement(index)
 	}
 }

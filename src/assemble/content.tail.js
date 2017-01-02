@@ -1,48 +1,47 @@
 /* eslint-disable strict */
-/* global g_gotLandmarks g_landmarkedElements g_previousSelectedIndex:true g_selectedIndex:true filterLandmarks g_gotLandmarks:true findLandmarks */
+/* global LandmarksFinder */
+const lf = new LandmarksFinder(window, document)
+let haveSearchedForLandmarks = false
+let previouslySelectedElement
+let currentlySelectedElement
+
 
 //
 // Focusing
 //
 
-function adjacentLandmark(delta) {
+function focusElement(callbackReturningElement) {
 	// The user may use the keyboard commands before landmarks have been found
 	// However, the content script will run and find any landmarks very soon
 	// after the page has loaded.
-	if (!g_gotLandmarks) {
+	if (!haveSearchedForLandmarks) {
 		alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.')
 		return
 	}
 
-	if (g_landmarkedElements.length === 0) {
+	if (lf.numberOfLandmarks === 0) {
 		alert(chrome.i18n.getMessage('noLandmarksFound') + '.')
-	} else {
-		let newSelectedIndex = -1
-		if (delta > 0) {
-			newSelectedIndex = (g_previousSelectedIndex + 1) % g_landmarkedElements.length
-		} else if (delta < 0) {
-			newSelectedIndex = (g_previousSelectedIndex <= 0) ? g_landmarkedElements.length - 1 : g_previousSelectedIndex - 1
-		} else {
-			throw new Error('Landmarks: adjacentLandmark: delta should be negative or positive')
-		}
-		focusElement(newSelectedIndex)
+		return
 	}
+
+	_focusElement(callbackReturningElement())
 }
 
 // Set focus on the selected landmark
 //
 // This is only triggered from the pop-up (after landmarks have been found) or
 // from adjacentLandmark (also after landmarks have been found).
-function focusElement(index) {
+function _focusElement(element) {
 	getWrapper({
 		'border_type': 'momentary'
 	}, function(items) {
+		previouslySelectedElement = currentlySelectedElement
+
 		const borderTypePref = items.border_type
 
 		removeBorderOnPreviouslySelectedElement()
 
 		// Ensure that the element is focusable
-		const element = g_landmarkedElements[index].element
 		const originalTabindex = element.getAttribute('tabindex')
 		if (originalTabindex === null || originalTabindex === '0') {
 			element.setAttribute('tabindex', '-1')
@@ -68,17 +67,12 @@ function focusElement(index) {
 			element.setAttribute('tabindex', '0')
 		}
 
-		g_selectedIndex = index
-		g_previousSelectedIndex = g_selectedIndex
+		currentlySelectedElement = element
 	})
 }
 
 function removeBorderOnPreviouslySelectedElement() {
-	if (g_previousSelectedIndex >= 0) {
-		// TODO sometimes there's an undefined error here (due to no landmarks?)
-		const previouslySelectedElement = g_landmarkedElements[g_previousSelectedIndex].element
-		// TODO re-insert check for border preference?
-		// TODO do we need to check that the DOM element exists, as we did?
+	if (previouslySelectedElement) {
 		removeBorder(previouslySelectedElement)
 	}
 }
@@ -108,7 +102,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		case 'get-landmarks':
 			// The pop-up is requesting the list of landmarks on the page
 
-			if (!g_gotLandmarks) {
+			if (!haveSearchedForLandmarks) {
 				sendResponse('wait')
 			}
 			// We only guard for landmarks having been found here because the
@@ -116,20 +110,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// cases, won't be recieved until after the pop-up has been
 			// displayed, so this check only needs to be here).
 
-			sendResponse(filterLandmarks())
+			sendResponse(lf.filter())
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
-			focusElement(message.index)
+			focusElement(() => lf.landmarkElement(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			adjacentLandmark(+1)
+			focusElement(lf.nextLandmarkElement)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			adjacentLandmark(-1)
+			focusElement(lf.previousLandmarkElement)
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -138,9 +132,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			removeBorderOnPreviouslySelectedElement()  // TODO rapid nav error
-			g_gotLandmarks = false
-			findLandmarks()
+			removeBorderOnPreviouslySelectedElement()
+			lf.find()
+			haveSearchedForLandmarks = true  // TODO needed? If so, bootstrap?
 			sendUpdateBadgeMessage()
 			break
 		default:
@@ -154,7 +148,7 @@ function sendUpdateBadgeMessage() {
 	// that it can update the browser action badge.
 	chrome.runtime.sendMessage({
 		request: 'update-badge',
-		landmarks: g_landmarkedElements.length
+		landmarks: lf.numberOfLandmarks()
 	})
 }
 
@@ -170,7 +164,8 @@ let landmarkFindingAttempts = 0
 function bootstrap() {
 	landmarkFindingAttempts += 1
 	if (document.readyState === 'complete') {
-		findLandmarks()
+		lf.find()
+		haveSearchedForLandmarks = true
 		sendUpdateBadgeMessage()
 	} else if (landmarkFindingAttempts <= maximumAttempts) {
 		console.log('Landmarks: document not ready; retrying. (Attempt ' +
