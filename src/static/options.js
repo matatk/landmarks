@@ -4,15 +4,15 @@ const borderTypeId = 'border-type'
 
 function saveOptions() {
 	setWrapper({
-		border_type: document.getElementById(borderTypeId).value
+		borderType: document.getElementById(borderTypeId).value
 	})
 }
 
 function restoreOptions() {
 	getWrapper({
-		border_type: 'momentary',  // default value
+		borderType: 'momentary',  // default value
 	}, function(items) {
-		document.getElementById(borderTypeId).value = items.border_type
+		document.getElementById(borderTypeId).value = items.borderType
 	})
 }
 

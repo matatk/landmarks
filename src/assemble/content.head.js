@@ -230,7 +230,6 @@ function LandmarksFinder(win, doc) {
 		landmarks = []
 		getLandmarks(doc.body, 0)
 		currentlySelectedIndex = -1
-		return landmarks
 	}
 
 	// TODO could possibly call this before .find() is called
@@ -258,7 +257,6 @@ function LandmarksFinder(win, doc) {
 
 	function updateSelectedIndexAndReturnElement(index) {
 		currentlySelectedIndex = index
-		console.log('now currently selected', index, landmarks[index])
 		return landmarks[index].element
 	}
 

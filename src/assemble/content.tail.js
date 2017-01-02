@@ -1,6 +1,7 @@
 /* eslint-disable strict */
 /* global LandmarksFinder */
 const lf = new LandmarksFinder(window, document)
+
 let haveSearchedForLandmarks = false
 let previouslySelectedElement
 let currentlySelectedElement
@@ -33,11 +34,11 @@ function focusElement(callbackReturningElement) {
 // from adjacentLandmark (also after landmarks have been found).
 function _focusElement(element) {
 	getWrapper({
-		'border_type': 'momentary'
+		borderType: 'momentary'
 	}, function(items) {
 		previouslySelectedElement = currentlySelectedElement
 
-		const borderTypePref = items.border_type
+		const borderTypePref = items.borderType
 
 		removeBorderOnPreviouslySelectedElement()
 
@@ -133,9 +134,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			removeBorderOnPreviouslySelectedElement()
-			lf.find()
-			haveSearchedForLandmarks = true  // TODO needed? If so, bootstrap?
-			sendUpdateBadgeMessage()
+			bootstrap()
 			break
 		default:
 			throw('Landmarks: content script received unknown message:',
@@ -157,24 +156,29 @@ function sendUpdateBadgeMessage() {
 // Content Script Entry Point
 //
 
-const attemptInterval = 1000
-const maximumAttempts = 10
-let landmarkFindingAttempts = 0
-
 function bootstrap() {
-	landmarkFindingAttempts += 1
-	if (document.readyState === 'complete') {
-		lf.find()
-		haveSearchedForLandmarks = true
-		sendUpdateBadgeMessage()
-	} else if (landmarkFindingAttempts <= maximumAttempts) {
-		console.log('Landmarks: document not ready; retrying. (Attempt ' +
-			String(landmarkFindingAttempts) + ')')
-		setTimeout(bootstrap, attemptInterval)
-	} else {
-		throw new Error('Landmarks: unable to find landmarks after ' +
-			String(maximumAttempts) + 'attempts.')
+	const attemptInterval = 1000
+	const maximumAttempts = 10
+	let landmarkFindingAttempts = 0
+	haveSearchedForLandmarks = false
+
+	function _bootstrap() {
+		landmarkFindingAttempts += 1
+		if (document.readyState === 'complete') {
+			lf.find()
+			haveSearchedForLandmarks = true
+			sendUpdateBadgeMessage()
+		} else if (landmarkFindingAttempts <= maximumAttempts) {
+			console.log('Landmarks: document not ready; retrying. (Attempt ' +
+				String(landmarkFindingAttempts) + ')')
+			setTimeout(bootstrap, attemptInterval)
+		} else {
+			throw new Error('Landmarks: unable to find landmarks after ' +
+				String(maximumAttempts) + 'attempts.')
+		}
 	}
+
+	setTimeout(_bootstrap, attemptInterval)
 }
 
-setTimeout(bootstrap, attemptInterval)
+bootstrap()
