@@ -25,15 +25,16 @@ function createAllTests() {
 
 function createTest(testName, testFixture, testData) {
 	exports['test ' + testName] = function(assert) {
-		const testCode = require(testCodePath)
 		const fixture = fs.readFileSync(testFixture)
 		const data = require(testData)
 
 		const doc = jsdom(fixture)
-		const win = doc.defaultView
-		const foundLandmarks = testCode.testFindLandmarks(doc, win)
 
-		assert.deepEqual(foundLandmarks, data.expected, testName)
+		const LandmarksFinder = require(testCodePath)
+		const lf = new LandmarksFinder(doc.defaultView, doc)
+		const filteredFoundLandmarks = lf.filter(lf.find())
+
+		assert.deepEqual(filteredFoundLandmarks, data.expected, testName)
 	}
 }
 
