@@ -26,10 +26,11 @@ You can use shortcut keys to navigate between landmarks. By default, they keys a
 
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd> to move to the next landmark, and
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> to move to the previous landmark.
+-   Note that, on a Mac, the <kbd>Option</kbd> key is equivolent to <kbd>Alt</kbd>.
 
 Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
 
-If you're using Chrome, you can change these shortcuts: visit the Chrome extensions page (<chrome://extensions>) and follow the "Keyboard shortcuts" link at the bottom of the page.
+If you're using Chrome, you can change these shortcuts: visit your [Chrome extensions page](chrome://extensions) and follow the "Keyboard shortcuts" link at the bottom of the page.
 
 Firefox does not yet provide a UI for changing keyboard shortcuts for WebExtensions.
 
@@ -52,9 +53,9 @@ A border can be drawn around the landmarks as you navigate them, to make it clea
 -   **Persistent:** the border remains visible at all times.
 -   **None:** no border is drawn.
 
-To change the settings in Chrome, either right-click on, or activate the context menu of, the extension's toolbar button and select "Options", or visit the Chrome extensions page (<chrome://extensions>) and activate the "Options" link for the Landmarks extension.
+To change the settings in Chrome, either right-click on, or activate the context menu of, the extension's toolbar button and select "Options", or visit your [Chrome extensions page](chrome://extensions) and activate the "Options" link for the Landmarks extension.
 
-To change the settings in Firefox, visit the add-ons page (<about:addons>) and activate the "Preferences" button for the Landmarks extension.
+To change the settings in Firefox, visit your [add-ons page](about:addons) and activate the "Preferences" button for the Landmarks extension.
 
 **Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
 
@@ -139,7 +140,7 @@ Changes
 
 -   2.0.6 - ???th of January 2017
     * Add a test suite to ensure landmarks are identified correctly.
-    * Various internal code-quality improvements.
+    * Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
     * No user-facing changes.
     * Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
