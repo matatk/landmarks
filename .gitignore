@@ -4,3 +4,4 @@ node_modules
 build
 landmarks-*-*.zip
 _site
+test
