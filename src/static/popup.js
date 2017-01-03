@@ -76,7 +76,7 @@ function makeLandmarksTree(landmarks, container) {
 	let previousDepth = 0
 	const root = document.createElement('ul')  // start of tree
 	let base = root                            // anchor for sub-trees
-	let previousItem = null                   // last item to be created
+	let previousItem = null                    // last item to be created
 
 	landmarks.forEach(function(landmark, index) {
 		const depthChange = landmark.depth - previousDepth

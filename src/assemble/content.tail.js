@@ -2,7 +2,7 @@
 /* global LandmarksFinder */
 const lf = new LandmarksFinder(window, document)
 
-let haveSearchedForLandmarks = false
+let haveSearchedForLandmarks
 let previouslySelectedElement
 let currentlySelectedElement
 
@@ -11,6 +11,7 @@ let currentlySelectedElement
 // Focusing
 //
 
+// Check that it is OK to focus an landmark element
 function focusElement(callbackReturningElement) {
 	// The user may use the keyboard commands before landmarks have been found
 	// However, the content script will run and find any landmarks very soon
@@ -29,9 +30,6 @@ function focusElement(callbackReturningElement) {
 }
 
 // Set focus on the selected landmark
-//
-// This is only triggered from the pop-up (after landmarks have been found) or
-// from adjacentLandmark (also after landmarks have been found).
 function _focusElement(element) {
 	getWrapper({
 		borderType: 'momentary'
@@ -169,8 +167,6 @@ function bootstrap() {
 			haveSearchedForLandmarks = true
 			sendUpdateBadgeMessage()
 		} else if (landmarkFindingAttempts <= maximumAttempts) {
-			console.log('Landmarks: document not ready; retrying. (Attempt ' +
-				String(landmarkFindingAttempts) + ')')
 			setTimeout(bootstrap, attemptInterval)
 		} else {
 			throw new Error('Landmarks: unable to find landmarks after ' +
