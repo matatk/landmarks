@@ -103,7 +103,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // Given a tab ID and number, set the browser action badge
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
-	console.log('Landmarks: set badge of tab', tabId, 'to', numberOfLandmarks)
 	if (Number.isInteger(numberOfLandmarks)) {
 		// Content script would normally send back an array
 		if (numberOfLandmarks === 0) {

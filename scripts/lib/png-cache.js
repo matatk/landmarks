@@ -47,7 +47,7 @@ module.exports = function(cacheDir, svgPath) {
 			if (isPngAbsentOrOutdated(requestedPngPath)) {
 				generatePng(size, requestedPngPath)
 			} else {
-				console.log(chalk.bold.blue(`${requestedPngPath} already exists`))
+				console.log(chalk.bold.blue(`Using existing ${requestedPngPath}`))
 			}
 			return requestedPngPath
 		}

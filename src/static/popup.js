@@ -11,8 +11,6 @@
 //
 // If not, put a message there stating such.
 function handleLandmarksResponse(response) {
-	console.log('Landmarks: popup: got:', response)
-
 	const display = document.getElementById('landmarks')
 	display.innerHTML = ''
 
@@ -75,22 +73,22 @@ function errorString() {
 // Go through the landmarks identified for the page and create an HTML
 // nested list to mirror the structure of those landmarks
 function makeLandmarksTree(landmarks, container) {
-	let previous_depth = 0
+	let previousDepth = 0
 	const root = document.createElement('ul')  // start of tree
 	let base = root                            // anchor for sub-trees
-	let previous_item = null                   // last item to be created
+	let previousItem = null                    // last item to be created
 
 	landmarks.forEach(function(landmark, index) {
-		const depth_change = landmark.depth - previous_depth
+		const depthChange = landmark.depth - previousDepth
 
 		// When nesting increases, attach a new <ul> to the last-created <li>
-		if (depth_change > 0) {
+		if (depthChange > 0) {
 			base = document.createElement('ul')
-			previous_item.appendChild(base)
+			previousItem.appendChild(base)
 		}
 
 		// When nesting decreases, attach new <li>s to the current base's parent
-		if (depth_change < 0) {
+		if (depthChange < 0) {
 			// the parent of base is an <li>, the grandparent is the <ul>
 			base = base.parentElement.parentElement
 		}
@@ -108,8 +106,8 @@ function makeLandmarksTree(landmarks, container) {
 		base.appendChild(item)  // add to current base
 
 		// Housekeeping
-		previous_depth = landmark.depth
-		previous_item = item
+		previousDepth = landmark.depth
+		previousItem = item
 	})
 
 	container.appendChild(root)
