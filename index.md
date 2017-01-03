@@ -2,7 +2,6 @@
 layout: index
 ---
 
-
 This is a browser extension (for Firefox and Chrome) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu (from the extension's toolbar button).
 
 Landmarks provide a quick way to broadly signpost the function of different areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
@@ -26,10 +25,11 @@ You can use shortcut keys to navigate between landmarks. By default, they keys a
 
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd> to move to the next landmark, and
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> to move to the previous landmark.
+-   Note that, on a Mac, the <kbd>Option</kbd> key is equivolent to <kbd>Alt</kbd>.
 
 Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
 
-If you're using Chrome, you can change these shortcuts: visit the Chrome extensions page (<chrome://extensions>) and follow the "Keyboard shortcuts" link at the bottom of the page.
+If you're using Chrome, you can change these shortcuts: visit your Chrome extensions page (go to chrome://extensions or activate the "More"/"Menu" button, then "Settings" and "Extensions") and follow the "Keyboard shortcuts" link at the bottom of the page.
 
 Firefox does not yet provide a UI for changing keyboard shortcuts for WebExtensions.
 
@@ -52,9 +52,9 @@ A border can be drawn around the landmarks as you navigate them, to make it clea
 -   **Persistent:** the border remains visible at all times.
 -   **None:** no border is drawn.
 
-To change the settings in Chrome, either right-click on, or activate the context menu of, the extension's toolbar button and select "Options", or visit the Chrome extensions page (<chrome://extensions>) and activate the "Options" link for the Landmarks extension.
+To change the settings in Chrome, either right-click on (or otherwise activate the context menu of) the extension's toolbar button and select "Options", or visit your Chrome extensions page (go to chrome://extensions or activate the "More"/"Menu" button, then "Settings" and "Extensions") and activate the "Options" link for the Landmarks extension.
 
-To change the settings in Firefox, visit the add-ons page (<about:addons>) and activate the "Preferences" button for the Landmarks extension.
+To change the settings in Firefox, visit your add-ons page (go to about:addons or activate the menu button and then "Add-ons") and use the "Preferences" button for the Landmarks extension.
 
 **Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
 
@@ -75,15 +75,21 @@ You can build and run the current code locally as follows.
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
-    Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
-
-    You can remove the `build/<browser>/` directories with `npm run clean:firefox`/`chrome`/`all` as with the build scripts above.
-
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
+Some further info on the test/build process:
+
+- Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
+
+- You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
+
+- Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+
 ### Test Pages
+
+The following pages are incorporated into the automated test suite, but you can also visit them in-browser to try out the extension's UI.
 
 -   [HTML5Accessibility: ARIA landmarks](http://www.html5accessibility.com/tests/roles-land.html)
 -   [HTML5Accessibility: structural elements](http://www.html5accessibility.com/tests/structural-elements.html)
@@ -131,6 +137,9 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.0.6 - ???th of January 2017
+    * Add a test suite to ensure landmarks are identified correctly.
+    * Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
     * No user-facing changes.
     * Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
