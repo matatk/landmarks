@@ -2,24 +2,26 @@
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-	'application',    // must have a label -- TODO decide if should remove
+	'application',    // must have a label -- TODO add test or remove
 	'banner',
 	'complementary',
 	'contentinfo',
-	'form',           // must have a label -- TODO add test
+	'form',           // must have a label
 	'main',
 	'navigation',
-	'region',         // must have a label -- TODO add test
+	'region',         // must have a label
 	'search'
 ])
 
 // Mapping of HTML5 elements to implicit roles
 const implicitRoles = Object.freeze({
-	HEADER: 'banner',         // not in all cases; per note -- TODO add test
-	FOOTER: 'contentinfo',    // not in all cases; per note
-	MAIN:   'main',
-	ASIDE:  'complementary',
-	NAV:    'navigation'
+	ASIDE:   'complementary',
+	FOOTER:  'contentinfo',    // depending on its ancestor elements
+	FORM:    'form',
+	HEADER:  'banner',         // depending on its ancestor elements
+	MAIN:    'main',
+	NAV:     'navigation',
+	SECTION: 'region'
 })
 
 // Sectioning content elements
@@ -149,7 +151,7 @@ function LandmarksFinder(win, doc) {
 	function isDescendant(ancestor, child) {
 		let node = child.parentNode
 
-		while (node !== doc.body) {
+		while (node !== doc.body) {  // TODO what if body has a role?
 			if (node === ancestor) {
 				return true
 			}
@@ -169,6 +171,8 @@ function LandmarksFinder(win, doc) {
 				role = implicitRoles[name]
 			}
 
+			// <header> and <footer> elements have some containment-
+			// related constraints on whether they're counted as landmarks
 			if (name === 'HEADER' || name === 'FOOTER') {
 				if (!isChildOfTopLevelSection(element)) {
 					role = null
