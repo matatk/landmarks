@@ -1,0 +1,9 @@
+{
+  "expected": [
+    {
+      "depth": 0,
+      "role": "region",
+      "label": "Naughty invisible label"
+    }
+  ]
+}

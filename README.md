@@ -98,21 +98,23 @@ The following pages are incorporated into the automated test suite, but you can 
 This Extension's Support for Landmarks
 --------------------------------------
 
-The extension supports [implicit landmarks in HTML5 elements](http://www.w3.org/html/wg/drafts/html/master/dom.html#sec-strong-native-semantics) as well as roles supplied via the `role` attribute. The following WAI-ARIA landmarks are supported.
+The extension supports the [ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). The following WAI-ARIA landmarks are supported.
 
--   application (1)
--   banner
+-   application (0) (1)
+-   banner (2)
 -   complementary
--   contentinfo
+-   contentinfo (2)
 -   form (1)
 -   main
 -   navigation
 -   region (1)
 -   search
 
-**Note 1:** that application, form and region roles are considered navigable landmarks only when they are labelled with `aria-label` or `aria-labelledby`.
+**Note 0:** the `application` role has been removed from ARIA 1.1.
 
-**Note 2:** header and footer elements are not considered landmarks when they are contained within an article or a section element.
+**Note 1:** that `application`, `form` and `region` roles are considered navigable landmarks only when they are labelled with `aria-label` or `aria-labelledby`.
+
+**Note 2:** `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements.
 
 If landmark labels are present via `aria-label` or `aria-labelledby`, the labels are shown in the pop-up.
 
