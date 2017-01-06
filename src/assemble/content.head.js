@@ -1,15 +1,16 @@
 'use strict'
+// FIXME which takes precedence over aria-label and aria-labelledby? Document and implement and test it.
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-	'application',    // must have a label -- TODO add test or remove
+	'application',   // should label: https://www.w3.org/TR/wai-aria/roles#application
 	'banner',
 	'complementary',
 	'contentinfo',
-	'form',           // must have a label
+	'form',          // should label: https://www.w3.org/TR/wai-aria-1.1/#form
 	'main',
 	'navigation',
-	'region',         // must have a label
+	'region',        // must label: https://www.w3.org/TR/wai-aria-1.1/#region
 	'search'
 ])
 
@@ -66,6 +67,7 @@ function doForEach(nodeList, callback) {
 function isLandmark(role, label) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
+	// FIXME: https://github.com/matatk/landmarks/issues/40
 	if (role === 'region' || role === 'application' || role === 'form') {
 		return label !== null
 	}
@@ -151,7 +153,8 @@ function LandmarksFinder(win, doc) {
 	function isDescendant(ancestor, child) {
 		let node = child.parentNode
 
-		while (node !== doc.body) {  // TODO what if body has a role?
+		// FIXME what if body has a role? it could if the role is 'application' (or anything else?)
+		while (node !== doc.body) {
 			if (node === ancestor) {
 				return true
 			}

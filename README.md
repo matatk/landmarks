@@ -26,11 +26,12 @@ You can use shortcut keys to navigate between landmarks. By default, they keys a
 
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd> to move to the next landmark, and
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> to move to the previous landmark.
--   Note that, on a Mac, the <kbd>Option</kbd> key is equivolent to <kbd>Alt</kbd>.
+
+(On a Mac, use the <kbd>Option</kbd> key, which is equivolent to <kbd>Alt</kbd>.)
 
 Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
 
-If you're using Chrome, you can change these shortcuts: visit your Chrome extensions page (go to chrome://extensions or activate the "More"/"Menu" button, then "Settings" and "Extensions") and follow the "Keyboard shortcuts" link at the bottom of the page.
+If you're using Chrome, you can change these shortcuts: visit your Chrome extensions page (go to **chrome://extensions** or activate the "More"/"Menu" button, then "Settings" and "Extensions") and follow the "Keyboard shortcuts" link at the bottom of the page.
 
 Firefox does not yet provide a UI for changing keyboard shortcuts for WebExtensions.
 
@@ -53,9 +54,9 @@ A border can be drawn around the landmarks as you navigate them, to make it clea
 -   **Persistent:** the border remains visible at all times.
 -   **None:** no border is drawn.
 
-To change the settings in Chrome, either right-click on (or otherwise activate the context menu of) the extension's toolbar button and select "Options", or visit your Chrome extensions page (go to chrome://extensions or activate the "More"/"Menu" button, then "Settings" and "Extensions") and activate the "Options" link for the Landmarks extension.
+To change the settings in Chrome, either right-click on (or otherwise activate the context menu of) the extension's toolbar button and select "Options", or visit your Chrome extensions page (go to **chrome://extensions** or activate the "More"/"Menu" button, then "Settings" and "Extensions") and activate the "Options" link for the Landmarks extension.
 
-To change the settings in Firefox, visit your add-ons page (go to about:addons or activate the menu button and then "Add-ons") and use the "Preferences" button for the Landmarks extension.
+To change the settings in Firefox, visit your add-ons page (go to **about:addons** or activate the menu button and then "Add-ons") and use the "Preferences" button for the Landmarks extension.
 
 **Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
 
@@ -98,25 +99,29 @@ The following pages are incorporated into the automated test suite, but you can 
 This Extension's Support for Landmarks
 --------------------------------------
 
-The extension supports the [ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). The following WAI-ARIA landmarks are supported.
+The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). The following ARIA landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
 
--   application (0) (1)
--   banner (2)
+-   application<sup>1,2</sup>
+-   banner<sup>3</sup>
 -   complementary
--   contentinfo (2)
--   form (1)
+-   contentinfo<sup>3</sup>
+-   form<sup>2</sup>
 -   main
 -   navigation
--   region (1)
+-   region<sup>2,4</sup>
 -   search
 
-**Note 0:** the `application` role has been removed from ARIA 1.1.
-
-**Note 1:** that `application`, `form` and `region` roles are considered navigable landmarks only when they are labelled with `aria-label` or `aria-labelledby`.
-
-**Note 2:** `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements.
-
 If landmark labels are present via `aria-label` or `aria-labelledby`, the labels are shown in the pop-up.
+
+### Caveats
+
+1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was removed from ARIA 1.1, so should not be used in new pages.
+
+2. That [`application`](https://www.w3.org/TR/wai-aria/roles#application), [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. The spec states this should be done with a visual label and an `aria-labelledby` attribute (because this ensures all users can benefit from the information), though this extension exposes the (non-visual) `aria-label` attribute if it is present.
+
+3. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
+
+4. All [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) elements in fact **must** be labelled in order to be considerd landmarks; any [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) not labelled as described above will be ignored.
 
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
