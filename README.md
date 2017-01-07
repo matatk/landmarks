@@ -111,13 +111,15 @@ The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-
 -   region<sup>2,4</sup>
 -   search
 
-If landmark labels are present via `aria-label` or `aria-labelledby`, the labels are shown in the pop-up.
+If landmark labels are present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up.
 
 ### Caveats
 
-1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was removed from ARIA 1.1, so should not be used in new pages.
+1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was removed since ARIA 1.1, so should not be used in new pages.
 
-2. That [`application`](https://www.w3.org/TR/wai-aria/roles#application), [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. The spec states this should be done with a visual label and an `aria-labelledby` attribute (because this ensures all users can benefit from the information), though this extension exposes the (non-visual) `aria-label` attribute if it is present.
+2. [`application`](https://www.w3.org/TR/wai-aria/roles#application), [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+
+   As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
 
 3. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 

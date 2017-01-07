@@ -1,16 +1,15 @@
 'use strict'
-// FIXME which takes precedence over aria-label and aria-labelledby? Document and implement and test it.
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-	'application',   // should label: https://www.w3.org/TR/wai-aria/roles#application
+	'application',    // should label
 	'banner',
 	'complementary',
 	'contentinfo',
-	'form',          // should label: https://www.w3.org/TR/wai-aria-1.1/#form
+	'form',           // should label
 	'main',
 	'navigation',
-	'region',        // must label: https://www.w3.org/TR/wai-aria-1.1/#region
+	'region',         // must label
 	'search'
 ])
 
@@ -112,39 +111,38 @@ function LandmarksFinder(win, doc) {
 	function getLandmarks(element, depth) {
 		if (!element) return
 
-		doForEach(element.childNodes, function(elementChild) {
-			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
-				// Support HTML5 elements' native roles
-				let role = getRoleFromTagNameAndContainment(elementChild)
+		if (element.nodeType === win.Node.ELEMENT_NODE) {
+			// Support HTML5 elements' native roles
+			let role = getRoleFromTagNameAndContainment(element)
 
-				// Elements with explicitly-set rolees
-				if (elementChild.getAttribute) {
-					const tempRole = elementChild.getAttribute('role')
-					if (tempRole) {
-						role = tempRole
-					}
-				}
-
-				// The element may or may not have a label
-				const label = getARIAProvidedLabel(elementChild)
-
-				// Add the element if it should be considered a landmark
-				if (role && isLandmark(role, label)) {
-					const lastLandmarkedElement = getLastLandmarkedElement()
-
-					if (isDescendant(lastLandmarkedElement, elementChild)) {
-						depth = depth + 1
-					}
-
-					landmarks.push({
-						depth: depth,
-						role: role,
-						label: label,
-						element: elementChild
-					})
+			// Elements with explicitly-set rolees
+			if (element.getAttribute) {
+				const tempRole = element.getAttribute('role')
+				if (tempRole) {
+					role = tempRole
 				}
 			}
 
+			// The element may or may not have a label
+			const label = getARIAProvidedLabel(element)
+
+			// Add the element if it should be considered a landmark
+			if (role && isLandmark(role, label)) {
+				const lastLandmark = getLastLandmarkedElement()
+				if (lastLandmark && isDescendant(lastLandmark, element)) {
+					depth = depth + 1
+				}
+
+				landmarks.push({
+					'depth': depth,
+					'role': role,
+					'label': label,
+					'element': element
+				})
+			}
+		}
+
+		doForEach(element.childNodes, function(elementChild) {
 			// Recursively traverse the tree structure of the child node
 			getLandmarks(elementChild, depth)
 		})
@@ -200,14 +198,16 @@ function LandmarksFinder(win, doc) {
 	}
 
 	function getARIAProvidedLabel(element) {
-		let label = element.getAttribute('aria-label')
+		let label = null
+
+		const labelID = element.getAttribute('aria-labelledby')
+		if (labelID !== null) {
+			const labelElement = doc.getElementById(labelID)
+			label = getInnerText(labelElement)
+		}
 
 		if (label === null) {
-			const labelID = element.getAttribute('aria-labelledby')
-			if (labelID !== null) {
-				const labelElement = doc.getElementById(labelID)
-				label = getInnerText(labelElement)
-			}
+			label = element.getAttribute('aria-label')
 		}
 
 		return label
