@@ -11,6 +11,18 @@ The following sections explain how to install and use the extension.
 
 If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)&mdash;in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
+Table of Contents
+-----------------
+
+* [Installation](#installation)
+* [Navigating Landmarks](#navigating-landmarks)
+* [Border Preferences](#border-preferences)
+* [Development](#development)
+* [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
+* [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
+* [Acknowledgements](#acknowledgements)
+* [Changes](#changes)
+
 Installation
 ------------
 
