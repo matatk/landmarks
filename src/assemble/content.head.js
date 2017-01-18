@@ -66,7 +66,6 @@ function doForEach(nodeList, callback) {
 function isLandmark(role, label) {
 	// Region, application and form are counted as landmarks only when
 	// they have labels
-	// FIXME: https://github.com/matatk/landmarks/issues/40
 	if (role === 'region' || role === 'application' || role === 'form') {
 		return label !== null
 	}

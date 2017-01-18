@@ -120,22 +120,22 @@ The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-
 -   form<sup>2</sup>
 -   main
 -   navigation
--   region<sup>2,4</sup>
+-   region<sup>2</sup>
 -   search
 
 If landmark labels are present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up.
 
 ### Caveats
 
-1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was removed since ARIA 1.1, so should not be used in new pages.
+1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was no longer considered a landmark role since ARIA 1.1.
 
 2. [`application`](https://www.w3.org/TR/wai-aria/roles#application), [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
 
    As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
 
-3. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
+   There is currently ambiguity in the WAI-ARIA spec about whether the above might still be counted as regions even if they are unlabelled. Most Assistive Technologies (ATs) would not count unlabelled `form`s or `region`s, because this could add a lot of noise to landmark navigation, so this extension also ignores such unlabelled regions.
 
-4. All [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) elements in fact **must** be labelled in order to be considerd landmarks; any [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) not labelled as described above will be ignored.
+3. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
