@@ -2,7 +2,6 @@
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-	'application',    // should label
 	'banner',
 	'complementary',
 	'contentinfo',
@@ -64,9 +63,8 @@ function doForEach(nodeList, callback) {
 //
 
 function isLandmark(role, label) {
-	// Region, application and form are counted as landmarks only when
-	// they have labels
-	if (role === 'region' || role === 'application' || role === 'form') {
+	// Region and form are counted as landmarks only when they have labels
+	if (role === 'region' || role === 'form') {
 		return label !== null
 	}
 
@@ -150,7 +148,7 @@ function LandmarksFinder(win, doc) {
 	function isDescendant(ancestor, child) {
 		let node = child.parentNode
 
-		// FIXME what if body has a role? it could if the role is 'application' (or anything else?)
+		// FIXME what if body has a role?
 		while (node !== doc.body) {
 			if (node === ancestor) {
 				return true
