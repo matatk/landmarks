@@ -111,31 +111,26 @@ The following pages are incorporated into the automated test suite, but you can 
 This Extension's Support for Landmarks
 --------------------------------------
 
-The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). The following ARIA landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
+The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). All landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
 
--   application<sup>1,2</sup>
--   banner<sup>3</sup>
+-   banner<sup>1</sup>
 -   complementary
--   contentinfo<sup>3</sup>
+-   contentinfo<sup>1</sup>
 -   form<sup>2</sup>
 -   main
 -   navigation
 -   region<sup>2</sup>
 -   search
 
-If landmark labels are present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up.
+If a landmark label is present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up.  As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
 
 ### Caveats
 
-1. The [`application`](https://www.w3.org/TR/wai-aria/roles#application) role was no longer considered a landmark role since ARIA 1.1.
+1. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
-2. [`application`](https://www.w3.org/TR/wai-aria/roles#application), [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+2. [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
 
-   As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
-
-   There is currently ambiguity in the WAI-ARIA spec about whether the above might still be counted as regions even if they are unlabelled. Most Assistive Technologies (ATs) would not count unlabelled `form`s or `region`s, because this could add a lot of noise to landmark navigation, so this extension also ignores such unlabelled regions.
-
-3. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
+   There is ambiguity in the WAI-ARIA spec as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form`s or `region`s, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
