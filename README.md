@@ -9,25 +9,25 @@ Landmarks provide a quick way to broadly signpost the function of different area
 
 The following sections explain how to install and use the extension.
 
-If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)&mdash;in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
+If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)—in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
 Table of Contents
 -----------------
 
-* [Installation](#installation)
-* [Navigating Landmarks](#navigating-landmarks)
-* [Border Preferences](#border-preferences)
-* [Development](#development)
-* [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
-* [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
-* [Acknowledgements](#acknowledgements)
-* [Changes](#changes)
+-   [Installation](#installation)
+-   [Navigating Landmarks](#navigating-landmarks)
+-   [Border Preferences](#border-preferences)
+-   [Development](#development)
+-   [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
+-   [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
+-   [Acknowledgements](#acknowledgements)
+-   [Changes](#changes)
 
 Installation
 ------------
 
-- **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
-- **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
+-   **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
+-   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
 
 Navigating Landmarks
 --------------------
@@ -83,9 +83,9 @@ You can build and run the current code locally as follows.
 
 3.  Run the build script to build one or all of the extensions:
 
-    - `npm run build:firefox`
-    - `npm run build:chrome`
-    - `npm run build:all`
+    -   `npm run build:firefox`
+    -   `npm run build:chrome`
+    -   `npm run build:all`
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
@@ -95,13 +95,13 @@ You can build and run the current code locally as follows.
 
 Some further info on the test/build process:
 
-- Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
+-   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
 
-- The `pre-commit` hook can be used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests).  You can make a symlink from the `.git/hooks/` directory to it and thus it (and the tests) will be run before you are asked for a commit message.
+-   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
 
-- You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
+-   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
 
-- Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+-   The `pre-commit` hook can be used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). You can make a symlink from the `.git/hooks/` directory to it and thus it (and the tests) will be run before you are asked for a commit message.
 
 ### Test Pages
 
@@ -124,15 +124,15 @@ The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-
 -   region<sup>2</sup>
 -   search
 
-If a landmark label is present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up.  As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
+If a landmark label is present (via the `aria-labelledby` or `aria-label` attributes), they'll be shown in the pop-up. As per the [accessible name calculation algorithm](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te) used by browsers, the `aria-labelledby` attribute takes precedence over `aria-label`.
 
 ### Caveats
 
-1. Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
+1.  Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
-2. [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
 
-   There is ambiguity in the WAI-ARIA spec as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form`s or `region`s, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
+There is ambiguity in the WAI-ARIA spec as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form`s or `region`s, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
@@ -157,23 +157,24 @@ Changes
 -------
 
 -   2.0.6 - ???th of January 2017
-    * Add a test suite to ensure landmarks are identified correctly.
-    * Various large internal code-quality improvements.
+    -   Add a test suite to ensure landmarks are identified correctly.
+    -   Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
-    * No user-facing changes.
-    * Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
-    * Add more code robustosity checks with ESLint.
+    -   No user-facing changes.
+    -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like—oops!)
+    -   Add more code robustosity checks with ESLint.
 -   2.0.4 - 4th of December 2016
-    * Clean up the appearance of the popup.
-    * Increase 'momentary' highlight duration to two seconds, from one second.
-    * Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
-    * Drop Grunt and switch to just using NPM and scripts for building the extensions.
-    * Track builds with Travis CI.
-    * Use ESLint and EditorConfig code standards and quality tools.
+    -   Clean up the appearance of the popup.
+    -   Increase 'momentary' highlight duration to two seconds, from one second.
+    -   Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
+    -   Drop Grunt and switch to just using NPM and scripts for building the extensions.
+    -   Track builds with Travis CI.
+    -   Use ESLint and EditorConfig code standards and quality tools.
 -   2.0.3 - 23rd of September 2016
-    * When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
-    * Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
-    * Locale is now en_GB (instead of en).
-    * Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
+    -   When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
+    -   Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
+    -   Locale is now en\_GB (instead of en).
+    -   Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
 -   2.0.2 - 12th of August 2016
-    * First WebExtension Release
+    -   First WebExtension Release
+
