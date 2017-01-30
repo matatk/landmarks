@@ -97,6 +97,8 @@ Some further info on the test/build process:
 
 - Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
 
+- The `pre-commit` hook can be used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests).  You can make a symlink from the `.git/hooks/` directory to it and thus it (and the tests) will be run before you are asked for a commit message.
+
 - You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
 
 - Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
