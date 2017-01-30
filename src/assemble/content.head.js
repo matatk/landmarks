@@ -108,38 +108,38 @@ function LandmarksFinder(win, doc) {
 	function getLandmarks(element, depth) {
 		if (!element) return
 
-		if (element.nodeType === win.Node.ELEMENT_NODE) {
-			// Support HTML5 elements' native roles
-			let role = getRoleFromTagNameAndContainment(element)
-
-			// Elements with explicitly-set rolees
-			if (element.getAttribute) {
-				const tempRole = element.getAttribute('role')
-				if (tempRole) {
-					role = tempRole
-				}
-			}
-
-			// The element may or may not have a label
-			const label = getARIAProvidedLabel(element)
-
-			// Add the element if it should be considered a landmark
-			if (role && isLandmark(role, label)) {
-				const lastLandmark = getLastLandmarkedElement()
-				if (lastLandmark && isDescendant(lastLandmark, element)) {
-					depth = depth + 1
-				}
-
-				landmarks.push({
-					'depth': depth,
-					'role': role,
-					'label': label,
-					'element': element
-				})
-			}
-		}
-
 		doForEach(element.childNodes, function(elementChild) {
+			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
+				// Support HTML5 elements' native roles
+				let role = getRoleFromTagNameAndContainment(elementChild)
+
+				// Elements with explicitly-set rolees
+				if (elementChild.getAttribute) {
+					const tempRole = elementChild.getAttribute('role')
+					if (tempRole) {
+						role = tempRole
+					}
+				}
+
+				// The element may or may not have a label
+				const label = getARIAProvidedLabel(elementChild)
+
+				// Add the element if it should be considered a landmark
+				if (role && isLandmark(role, label)) {
+					const lastLandmark = getLastLandmarkedElement()
+					if (lastLandmark && isDescendant(lastLandmark, elementChild)) {
+						depth = depth + 1
+					}
+
+					landmarks.push({
+						'depth': depth,
+						'role': role,
+						'label': label,
+						'element': elementChild
+					})
+				}
+			}
+
 			// Recursively traverse the tree structure of the child node
 			getLandmarks(elementChild, depth)
 		})
@@ -271,7 +271,7 @@ function LandmarksFinder(win, doc) {
 	this.previousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1
+			landmarks.length - 1 : currentlySelectedIndex - 1
 		)
 	}
 
