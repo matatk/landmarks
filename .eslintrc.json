@@ -32,6 +32,7 @@
     "no-lone-blocks": "error",
     "no-lonely-if": "error",
     "no-loop-func": "warn",
+    "no-multi-assign": "error",
     "no-throw-literal": "error",
     "no-undef": "error",
     "no-unexpected-multiline": "error",
