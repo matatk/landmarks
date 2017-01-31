@@ -1,0 +1,10 @@
+{
+  "expected": [
+    { "depth": 0, "role": "banner", "label": null },
+    { "depth": 1, "role": "navigation", "label": null },
+    { "depth": 1, "role": "navigation", "label": null },
+    { "depth": 2, "role": "search", "label": null },
+    { "depth": 0, "role": "main", "label": null },
+    { "depth": 0, "role": "contentinfo", "label": null }
+  ]
+}

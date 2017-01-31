@@ -2,14 +2,13 @@
 
 // List of landmarks to navigate
 const regionTypes = Object.freeze([
-	'application',    // must have a label -- TODO add test or remove
 	'banner',
 	'complementary',
 	'contentinfo',
-	'form',           // must have a label
+	'form',           // should label
 	'main',
 	'navigation',
-	'region',         // must have a label
+	'region',         // must label
 	'search'
 ])
 
@@ -64,9 +63,8 @@ function doForEach(nodeList, callback) {
 //
 
 function isLandmark(role, label) {
-	// Region, application and form are counted as landmarks only when
-	// they have labels
-	if (role === 'region' || role === 'application' || role === 'form') {
+	// Region and form are counted as landmarks only when they have labels
+	if (role === 'region' || role === 'form') {
 		return label !== null
 	}
 
@@ -128,17 +126,16 @@ function LandmarksFinder(win, doc) {
 
 				// Add the element if it should be considered a landmark
 				if (role && isLandmark(role, label)) {
-					const lastLandmarkedElement = getLastLandmarkedElement()
-
-					if (isDescendant(lastLandmarkedElement, elementChild)) {
+					const lastLandmark = getLastLandmarkedElement()
+					if (lastLandmark && isDescendant(lastLandmark, elementChild)) {
 						depth = depth + 1
 					}
 
 					landmarks.push({
-						depth: depth,
-						role: role,
-						label: label,
-						element: elementChild
+						'depth': depth,
+						'role': role,
+						'label': label,
+						'element': elementChild
 					})
 				}
 			}
@@ -151,7 +148,8 @@ function LandmarksFinder(win, doc) {
 	function isDescendant(ancestor, child) {
 		let node = child.parentNode
 
-		while (node !== doc.body) {  // TODO what if body has a role?
+		// FIXME what if body has a role?
+		while (node !== doc.body) {
 			if (node === ancestor) {
 				return true
 			}
@@ -197,14 +195,16 @@ function LandmarksFinder(win, doc) {
 	}
 
 	function getARIAProvidedLabel(element) {
-		let label = element.getAttribute('aria-label')
+		let label = null
+
+		const labelID = element.getAttribute('aria-labelledby')
+		if (labelID !== null) {
+			const labelElement = doc.getElementById(labelID)
+			label = getInnerText(labelElement)
+		}
 
 		if (label === null) {
-			const labelID = element.getAttribute('aria-labelledby')
-			if (labelID !== null) {
-				const labelElement = doc.getElementById(labelID)
-				label = getInnerText(labelElement)
-			}
+			label = element.getAttribute('aria-label')
 		}
 
 		return label
@@ -271,7 +271,7 @@ function LandmarksFinder(win, doc) {
 	this.previousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1
+			landmarks.length - 1 : currentlySelectedIndex - 1
 		)
 	}
 
