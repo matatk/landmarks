@@ -156,7 +156,7 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.6 - ???th of January 2017
+-   2.0.6 - 2nd of February 2017
     -   Add a test suite to ensure landmarks are identified correctly.
     -   Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
