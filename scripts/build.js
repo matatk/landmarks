@@ -4,6 +4,8 @@ const fse = require('fs-extra')
 const chalk = require('chalk')
 const deepmerge = require('deepmerge')
 const archiver = require('archiver')
+const figures = require('figures')
+
 const pngCache = require(path.join(__dirname, 'lib', 'png-cache.js'))
 const packageJson = require(path.join('..', 'package.json'))
 
@@ -19,7 +21,7 @@ const validBrowsers = Object.freeze([
 	'firefox',
 	'chrome'
 ])
-const buildModes = Object.freeze(validBrowsers + ['all'])
+const buildModes = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = {
 	'firefox': [
@@ -43,7 +45,7 @@ const browserPngSizes = {
 
 // Log an error and exit
 function error(message) {
-	console.error(chalk.bold.red('✖ ' + message))
+	console.error(chalk.bold.red(figures('✖ ') + message))
 	process.exit(42)
 }
 
@@ -100,7 +102,7 @@ function mergeManifest(browser) {
 		path.join(pathToBuild(browser), 'manifest.json'),
 		JSON.stringify(merged, null, 2)
 	)
-	console.log(chalk.green(`✔ manifest.json written for ${browser}.`))
+	console.log(chalk.green(figures(`✔ manifest.json written for ${browser}.`)))
 }
 
 
@@ -157,7 +159,11 @@ function makeZip(browser) {
 	const archive = archiver('zip')
 
 	output.on('close', function() {
-		console.log(chalk.green('✔ ') + archive.pointer() + ' total bytes for ' + outputFileName)
+		console.log(
+			chalk.green(figures('✔ ')) +
+			archive.pointer() +
+			' total bytes for ' +
+			outputFileName)
 	})
 
 	archive.on('error', function(err) {
