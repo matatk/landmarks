@@ -19,7 +19,7 @@ const validBrowsers = Object.freeze([
 	'firefox',
 	'chrome'
 ])
-const buildModes = Object.freeze(validBrowsers + ['all'])
+const buildModes = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = {
 	'firefox': [
@@ -157,7 +157,7 @@ function makeZip(browser) {
 	const archive = archiver('zip')
 
 	output.on('close', function() {
-		console.log(chalk.green('✔ ') + archive.pointer() + ' total bytes for ' + outputFileName)
+		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
 	})
 
 	archive.on('error', function(err) {

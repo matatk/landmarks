@@ -12,10 +12,10 @@
 // If not, put a message there stating such.
 function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
-	display.innerHTML = ''
+	removeChildNodes(display)
 
 	if (chrome.runtime.lastError) {
-		display.innerHTML = paras([
+		addText(display, [
 			errorString() + chrome.runtime.lastError.message,
 			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		])
@@ -26,25 +26,35 @@ function handleLandmarksResponse(response) {
 	if (Array.isArray(response)) {
 		// Content script would normally send back an array
 		if (response.length === 0) {
-			display.innerHTML = paras(
-					chrome.i18n.getMessage('noLandmarksFound'))
+			addText(display, chrome.i18n.getMessage('noLandmarksFound'))
 		} else {
 			makeLandmarksTree(response, display)
 		}
 	} else if (response === 'wait') {
-		display.innerHTML = paras(chrome.i18n.getMessage('pageNotLoadedYet'))
+		addText(display, chrome.i18n.getMessage('pageNotLoadedYet'))
 	} else {
-		display.innerHTML = paras(
-				errorString() + 'content script sent: ' + response)
+		addText(display, errorString() + 'content script sent: ' + response)
 	}
 }
 
-// Return a string corresponding to an HTML paragraph containing message or,
-// if message is an array, a paragraph for each element of message
-function paras(message) {
-	return '<p>' +
-		(Array.isArray(message) ? message.join('</p><p>') : message) +
-		'</p>'
+// Remove all nodes contained within a node
+function removeChildNodes(element) {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild)
+	}
+}
+
+// Append text paragraphs to the given element
+// 'text' can be a string, or array of strings
+function addText(element, text) {
+	const messages = Array.isArray(text) ? text : [text]
+
+	messages.forEach((message) => {
+		const newPara = document.createElement('p')
+		const newParaText = document.createTextNode(message)
+		newPara.appendChild(newParaText)
+		element.appendChild(newPara)
+	})
 }
 
 // Create a button that reloads the current page and add it to an element
@@ -52,7 +62,7 @@ function paras(message) {
 function addReloadButton(element) {
 	const button = document.createElement('button')
 	button.appendChild(document.createTextNode(
-				chrome.i18n.getMessage('tryReloading')))
+		chrome.i18n.getMessage('tryReloading')))
 	button.addEventListener('click', reloadActivePage)
 	element.appendChild(button)
 }
