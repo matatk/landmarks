@@ -15,8 +15,8 @@ function handleLandmarksResponse(response) {
 	removeChildNodes(display)
 
 	if (chrome.runtime.lastError) {
+		console.error(chrome.runtime.lastError.message)
 		addText(display, [
-			errorString() + chrome.runtime.lastError.message,
 			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		])
 		addReloadButton(display)

@@ -120,3 +120,18 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 		throw('Landmarks: invalid number of regions:', numberOfLandmarks)
 	}
 }
+
+
+//
+// Install and Update
+//
+
+chrome.runtime.onInstalled.addListener(function(details) {
+	if (details.reason === 'install' || details.reason === 'update') {
+		// Show website and get it to display an appropriate notice
+		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
+		chrome.tabs.create({
+			url: baseUrl + details.reason
+		})
+	}
+})

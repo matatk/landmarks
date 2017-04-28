@@ -1,8 +1,4 @@
 {
-	"permissions": [
-		"http://*/", "https://*/", "activeTab", "storage", "webNavigation", "tabs"
-	],
-
 	"icons": {
 		"16": "landmarks-16.png",
 		"32": "landmarks-32.png",

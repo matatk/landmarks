@@ -104,21 +104,6 @@ function mergeManifest(browser) {
 }
 
 
-// Copy over background.js and (for Chrome) concat the extra bit
-function copyBackgroundScript(browser) {
-	logStep('Copying background script...')
-	const basename = 'background.js'
-	fse.copySync(
-		path.join(srcAssembleDir, basename),
-		path.join(pathToBuild(browser), basename))
-	if (browser === 'chrome') {
-		fse.appendFileSync(
-			path.join(pathToBuild(browser), basename),
-			fse.readFileSync(path.join(srcAssembleDir, 'background.chrome.js')))
-	}
-}
-
-
 // Copy over content.js
 function copyContentScript(browser) {
 	logStep('Copying content script...')
@@ -191,7 +176,6 @@ browsers.forEach((browser) => {
 
 	copyStaticFiles(browser)
 	mergeManifest(browser)
-	copyBackgroundScript(browser)
 	copyContentScript(browser)
 	getPngs(pc, browser)
 	makeZip(browser)
