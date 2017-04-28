@@ -31,7 +31,7 @@ function focusElement(callbackReturningElement) {
 
 // Set focus on the selected landmark
 function _focusElement(element) {
-	getWrapper({
+	chrome.storage.sync.get({
 		borderType: 'momentary'
 	}, function(items) {
 		previouslySelectedElement = currentlySelectedElement
@@ -88,12 +88,6 @@ function removeBorder(element) {
 //
 // Extension Bootstroapping and Messaging
 //
-
-// TODO: DRY also in options script
-function getWrapper(options, action) {
-	const area = chrome.storage.sync || chrome.storage.local
-	area.get(options, action)
-}
 
 // Act on requests from the background or pop-up scripts
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
