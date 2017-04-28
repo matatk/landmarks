@@ -9,21 +9,14 @@ function saveOptions() {
 }
 
 function restoreOptions() {
-	getWrapper({
+	chrome.storage.sync.get({
 		borderType: 'momentary',  // default value
 	}, function(items) {
 		document.getElementById(borderTypeId).value = items.borderType
 	})
 }
 
-// Wrappers to support Firefox (which doesn't have storage.sync)
-// and handle the status update.
-// TODO: DRY also in content script
-function getWrapper(options, action) {
-	const area = chrome.storage.sync || chrome.storage.local
-	area.get(options, action)
-}
-
+// Wrappers to simplify saving settings, and handle the status update.
 function setWrapper(options) {
 	const area = chrome.storage.sync || chrome.storage.local
 	area.set(options, function() {
