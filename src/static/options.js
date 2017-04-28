@@ -16,7 +16,7 @@ function restoreOptions() {
 	})
 }
 
-// Wrappers to simplify saving settings, and handle the status update.
+// Wrapper to simplify saving settings, and handle the status update.
 function setWrapper(options) {
 	const area = chrome.storage.sync || chrome.storage.local
 	area.set(options, function() {
