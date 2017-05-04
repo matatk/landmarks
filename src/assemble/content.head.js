@@ -1,98 +1,58 @@
 'use strict'
 
-// List of landmarks to navigate
-const regionTypes = Object.freeze([
-	'banner',
-	'complementary',
-	'contentinfo',
-	'form',           // should label
-	'main',
-	'navigation',
-	'region',         // must label
-	'search'
-])
-
-// Mapping of HTML5 elements to implicit roles
-const implicitRoles = Object.freeze({
-	ASIDE:   'complementary',
-	FOOTER:  'contentinfo',    // depending on its ancestor elements
-	FORM:    'form',
-	HEADER:  'banner',         // depending on its ancestor elements
-	MAIN:    'main',
-	NAV:     'navigation',
-	SECTION: 'region'
-})
-
-// Sectioning content elements
-const sectioningContentElements = Object.freeze([
-	'ARTICLE',
-	'ASIDE',
-	'NAV',
-	'SECTION'
-])
-
-// Non-<body> sectioning root elements
-const nonBodySectioningRootElements = Object.freeze([
-	'BLOCKQUOTE',
-	'DETAILS',
-	'FIELDSET',
-	'FIGURE',
-	'TD'
-])
-
-// non-<body> sectioning elements and <main>
-const nonBodySectioningElementsAndMain = Object.freeze(
-	sectioningContentElements.concat(nonBodySectioningRootElements, 'MAIN')
-)
-
-
-//
-// Utilities
-//
-
-// forEach for NodeList (as opposed to Arrays)
-function doForEach(nodeList, callback) {
-	for (let i = 0; i < nodeList.length; i++) {
-		callback(nodeList[i])
-	}
-}
-
-
-//
-// Identifying Landmarks -- functions that do not refer to document or window
-//
-
-function isLandmark(role, label) {
-	// Region and form are counted as landmarks only when they have labels
-	if (role === 'region' || role === 'form') {
-		return label !== null
-	}
-
-	// Is the role (which may have been explicitly set) a valid landmark type?
-	return regionTypes.includes(role)
-}
-
-function getInnerText(element) {
-	let text = null
-
-	if (element) {
-		text = element.innerText
-		if (text === undefined) {
-			text = element.textContent
-		}
-	}
-
-	return text
-}
-
-
-//
-// Making a LandmarksFinder object
-//
-
 function LandmarksFinder(win, doc) {
 	//
-	// Identifying Landmarks
+	// Constants
+	//
+
+	// List of landmarks to navigate
+	const regionTypes = Object.freeze([
+		'banner',
+		'complementary',
+		'contentinfo',
+		'form',           // should label
+		'main',
+		'navigation',
+		'region',         // must label
+		'search'
+	])
+
+	// Mapping of HTML5 elements to implicit roles
+	const implicitRoles = Object.freeze({
+		ASIDE:   'complementary',
+		FOOTER:  'contentinfo',    // depending on its ancestor elements
+		FORM:    'form',
+		HEADER:  'banner',         // depending on its ancestor elements
+		MAIN:    'main',
+		NAV:     'navigation',
+		SECTION: 'region'
+	})
+
+	// Sectioning content elements
+	const sectioningContentElements = Object.freeze([
+		'ARTICLE',
+		'ASIDE',
+		'NAV',
+		'SECTION'
+	])
+
+	// Non-<body> sectioning root elements
+	const nonBodySectioningRootElements = Object.freeze([
+		'BLOCKQUOTE',
+		'DETAILS',
+		'FIELDSET',
+		'FIGURE',
+		'TD'
+	])
+
+	// non-<body> sectioning elements and <main>
+	const nonBodySectioningElementsAndMain = Object.freeze(
+		sectioningContentElements.concat(nonBodySectioningRootElements, 'MAIN')
+	)
+
+
+	//
+	// Found Landmarks
 	//
 
 	let landmarks = []
@@ -102,7 +62,29 @@ function LandmarksFinder(win, doc) {
 	//   label: (string or null) -- author-supplied label
 	//   element: (HTML*Element) -- in-memory element
 
-	// The following functions refer to document or window, hence are in here
+
+	//
+	// Utilities
+	//
+
+	function getLastLandmarkedElement() {
+		const lastInfo = landmarks[landmarks.length - 1]
+		if (lastInfo) {
+			return lastInfo.element
+		}
+	}
+
+	// forEach for NodeList (as opposed to Arrays)
+	function doForEach(nodeList, callback) {
+		for (let i = 0; i < nodeList.length; i++) {
+			callback(nodeList[i])
+		}
+	}
+
+
+	//
+	// Functions that refer to document or window
+	//
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth) {
@@ -145,11 +127,54 @@ function LandmarksFinder(win, doc) {
 		})
 	}
 
+	function getARIAProvidedLabel(element) {
+		let label = null
+
+		const labelID = element.getAttribute('aria-labelledby')
+		if (labelID !== null) {
+			const labelElement = doc.getElementById(labelID)
+			label = getInnerText(labelElement)
+		}
+
+		if (label === null) {
+			label = element.getAttribute('aria-label')
+		}
+
+		return label
+	}
+
+
+	//
+	// Functions that do not refer to document or window
+	//
+
+	function isLandmark(role, label) {
+		// Region and form are landmarks only when they have labels
+		if (role === 'region' || role === 'form') {
+			return label !== null
+		}
+
+		// Is the role (which may have been explicitly set) a valid landmark type?
+		return regionTypes.includes(role)
+	}
+
+	function getInnerText(element) {
+		let text = null
+
+		if (element) {
+			text = element.innerText
+			if (text === undefined) {
+				text = element.textContent
+			}
+		}
+
+		return text
+	}
+
 	function isDescendant(ancestor, child) {
 		let node = child.parentNode
 
-		// FIXME what if body has a role?
-		while (node !== doc.body) {
+		while (node !== null) {
 			if (node === ancestor) {
 				return true
 			}
@@ -159,7 +184,6 @@ function LandmarksFinder(win, doc) {
 		return false
 	}
 
-	// This function doesn't refer to win or doc, but calls one that does
 	function getRoleFromTagNameAndContainment(element) {
 		const name = element.tagName
 		let role = null
@@ -184,7 +208,7 @@ function LandmarksFinder(win, doc) {
 	function isChildOfTopLevelSection(element) {
 		let ancestor = element.parentNode
 
-		while (ancestor !== doc.body) {
+		while (ancestor !== null) {
 			if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
 				return false
 			}
@@ -192,29 +216,6 @@ function LandmarksFinder(win, doc) {
 		}
 
 		return true
-	}
-
-	function getARIAProvidedLabel(element) {
-		let label = null
-
-		const labelID = element.getAttribute('aria-labelledby')
-		if (labelID !== null) {
-			const labelElement = doc.getElementById(labelID)
-			label = getInnerText(labelElement)
-		}
-
-		if (label === null) {
-			label = element.getAttribute('aria-label')
-		}
-
-		return label
-	}
-
-	function getLastLandmarkedElement() {
-		const lastInfo = landmarks[landmarks.length - 1]
-		if (lastInfo) {
-			return lastInfo.element
-		}
 	}
 
 
