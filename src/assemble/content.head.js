@@ -238,7 +238,7 @@ function LandmarksFinder(win, doc) {
 
 	this.find = function() {
 		landmarks = []
-		getLandmarks(doc.body, 0)
+		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		currentlySelectedIndex = -1
 	}
 
