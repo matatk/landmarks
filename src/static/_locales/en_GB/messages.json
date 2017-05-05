@@ -34,7 +34,7 @@
 	},
 
 	"errorGettingLandmarksFromContentScript": {
-		"message": "The page may not have finished loading yet; please try again shortly"
+		"message": "Sorry, there was an error when trying to find landmarks"
 	},
 
 	"noLandmarksFound": {
@@ -48,6 +48,10 @@
 	"tryReloading": {
 		"message": "Try reloading the page"
 	},
+
+  "waitingForLandmarks": {
+    "message": "Loading"
+  },
 
 
 

@@ -5,7 +5,6 @@
 // Keyboard Shortcut Handling
 //
 
-// Command support requires Chrome, or Firefox 48 or Developer Edition
 chrome.commands.onCommand.addListener(function(command) {
 	if (command === 'next-landmark') {
 		sendToActiveTab({request: 'next-landmark'})

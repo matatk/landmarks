@@ -7,6 +7,8 @@ let haveSearchedForLandmarks
 let previouslySelectedElement
 let currentlySelectedElement
 
+let whenFoundHook = null
+
 
 //
 // Focusing
@@ -106,6 +108,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 			sendResponse(lf.filter())
 			break
+		case 'get-landmarks-wait':
+			// Similar to the above, but waits until the landmarks have been
+			// found before sending the message.  This is used when the popup
+			// is open and there was an error (i.e. when the content script
+			// needed injecting).
+			whenFoundHook = function() {
+				sendResponse(lf.filter())
+			}
+			// Need to return true to signify an asynch response is coming
+			// https://developer.chrome.com/extensions/runtime#event-onMessage
+			return true
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
@@ -161,6 +174,10 @@ function bootstrap() {
 			lf.find()
 			haveSearchedForLandmarks = true
 			sendUpdateBadgeMessage()
+			if (whenFoundHook) {
+				whenFoundHook()
+				whenFoundHook = null
+			}
 		} else if (landmarkFindingAttempts <= maximumAttempts) {
 			setTimeout(bootstrap, attemptInterval)
 		} else {
