@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const jsdom = require('jsdom').jsdom
 
-const codePath = path.join(__dirname, '..', 'src', 'assemble', 'content.head.js')
+const codePath = path.join(__dirname, '..', 'src', 'static', 'content.landmarks-finder.js')
 const testHarnessPath = path.join(__dirname, 'test-harness.js')
 const testCodePath = path.join(__dirname, 'test-code-in-harness.js')
 const fixturesDir = path.join(__dirname, 'fixtures')

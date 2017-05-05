@@ -1,5 +1,6 @@
-/* eslint-disable strict */
+'use strict'
 /* global LandmarksFinder */
+
 const lf = new LandmarksFinder(window, document)
 
 let haveSearchedForLandmarks

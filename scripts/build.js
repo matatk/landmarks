@@ -104,19 +104,6 @@ function mergeManifest(browser) {
 }
 
 
-// Copy over content.js
-function copyContentScript(browser) {
-	logStep('Copying content script...')
-	const destName = 'content.js'
-	fse.copySync(
-		path.join(srcAssembleDir, 'content.head.js'),
-		path.join(pathToBuild(browser), destName))
-	fse.appendFileSync(
-		path.join(pathToBuild(browser), destName),
-		fse.readFileSync(path.join(srcAssembleDir, 'content.tail.js')))
-}
-
-
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(cache, browser) {
 	logStep('Generating/copying in PNG files...')
@@ -176,7 +163,6 @@ browsers.forEach((browser) => {
 
 	copyStaticFiles(browser)
 	mergeManifest(browser)
-	copyContentScript(browser)
 	getPngs(pc, browser)
 	makeZip(browser)
 })
