@@ -1,96 +1,9 @@
 'use strict'
-/* global LandmarksFinder */
-
-const lf = new LandmarksFinder(window, document)
-
-let haveSearchedForLandmarks
-let previouslySelectedElement
-let currentlySelectedElement
+/* global lf */
+/* global ef */
+/* global haveSearchedForLandmarks:true */
 
 let whenFoundHook = null  // allows us to send a message when landmarks found
-
-
-//
-// Focusing
-//
-
-// Check that it is OK to focus an landmark element
-function focusElement(callbackReturningElement) {
-	// The user may use the keyboard commands before landmarks have been found
-	// However, the content script will run and find any landmarks very soon
-	// after the page has loaded.
-	if (!haveSearchedForLandmarks) {
-		alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.')
-		return
-	}
-
-	if (lf.numberOfLandmarks === 0) {
-		alert(chrome.i18n.getMessage('noLandmarksFound') + '.')
-		return
-	}
-
-	_focusElement(callbackReturningElement())
-}
-
-// Set focus on the selected landmark
-function _focusElement(element) {
-	chrome.storage.sync.get({
-		borderType: 'momentary'
-	}, function(items) {
-		previouslySelectedElement = currentlySelectedElement
-
-		const borderTypePref = items.borderType
-
-		removeBorderOnPreviouslySelectedElement()
-
-		// Ensure that the element is focusable
-		const originalTabindex = element.getAttribute('tabindex')
-		if (originalTabindex === null || originalTabindex === '0') {
-			element.setAttribute('tabindex', '-1')
-		}
-
-		element.focus()
-
-		// Add the border and set a timer to remove it (if required by user)
-		if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
-			addBorder(element)
-
-			if (borderTypePref === 'momentary') {
-				setTimeout(function() {
-					removeBorder(element)
-				}, 2000)
-			}
-		}
-
-		// Restore tabindex value
-		if (originalTabindex === null) {
-			element.removeAttribute('tabindex')
-		} else if (originalTabindex === '0') {
-			element.setAttribute('tabindex', '0')
-		}
-
-		currentlySelectedElement = element
-	})
-}
-
-function removeBorderOnPreviouslySelectedElement() {
-	if (previouslySelectedElement) {
-		removeBorder(previouslySelectedElement)
-	}
-}
-
-function addBorder(element) {
-	element.style.outline = 'medium solid red'
-}
-
-function removeBorder(element) {
-	element.style.outline = ''
-}
-
-
-//
-// Extension Bootstroapping and Messaging
-//
 
 // Act on requests from the background or pop-up scripts
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -122,15 +35,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
-			focusElement(() => lf.landmarkElement(message.index))
+			ef.focusElement(() => lf.landmarkElement(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			focusElement(lf.nextLandmarkElement)
+			ef.focusElement(lf.nextLandmarkElement)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			focusElement(lf.previousLandmarkElement)
+			ef.focusElement(lf.previousLandmarkElement)
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -139,7 +52,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			removeBorderOnPreviouslySelectedElement()  // FIXME current?
+			ef.removeBorderOnPreviouslySelectedElement()  // FIXME current?
 			bootstrap()
 			break
 		default:

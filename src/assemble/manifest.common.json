@@ -19,7 +19,11 @@
 	"content_scripts": [
 		{
 			"matches": ["*://*/*"],
-			"js": ["content.landmarks-finder.js", "content.focusing-management.js"]
+			"js": [
+        "content.landmarks-finder.js",
+        "content.focusing.js",
+        "content.management.js"
+      ]
 		}
 	],
 

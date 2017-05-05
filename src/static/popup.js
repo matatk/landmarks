@@ -29,12 +29,16 @@ function handleLandmarksResponse(response) {
 				file: 'content.landmarks-finder.js'
 			}, function() {
 				chrome.tabs.executeScript(null, {
-					file: 'content.focusing-management.js'
+					file: 'content.focusing.js'
 				}, function() {
-					sendToActiveTab({request: 'get-landmarks-wait'},
-						handleLandmarksResponse)
-					addText(display,
-						chrome.i18n.getMessage('waitingForLandmarks'))
+					chrome.tabs.executeScript(null, {
+						file: 'content.management.js'
+					}, function() {
+						sendToActiveTab({request: 'get-landmarks-wait'},
+							handleLandmarksResponse)
+						addText(display,
+							chrome.i18n.getMessage('waitingForLandmarks'))
+					})
 				})
 			})
 			hadAnError = true
