@@ -7,7 +7,7 @@ let haveSearchedForLandmarks
 let previouslySelectedElement
 let currentlySelectedElement
 
-let whenFoundHook = null
+let whenFoundHook = null  // allows us to send a message when landmarks found
 
 
 //
@@ -174,6 +174,7 @@ function bootstrap() {
 			lf.find()
 			haveSearchedForLandmarks = true
 			sendUpdateBadgeMessage()
+			// If anyone's waiting to hear about found landmarks, tell them
 			if (whenFoundHook) {
 				whenFoundHook()
 				whenFoundHook = null

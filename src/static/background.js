@@ -69,7 +69,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 				{request: 'trigger-refresh'}
 			)
 			// Note: The content script on the page will respond by sending
-			//       an 'update-badge' request back to us.
+			//       an 'update-badge' request back (if landmarks are found).
 		})
 	}
 })
@@ -125,4 +125,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
 			url: baseUrl + details.reason
 		})
 	}
+})
+
+
+//
+// Guard against browser action being errantly enabled
+//
+
+// When the extension is loaded, if it's loaded into a page that is not an
+// HTTP(S) page, then we need to disable the browser action button.  This is
+// not done by default on Chrome or Firefox.
+chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+	checkBrowserActionState(tabs[0].id, tabs[0].url)
 })

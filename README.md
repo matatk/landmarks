@@ -156,6 +156,10 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.0.7 - ??th of ??? 2017
+    -   Make use of Firefox’s synching of settings across devices.
+    -   Open a help page when the extension is installed/updated on Firefox as well as Chrome.
+    -   Numerous code improvements behind the scenes, such as requiring fewer permissions on Chrome.
 -   2.0.6 - 2nd of February 2017
     -   Add a test suite to ensure landmarks are identified correctly.
     -   Various large internal code-quality improvements.
