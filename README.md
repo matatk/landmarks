@@ -9,7 +9,7 @@ Landmarks provide a quick way to broadly signpost the function of different area
 
 The following sections explain how to install and use the extension.
 
-If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)—in fact, if you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
+If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)—in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
 Table of Contents
 -----------------
@@ -34,12 +34,12 @@ Navigating Landmarks
 
 ### Via Shortcut Key
 
-You can use shortcut keys to navigate between landmarks. By default, they keys are:
+You can use shortcut keys to navigate between landmarks. By default, the keys are:
 
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd> to move to the next landmark, and
 -   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> to move to the previous landmark.
 
-(On a Mac, use the <kbd>Option</kbd> key, which is equivolent to <kbd>Alt</kbd>.)
+(On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
 
 Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
 
@@ -113,7 +113,7 @@ The following pages are incorporated into the automated test suite, but you can 
 This Extension's Support for Landmarks
 --------------------------------------
 
-The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). All landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
+The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML 5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). All landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
 
 -   banner<sup>1</sup>
 -   complementary
@@ -130,9 +130,9 @@ If a landmark label is present (via the `aria-labelledby` or `aria-label` attrib
 
 1.  Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
-2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can percieve the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can perceive the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
 
-There is ambiguity in the WAI-ARIA spec as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form`s or `region`s, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
+There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form`s or `region`s, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
@@ -142,7 +142,7 @@ As described at start of this document, landmarks can really help various people
 -   [Léonie Watson demonstrates landmarks (video)](https://www.youtube.com/watch?v=IhWMou12_Vk)
 -   [Using WAI-ARIA Landmarks (The Paciello Group 'blog article)](https://www.paciellogroup.com/blog/2013/02/using-wai-aria-landmarks-2013/)
 -   [W3C Advice on using Landmarks](http://www.w3.org/TR/WCAG20-TECHS/ARIA11.html)
-    -   If you're using HTML5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page may well inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a site-wide and page-local set of navigation links). The W3C documentation has all the details.
+    -   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page may well inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a site-wide and page-local set of navigation links). The W3C documentation has all the details.
 
 Just bear in mind: it's important that landmarks are not over-used, because their power comes from providing a concise overview of the content of the page. The heading hierarchy for the page can be relied upon for more fine-grained navigation within a particular area of a page.
 
@@ -168,9 +168,9 @@ Changes
     -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like—oops!)
     -   Add more code robustosity checks with ESLint.
 -   2.0.4 - 4th of December 2016
-    -   Clean up the appearance of the popup.
+    -   Clean up the appearance of the pop-up.
     -   Increase 'momentary' highlight duration to two seconds, from one second.
-    -   Remove a workaround for a bug in Firefox popup sizing that was fixed in Firefox 50.
+    -   Remove a workaround for a bug in Firefox pop-up sizing that was fixed in Firefox 50.
     -   Drop Grunt and switch to just using NPM and scripts for building the extensions.
     -   Track builds with Travis CI.
     -   Use ESLint and EditorConfig code standards and quality tools.
