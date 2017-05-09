@@ -1,4 +1,7 @@
 'use strict'
+/* global sendToActiveTab */
+
+let hadAnError = false
 
 // Handle incoming landmarks message response
 //
@@ -14,17 +17,43 @@ function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
+	// The first time we get an error, it could be because we're in Chrome and
+	// the content script has not been injected because the extension was just
+	// installed.  Try to inject the content script, but if that fails, then
+	// we need to accept the error and report it to the user.
+
 	if (chrome.runtime.lastError) {
-		console.error(chrome.runtime.lastError.message)
-		addText(display, [
-			chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
-		])
-		addReloadButton(display)
+		if (!hadAnError) {
+			logError(1, chrome.runtime.lastError.message)
+			chrome.tabs.executeScript(null, {
+				file: 'content.landmarks-finder.js'
+			}, function() {
+				chrome.tabs.executeScript(null, {
+					file: 'content.focusing.js'
+				}, function() {
+					chrome.tabs.executeScript(null, {
+						file: 'content.management.js'
+					}, function() {
+						sendToActiveTab({request: 'get-landmarks-wait'},
+							handleLandmarksResponse)
+						addText(display,
+							chrome.i18n.getMessage('waitingForLandmarks'))
+					})
+				})
+			})
+			hadAnError = true
+		} else {
+			logError(2, chrome.runtime.lastError.message)
+			addText(display,
+				chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
+			)
+			addReloadButton(display)
+		}
 		return
 	}
 
 	if (Array.isArray(response)) {
-		// Content script would normally send back an array
+		// Content script would normally send back an array of landmarks
 		if (response.length === 0) {
 			addText(display, chrome.i18n.getMessage('noLandmarksFound'))
 		} else {
@@ -44,17 +73,12 @@ function removeChildNodes(element) {
 	}
 }
 
-// Append text paragraphs to the given element
-// 'text' can be a string, or array of strings
-function addText(element, text) {
-	const messages = Array.isArray(text) ? text : [text]
-
-	messages.forEach((message) => {
-		const newPara = document.createElement('p')
-		const newParaText = document.createTextNode(message)
-		newPara.appendChild(newParaText)
-		element.appendChild(newPara)
-	})
+// Append text paragraph to the given element
+function addText(element, message) {
+	const newPara = document.createElement('p')
+	const newParaText = document.createTextNode(message)
+	newPara.appendChild(newParaText)
+	element.appendChild(newPara)
 }
 
 // Create a button that reloads the current page and add it to an element
@@ -78,6 +102,11 @@ function reloadActivePage() {
 // Return localised "Error: " string
 function errorString() {
 	return chrome.i18n.getMessage('errorWord') + ': '
+}
+
+// Log an error, at least partly localised
+function logError(number, thing) {
+	console.error(errorString() + number, thing)
 }
 
 // Go through the landmarks identified for the page and create an HTML
@@ -138,15 +167,6 @@ function focusLandmark(index) {
 	sendToActiveTab({
 		request: 'focus-landmark',
 		index: index
-	})
-}
-
-// Work out the current tab with a query, then send a message to it
-// Pattern from: https://developer.chrome.com/extensions/messaging
-// TODO: DRY (repeated in background script)
-function sendToActiveTab(message, callback) {
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.sendMessage(tabs[0].id, message, callback)
 	})
 }
 
