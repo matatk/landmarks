@@ -1,0 +1,16 @@
+{
+	"icons": {
+		"16": "landmarks-16.png",
+		"48": "landmarks-48.png",
+		"128": "landmarks-128.png"
+	},
+
+	"browser_action": {
+		"default_icon": {
+			"19": "landmarks-19.png",
+			"38": "landmarks-38.png"
+		}
+	},
+
+  "minimum_opera_version": "44"
+}
