@@ -17,7 +17,8 @@ const pngCacheDir = path.join(buildDir, 'png-cache')
 
 const validBrowsers = Object.freeze([
 	'firefox',
-	'chrome'
+	'chrome',
+	'opera'
 ])
 const buildModes = Object.freeze(validBrowsers.concat(['all']))
 
@@ -37,6 +38,15 @@ const browserPngSizes = {
 		38,  // Chrome  (tooblar x2)
 		48,  // Both    (general)
 		128  // Chrome  (store)
+	],
+	'opera': [
+		// https://dev.opera.com/extensions/manifest/#icons
+		// https://dev.opera.com/extensions/browser-actions/
+		16,   // Icon
+		19,   // Browser action
+		38,   // Browser action
+		48,   // Icon
+		128,  // Icon
 	]
 }
 

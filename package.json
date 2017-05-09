@@ -12,6 +12,7 @@
 
     "build:firefox": "npm run clean:firefox && npm run _build -- firefox",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
+    "build:opera": "npm run clean:opera && npm run _build -- opera",
     "build:all": "npm run clean:all && npm run _build -- all",
 
     "clean:firefox": "rimraf build/firefox landmarks-*-firefox.zip",
