@@ -81,7 +81,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			ef.removeBorderOnPreviouslySelectedElement()  // FIXME current?
+			ef.removeBorderOnCurrentlySelectedElement()
 			bootstrap()
 			break
 		default:

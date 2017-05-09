@@ -1,7 +1,6 @@
 'use strict'
 
 function ElementFocuser() {
-	let previouslySelectedElement
 	let currentlySelectedElement
 
 
@@ -21,11 +20,9 @@ function ElementFocuser() {
 		chrome.storage.sync.get({
 			borderType: 'momentary'
 		}, function(items) {
-			previouslySelectedElement = currentlySelectedElement
+			removeBorderOnCurrentlySelectedElement()
 
 			const borderTypePref = items.borderType
-
-			removeBorderOnPreviouslySelectedElement()  // FIXME undef
 
 			// Ensure that the element is focusable
 			const originalTabindex = element.getAttribute('tabindex')
@@ -57,14 +54,15 @@ function ElementFocuser() {
 		})
 	}
 
-	function removeBorderOnPreviouslySelectedElement() {
-		if (previouslySelectedElement) {
-			removeBorder(previouslySelectedElement)
+	function removeBorderOnCurrentlySelectedElement() {
+		if (currentlySelectedElement) {
+			removeBorder(currentlySelectedElement)
 		}
 	}
 
-	// Need this function to be public, but it's also called internally
-	this.removeBorderOnPreviouslySelectedElement = removeBorderOnPreviouslySelectedElement
+	// Also needs to be available publicly
+	this.removeBorderOnCurrentlySelectedElement =
+		removeBorderOnCurrentlySelectedElement
 
 
 	//
@@ -73,9 +71,10 @@ function ElementFocuser() {
 
 	function addBorder(element) {
 		element.style.outline = 'medium solid red'
+		element.style.outlineOffset = '-3px'
 	}
 
 	function removeBorder(element) {
-		element.style.outline = ''
+		element.style.outline = null
 	}
 }
