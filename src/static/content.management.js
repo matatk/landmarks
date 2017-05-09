@@ -1,9 +1,38 @@
 'use strict'
-/* global lf */
-/* global ef */
-/* global haveSearchedForLandmarks:true */
+/* global LandmarksFinder ElementFocuser */
+
+const lf = new LandmarksFinder(window, document)
+const ef = new ElementFocuser()
 
 let whenFoundHook = null  // allows us to send a message when landmarks found
+
+
+//
+// Guard for focusing elements
+//
+
+// Check that it is OK to focus an landmark element
+function checkFocusElement(callbackReturningElement) {
+	// The user may use the keyboard commands before landmarks have been found
+	// However, the content script will run and find any landmarks very soon
+	// after the page has loaded.
+	if (!lf.haveSearchedForLandmarks()) {
+		alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.')
+		return
+	}
+
+	if (lf.numberOfLandmarks === 0) {
+		alert(chrome.i18n.getMessage('noLandmarksFound') + '.')
+		return
+	}
+
+	ef.focusElement(callbackReturningElement())
+}
+
+
+//
+// Extension Message Management
+//
 
 // Act on requests from the background or pop-up scripts
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -11,7 +40,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		case 'get-landmarks':
 			// The pop-up is requesting the list of landmarks on the page
 
-			if (!haveSearchedForLandmarks) {
+			if (!lf.haveSearchedForLandmarks()) {
 				sendResponse('wait')
 			}
 			// We only guard for landmarks having been found here because the
@@ -35,15 +64,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
-			ef.focusElement(() => lf.landmarkElement(message.index))
+			checkFocusElement(() => lf.landmarkElement(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			ef.focusElement(lf.nextLandmarkElement)
+			checkFocusElement(lf.nextLandmarkElement)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			ef.focusElement(lf.previousLandmarkElement)
+			checkFocusElement(lf.previousLandmarkElement)
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -79,13 +108,12 @@ function bootstrap() {
 	const attemptInterval = 1000
 	const maximumAttempts = 10
 	let landmarkFindingAttempts = 0
-	haveSearchedForLandmarks = false
+	lf.reset()
 
 	function _bootstrap() {
 		landmarkFindingAttempts += 1
 		if (document.readyState === 'complete') {
 			lf.find()
-			haveSearchedForLandmarks = true
 			sendUpdateBadgeMessage()
 			// If anyone's waiting to hear about found landmarks, tell them
 			if (whenFoundHook) {

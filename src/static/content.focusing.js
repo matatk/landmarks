@@ -1,51 +1,23 @@
 'use strict'
-/* global LandmarksFinder */
-
-const lf = new LandmarksFinder(window, document)
-
-let haveSearchedForLandmarks
 
 function ElementFocuser() {
 	let previouslySelectedElement
 	let currentlySelectedElement
 
+
 	//
 	// Public API
 	//
 
-	// Check that it is OK to focus an landmark element
-	this.focusElement = function(callbackReturningElement) {
-		// The user may use the keyboard commands before landmarks have been found
-		// However, the content script will run and find any landmarks very soon
-		// after the page has loaded.
-		if (!haveSearchedForLandmarks) {
-			alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.')
-			return
-		}
-
-		if (lf.numberOfLandmarks === 0) {
-			alert(chrome.i18n.getMessage('noLandmarksFound') + '.')
-			return
-		}
-
-		_focusElement(callbackReturningElement())
-	}
-
-	function removeBorderOnPreviouslySelectedElement() {
-		if (previouslySelectedElement) {
-			removeBorder(previouslySelectedElement)
-		}
-	}
-	// Need this function to be public, but it's also called internally
-	this.removeBorderOnPreviouslySelectedElement = removeBorderOnPreviouslySelectedElement
-
-
+	// Set focus on the selected landmark element.
 	//
-	// Private API
+	// This function requires an actual DOM element, as returned by various
+	// functions of the LandmarksFinder.
 	//
-
-	// Set focus on the selected landmark
-	function _focusElement(element) {
+	// Note: this should only be called if landmarks were found. The check
+	//       for this is done in the main content script, as it involves UI
+	//       activity, and couples finding and focusing.
+	this.focusElement = function(element) {
 		chrome.storage.sync.get({
 			borderType: 'momentary'
 		}, function(items) {
@@ -85,6 +57,20 @@ function ElementFocuser() {
 		})
 	}
 
+	function removeBorderOnPreviouslySelectedElement() {
+		if (previouslySelectedElement) {
+			removeBorder(previouslySelectedElement)
+		}
+	}
+
+	// Need this function to be public, but it's also called internally
+	this.removeBorderOnPreviouslySelectedElement = removeBorderOnPreviouslySelectedElement
+
+
+	//
+	// Private API
+	//
+
 	function addBorder(element) {
 		element.style.outline = 'medium solid red'
 	}
@@ -93,5 +79,3 @@ function ElementFocuser() {
 		element.style.outline = ''
 	}
 }
-
-const ef = new ElementFocuser()

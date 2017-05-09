@@ -62,6 +62,8 @@ function LandmarksFinder(win, doc) {
 	//   label: (string or null) -- author-supplied label
 	//   element: (HTML*Element) -- in-memory element
 
+	let haveSearchedForLandmarks = false
+
 
 	//
 	// Utilities
@@ -240,6 +242,15 @@ function LandmarksFinder(win, doc) {
 		landmarks = []
 		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		currentlySelectedIndex = -1
+		haveSearchedForLandmarks = true
+	}
+
+	this.haveSearchedForLandmarks = function() {
+		return haveSearchedForLandmarks
+	}
+
+	this.reset = function() {
+		haveSearchedForLandmarks = false
 	}
 
 	this.filter = function() {
