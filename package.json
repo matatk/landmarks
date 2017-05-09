@@ -17,7 +17,8 @@
 
     "clean:firefox": "rimraf build/firefox landmarks-*-firefox.zip",
     "clean:chrome": "rimraf build/chrome landmarks-*-chrome.zip",
-    "clean:all": "npm run clean:firefox && npm run clean:chrome",
+    "clean:opera": "rimraf build/opera landmarks-*-opera.zip",
+    "clean:all": "npm run clean:firefox && npm run clean:chrome && npm run clean:opera",
 
     "clean:cache": "rimraf build/png-cache"
   },
