@@ -13,13 +13,14 @@
 	],
 
 	"background": {
-		"scripts": ["common.js", "background.js"]
+		"scripts": ["compat.js", "common.js", "background.js"]
 	},
 
 	"content_scripts": [
 		{
 			"matches": ["*://*/*"],
 			"js": [
+        "compat.js",
         "content.landmarks-finder.js",
         "content.focusing.js",
         "content.management.js"
