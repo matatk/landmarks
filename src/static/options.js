@@ -9,7 +9,7 @@ function saveOptions() {
 }
 
 function restoreOptions() {
-	chrome.storage.sync.get({
+	browser.storage.sync.get({
 		borderType: 'momentary',  // default value
 	}, function(items) {
 		document.getElementById(borderTypeId).value = items.borderType
@@ -18,10 +18,10 @@ function restoreOptions() {
 
 // Wrapper to simplify saving settings, and handle the status update.
 function setWrapper(options) {
-	const area = chrome.storage.sync || chrome.storage.local
+	const area = browser.storage.sync || browser.storage.local
 	area.set(options, function() {
 		const statusRegion = document.getElementById('status')
-		statusRegion.textContent = chrome.i18n.getMessage('prefsSaved')
+		statusRegion.textContent = browser.i18n.getMessage('prefsSaved')
 		setTimeout(function() {
 			statusRegion.textContent = ''
 		}, 750)
@@ -37,7 +37,7 @@ function translateStuff() {
 	for(let i = 0; i < objects.length; i++) {
 		if (objects[i].dataset && objects[i].dataset.message) {
 			objects[i].innerText =
-				chrome.i18n.getMessage(objects[i].dataset.message)
+				browser.i18n.getMessage(objects[i].dataset.message)
 		}
 	}
 }

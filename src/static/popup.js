@@ -22,30 +22,30 @@ function handleLandmarksResponse(response) {
 	// installed.  Try to inject the content script, but if that fails, then
 	// we need to accept the error and report it to the user.
 
-	if (chrome.runtime.lastError) {
+	if (browser.runtime.lastError) {
 		if (!hadAnError) {
-			logError(1, chrome.runtime.lastError.message)
-			chrome.tabs.executeScript(null, {
+			logError(1, browser.runtime.lastError.message)
+			browser.tabs.executeScript(null, {
 				file: 'content.landmarks-finder.js'
 			}, function() {
-				chrome.tabs.executeScript(null, {
+				browser.tabs.executeScript(null, {
 					file: 'content.focusing.js'
 				}, function() {
-					chrome.tabs.executeScript(null, {
+					browser.tabs.executeScript(null, {
 						file: 'content.management.js'
 					}, function() {
 						sendToActiveTab({request: 'get-landmarks-wait'},
 							handleLandmarksResponse)
 						addText(display,
-							chrome.i18n.getMessage('waitingForLandmarks'))
+							browser.i18n.getMessage('waitingForLandmarks'))
 					})
 				})
 			})
 			hadAnError = true
 		} else {
-			logError(2, chrome.runtime.lastError.message)
+			logError(2, browser.runtime.lastError.message)
 			addText(display,
-				chrome.i18n.getMessage('errorGettingLandmarksFromContentScript')
+				browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 			)
 			addReloadButton(display)
 		}
@@ -55,12 +55,12 @@ function handleLandmarksResponse(response) {
 	if (Array.isArray(response)) {
 		// Content script would normally send back an array of landmarks
 		if (response.length === 0) {
-			addText(display, chrome.i18n.getMessage('noLandmarksFound'))
+			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 		} else {
 			makeLandmarksTree(response, display)
 		}
 	} else if (response === 'wait') {
-		addText(display, chrome.i18n.getMessage('pageNotLoadedYet'))
+		addText(display, browser.i18n.getMessage('pageNotLoadedYet'))
 	} else {
 		addText(display, errorString() + 'content script sent: ' + response)
 	}
@@ -86,22 +86,22 @@ function addText(element, message) {
 function addReloadButton(element) {
 	const button = document.createElement('button')
 	button.appendChild(document.createTextNode(
-		chrome.i18n.getMessage('tryReloading')))
+		browser.i18n.getMessage('tryReloading')))
 	button.addEventListener('click', reloadActivePage)
 	element.appendChild(button)
 }
 
 // Function to reload the page in the current tab
 function reloadActivePage() {
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.reload(tabs[0].tabId)
+	browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		browser.tabs.reload(tabs[0].tabId)
 	})
 	window.close()
 }
 
 // Return localised "Error: " string
 function errorString() {
-	return chrome.i18n.getMessage('errorWord') + ': '
+	return browser.i18n.getMessage('errorWord') + ': '
 }
 
 // Log an error, at least partly localised
@@ -173,6 +173,6 @@ function focusLandmark(index) {
 // When the pop-up opens, grab and process the list of page landmarks
 document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById('heading').innerText =
-		chrome.i18n.getMessage('popupHeading')
+		browser.i18n.getMessage('popupHeading')
 	sendToActiveTab({request: 'get-landmarks'}, handleLandmarksResponse)
 })

@@ -17,7 +17,7 @@ function ElementFocuser() {
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	this.focusElement = function(element) {
-		chrome.storage.sync.get({
+		browser.storage.sync.get({
 			borderType: 'momentary'
 		}, function(items) {
 			removeBorderOnCurrentlySelectedElement()

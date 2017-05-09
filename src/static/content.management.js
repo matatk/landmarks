@@ -17,12 +17,12 @@ function checkFocusElement(callbackReturningElement) {
 	// However, the content script will run and find any landmarks very soon
 	// after the page has loaded.
 	if (!lf.haveSearchedForLandmarks()) {
-		alert(chrome.i18n.getMessage('pageNotLoadedYet') + '.')
+		alert(browser.i18n.getMessage('pageNotLoadedYet') + '.')
 		return
 	}
 
 	if (lf.numberOfLandmarks === 0) {
-		alert(chrome.i18n.getMessage('noLandmarksFound') + '.')
+		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
 		return
 	}
 
@@ -35,7 +35,7 @@ function checkFocusElement(callbackReturningElement) {
 //
 
 // Act on requests from the background or pop-up scripts
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	switch (message.request) {
 		case 'get-landmarks':
 			// The pop-up is requesting the list of landmarks on the page
@@ -59,7 +59,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				sendResponse(lf.filter())
 			}
 			// Need to return true to signify an asynch response is coming
-			// https://developer.chrome.com/extensions/runtime#event-onMessage
+			// https://developer.browser.com/extensions/runtime#event-onMessage
 			return true
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
@@ -93,7 +93,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 function sendUpdateBadgeMessage() {
 	// Let the background script know how many landmarks were found, so
 	// that it can update the browser action badge.
-	chrome.runtime.sendMessage({
+	browser.runtime.sendMessage({
 		request: 'update-badge',
 		landmarks: lf.numberOfLandmarks()
 	})
