@@ -5,7 +5,7 @@
 // Keyboard Shortcut Handling
 //
 
-chrome.commands.onCommand.addListener(function(command) {
+browser.commands.onCommand.addListener(function(command) {
 	if (command === 'next-landmark') {
 		sendToActiveTab({request: 'next-landmark'})
 	} else if (command === 'prev-landmark') {
@@ -26,7 +26,7 @@ chrome.commands.onCommand.addListener(function(command) {
 //    startup, URL changes are going on in all tabs.
 //  * The content script will send an 'update-badge' message back to us when
 //    the landmarks have been found.
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (!changeInfo.url) {
 		return
 	}
@@ -35,9 +35,9 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 
 function checkBrowserActionState(tabId, url) {
 	if (startsWith(url, 'http://') || startsWith(url, 'https://')) {
-		chrome.browserAction.enable(tabId)
+		browser.browserAction.enable(tabId)
 	} else {
-		chrome.browserAction.disable(tabId)
+		browser.browserAction.disable(tabId)
 	}
 }
 
@@ -61,10 +61,10 @@ function startsWith(string, pattern) {
 //       did not (moving to a repo's Graphs page on GitHub). Seeing as this
 //       only sends a short message to the content script, I've removed the
 //       'same URL' filtering.
-chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId === 0) {
-		chrome.tabs.get(details.tabId, function(tab) {
-			chrome.tabs.sendMessage(
+		browser.tabs.get(details.tabId, function(tab) {
+			browser.tabs.sendMessage(
 				details.tabId,
 				{request: 'trigger-refresh'}
 			)
@@ -81,7 +81,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 // When the content script has loaded and any landmarks found, it will let us
 // konw, so we can set the browser action badge.
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	switch (message.request) {
 		case 'update-badge':
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
@@ -97,12 +97,12 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 	if (Number.isInteger(numberOfLandmarks)) {
 		// Content script would normally send back an array
 		if (numberOfLandmarks === 0) {
-			chrome.browserAction.setBadgeText({
+			browser.browserAction.setBadgeText({
 				text: '',
 				tabId: tabId
 			})
 		} else {
-			chrome.browserAction.setBadgeText({
+			browser.browserAction.setBadgeText({
 				text: String(numberOfLandmarks),
 				tabId: tabId
 			})
@@ -117,11 +117,11 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 // Install and Update
 //
 
-chrome.runtime.onInstalled.addListener(function(details) {
+browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
 		// Show website and get it to display an appropriate notice
 		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
-		chrome.tabs.create({
+		browser.tabs.create({
 			url: baseUrl + details.reason
 		})
 	}
@@ -135,6 +135,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
 // When the extension is loaded, if it's loaded into a page that is not an
 // HTTP(S) page, then we need to disable the browser action button.  This is
 // not done by default on Chrome or Firefox.
-chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
 	checkBrowserActionState(tabs[0].id, tabs[0].url)
 })

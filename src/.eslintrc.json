@@ -4,6 +4,6 @@
     "node": false
   },
   "globals": {
-    "chrome": true
+    "browser": true
   }
 }
