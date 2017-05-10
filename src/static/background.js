@@ -119,6 +119,25 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
+		// Inject content script manually
+		browser.tabs.query({}, function(tabs) {
+			for(const i in tabs) {
+				if (/^https?:\/\//.test(tabs[i].url)) {
+					browser.tabs.executeScript(tabs[i].id, {
+						file: 'content.landmarks-finder.js'
+					}, function() {
+						browser.tabs.executeScript(tabs[i].id, {
+							file: 'content.focusing.js'
+						}, function() {
+							browser.tabs.executeScript(tabs[i].id, {
+								file: 'content.management.js'
+							})
+						})
+					})
+				}
+			}
+		})
+
 		// Show website and get it to display an appropriate notice
 		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
 		browser.tabs.create({

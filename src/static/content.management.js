@@ -4,8 +4,6 @@
 const lf = new LandmarksFinder(window, document)
 const ef = new ElementFocuser()
 
-let whenFoundHook = null  // allows us to send a message when landmarks found
-
 
 //
 // Guard for focusing elements
@@ -50,17 +48,6 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 			sendResponse(lf.filter())
 			break
-		case 'get-landmarks-wait':
-			// Similar to the above, but waits until the landmarks have been
-			// found before sending the message.  This is used when the popup
-			// is open and there was an error (i.e. when the content script
-			// needed injecting).
-			whenFoundHook = function() {
-				sendResponse(lf.filter())
-			}
-			// Need to return true to signify an asynch response is coming
-			// https://developer.browser.com/extensions/runtime#event-onMessage
-			return true
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
@@ -115,11 +102,6 @@ function bootstrap() {
 		if (document.readyState === 'complete') {
 			lf.find()
 			sendUpdateBadgeMessage()
-			// If anyone's waiting to hear about found landmarks, tell them
-			if (whenFoundHook) {
-				whenFoundHook()
-				whenFoundHook = null
-			}
 		} else if (landmarkFindingAttempts <= maximumAttempts) {
 			setTimeout(bootstrap, attemptInterval)
 		} else {
