@@ -70,7 +70,7 @@ function ElementFocuser() {
 	//
 
 	function addBorder(element) {
-		element.style.outline = 'medium solid red'
+		element.style.outline = '5px solid red'
 		element.style.outlineOffset = '-3px'
 	}
 
