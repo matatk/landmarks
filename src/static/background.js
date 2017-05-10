@@ -140,6 +140,8 @@ browser.runtime.onInstalled.addListener(function(details) {
 // When the extension is loaded, if it's loaded into a page that is not an
 // HTTP(S) page, then we need to disable the browser action button.  This is
 // not done by default on Chrome or Firefox.
-browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
-	checkBrowserActionState(tabs[0].id, tabs[0].url)
+browser.tabs.query({}, function(tabs) {
+	for (const i in tabs) {
+		checkBrowserActionState(tabs[i].id, tabs[i].url)
+	}
 })
