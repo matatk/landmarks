@@ -15,6 +15,6 @@
   "minimum_opera_version": "44",
 
   "permissions": [
-    "<all_urls>", "activeTab", "storage", "webNavigation", "tabs"
+    "<all_urls>", "storage", "webNavigation", "tabs"
   ]
 }
