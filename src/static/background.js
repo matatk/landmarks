@@ -127,7 +127,7 @@ browser.runtime.onInstalled.addListener(function(details) {
 						file: 'compat.js'
 					}, function() {
 						browser.tabs.executeScript(tabs[i].id, {
-							file: 'content.landmarks-finder.js'
+							file: 'content.finder.js'
 						}, function() {
 							browser.tabs.executeScript(tabs[i].id, {
 								file: 'content.focusing.js'
