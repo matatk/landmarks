@@ -124,7 +124,7 @@ browser.runtime.onInstalled.addListener(function(details) {
 			for(const i in tabs) {
 				if (/^https?:\/\//.test(tabs[i].url)) {
 					browser.tabs.executeScript(tabs[i].id, {
-						file: 'compat.js'
+						file: 'compatibility.js'
 					}, function() {
 						browser.tabs.executeScript(tabs[i].id, {
 							file: 'content.finder.js'

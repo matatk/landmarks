@@ -9,14 +9,14 @@
   "default_locale": "en_GB",
 
   "background": {
-    "scripts": ["compat.js", "common.js", "background.js"]
+    "scripts": ["compatibility.js", "sendToActiveTab.js", "background.js"]
   },
 
   "content_scripts": [
     {
       "matches": ["*://*/*"],
       "js": [
-        "compat.js",
+        "compatibility.js",
         "content.finder.js",
         "content.focusing.js",
         "content.management.js"
