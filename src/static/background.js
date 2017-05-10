@@ -124,13 +124,17 @@ browser.runtime.onInstalled.addListener(function(details) {
 			for(const i in tabs) {
 				if (/^https?:\/\//.test(tabs[i].url)) {
 					browser.tabs.executeScript(tabs[i].id, {
-						file: 'content.landmarks-finder.js'
+						file: 'compat.js'
 					}, function() {
 						browser.tabs.executeScript(tabs[i].id, {
-							file: 'content.focusing.js'
+							file: 'content.landmarks-finder.js'
 						}, function() {
 							browser.tabs.executeScript(tabs[i].id, {
-								file: 'content.management.js'
+								file: 'content.focusing.js'
+							}, function() {
+								browser.tabs.executeScript(tabs[i].id, {
+									file: 'content.management.js'
+								})
 							})
 						})
 					})
