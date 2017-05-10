@@ -1,5 +1,5 @@
 'use strict'
-/* global sendToActiveTab */
+/* global sendToActiveTab landmarksContentScriptInjector */
 
 //
 // Keyboard Shortcut Handling
@@ -119,6 +119,11 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
+		// Don't inject the content script on Firefox
+		if (typeof landmarksContentScriptInjector !== 'undefined') {
+			landmarksContentScriptInjector()
+		}
+
 		// Show website and get it to display an appropriate notice
 		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
 		browser.tabs.create({

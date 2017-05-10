@@ -114,6 +114,17 @@ function mergeManifest(browser) {
 }
 
 
+// Copy content script injector for non-Firefox browsers
+function copyContentScriptInjector(browser) {
+	if (browser !== 'firefox') {
+		logStep('Copying content script injector...')
+		fse.copySync(
+			path.join(srcAssembleDir, 'injector.js'),
+			path.join(pathToBuild(browser), 'injector.js'))
+	}
+}
+
+
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(cache, browser) {
 	logStep('Generating/copying in PNG files...')
@@ -173,6 +184,7 @@ browsers.forEach((browser) => {
 
 	copyStaticFiles(browser)
 	mergeManifest(browser)
+	copyContentScriptInjector(browser)
 	getPngs(pc, browser)
 	makeZip(browser)
 })

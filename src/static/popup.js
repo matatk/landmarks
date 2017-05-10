@@ -1,8 +1,6 @@
 'use strict'
 /* global sendToActiveTab */
 
-let hadAnError = false
-
 // Handle incoming landmarks message response
 //
 // If there are landmarks, then the response will be a list of objects that
@@ -10,45 +8,17 @@ let hadAnError = false
 //
 //     [ { label: X, role: Y, depth: Z }, { . . . }, . . . ]
 //
-// If we got some landmarks from the page, make the tree of them.
-//
-// If not, put a message there stating such.
+// If we got some landmarks from the page, make the tree of them. If there was
+// an error, let the user know.
 function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
-	// The first time we get an error, it could be because we're in Chrome and
-	// the content script has not been injected because the extension was just
-	// installed.  Try to inject the content script, but if that fails, then
-	// we need to accept the error and report it to the user.
-
 	if (browser.runtime.lastError) {
-		if (!hadAnError) {
-			logError(1, browser.runtime.lastError.message)
-			browser.tabs.executeScript(null, {
-				file: 'content.landmarks-finder.js'
-			}, function() {
-				browser.tabs.executeScript(null, {
-					file: 'content.focusing.js'
-				}, function() {
-					browser.tabs.executeScript(null, {
-						file: 'content.management.js'
-					}, function() {
-						sendToActiveTab({request: 'get-landmarks-wait'},
-							handleLandmarksResponse)
-						addText(display,
-							browser.i18n.getMessage('waitingForLandmarks'))
-					})
-				})
-			})
-			hadAnError = true
-		} else {
-			logError(2, browser.runtime.lastError.message)
-			addText(display,
-				browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
-			)
-			addReloadButton(display)
-		}
+		addText(display,
+			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
+		)
+		addReloadButton(display)
 		return
 	}
 
@@ -102,11 +72,6 @@ function reloadActivePage() {
 // Return localised "Error: " string
 function errorString() {
 	return browser.i18n.getMessage('errorWord') + ': '
-}
-
-// Log an error, at least partly localised
-function logError(number, thing) {
-	console.error(errorString() + number, thing)
 }
 
 // Go through the landmarks identified for the page and create an HTML

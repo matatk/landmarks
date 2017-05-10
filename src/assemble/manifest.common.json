@@ -1,54 +1,46 @@
 {
-	"manifest_version": 2,
-	"name": "__MSG_extensionFullName__",
-	"short_name": "__MSG_extensionShortName__",
-	"version": "@version@",
-	"description": "__MSG_extensionDescription__",
-	"author": "David Todd, Matthew Tylee Atkinson",
-	"homepage_url": "http://matatk.agrip.org.uk/landmarks/",
-	"default_locale": "en_GB",
+  "manifest_version": 2,
+  "name": "__MSG_extensionFullName__",
+  "short_name": "__MSG_extensionShortName__",
+  "version": "@version@",
+  "description": "__MSG_extensionDescription__",
+  "author": "David Todd, Matthew Tylee Atkinson",
+  "homepage_url": "http://matatk.agrip.org.uk/landmarks/",
+  "default_locale": "en_GB",
 
-	"permissions": [
-		"activeTab", "storage", "webNavigation", "tabs"
-	],
-
-	"background": {
-		"scripts": ["compat.js", "common.js", "background.js"]
-	},
-
-	"content_scripts": [
-		{
-			"matches": ["*://*/*"],
-			"js": [
-        "compat.js",
-        "content.landmarks-finder.js",
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": [
+        "compatibility.js",
+        "content.finder.js",
         "content.focusing.js",
         "content.management.js"
       ]
-		}
-	],
+    }
+  ],
 
-	"commands": {
-		"next-landmark": {
-			"suggested_key": {
-				"default": "Alt+Shift+N"
-			},
-			"description": "__MSG_nextLandmarkShortcutDescription__"
-		},
-		"prev-landmark": {
-			"suggested_key": {
-				"default": "Alt+Shift+P"
-			},
-			"description": "__MSG_previousLandmarkShortcutDescription__"
-		}
-	},
+  "commands": {
+    "next-landmark": {
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
+      "description": "__MSG_nextLandmarkShortcutDescription__"
+    },
+    "prev-landmark": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "__MSG_previousLandmarkShortcutDescription__"
+    }
+  },
 
-	"options_ui": {
-		"page": "options.html"
-	},
+  "options_ui": {
+    "page": "options.html"
+  },
 
-	"browser_action": {
-		"default_title": "Landmarks",
-		"default_popup": "popup.html"
-	}
+  "browser_action": {
+    "default_title": "Landmarks",
+    "default_popup": "popup.html"
+  }
 }
