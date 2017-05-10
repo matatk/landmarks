@@ -1,5 +1,4 @@
 #!/bin/bash
-# Thanks http://stackoverflow.com/a/16389663/1485308 :-)
 LAYOUT_PREFIX='---\r\nlayout: index\r\n---\r\n'
 git checkout master -- README.md
 echo -e $LAYOUT_PREFIX > index.md
@@ -10,3 +9,4 @@ git commit -m "Sync README.md in master branch to index.md in gh-pages"
 echo
 echo Now you may need to...
 echo "    git push origin gh-pages"
+# Thanks http://stackoverflow.com/a/16389663/1485308 :-)
