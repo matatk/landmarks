@@ -157,8 +157,9 @@ Changes
 -------
 
 -   2.0.7 - ??th of ??? 2017
-    -   Make use of Firefox’s synching of settings across devices.
+    -   Make the landmark highlight more visible.
     -   Open a help page when the extension is installed/updated on Firefox as well as Chrome.
+    -   Make use of Firefox’s synching of settings across devices.
     -   More tests, and numerous other code improvements behind the scenes.
 -   2.0.6 - 2nd of February 2017
     -   Add a test suite to ensure landmarks are identified correctly.
