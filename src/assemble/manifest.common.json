@@ -8,10 +8,6 @@
   "homepage_url": "http://matatk.agrip.org.uk/landmarks/",
   "default_locale": "en_GB",
 
-  "background": {
-    "scripts": ["compatibility.js", "sendToActiveTab.js", "background.js"]
-  },
-
   "content_scripts": [
     {
       "matches": ["*://*/*"],

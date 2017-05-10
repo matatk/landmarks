@@ -14,6 +14,15 @@
 
   "minimum_opera_version": "44",
 
+  "background": {
+    "scripts": [
+      "compatibility.js",
+      "sendToActiveTab.js",
+      "injector.js",
+      "background.js"
+    ]
+  },
+
   "permissions": [
     "<all_urls>", "storage", "webNavigation", "tabs"
   ]

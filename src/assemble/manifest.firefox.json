@@ -21,6 +21,10 @@
     }
   },
 
+  "background": {
+    "scripts": ["compatibility.js", "sendToActiveTab.js", "background.js"]
+  },
+
   "permissions": [
     "storage", "webNavigation", "tabs"
   ]

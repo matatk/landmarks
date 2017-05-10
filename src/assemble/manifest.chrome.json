@@ -17,6 +17,15 @@
     "chrome_style": true
   },
 
+  "background": {
+    "scripts": [
+      "compatibility.js",
+      "sendToActiveTab.js",
+      "injector.js",
+      "background.js"
+    ]
+  },
+
   "permissions": [
     "<all_urls>", "storage", "webNavigation", "tabs"
   ]
