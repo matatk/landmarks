@@ -1,0 +1,1 @@
+convert -format png -trim +repage -background none -resize 612x408 -gravity center -extent 612x408 landmarks-opera.png landmarks-opera-out.png
