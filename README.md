@@ -3,7 +3,7 @@ Landmarks
 
 [![Build Status](https://travis-ci.org/matatk/landmarks.svg?branch=master)](https://travis-ci.org/matatk/landmarks)
 
-This is a browser extension (for Firefox and Chrome) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu (from the extension's toolbar button).
+This is a browser extension (for Firefox, Chrome and Opera) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu (from the extension's toolbar button).
 
 Landmarks provide a quick way to broadly signpost the function of different areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
@@ -28,6 +28,7 @@ Installation
 
 -   **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
 -   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
+-   **Opera:** Install via Opera add-ons—URL forthcoming pending extension review.
 
 Navigating Landmarks
 --------------------
@@ -43,9 +44,10 @@ You can use shortcut keys to navigate between landmarks. By default, the keys ar
 
 Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
 
-If you're using Chrome, you can change these shortcuts: visit your Chrome extensions page (go to **chrome://extensions** or activate the "More"/"Menu" button, then "Settings" and "Extensions") and follow the "Keyboard shortcuts" link at the bottom of the page.
+You can change the keyboard shortcuts in the following browsers.
 
-Firefox does not yet provide a UI for changing keyboard shortcuts for WebExtensions.
+-   **Chrome:** More ⋮ → Settings → Extensions \[on the left-hand side\] → Keyboard shortcuts \[at the bottom of the page\]
+-   **Opera:** Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts
 
 ### Via Toolbar Pop-up
 
@@ -66,9 +68,10 @@ A border can be drawn around the landmarks as you navigate them, to make it clea
 -   **Persistent:** the border remains visible at all times.
 -   **None:** no border is drawn.
 
-To change the settings in Chrome, either right-click on (or otherwise activate the context menu of) the extension's toolbar button and select "Options", or visit your Chrome extensions page (go to **chrome://extensions** or activate the "More"/"Menu" button, then "Settings" and "Extensions") and activate the "Options" link for the Landmarks extension.
+You can change this setting as follows.
 
-To change the settings in Firefox, visit your add-ons page (go to **about:addons** or activate the menu button and then "Add-ons") and use the "Preferences" button for the Landmarks extension.
+-   **Firefox:** Menu ☰ → Add-ons → Extensions \[on left-hand side, if not already activated\] → Preferences \[under Landmarks, then scroll down\]
+-   **Chrome/Opera:** Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options
 
 **Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
 
@@ -85,6 +88,7 @@ You can build and run the current code locally as follows.
 
     -   `npm run build:firefox`
     -   `npm run build:chrome`
+    -   `npm run build:opera`
     -   `npm run build:all`
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
@@ -92,6 +96,7 @@ You can build and run the current code locally as follows.
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
+    -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
 
 Some further info on the test/build process:
 
@@ -156,11 +161,13 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.7 - ??th of ??? 2017
+-   2.0.7 - 11th of May 2017
+    -   Officially support Opera.
     -   Make the landmark highlight more visible.
-    -   Open a help page when the extension is installed/updated on Firefox as well as Chrome.
+    -   Open a help page when the extension is installed/updated on Firefox (this was already supported on Chrome, and is on Opera).
     -   Make use of Firefox’s synching of settings across devices.
     -   More tests, and numerous other code improvements behind the scenes.
+    -   Partly works on Edge; still a few things to sort out before it's robust (also, the extensions store is not yet immediately open to submissions from allcomers).
 -   2.0.6 - 2nd of February 2017
     -   Add a test suite to ensure landmarks are identified correctly.
     -   Various large internal code-quality improvements.
