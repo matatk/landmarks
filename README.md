@@ -161,12 +161,13 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.0.7 - 10th of May 2017
-    -   Officially supports Opera.
+-   2.0.7 - 11th of May 2017
+    -   Officially support Opera.
     -   Make the landmark highlight more visible.
-    -   Open a help page when the extension is installed/updated on Firefox as well as Chrome.
+    -   Open a help page when the extension is installed/updated on Firefox (this was already supported on Chrome, and is on Opera).
     -   Make use of Firefox’s synching of settings across devices.
     -   More tests, and numerous other code improvements behind the scenes.
+    -   Partly works on Edge; still a few things to sort out before it's robust (also, the extensions store is not yet immediately open to submissions from allcomers).
 -   2.0.6 - 2nd of February 2017
     -   Add a test suite to ensure landmarks are identified correctly.
     -   Various large internal code-quality improvements.
