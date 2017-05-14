@@ -29,6 +29,8 @@ Installation
 -   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
 -   **Opera:** Install via Opera add-ons—URL forthcoming pending extension review.
 
+**If you need support, please [check the known issues for Landmarks](https://github.com/matatk/landmarks/issues) and, if necessary, file a new issue using the "New Issue" button on that page.**
+
 Navigating Landmarks
 --------------------
 
