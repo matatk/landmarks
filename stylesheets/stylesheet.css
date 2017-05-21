@@ -247,6 +247,7 @@ a {
 /* added by matatk; based on .btn */
 .notice {
   display: inline-block;
+  max-width: 80%;
   color: rgba(255, 255, 255, 0.7);
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
