@@ -1,7 +1,9 @@
-This extension allows you to navigate a web page via its WAI-ARIA landmarks, using the keyboard or a pop-up menu. Information on how to use it is available at http://matatk.agrip.org.uk/landmarks
+Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks (which may've been provided by its author, or from the use of HTML5 elements), using the keyboard or a pop-up menu.
 
-As the extension is developed in my own time, I am not able to guarantee timely support, though will be doing what I can to help, and concentrating on fixing bugs and adding features where this makes sense.
+* How to use it: http://matatk.agrip.org.uk/landmarks
 
-Please read the general information at http://matatk.agrip.org.uk/landmarks and report any problems via https://github.com/matatk/landmarks/issues (please check that your issue has not already been reported first; thanks!)
+* Issue reporting/support: https://github.com/matatk/landmarks/issues (please check if a problem has already been reported before reporting a new one; thanks).
+
+As this is developed in my own time, I am not able to guarantee timely support, though will be doing what I can to help. I'll be concentrating on fixing bugs, and adding features where this makes sense.
 
 This extension was originally developed by David Todd of IBM. Thanks also to The Paciello Group for donating development time.
