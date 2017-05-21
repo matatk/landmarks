@@ -10,7 +10,7 @@
 
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": ["<all_urls>"],
       "js": [
         "compatibility.js",
         "content.finder.js",
