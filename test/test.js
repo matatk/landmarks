@@ -1,7 +1,7 @@
 'use strict'
 const fs = require('fs')
 const path = require('path')
-const jsdom = require('jsdom').jsdom
+const jsdom = require('jsdom/lib/old-api.js').jsdom
 
 const codePath = path.join(__dirname, '..', 'src', 'static', 'content.finder.js')
 const testHarnessPath = path.join(__dirname, 'test-harness.js')
