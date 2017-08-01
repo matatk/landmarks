@@ -283,7 +283,7 @@ function LandmarksFinder(win, doc) {
 	this.previousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex <= 0) ?
-			landmarks.length - 1 : currentlySelectedIndex - 1
+				landmarks.length - 1 : currentlySelectedIndex - 1
 		)
 	}
 
