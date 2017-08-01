@@ -1,7 +1,8 @@
 'use strict'
 const fs = require('fs')
 const path = require('path')
-const jsdom = require('jsdom/lib/old-api.js').jsdom
+const jsdom = require('jsdom')
+const { JSDOM } = jsdom
 
 const codePath = path.join(__dirname, '..', 'src', 'static', 'content.finder.js')
 const testHarnessPath = path.join(__dirname, 'test-harness.js')
@@ -27,9 +28,7 @@ function createTest(testName, testFixture, testData) {
 	exports['test ' + testName] = function(assert) {
 		const fixture = fs.readFileSync(testFixture)
 		const data = require(testData)
-
-		const doc = jsdom(fixture)
-
+		const doc = new JSDOM(fixture).window.document
 		const LandmarksFinder = require(testCodePath)
 		const lf = new LandmarksFinder(doc.defaultView, doc)
 		lf.find()
