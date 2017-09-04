@@ -26,7 +26,7 @@ browser.commands.onCommand.addListener(function(command) {
 //    startup, URL changes are going on in all tabs.
 //  * The content script will send an 'update-badge' message back to us when
 //    the landmarks have been found.
-browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+browser.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 	if (!changeInfo.url) {
 		return
 	}
@@ -63,7 +63,7 @@ function startsWith(string, pattern) {
 //       'same URL' filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId === 0) {
-		browser.tabs.get(details.tabId, function(tab) {
+		browser.tabs.get(details.tabId, function() {
 			browser.tabs.sendMessage(
 				details.tabId,
 				{request: 'trigger-refresh'}
@@ -81,7 +81,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 // When the content script has loaded and any landmarks found, it will let us
 // konw, so we can set the browser action badge.
-browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.request) {
 		case 'update-badge':
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)

@@ -1,4 +1,5 @@
 'use strict'
+/* exported ElementFocuser */
 
 function ElementFocuser() {
 	let currentlySelectedElement

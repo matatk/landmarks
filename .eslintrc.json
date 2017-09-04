@@ -37,7 +37,7 @@
     "no-undef": "error",
     "no-unexpected-multiline": "error",
     "no-unused-expressions": "error",
-    "no-unused-vars": "warn",
+    "no-unused-vars": "error",
     "no-use-before-define": [
       "error",
       {
