@@ -69,12 +69,20 @@ function ElementFocuser() {
 	// Private API
 	//
 
+	let previousOutline
+	let previousOutlineOffset
+
 	function addBorder(element) {
+		previousOutline = element.style.outline || null
+		previousOutlineOffset = element.style.outlineOffset || null
 		element.style.outline = '5px solid red'
 		element.style.outlineOffset = '-3px'
 	}
 
 	function removeBorder(element) {
-		element.style.outline = null
+		element.style.outline = previousOutline
+		element.style.outlineOffset = previousOutlineOffset
+		previousOutline = null
+		previousOutlineOffset = null
 	}
 }
