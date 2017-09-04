@@ -76,13 +76,6 @@ function LandmarksFinder(win, doc) {
 		}
 	}
 
-	// forEach for NodeList (as opposed to Arrays)
-	function doForEach(nodeList, callback) {
-		for (let i = 0; i < nodeList.length; i++) {
-			callback(nodeList[i])
-		}
-	}
-
 
 	//
 	// Functions that refer to document or window
@@ -92,8 +85,10 @@ function LandmarksFinder(win, doc) {
 	function getLandmarks(element, depth) {
 		if (!element) return
 
-		doForEach(element.childNodes, function(elementChild) {
+		element.childNodes.forEach(function(elementChild) {
 			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
+				if (isHidden(elementChild)) return
+
 				// Support HTML5 elements' native roles
 				let role = getRoleFromTagNameAndContainment(elementChild)
 
@@ -218,6 +213,17 @@ function LandmarksFinder(win, doc) {
 		}
 
 		return true
+	}
+
+	function isHidden(element) {
+		const style = win.getComputedStyle(element)
+		if (element.hasAttribute('hidden')
+			|| style.visibility === 'hidden'
+			|| style.display === 'none' ) {
+			return true
+		}
+
+		return false
 	}
 
 
