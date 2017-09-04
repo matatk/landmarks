@@ -103,7 +103,7 @@ function bootstrap() {
 			lf.find()
 			sendUpdateBadgeMessage()
 		} else if (landmarkFindingAttempts <= maximumAttempts) {
-			setTimeout(bootstrap, attemptInterval)
+			setTimeout(_bootstrap, attemptInterval)
 		} else {
 			throw new Error('Landmarks: unable to find landmarks after ' +
 				String(maximumAttempts) + 'attempts.')
