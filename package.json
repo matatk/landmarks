@@ -19,9 +19,9 @@
     "clean:cache": "rimraf build/png-cache"
   },
   "devDependencies": {
-    "archiver": "~2.0",
+    "archiver": "^2.0.3",
     "chalk": "~2.0",
-    "deepmerge": "~1.5",
+    "deepmerge": "^1.5.1",
     "eslint": "~4.3",
     "fs-extra": "~4.0",
     "jsdom": "~11.1",

@@ -19,7 +19,8 @@ browser.commands.onCommand.addListener(function(command) {
 //
 
 // Listen for URL change events on all tabs and disable the browser action if
-// the URL does not start with 'http://' or 'https://'
+// the URL does not start with 'http://' or 'https://' (or 'file://', for
+// local pages).
 //
 // Notes:
 //  * This used to be wrapped in a query for the active tab, but on browser
@@ -34,15 +35,11 @@ browser.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 })
 
 function checkBrowserActionState(tabId, url) {
-	if (startsWith(url, 'http://') || startsWith(url, 'https://')) {
+	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)
 	}
-}
-
-function startsWith(string, pattern) {
-	return string.substring(0, pattern.length) === pattern
 }
 
 // If the page uses 'single-page app' techniques to load in new components --
