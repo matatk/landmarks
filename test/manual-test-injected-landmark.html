@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Test injected landmark</title>
+	</head>
+	<body>
+		<header>
+			<h1>Test injected landmark</h1>
+		</header>
+		<main>
+			<p>When the button is pressed, an extra landmark is injected.</p>
+			<button id="injector">Inject a landmark</button>
+		</main>
+		<footer>
+			<p>This is the footer.</p>
+		</footer>
+		<script>
+			document.getElementById('injector').onclick = function() {
+				const searchRegion = document.createElement('div')
+				const searchRegionText = document.createTextNode('Injected search region')
+
+				searchRegion.setAttribute('role', 'search')
+				searchRegion.appendChild(searchRegionText)
+
+				document.getElementsByTagName('header')[0].appendChild(searchRegion)
+				document.getElementById('injector').disabled = true
+			}
+
+			const observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) {
+					console.log(mutation)
+					if (mutation.type === 'childList') {
+						mutation.addedNodes.forEach(function(addedNode) {
+							console.log('added node:', addedNode)
+						})
+						mutation.removedNodes.forEach(function(removedNode) {
+							console.log('removed node:', removedNode)
+						})
+					}
+				})
+			})
+
+			observer.observe(document, {
+				attributes: true,
+				childList: true,
+				subtree: true
+			})
+		</script>
+	</body>
+</html>
