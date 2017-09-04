@@ -1,4 +1,5 @@
 'use strict'
+/* exported LandmarksFinder */
 
 function LandmarksFinder(win, doc) {
 	//

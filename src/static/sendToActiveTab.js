@@ -1,4 +1,5 @@
 'use strict'
+/* exported sendToActiveTab */
 
 function sendToActiveTab(message, callback) {
 	browser.tabs.query({active: true, currentWindow: true}, function(tabs) {

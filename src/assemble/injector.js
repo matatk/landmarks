@@ -1,4 +1,5 @@
 'use strict'
+/* exported landmarksContentScriptInjector */
 
 function landmarksContentScriptInjector() {
 	// Inject content script manually
