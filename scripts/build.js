@@ -51,7 +51,6 @@ const browserPngSizes = {
 }
 
 
-// Log an error and exit
 function error(message) {
 	console.error(chalk.bold.red('✖ ' + message))
 	process.exit(42)
@@ -90,21 +89,23 @@ function pathToBuild(browser) {
 }
 
 
-// Copy static files
 function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 }
 
 
-// Merge the relevant manifests
 function mergeManifest(browser) {
 	logStep('Merging manifest.json...')
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
 	const commonJson = require(common)
 	const extraJson = require(extra)
-	const merged = deepmerge(commonJson, extraJson)
+
+	// Merging this way 'round just happens to make it so that, when merging
+	// the arrays of scripts to include, the compatibility one comes first.
+	const merged = deepmerge(extraJson, commonJson)
+
 	merged.version = extVersion
 	fse.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
@@ -114,9 +115,13 @@ function mergeManifest(browser) {
 }
 
 
-// Copy content script injector for non-Firefox browsers
-function copyContentScriptInjector(browser) {
+function copyCompatibilityShimAndContentScriptInjector(browser) {
 	if (browser !== 'firefox') {
+		logStep('Copying browser API compatibility shim...')
+		fse.copySync(
+			path.join(srcAssembleDir, 'compatibility.js'),
+			path.join(pathToBuild(browser), 'compatibility.js'))
+
 		logStep('Copying content script injector...')
 		fse.copySync(
 			path.join(srcAssembleDir, 'injector.js'),
@@ -136,13 +141,11 @@ function getPngs(cache, browser) {
 }
 
 
-// Return the file name for the ZIP
 function zipFileName(browser) {
 	return extName + '-' + extVersion + '-' + browser + '.zip'
 }
 
 
-// ZIP up a built extension
 function makeZip(browser) {
 	logStep('Createing ZIP file...')
 	const outputFileName = zipFileName(browser)
@@ -163,7 +166,6 @@ function makeZip(browser) {
 }
 
 
-// Copy ESLint RC file from src/ to build/
 function copyESLintRC() {
 	logStep('Copying src ESLint config to build directory...')
 	const basename = '.eslintrc.json'
@@ -173,7 +175,7 @@ function copyESLintRC() {
 }
 
 
-// Build process
+// Overall build process
 console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 const browsers = checkBuildMode()
 const pc = pngCache(pngCacheDir, svgPath)
@@ -184,7 +186,7 @@ browsers.forEach((browser) => {
 
 	copyStaticFiles(browser)
 	mergeManifest(browser)
-	copyContentScriptInjector(browser)
+	copyCompatibilityShimAndContentScriptInjector(browser)
 	getPngs(pc, browser)
 	makeZip(browser)
 })

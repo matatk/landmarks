@@ -1,7 +1,6 @@
 {
   "icons": {
     "16": "landmarks-16.png",
-    "48": "landmarks-48.png",
     "128": "landmarks-128.png"
   },
 
@@ -15,15 +14,14 @@
   "minimum_opera_version": "44",
 
   "background": {
-    "scripts": [
-      "compatibility.js",
-      "sendToActiveTab.js",
-      "injector.js",
-      "background.js"
-    ]
+    "scripts": ["compatibility.js"]
   },
 
-  "permissions": [
-    "<all_urls>", "storage", "webNavigation", "tabs"
-  ]
+ "content_scripts": [
+    {
+      "js": ["compatibility.js"]
+    }
+  ],
+
+  "permissions": ["<all_urls>"]
 }
