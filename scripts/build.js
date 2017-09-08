@@ -95,6 +95,14 @@ function copyStaticFiles(browser) {
 }
 
 
+function copySpecialPagesFile(browser) {
+	logStep(`Copying special pages file for ${browser}...`)
+	fse.copySync(
+		path.join(srcAssembleDir, `specialPages.${browser}.js`),
+		path.join(pathToBuild(browser), 'specialPages.js'))
+}
+
+
 function mergeManifest(browser) {
 	logStep('Merging manifest.json...')
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
@@ -185,6 +193,7 @@ browsers.forEach((browser) => {
 	logStep(chalk.bold(`Building for ${browser}...`))
 
 	copyStaticFiles(browser)
+	copySpecialPagesFile(browser)
 	mergeManifest(browser)
 	copyCompatibilityShimAndContentScriptInjector(browser)
 	getPngs(sp, browser)
