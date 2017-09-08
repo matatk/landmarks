@@ -4,7 +4,7 @@ const fse = require('fs-extra')
 const chalk = require('chalk')
 const deepmerge = require('deepmerge')
 const archiver = require('archiver')
-const pngCache = require(path.join(__dirname, 'lib', 'png-cache.js'))
+const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const packageJson = require(path.join('..', 'package.json'))
 
 const extName = packageJson.name
@@ -131,10 +131,10 @@ function copyCompatibilityShimAndContentScriptInjector(browser) {
 
 
 // Get PNG files from the cache (which will generate them if needed)
-function getPngs(cache, browser) {
+function getPngs(converter, browser) {
 	logStep('Generating/copying in PNG files...')
 	browserPngSizes[browser].forEach((size) => {
-		const pngPath = cache.getPngPath(size)
+		const pngPath = converter.getPngPath(size)
 		const basename = path.basename(pngPath)
 		fse.copySync(pngPath, path.join(pathToBuild(browser), basename))
 	})
@@ -178,7 +178,7 @@ function copyESLintRC() {
 // Overall build process
 console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 const browsers = checkBuildMode()
-const pc = pngCache(pngCacheDir, svgPath)
+const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 
 browsers.forEach((browser) => {
 	console.log()
@@ -187,7 +187,7 @@ browsers.forEach((browser) => {
 	copyStaticFiles(browser)
 	mergeManifest(browser)
 	copyCompatibilityShimAndContentScriptInjector(browser)
-	getPngs(pc, browser)
+	getPngs(sp, browser)
 	makeZip(browser)
 })
 
