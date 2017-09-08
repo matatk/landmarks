@@ -38,9 +38,7 @@ function ElementFocuser() {
 				addBorder(element)
 
 				if (borderTypePref === 'momentary') {
-					setTimeout(function() {
-						removeBorder(element)
-					}, 2000)
+					setTimeout(() => removeBorder(element), 2000)
 				}
 			}
 
@@ -70,20 +68,21 @@ function ElementFocuser() {
 	// Private API
 	//
 
-	let previousOutline
-	let previousOutlineOffset
-
 	function addBorder(element) {
-		previousOutline = element.style.outline || null
-		previousOutlineOffset = element.style.outlineOffset || null
+		element.dataset.landmarksOriginalOutline = element.style.outline
+		element.dataset.landmarksOriginalOutlineOffset =
+			element.style.outlineOffset
+
 		element.style.outline = '5px solid red'
 		element.style.outlineOffset = '-3px'
 	}
 
 	function removeBorder(element) {
-		element.style.outline = previousOutline
-		element.style.outlineOffset = previousOutlineOffset
-		previousOutline = null
-		previousOutlineOffset = null
+		element.style.outline = element.dataset.landmarksOriginalOutline
+		element.style.outlineOffset =
+			element.dataset.landmarksOriginalOutlineOffset
+
+		element.removeAttribute('data-landmarks-original-outline')
+		element.removeAttribute('data-landmarks-original-outline-offset')
 	}
 }

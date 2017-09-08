@@ -91,10 +91,14 @@ function sendUpdateBadgeMessage() {
 // Content Script Entry Point
 //
 
+// Most pages I've tried have got to a readyState of 'complete' within 10-100ms.
+// Therefore this should easily be sufficient.
 function bootstrap() {
-	const attemptInterval = 2000
-	const maximumAttempts = 10
+	const attemptInterval = 500
+	const maximumAttempts = 4
 	let landmarkFindingAttempts = 0
+	const bootstrapTime = performance.now()
+
 	lf.reset()
 	sendUpdateBadgeMessage()
 
@@ -103,17 +107,18 @@ function bootstrap() {
 		lf.find()
 		const end = performance.now()
 		console.log(`Landmarks: took ${Math.round(end - start)}ms `
-			+ `to find landmarks on ${window.location}`)
+			+ `to find landmarks on ${window.location} `
+			+ `${Math.round(end - bootstrapTime)}ms after booting `
+			+ `(${landmarkFindingAttempts} attempts)`)
 	}
 
 	function bootstrapCore() {
 		landmarkFindingAttempts += 1
-		console.log(`Landmarks: attempt ${landmarkFindingAttempts} `
-			+ `at ${new Date().toLocaleTimeString()}`)
+
 		if (document.readyState === 'complete') {
 			timeFind()
 			sendUpdateBadgeMessage()
-		} else if (landmarkFindingAttempts <= maximumAttempts) {
+		} else if (landmarkFindingAttempts < maximumAttempts) {
 			setTimeout(bootstrapCore, attemptInterval)
 		} else {
 			throw new Error('Landmarks: unable to find landmarks '
@@ -121,7 +126,6 @@ function bootstrap() {
 		}
 	}
 
-	console.log(`Landmarks: bootstrapping - ${new Date().toLocaleTimeString()}`)
 	setTimeout(bootstrapCore, attemptInterval)
 }
 
