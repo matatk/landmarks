@@ -1,5 +1,5 @@
 'use strict'
-/* global sendToActiveTab landmarksContentScriptInjector */
+/* global sendToActiveTab landmarksContentScriptInjector specialPages */
 
 //
 // Keyboard Shortcut Handling
@@ -43,6 +43,13 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 
 function checkBrowserActionState(tabId, url) {
 	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
+		for (const specialPage of specialPages) {
+			if (specialPage.test(url)) {
+				console.log(`Landmarks: disabling extension on ${url}`)
+				browser.browserAction.disable(tabId)
+				return
+			}
+		}
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)

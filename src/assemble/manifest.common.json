@@ -15,6 +15,7 @@
   "background": {
     "scripts": [
       "sendToActiveTab.js",
+      "specialPages.js",
       "background.js"
     ]
   },
