@@ -96,7 +96,9 @@ You can build and run the current code locally as follows.
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
 4.  To load and use the extension locally in your browser...
-    -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
+    -   **Firefox:** either:
+        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
+        -   if you have [`web-ext`](https://github.com/mozilla/web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
 

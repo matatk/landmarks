@@ -27,11 +27,18 @@ browser.commands.onCommand.addListener(function(command) {
 //    startup, URL changes are going on in all tabs.
 //  * The content script will send an 'update-badge' message back to us when
 //    the landmarks have been found.
-browser.tabs.onUpdated.addListener(function(tabId, changeInfo) {
-	if (!changeInfo.url) {
-		return
-	}
-	checkBrowserActionState(tabId, changeInfo.url)
+browser.webNavigation.onBeforeNavigate.addListener(function(details) {
+	if (details.frameId > 0) return
+	browser.browserAction.disable(details.tabId)
+	browser.browserAction.setBadgeText({
+		text: '',
+		tabId: details.tabId
+	})
+})
+
+browser.webNavigation.onCompleted.addListener(function(details) {
+	if (details.frameId > 0) return
+	checkBrowserActionState(details.tabId, details.url)
 })
 
 function checkBrowserActionState(tabId, url) {
@@ -58,17 +65,20 @@ function checkBrowserActionState(tabId, url) {
 //       did not (moving to a repo's Graphs page on GitHub). Seeing as this
 //       only sends a short message to the content script, I've removed the
 //       'same URL' filtering.
+//
+// TODO: In some circumstances (most GitHub transitions, this fires two times on
+//       Firefox and three times on Chrome.  For YouTube, some transitions only
+//       cause this to fire once. Need to investigate this more...
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
-	if (details.frameId === 0) {
-		browser.tabs.get(details.tabId, function() {
-			browser.tabs.sendMessage(
-				details.tabId,
-				{request: 'trigger-refresh'}
-			)
-			// Note: The content script on the page will respond by sending
-			//       an 'update-badge' request back (if landmarks are found).
-		})
-	}
+	if (details.frameId > 0) return
+	browser.tabs.get(details.tabId, function() {
+		browser.tabs.sendMessage(
+			details.tabId,
+			{request: 'trigger-refresh'}
+		)
+		// Note: The content script on the page will respond by sending
+		//       an 'update-badge' request back (if landmarks are found).
+	})
 })
 
 
@@ -91,22 +101,20 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 
 // Given a tab ID and number, set the browser action badge
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
-	if (Number.isInteger(numberOfLandmarks)) {
-		// Content script would normally send back an array
-		if (numberOfLandmarks === 0) {
-			browser.browserAction.setBadgeText({
-				text: '',
-				tabId: tabId
-			})
-		} else {
-			browser.browserAction.setBadgeText({
-				text: String(numberOfLandmarks),
-				tabId: tabId
-			})
-		}
+	let badgeText
+
+	if (numberOfLandmarks < 0) {
+		badgeText = '...'
+	} else if (numberOfLandmarks === 0) {
+		badgeText = ''
 	} else {
-		throw('Landmarks: invalid number of regions:', numberOfLandmarks)
+		badgeText = String(numberOfLandmarks)
 	}
+
+	browser.browserAction.setBadgeText({
+		text: badgeText,
+		tabId: tabId
+	})
 }
 
 

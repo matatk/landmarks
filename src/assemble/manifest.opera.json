@@ -14,12 +14,12 @@
   "minimum_opera_version": "44",
 
   "background": {
-    "scripts": ["compatibility.js"]
+    "scripts": ["compatibility.js", "injector.js"]
   },
 
- "content_scripts": [
+  "content_scripts": [
     {
-      "js": ["compatibility.js"]
+      "js": ["compatibility.js", "injector.js"]
     }
   ],
 

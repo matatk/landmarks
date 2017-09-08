@@ -273,7 +273,7 @@ function LandmarksFinder(win, doc) {
 	}
 
 	this.numberOfLandmarks = function() {
-		return landmarks.length
+		return haveSearchedForLandmarks ? landmarks.length : -1
 	}
 
 	this.currentLandmarkElement = function() {

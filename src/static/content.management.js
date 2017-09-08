@@ -92,25 +92,37 @@ function sendUpdateBadgeMessage() {
 //
 
 function bootstrap() {
-	const attemptInterval = 1000
+	const attemptInterval = 2000
 	const maximumAttempts = 10
 	let landmarkFindingAttempts = 0
 	lf.reset()
+	sendUpdateBadgeMessage()
 
-	function _bootstrap() {
+	function timeFind() {
+		const start = performance.now()
+		lf.find()
+		const end = performance.now()
+		console.log(`Landmarks: took ${Math.round(end - start)}ms `
+			+ `to find landmarks on ${window.location}`)
+	}
+
+	function bootstrapCore() {
 		landmarkFindingAttempts += 1
+		console.log(`Landmarks: attempt ${landmarkFindingAttempts} `
+			+ `at ${new Date().toLocaleTimeString()}`)
 		if (document.readyState === 'complete') {
-			lf.find()
+			timeFind()
 			sendUpdateBadgeMessage()
 		} else if (landmarkFindingAttempts <= maximumAttempts) {
-			setTimeout(_bootstrap, attemptInterval)
+			setTimeout(bootstrapCore, attemptInterval)
 		} else {
-			throw new Error('Landmarks: unable to find landmarks after ' +
-				String(maximumAttempts) + 'attempts.')
+			throw new Error('Landmarks: unable to find landmarks '
+				+ `after ${maximumAttempts} attempts.`)
 		}
 	}
 
-	setTimeout(_bootstrap, attemptInterval)
+	console.log(`Landmarks: bootstrapping - ${new Date().toLocaleTimeString()}`)
+	setTimeout(bootstrapCore, attemptInterval)
 }
 
 bootstrap()

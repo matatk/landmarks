@@ -16,12 +16,13 @@
     "clean:chrome": "rimraf build/chrome landmarks-*-chrome.zip",
     "clean:opera": "rimraf build/opera landmarks-*-opera.zip",
     "clean:all": "npm run clean:firefox && npm run clean:chrome && npm run clean:opera",
-    "clean:cache": "rimraf build/png-cache"
+    "clean:cache": "rimraf build/png-cache",
+    "start:firefox": "web-ext run --source-dir build/firefox/"
   },
   "devDependencies": {
-    "archiver": "^2.0.3",
+    "archiver": "~2.0.3",
     "chalk": "~2.0",
-    "deepmerge": "^1.5.1",
+    "deepmerge": "~1.5.1",
     "eslint": "~4.3",
     "fs-extra": "~4.0",
     "jsdom": "~11.1",
