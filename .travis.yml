@@ -4,6 +4,7 @@ node_js:
 cache:
   directories:
     - node_modules
+    - build/png-cache
 install:
   - npm install
 script:
