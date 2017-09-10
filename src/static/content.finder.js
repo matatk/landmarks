@@ -84,7 +84,7 @@ function LandmarksFinder(win, doc) {
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth) {
-		if (!element) return
+		if (element === undefined) return
 
 		element.childNodes.forEach(function(elementChild) {
 			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
