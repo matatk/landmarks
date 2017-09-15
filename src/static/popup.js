@@ -84,17 +84,26 @@ function makeLandmarksTree(landmarks, container) {
 
 	landmarks.forEach(function(landmark, index) {
 		const depthChange = landmark.depth - previousDepth
+		const absDepthChange = Math.abs(depthChange)
 
-		// When nesting increases, attach a new <ul> to the last-created <li>
-		if (depthChange > 0) {
+		function whenDepthIncreases() {
 			base = document.createElement('ul')
 			previousItem.appendChild(base)
 		}
 
-		// When nesting decreases, attach new <li>s to the current base's parent
-		if (depthChange < 0) {
-			// the parent of base is an <li>, the grandparent is the <ul>
+		function whenDepthDecreases() {
+			// The parent of base is an <li>, the grandparent is the <ul>
 			base = base.parentElement.parentElement
+		}
+
+		// If the depth has changed, insert/step back the appropriate number of levels
+
+		if (absDepthChange > 0) {
+			const operation =
+				depthChange > 0 ? whenDepthIncreases : whenDepthDecreases
+			for (let i = 0; i < absDepthChange; i++) {
+				operation()
+			}
 		}
 
 		// If nesting hasn't changed, stick with the current base
