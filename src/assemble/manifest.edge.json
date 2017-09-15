@@ -1,0 +1,26 @@
+{
+  "icons": {
+    "24": "landmarks-24.png",
+    "48": "landmarks-48.png"
+  },
+
+  "browser_action": {
+    "default_icon": {
+      "20": "landmarks-20.png",
+      "40": "landmarks-40.png"
+    }
+  },
+
+  "background": {
+    "persistent": true,
+    "scripts": ["compatibility.js", "injector.js"]
+  },
+
+  "content_scripts": [
+    {
+      "js": ["compatibility.js", "injector.js"]
+    }
+  ],
+
+  "permissions": ["<all_urls>"]
+}
