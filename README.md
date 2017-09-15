@@ -91,6 +91,7 @@ You can build and run the current code locally as follows.
     -   `npm run build:firefox`
     -   `npm run build:chrome`
     -   `npm run build:opera`
+    -   `npm run build:edge` (Edge support is in development, but not fully ready yet.)
     -   `npm run build:all`
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
@@ -101,6 +102,7 @@ You can build and run the current code locally as follows.
         -   if you have [`web-ext`](https://github.com/mozilla/web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
+	-   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
 
 Some further info on the test/build process:
 

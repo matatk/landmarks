@@ -18,7 +18,8 @@ const pngCacheDir = path.join(buildDir, 'png-cache')
 const validBrowsers = Object.freeze([
 	'firefox',
 	'chrome',
-	'opera'
+	'opera',
+	'edge'
 ])
 const buildModes = Object.freeze(validBrowsers.concat(['all']))
 
@@ -47,6 +48,16 @@ const browserPngSizes = {
 		38,   // Browser action
 		48,   // Icon
 		128,  // Icon
+	],
+	'edge': [
+		// https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/design
+		20,  // Normal browser action
+		40,  // 2x browser action
+		24,  // Management UI
+		48,  // 2x Management UI
+		44,  // Windows UI (App List, Settings -> System -> Apps & features
+		50,  // Packaging requirement (not visible anywhere)
+		150  // Icon for Windows Store
 	]
 }
 
@@ -127,7 +138,7 @@ function copyCompatibilityShimAndContentScriptInjector(browser) {
 	if (browser !== 'firefox') {
 		logStep('Copying browser API compatibility shim...')
 		fse.copySync(
-			path.join(srcAssembleDir, 'compatibility.js'),
+			path.join(srcAssembleDir, `compatibility.${browser}.js`),
 			path.join(pathToBuild(browser), 'compatibility.js'))
 
 		logStep('Copying content script injector...')
