@@ -124,21 +124,22 @@ function mergeManifest(browser) {
 	// Merging this way 'round just happens to make it so that, when merging
 	// the arrays of scripts to include, the compatibility one comes first.
 	const merged = deepmerge(extraJson, commonJson)
-
 	merged.version = extVersion
 	fse.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
 		JSON.stringify(merged, null, 2)
 	)
+
 	console.log(chalk.green(`✔ manifest.json written for ${browser}.`))
 }
 
 
 function copyCompatibilityShimAndContentScriptInjector(browser) {
 	if (browser !== 'firefox') {
+		const variant = browser === 'edge' ? browser : 'chrome-opera'
 		logStep('Copying browser API compatibility shim...')
 		fse.copySync(
-			path.join(srcAssembleDir, `compatibility.${browser}.js`),
+			path.join(srcAssembleDir, `compatibility.${variant}.js`),
 			path.join(pathToBuild(browser), 'compatibility.js'))
 
 		logStep('Copying content script injector...')

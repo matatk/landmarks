@@ -1,1 +1,0 @@
-compatibility.chrome.js
