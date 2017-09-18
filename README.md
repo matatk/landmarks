@@ -174,6 +174,15 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+- 2.0.8 - 18th of September 2017
+    -   Landmarks now ignores hidden regions (#85).
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by >1 level between landmarks (#102). (Documents shouldn't really do this, but the extension should point out correctly when they do.)
+    -   Correctly restore elements' outlines after they are highlighted (#94).
+    -   Automatically disable the extension on browsers' extensions store pages (#97).
+    -   Start exploring what's needed for Edge support in future (#99).
+    -   Improvements to the SVG to PNG process (#95).
+    -   Other more minor tweaks and fixes.
+    -   README updates.
 -   2.0.7 - 11th of May 2017
     -   Officially support Opera.
     -   Make the landmark highlight more visible.
