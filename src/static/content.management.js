@@ -112,12 +112,68 @@ function bootstrap() {
 			+ `(${landmarkFindingAttempts} attempts)`)
 	}
 
+	function shouldRefreshLandmarkss(mutations) {
+		for (const mutation of mutations) {
+			if (mutation.type === 'childList') {
+				for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
+					for (const node of nodes) {
+						if (node.nodeType === Node.ELEMENT_NODE) {
+							return true
+						}
+					}
+				}
+			} else {  // must be 'attribute'
+				if (mutation.attributeName === 'style') {
+					if (/display|visibility/.test(
+						mutation.target.getAttribute(mutation.attributeName))) {
+						return true
+					}
+					return false
+				}
+				// TODO if class change, check if it's related to visiblity
+				//       don't think we need to check for child nodes, as they are
+				//			not relevant if it's not related to visibility(???)
+
+				// TODO then if we get here it's a non-style/class change...
+				//      could see if it's a relevant aria change?
+				return true
+			}
+		}
+		return false
+	}
+
+	function setUpMutationObserver() {
+		const observer = new MutationObserver(function(mutations) {
+			const start = performance.now()
+			const refreshLandmarks = shouldRefreshLandmarkss(mutations)
+			const end = performance.now()
+			console.log(`Landmarks: took ${Math.round(end - start)}ms to decide: `
+				+ `refresh landmarks? ${refreshLandmarks}`)
+			if (refreshLandmarks) {
+				timeFind()
+				sendUpdateBadgeMessage()
+				// FIXME if same element in new list, carry on for cur pos
+				// FIXME time that, too
+			}
+		})
+
+		observer.observe(document, {
+			attributes: true,
+			childList: true,
+			subtree: true,
+			attributeFilter: [
+				'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+			]
+		})
+	}
+
 	function bootstrapCore() {
 		landmarkFindingAttempts += 1
 
 		if (document.readyState === 'complete') {
 			timeFind()
 			sendUpdateBadgeMessage()
+			setUpMutationObserver()
 		} else if (landmarkFindingAttempts < maximumAttempts) {
 			setTimeout(bootstrapCore, attemptInterval)
 		} else {
