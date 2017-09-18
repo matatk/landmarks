@@ -90,14 +90,18 @@ You can build and run the current code locally as follows.
     -   `npm run build:firefox`
     -   `npm run build:chrome`
     -   `npm run build:opera`
+    -   `npm run build:edge` (Edge support is in development, but not fully ready yet.)
     -   `npm run build:all`
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
 4.  To load and use the extension locally in your browser...
-    -   **Firefox:** use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk).
+    -   **Firefox:** either:
+        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
+        -   if you have [`web-ext`](https://github.com/mozilla/web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
+	-   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
 
 Some further info on the test/build process:
 
@@ -146,9 +150,10 @@ Information for Web Authors, Designers and Developers
 As described at start of this document, landmarks can really help various people get a quick overview of your site, and navigate it much more effectively. This can save them *a lot* of time, so please consider implementing landmarks on your site; here is some information to help you do so...
 
 -   [Léonie Watson demonstrates landmarks (video)](https://www.youtube.com/watch?v=IhWMou12_Vk)
+-   [W3C ARIA landmarks example and advice page](https://www.w3.org/TR/wai-aria-practices/examples/landmarks/index.html)
 -   [Easy content organisation with HTML5 (The Paciello Group 'blog article)](https://www.paciellogroup.com/blog/2015/09/easy-content-organisation-with-html5/)
 -   [Using WAI-ARIA landmarks (The Paciello Group 'blog article)](https://www.paciellogroup.com/blog/2013/02/using-wai-aria-landmarks-2013/)
--   [W3C advice on using landmarks](http://www.w3.org/TR/WCAG20-TECHS/ARIA11.html)
+-   [W3C WCAG technique ARIA11: Using ARIA landmarks to identify regions of a page](http://www.w3.org/TR/WCAG20-TECHS/ARIA11.html)
 
 Please bear in mind the following when implementing landmarks...
 
@@ -168,6 +173,15 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+- 2.0.8 - 18th of September 2017
+    -   Landmarks now ignores hidden regions (#85).
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by >1 level between landmarks (#102). (Documents shouldn't really do this, but the extension should point out correctly when they do.)
+    -   Correctly restore elements' outlines after they are highlighted (#94).
+    -   Automatically disable the extension on browsers' extensions store pages (#97).
+    -   Start exploring what's needed for Edge support in future (#99).
+    -   Improvements to the SVG to PNG process (#95).
+    -   Other more minor tweaks and fixes.
+    -   README updates.
 -   2.0.7 - 11th of May 2017
     -   Officially support Opera.
     -   Make the landmark highlight more visible.
