@@ -28,7 +28,7 @@ Installation
 
 -   **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
 -   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
--   **Opera:** Install via Opera add-ons—URL forthcoming pending extension review.
+-   **Opera:** [Install via Opera add-ons](https://addons.opera.com/en-gb/extensions/details/landmarks/)
 
 **If you need support, please [check the known issues for Landmarks](https://github.com/matatk/landmarks/issues) and, if necessary, file a new issue using the "New Issue" button on that page.**
 
@@ -99,7 +99,7 @@ You can build and run the current code locally as follows.
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** either:
         -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
-        -   if you have [`web-ext`](https://github.com/mozilla/web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
+        -   if you have [`web-ext`](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
 	-   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
@@ -175,12 +175,12 @@ Changes
 -------
 
 - 2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions (#85).
-    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by >1 level between landmarks (#102). (Documents shouldn't really do this, but the extension should point out correctly when they do.)
-    -   Correctly restore elements' outlines after they are highlighted (#94).
-    -   Automatically disable the extension on browsers' extensions store pages (#97).
-    -   Start exploring what's needed for Edge support in future (#99).
-    -   Improvements to the SVG to PNG process (#95).
+    -   [Landmarks now ignores hidden regions](https://github.com/matatk/landmarks/pull/85).
+    -   [Fix a bug that caused the pop-up to incorrectly report nesting that changes by >1 level between landmarks](https://github.com/matatk/landmarks/pull/102). (Documents shouldn't really do this, but the extension should point out correctly when they do.)
+    -   [Correctly restore elements' outlines after they are highlighted](https://github.com/matatk/landmarks/pull/94).
+    -   [Automatically disable the extension on browsers' extensions store pages](https://github.com/matatk/landmarks/pull/97).
+    -   [Start exploring what's needed for Edge support in future](https://github.com/matatk/landmarks/pull/99).
+    -   [Improvements to the SVG to PNG process](https://github.com/matatk/landmarks/pull/95).
     -   Other more minor tweaks and fixes.
     -   README updates.
 -   2.0.7 - 11th of May 2017
