@@ -23,7 +23,7 @@ const validBrowsers = Object.freeze([
 ])
 const buildModes = Object.freeze(validBrowsers.concat(['all']))
 
-const browserPngSizes = {
+const browserPngSizes = Object.freeze({
 	'firefox': [
 		18,  // Firefox (toolbar)
 		32,  // Firefox (menu panel) + Chrome (Windows)
@@ -59,7 +59,11 @@ const browserPngSizes = {
 		50,  // Packaging requirement (not visible anywhere)
 		150  // Icon for Windows Store
 	]
-}
+})
+
+const linters = Object.freeze({
+	'firefox': lintFirefox
+})
 
 
 function error(message) {
@@ -174,6 +178,7 @@ function makeZip(browser) {
 
 	output.on('close', function() {
 		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
+		lint(browser)
 	})
 
 	archive.on('error', function(err) {
@@ -183,6 +188,27 @@ function makeZip(browser) {
 	archive.pipe(output)
 	archive.directory(pathToBuild(browser), '')
 	archive.finalize()
+}
+
+
+function lint(browser) {
+	if (browser in linters) {
+		linters[browser]()
+	}
+}
+
+
+function lintFirefox() {
+	const linter = require('addons-linter').createInstance({
+		config: {
+			_: [zipFileName('firefox')],  // TODO pass in via lint func?
+			logLevel: process.env.VERBOSE ? 'debug' : 'fatal',
+		}
+	})
+
+	linter.run().catch((err) => {
+		console.error(err)
+	})
 }
 
 
@@ -210,6 +236,7 @@ browsers.forEach((browser) => {
 	copyCompatibilityShimAndContentScriptInjector(browser)
 	getPngs(sp, browser)
 	makeZip(browser)
+	// lint(browser)  // TODO
 })
 
 copyESLintRC()

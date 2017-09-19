@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.0.8",
+  "version": "2.1.0alpha1",
   "private": true,
   "scripts": {
     "pretest": "eslint .",
@@ -22,6 +22,7 @@
     "start:firefox": "web-ext run --source-dir build/firefox/"
   },
   "devDependencies": {
+    "addons-linter": "^0.26.0",
     "archiver": "~2.0.3",
     "chalk": "~2.0",
     "deepmerge": "~1.5.1",
