@@ -22,13 +22,13 @@
     "start:firefox": "web-ext run --source-dir build/firefox/"
   },
   "devDependencies": {
-    "addons-linter": "^0.26.0",
-    "archiver": "~2.0.3",
-    "chalk": "~2.0",
-    "deepmerge": "~1.5.1",
-    "eslint": "~4.3",
+    "addons-linter": "~0.27",
+    "archiver": "~2.0",
+    "chalk": "~2.1",
+    "deepmerge": "~2.0",
+    "eslint": "~4.8",
     "fs-extra": "~4.0",
-    "jsdom": "~11.1",
+    "jsdom": "~11.3",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs",
     "rimraf": "~2.6",
     "test": "~0.6"
