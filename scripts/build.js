@@ -201,7 +201,7 @@ function lint(browser) {
 function lintFirefox() {
 	const linter = require('addons-linter').createInstance({
 		config: {
-			_: [zipFileName('firefox')],  // TODO pass in via lint func?
+			_: [zipFileName('firefox')],
 			logLevel: process.env.VERBOSE ? 'debug' : 'fatal',
 		}
 	})
@@ -236,7 +236,6 @@ browsers.forEach((browser) => {
 	copyCompatibilityShimAndContentScriptInjector(browser)
 	getPngs(sp, browser)
 	makeZip(browser)
-	// lint(browser)  // TODO
 })
 
 copyESLintRC()
