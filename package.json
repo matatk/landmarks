@@ -23,10 +23,10 @@
   },
   "devDependencies": {
     "addons-linter": "~0.27",
-    "archiver": "~2.0",
-    "chalk": "~2.1",
+    "archiver": "~2.1",
+    "chalk": "~2.2",
     "deepmerge": "~2.0",
-    "eslint": "~4.8",
+    "eslint": "~4.9",
     "fs-extra": "~4.0",
     "jsdom": "~11.3",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs",
