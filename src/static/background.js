@@ -45,7 +45,6 @@ function checkBrowserActionState(tabId, url) {
 	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
 		for (const specialPage of specialPages) {
 			if (specialPage.test(url)) {
-				console.log(`Landmarks: disabling extension on ${url}`)
 				browser.browserAction.disable(tabId)
 				return
 			}
@@ -110,9 +109,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 	let badgeText
 
-	if (numberOfLandmarks < 0) {
-		badgeText = '...'
-	} else if (numberOfLandmarks === 0) {
+	if (numberOfLandmarks <= 0) {
 		badgeText = ''
 	} else {
 		badgeText = String(numberOfLandmarks)

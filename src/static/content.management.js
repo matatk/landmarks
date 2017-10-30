@@ -97,7 +97,6 @@ function bootstrap() {
 	const attemptInterval = 500
 	const maximumAttempts = 4
 	let landmarkFindingAttempts = 0
-	const bootstrapTime = performance.now()
 
 	lf.reset()
 	sendUpdateBadgeMessage()
@@ -106,10 +105,7 @@ function bootstrap() {
 		const start = performance.now()
 		lf.find()
 		const end = performance.now()
-		console.log(`Landmarks: took ${Math.round(end - start)}ms `
-			+ `to find landmarks on ${window.location} `
-			+ `${Math.round(end - bootstrapTime)}ms after booting `
-			+ `(${landmarkFindingAttempts} attempts)`)
+		console.log(`Landmarks: took ${Math.round(end - start)}ms to find landmarks`)
 	}
 
 	function shouldRefreshLandmarkss(mutations) {
@@ -124,18 +120,20 @@ function bootstrap() {
 				}
 			} else {  // must be 'attribute'
 				if (mutation.attributeName === 'style') {
-					if (/display|visibility/.test(
-						mutation.target.getAttribute(mutation.attributeName))) {
+					if (/display|visibility/.test(mutation.target.getAttribute(mutation.attributeName))) {
 						return true
 					}
 					return false
 				}
-				// TODO if class change, check if it's related to visiblity
-				//       don't think we need to check for child nodes, as they are
-				//			not relevant if it's not related to visibility(???)
 
-				// TODO then if we get here it's a non-style/class change...
-				//      could see if it's a relevant aria change?
+				// TODO: things that could be checked:
+				//  * If it's a class change, check if it affects visiblity.
+				//  * If it's a relevant change to the role attribute.
+				//  * If it's a relevant change to aria-labelledby.
+				//  * If it's a relevant change to aria-label.
+
+				// For now, assume that any change is relevant, becuse it
+				// could be.
 				return true
 			}
 		}
@@ -147,8 +145,8 @@ function bootstrap() {
 			const start = performance.now()
 			const refreshLandmarks = shouldRefreshLandmarkss(mutations)
 			const end = performance.now()
-			console.log(`Landmarks: took ${Math.round(end - start)}ms to decide: `
-				+ `refresh landmarks? ${refreshLandmarks}`)
+			console.log(`Landmarks: ${Math.round(end - start)}ms to decide: `
+				+ `refresh? ${refreshLandmarks}`)
 			if (refreshLandmarks) {
 				timeFind()
 				sendUpdateBadgeMessage()
@@ -171,7 +169,7 @@ function bootstrap() {
 		landmarkFindingAttempts += 1
 
 		if (document.readyState === 'complete') {
-			timeFind()
+			lf.find()
 			sendUpdateBadgeMessage()
 			setUpMutationObserver()
 		} else if (landmarkFindingAttempts < maximumAttempts) {

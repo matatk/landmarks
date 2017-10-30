@@ -261,15 +261,11 @@ function LandmarksFinder(win, doc) {
 	}
 
 	this.filter = function() {
-		const list = []
-		landmarks.forEach(function(landmark) {
-			list.push({
-				depth: landmark.depth,
-				role: landmark.role,
-				label: landmark.label
-			})
-		})
-		return list
+		return landmarks.map(landmark => ({
+			depth: landmark.depth,
+			role: landmark.role,
+			label: landmark.label
+		}))
 	}
 
 	this.numberOfLandmarks = function() {
@@ -289,8 +285,7 @@ function LandmarksFinder(win, doc) {
 
 	this.previousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
-			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1
+			(currentlySelectedIndex <= 0) ? landmarks.length - 1 : currentlySelectedIndex - 1
 		)
 	}
 
