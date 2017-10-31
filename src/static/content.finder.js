@@ -67,6 +67,24 @@ function LandmarksFinder(win, doc) {
 
 
 	//
+	// Keeping track of landmark navigation
+	//
+
+	let currentlySelectedIndex
+
+	// Keep a reference to the currently-selected element in case the page
+	// changes and the landmarks are updated.
+	let selectedElement
+
+	function updateSelectedIndexAndReturnElement(index) {
+		if (landmarks.length === 0) return
+		currentlySelectedIndex = index
+		selectedElement = landmarks[index].element
+		return selectedElement
+	}
+
+
+	//
 	// Utilities
 	//
 
@@ -117,6 +135,10 @@ function LandmarksFinder(win, doc) {
 						'label': label,
 						'element': elementChild
 					})
+
+					if (selectedElement === elementChild) {
+						currentlySelectedIndex = landmarks.length - 1
+					}
 				}
 			}
 
@@ -229,26 +251,13 @@ function LandmarksFinder(win, doc) {
 
 
 	//
-	// Keeping track of landmark navigation
-	//
-
-	let currentlySelectedIndex
-
-	function updateSelectedIndexAndReturnElement(index) {
-		if (landmarks.length === 0) return
-		currentlySelectedIndex = index
-		return landmarks[index].element
-	}
-
-
-	//
 	// Public API
 	//
 
 	this.find = function() {
 		landmarks = []
-		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		currentlySelectedIndex = -1
+		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		haveSearchedForLandmarks = true
 	}
 
