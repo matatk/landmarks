@@ -6,10 +6,12 @@
 //
 
 browser.commands.onCommand.addListener(function(command) {
-	if (command === 'next-landmark') {
-		sendToActiveTab({request: 'next-landmark'})
-	} else if (command === 'prev-landmark') {
-		sendToActiveTab({request: 'prev-landmark'})
+	switch (command) {
+		case 'next-landmark':
+		case 'prev-landmark':
+		case 'main-landmark':
+			sendToActiveTab({request: command})
+			break
 	}
 })
 
@@ -100,7 +102,8 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		default:
-			throw('Landmarks: background script received unknown message:',
+			throw new Error(
+				'Landmarks: background script received unknown message:',
 				message, 'from', sender)
 	}
 })

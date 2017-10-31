@@ -22,6 +22,14 @@
 		"message": "Move to and highlight the previous landmark"
 	},
 
+  "mainLandmarkShortcutDescription": {
+    "message": "Move to and highlight the main landmark"
+  },
+
+  "noMainLandmarkFound": {
+    "message": "No main landmark found"
+  },
+
 
 
 

@@ -24,6 +24,8 @@ function checkFocusElement(callbackReturningElement) {
 		return
 	}
 
+	// FIXME check, if we are being asked for the main element, if it's there
+
 	ef.focusElement(callbackReturningElement())
 }
 
@@ -72,8 +74,9 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			bootstrap()
 			break
 		default:
-			throw('Landmarks: content script received unknown message:',
-				message, 'from', sender)
+			throw new Error(
+				'Landmarks: content script received unknown message: '
+				+ message.request)
 	}
 })
 
