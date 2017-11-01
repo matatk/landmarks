@@ -72,6 +72,9 @@ function LandmarksFinder(win, doc) {
 
 	let currentlySelectedIndex
 
+	// If we find a <main> or role="main" element...
+	let mainElementIndex
+
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmarks are updated.
 	let selectedElement
@@ -138,6 +141,13 @@ function LandmarksFinder(win, doc) {
 
 					if (selectedElement === elementChild) {
 						currentlySelectedIndex = landmarks.length - 1
+					}
+
+					// This actually tracks only the /last/ element that
+					// was marked up as main.
+					// TODO: Track the first only?
+					if (role === 'main') {
+						mainElementIndex = landmarks.length - 1
 					}
 				}
 			}
@@ -256,6 +266,7 @@ function LandmarksFinder(win, doc) {
 
 	this.find = function() {
 		landmarks = []
+		mainElementIndex = -1
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		haveSearchedForLandmarks = true
@@ -281,11 +292,6 @@ function LandmarksFinder(win, doc) {
 		return haveSearchedForLandmarks ? landmarks.length : -1
 	}
 
-	this.currentLandmarkElement = function() {
-		if (landmarks.length === 0) return
-		return landmarks[currentlySelectedIndex].element
-	}
-
 	this.nextLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex + 1) % landmarks.length
@@ -300,5 +306,9 @@ function LandmarksFinder(win, doc) {
 
 	this.landmarkElement = function(index) {
 		return updateSelectedIndexAndReturnElement(index)
+	}
+
+	this.selectMainElement = function() {
+		return mainElementIndex < 0 ? null : updateSelectedIndexAndReturnElement(mainElementIndex)
 	}
 }

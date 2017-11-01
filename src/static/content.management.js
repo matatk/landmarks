@@ -24,8 +24,6 @@ function checkFocusElement(callbackReturningElement) {
 		return
 	}
 
-	// FIXME check, if we are being asked for the main element, if it's there
-
 	ef.focusElement(callbackReturningElement())
 }
 
@@ -63,6 +61,15 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// Triggered by keyboard shortcut
 			checkFocusElement(lf.previousLandmarkElement)
 			break
+		case 'main-landmark': {
+			const mainElement = lf.selectMainElement()
+			if (mainElement) {
+				ef.focusElement(mainElement)
+			} else {
+				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
+			}
+			break
+		}
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script
