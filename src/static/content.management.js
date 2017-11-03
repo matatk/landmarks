@@ -29,7 +29,7 @@ function checkFocusElement(callbackReturningElement) {
 
 
 //
-// Extension Message Management
+// Extension message management
 //
 
 // Act on requests from the background or pop-up scripts
@@ -61,6 +61,15 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// Triggered by keyboard shortcut
 			checkFocusElement(lf.previousLandmarkElement)
 			break
+		case 'main-landmark': {
+			const mainElement = lf.selectMainElement()
+			if (mainElement) {
+				ef.focusElement(mainElement)
+			} else {
+				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
+			}
+			break
+		}
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script
@@ -72,8 +81,9 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			bootstrap()
 			break
 		default:
-			throw('Landmarks: content script received unknown message:',
-				message, 'from', sender)
+			throw new Error(
+				'Landmarks: content script received unknown message: '
+				+ message.request)
 	}
 })
 
@@ -88,36 +98,77 @@ function sendUpdateBadgeMessage() {
 
 
 //
-// Content Script Entry Point
+// Bootstrapping and mutation observer setup
 //
 
-// Most pages I've tried have got to a readyState of 'complete' within 10-100ms.
-// Therefore this should easily be sufficient.
+function setUpMutationObserver() {
+	const observer = new MutationObserver(function(mutations) {
+		if (shouldRefreshLandmarkss(mutations)) {
+			lf.find()
+			sendUpdateBadgeMessage()
+		}
+	})
+
+	observer.observe(document, {
+		attributes: true,
+		childList: true,
+		subtree: true,
+		attributeFilter: [
+			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+		]
+	})
+}
+
+function shouldRefreshLandmarkss(mutations) {
+	for (const mutation of mutations) {
+		if (mutation.type === 'childList') {
+			// Structural change
+			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
+				for (const node of nodes) {
+					if (node.nodeType === Node.ELEMENT_NODE) {
+						return true
+					}
+				}
+			}
+		} else {
+			// Attribute change
+			if (mutation.attributeName === 'style') {
+				if (/display|visibility/.test(mutation.target.getAttribute('style'))) {
+					return true
+				}
+			}
+
+			// TODO: things that could be checked:
+			//  * If it's a class change, check if it affects visiblity.
+			//  * If it's a relevant change to the role attribute.
+			//  * If it's a relevant change to aria-labelledby.
+			//  * If it's a relevant change to aria-label.
+
+			// For now, assume that any change is relevant, becuse it
+			// could be.
+			return true
+		}
+	}
+	return false
+}
+
+// Most pages I've tried have got to a readyState of 'complete' within
+// 10-100ms.  Therefore this should easily be sufficient.
 function bootstrap() {
 	const attemptInterval = 500
 	const maximumAttempts = 4
 	let landmarkFindingAttempts = 0
-	const bootstrapTime = performance.now()
 
 	lf.reset()
 	sendUpdateBadgeMessage()
-
-	function timeFind() {
-		const start = performance.now()
-		lf.find()
-		const end = performance.now()
-		console.log(`Landmarks: took ${Math.round(end - start)}ms `
-			+ `to find landmarks on ${window.location} `
-			+ `${Math.round(end - bootstrapTime)}ms after booting `
-			+ `(${landmarkFindingAttempts} attempts)`)
-	}
 
 	function bootstrapCore() {
 		landmarkFindingAttempts += 1
 
 		if (document.readyState === 'complete') {
-			timeFind()
+			lf.find()
 			sendUpdateBadgeMessage()
+			setUpMutationObserver()
 		} else if (landmarkFindingAttempts < maximumAttempts) {
 			setTimeout(bootstrapCore, attemptInterval)
 		} else {

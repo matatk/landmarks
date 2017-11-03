@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Test injected landmark</title>
+	</head>
+	<body>
+		<header>
+			<h1>Test injected landmark</h1>
+		</header>
+		<main>
+			<p>Main content.</p>
+			<button id="outer-injector">Inject a landmark</button>
+			<button id="inner-injector" disabled>
+				Inject a landmark inside the other
+			</button>
+			<button id="the-cleaner" disabled>
+				Remove all injected bits and bobs
+			</button>
+		</main>
+		<footer>
+			<p>This is the footer.</p>
+		</footer>
+		<script>
+const btnOuterInjectorId = 'outer-injector'
+const btnInnerInjectorId = 'inner-injector'
+const btnCleanerId = 'the-cleaner'
+const outerInjectedSectionId = 'outer-injected-section'
+let idCounter = 0
+
+function makeSection(level, heading, text) {
+	const section = document.createElement('section')
+	const sectionHeader = document.createElement(`h${level}`)
+	const sectionHeaderText = document.createTextNode(heading)
+	const sectionPara = document.createElement('p')
+	const sectionParaText = document.createTextNode(text)
+
+	sectionHeader.appendChild(sectionHeaderText)
+	section.appendChild(sectionHeader)
+
+	sectionPara.appendChild(sectionParaText)
+	section.appendChild(sectionPara)
+
+	sectionHeader.id = `section-header-${idCounter++}`
+	section.setAttribute('aria-labelledby', sectionHeader.id)
+
+	return section
+}
+
+document.getElementById(btnOuterInjectorId).onclick = function() {
+	const section = makeSection(2, 'Outer injected section',
+		'A section nested within the main region.')
+	section.id = outerInjectedSectionId
+	document.getElementsByTagName('main')[0].appendChild(section)
+
+	this.disabled = true
+	document.getElementById(btnInnerInjectorId).removeAttribute('disabled')
+}
+
+document.getElementById(btnInnerInjectorId).onclick = function() {
+	const innerSection = makeSection(3, 'Inner injected section',
+		'A further nested section.')
+	document.getElementById(outerInjectedSectionId).appendChild(innerSection)
+
+	this.disabled = true
+	document.getElementById(btnCleanerId).removeAttribute('disabled')
+}
+
+document.getElementById(btnCleanerId).onclick = function() {
+	document.getElementById(outerInjectedSectionId).remove()
+
+	this.disabled = true
+	document.getElementById(btnOuterInjectorId).removeAttribute('disabled')
+}
+
+const observer = new MutationObserver(function(mutations) {
+	mutations.forEach(function(mutation) {
+		console.log(mutation)
+		if (mutation.type === 'childList') {
+			mutation.addedNodes.forEach(function(addedNode) {
+				if (addedNode.nodeType === Node.ELEMENT_NODE) {
+					console.log('Added node:', addedNode)
+				}
+			})
+			mutation.removedNodes.forEach(function(removedNode) {
+				console.log('Removed node:', removedNode)
+			})
+		}
+	})
+})
+
+observer.observe(document, {
+	attributes: true,
+	childList: true,
+	subtree: true
+})
+		</script>
+	</body>
+</html>

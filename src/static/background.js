@@ -2,20 +2,22 @@
 /* global sendToActiveTab landmarksContentScriptInjector specialPages */
 
 //
-// Keyboard Shortcut Handling
+// Keyboard shortcut handling
 //
 
 browser.commands.onCommand.addListener(function(command) {
-	if (command === 'next-landmark') {
-		sendToActiveTab({request: 'next-landmark'})
-	} else if (command === 'prev-landmark') {
-		sendToActiveTab({request: 'prev-landmark'})
+	switch (command) {
+		case 'next-landmark':
+		case 'prev-landmark':
+		case 'main-landmark':
+			sendToActiveTab({request: command})
+			break
 	}
 })
 
 
 //
-// Navigation Events
+// Navigation events
 //
 
 // Listen for URL change events on all tabs and disable the browser action if
@@ -45,7 +47,6 @@ function checkBrowserActionState(tabId, url) {
 	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
 		for (const specialPage of specialPages) {
 			if (specialPage.test(url)) {
-				console.log(`Landmarks: disabling extension on ${url}`)
 				browser.browserAction.disable(tabId)
 				return
 			}
@@ -101,7 +102,8 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		default:
-			throw('Landmarks: background script received unknown message:',
+			throw new Error(
+				'Landmarks: background script received unknown message:',
 				message, 'from', sender)
 	}
 })
@@ -110,9 +112,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 	let badgeText
 
-	if (numberOfLandmarks < 0) {
-		badgeText = '...'
-	} else if (numberOfLandmarks === 0) {
+	if (numberOfLandmarks <= 0) {
 		badgeText = ''
 	} else {
 		badgeText = String(numberOfLandmarks)
@@ -126,7 +126,7 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 
 
 //
-// Install and Update
+// Install and update
 //
 
 browser.runtime.onInstalled.addListener(function(details) {

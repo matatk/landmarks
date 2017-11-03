@@ -53,7 +53,7 @@ function LandmarksFinder(win, doc) {
 
 
 	//
-	// Found Landmarks
+	// Found landmarks
 	//
 
 	let landmarks = []
@@ -64,6 +64,27 @@ function LandmarksFinder(win, doc) {
 	//   element: (HTML*Element) -- in-memory element
 
 	let haveSearchedForLandmarks = false
+
+
+	//
+	// Keeping track of landmark navigation
+	//
+
+	let currentlySelectedIndex
+
+	// If we find a <main> or role="main" element...
+	let mainElementIndex
+
+	// Keep a reference to the currently-selected element in case the page
+	// changes and the landmarks are updated.
+	let selectedElement
+
+	function updateSelectedIndexAndReturnElement(index) {
+		if (landmarks.length === 0) return
+		currentlySelectedIndex = index
+		selectedElement = landmarks[index].element
+		return selectedElement
+	}
 
 
 	//
@@ -84,7 +105,7 @@ function LandmarksFinder(win, doc) {
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth) {
-		if (!element) return
+		if (element === undefined) return
 
 		element.childNodes.forEach(function(elementChild) {
 			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
@@ -117,6 +138,17 @@ function LandmarksFinder(win, doc) {
 						'label': label,
 						'element': elementChild
 					})
+
+					if (selectedElement === elementChild) {
+						currentlySelectedIndex = landmarks.length - 1
+					}
+
+					// This actually tracks only the /last/ element that
+					// was marked up as main.
+					// TODO: Track the first only?
+					if (role === 'main') {
+						mainElementIndex = landmarks.length - 1
+					}
 				}
 			}
 
@@ -229,26 +261,14 @@ function LandmarksFinder(win, doc) {
 
 
 	//
-	// Keeping track of landmark navigation
-	//
-
-	let currentlySelectedIndex
-
-	function updateSelectedIndexAndReturnElement(index) {
-		if (landmarks.length === 0) return
-		currentlySelectedIndex = index
-		return landmarks[index].element
-	}
-
-
-	//
 	// Public API
 	//
 
 	this.find = function() {
 		landmarks = []
-		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
+		mainElementIndex = -1
 		currentlySelectedIndex = -1
+		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
 		haveSearchedForLandmarks = true
 	}
 
@@ -261,24 +281,15 @@ function LandmarksFinder(win, doc) {
 	}
 
 	this.filter = function() {
-		const list = []
-		landmarks.forEach(function(landmark) {
-			list.push({
-				depth: landmark.depth,
-				role: landmark.role,
-				label: landmark.label
-			})
-		})
-		return list
+		return landmarks.map(landmark => ({
+			depth: landmark.depth,
+			role: landmark.role,
+			label: landmark.label
+		}))
 	}
 
 	this.numberOfLandmarks = function() {
 		return haveSearchedForLandmarks ? landmarks.length : -1
-	}
-
-	this.currentLandmarkElement = function() {
-		if (landmarks.length === 0) return
-		return landmarks[currentlySelectedIndex].element
 	}
 
 	this.nextLandmarkElement = function() {
@@ -289,12 +300,15 @@ function LandmarksFinder(win, doc) {
 
 	this.previousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
-			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1
+			(currentlySelectedIndex <= 0) ? landmarks.length - 1 : currentlySelectedIndex - 1
 		)
 	}
 
 	this.landmarkElement = function(index) {
 		return updateSelectedIndexAndReturnElement(index)
+	}
+
+	this.selectMainElement = function() {
+		return mainElementIndex < 0 ? null : updateSelectedIndexAndReturnElement(mainElementIndex)
 	}
 }

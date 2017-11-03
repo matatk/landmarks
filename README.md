@@ -39,8 +39,9 @@ Navigating Landmarks
 
 You can use shortcut keys to navigate between landmarks. By default, the keys are:
 
--   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd> to move to the next landmark, and
--   <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd> to move to the previous landmark.
+-   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd>
+-   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd>
+-   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>m</kbd>
 
 (On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
 

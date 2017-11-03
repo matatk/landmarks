@@ -43,6 +43,12 @@
         "default": "Alt+Shift+P"
       },
       "description": "__MSG_previousLandmarkShortcutDescription__"
+    },
+    "main-landmark": {
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      },
+      "description": "__MSG_mainLandmarkShortcutDescription__"
     }
   },
 
