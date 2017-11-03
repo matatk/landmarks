@@ -101,6 +101,24 @@ function sendUpdateBadgeMessage() {
 // Bootstrapping and mutation observer setup
 //
 
+function setUpMutationObserver() {
+	const observer = new MutationObserver(function(mutations) {
+		if (shouldRefreshLandmarkss(mutations)) {
+			lf.find()
+			sendUpdateBadgeMessage()
+		}
+	})
+
+	observer.observe(document, {
+		attributes: true,
+		childList: true,
+		subtree: true,
+		attributeFilter: [
+			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+		]
+	})
+}
+
 function shouldRefreshLandmarkss(mutations) {
 	for (const mutation of mutations) {
 		if (mutation.type === 'childList') {
@@ -134,8 +152,8 @@ function shouldRefreshLandmarkss(mutations) {
 	return false
 }
 
-// Most pages I've tried have got to a readyState of 'complete' within 10-100ms.
-// Therefore this should easily be sufficient.
+// Most pages I've tried have got to a readyState of 'complete' within
+// 10-100ms.  Therefore this should easily be sufficient.
 function bootstrap() {
 	const attemptInterval = 500
 	const maximumAttempts = 4
@@ -143,36 +161,6 @@ function bootstrap() {
 
 	lf.reset()
 	sendUpdateBadgeMessage()
-
-	function timeFind() {
-		const start = performance.now()
-		lf.find()
-		const end = performance.now()
-		console.log(`Landmarks: landmark find took ${Math.round(end - start)}ms`)
-	}
-
-	function setUpMutationObserver() {
-		const observer = new MutationObserver(function(mutations) {
-			const start = performance.now()
-			const refreshLandmarks = shouldRefreshLandmarkss(mutations)
-			const end = performance.now()
-			console.log(`Landmarks: ${Math.round(end - start)}ms to decide: `
-				+ `refresh? ${refreshLandmarks}`)
-			if (refreshLandmarks) {
-				timeFind()
-				sendUpdateBadgeMessage()
-			}
-		})
-
-		observer.observe(document, {
-			attributes: true,
-			childList: true,
-			subtree: true,
-			attributeFilter: [
-				'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
-			]
-		})
-	}
 
 	function bootstrapCore() {
 		landmarkFindingAttempts += 1
