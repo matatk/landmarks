@@ -88,23 +88,11 @@ function LandmarksFinder(win, doc) {
 
 
 	//
-	// Utilities
-	//
-
-	function getLastLandmarkedElement() {
-		const lastInfo = landmarks[landmarks.length - 1]
-		if (lastInfo) {
-			return lastInfo.element
-		}
-	}
-
-
-	//
 	// Functions that refer to document or window
 	//
 
 	// Recursive function for building list of landmarks from a root element
-	function getLandmarks(element, depth) {
+	function getLandmarks(element, depth, parentLandmark) {
 		if (element === undefined) return
 
 		element.childNodes.forEach(function(elementChild) {
@@ -127,8 +115,7 @@ function LandmarksFinder(win, doc) {
 
 				// Add the element if it should be considered a landmark
 				if (role && isLandmark(role, label)) {
-					const lastLandmark = getLastLandmarkedElement()
-					if (lastLandmark && isDescendant(lastLandmark, elementChild)) {
+					if (parentLandmark && isDescendant(parentLandmark, elementChild)) {
 						depth = depth + 1
 					}
 
@@ -139,21 +126,24 @@ function LandmarksFinder(win, doc) {
 						'element': elementChild
 					})
 
+					// Was this element selected before we were called (i.e.
+					// before the page was dynamically updated)?
 					if (selectedElement === elementChild) {
 						currentlySelectedIndex = landmarks.length - 1
 					}
 
-					// This actually tracks only the /last/ element that
-					// was marked up as main.
-					// TODO: Track the first only?
-					if (role === 'main') {
+					// If this is the first main landmark (there should only
+					// be one), store a reference to it.
+					if (mainElementIndex < 0 && role === 'main') {
 						mainElementIndex = landmarks.length - 1
 					}
+
+					parentLandmark = elementChild
 				}
 			}
 
 			// Recursively traverse the tree structure of the child node
-			getLandmarks(elementChild, depth)
+			getLandmarks(elementChild, depth, parentLandmark)
 		})
 	}
 
