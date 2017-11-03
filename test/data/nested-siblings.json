@@ -1,0 +1,7 @@
+{
+  "expected": [
+    { "depth": 0, "role": "main", "label": null },
+    { "depth": 1, "role": "region", "label": "Sibling One" },
+    { "depth": 1, "role": "region", "label": "Sibling Two" }
+  ]
+}
