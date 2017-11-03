@@ -2,7 +2,7 @@
 /* global sendToActiveTab landmarksContentScriptInjector specialPages */
 
 //
-// Keyboard Shortcut Handling
+// Keyboard shortcut handling
 //
 
 browser.commands.onCommand.addListener(function(command) {
@@ -17,7 +17,7 @@ browser.commands.onCommand.addListener(function(command) {
 
 
 //
-// Navigation Events
+// Navigation events
 //
 
 // Listen for URL change events on all tabs and disable the browser action if
@@ -126,7 +126,7 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 
 
 //
-// Install and Update
+// Install and update
 //
 
 browser.runtime.onInstalled.addListener(function(details) {

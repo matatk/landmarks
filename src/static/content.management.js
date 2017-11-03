@@ -29,7 +29,7 @@ function checkFocusElement(callbackReturningElement) {
 
 
 //
-// Extension Message Management
+// Extension message management
 //
 
 // Act on requests from the background or pop-up scripts
@@ -98,8 +98,41 @@ function sendUpdateBadgeMessage() {
 
 
 //
-// Content Script Entry Point
+// Bootstrapping and mutation observer setup
 //
+
+function shouldRefreshLandmarkss(mutations) {
+	for (const mutation of mutations) {
+		if (mutation.type === 'childList') {
+			// Structural change
+			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
+				for (const node of nodes) {
+					if (node.nodeType === Node.ELEMENT_NODE) {
+						return true
+					}
+				}
+			}
+		} else {
+			// Attribute change
+			if (mutation.attributeName === 'style') {
+				if (/display|visibility/.test(mutation.target.getAttribute('style'))) {
+					return true
+				}
+			}
+
+			// TODO: things that could be checked:
+			//  * If it's a class change, check if it affects visiblity.
+			//  * If it's a relevant change to the role attribute.
+			//  * If it's a relevant change to aria-labelledby.
+			//  * If it's a relevant change to aria-label.
+
+			// For now, assume that any change is relevant, becuse it
+			// could be.
+			return true
+		}
+	}
+	return false
+}
 
 // Most pages I've tried have got to a readyState of 'complete' within 10-100ms.
 // Therefore this should easily be sufficient.
@@ -115,39 +148,7 @@ function bootstrap() {
 		const start = performance.now()
 		lf.find()
 		const end = performance.now()
-		console.log(`Landmarks: took ${Math.round(end - start)}ms to find landmarks`)
-	}
-
-	function shouldRefreshLandmarkss(mutations) {
-		for (const mutation of mutations) {
-			if (mutation.type === 'childList') {
-				for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
-					for (const node of nodes) {
-						if (node.nodeType === Node.ELEMENT_NODE) {
-							return true
-						}
-					}
-				}
-			} else {  // must be 'attribute'
-				if (mutation.attributeName === 'style') {
-					if (/display|visibility/.test(mutation.target.getAttribute(mutation.attributeName))) {
-						return true
-					}
-					return false
-				}
-
-				// TODO: things that could be checked:
-				//  * If it's a class change, check if it affects visiblity.
-				//  * If it's a relevant change to the role attribute.
-				//  * If it's a relevant change to aria-labelledby.
-				//  * If it's a relevant change to aria-label.
-
-				// For now, assume that any change is relevant, becuse it
-				// could be.
-				return true
-			}
-		}
-		return false
+		console.log(`Landmarks: landmark find took ${Math.round(end - start)}ms`)
 	}
 
 	function setUpMutationObserver() {
@@ -160,8 +161,6 @@ function bootstrap() {
 			if (refreshLandmarks) {
 				timeFind()
 				sendUpdateBadgeMessage()
-				// FIXME if same element in new list, carry on for cur pos
-				// FIXME time that, too
 			}
 		})
 

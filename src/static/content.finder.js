@@ -53,7 +53,7 @@ function LandmarksFinder(win, doc) {
 
 
 	//
-	// Found Landmarks
+	// Found landmarks
 	//
 
 	let landmarks = []
