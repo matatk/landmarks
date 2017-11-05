@@ -103,7 +103,7 @@ You can build and run the current code locally as follows.
         -   if you have [`web-ext`](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
-	-   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
+    -   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
 
 Some further info on the test/build process:
 
@@ -176,15 +176,17 @@ Changes
 -------
 
 - 2.1.0 - ??th of November 2017
-    -   Landmarks will be updated even if the page changes dynamically [[#111]](https://github.com/matatk/landmarks/pull/111)
-    -   Fix a bug whereby sibling landmarks may not be identified as such [[#???]](???)
+    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [[#111]](https://github.com/matatk/landmarks/pull/111)
+    -   Add a keyboard shortcut to skip to the main landmark.  [[also #111]](https://github.com/matatk/landmarks/pull/111)
+    -   Fix a bug whereby sibling landmarks may not be identified as such. [[#112]](https://github.com/matatk/landmarks/pull/112)
+    -   Use Mozilla's 'addons-linter'
 - 2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions [[#85]](https://github.com/matatk/landmarks/pull/85).
-    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by >1 level between landmarks [[#102]](https://github.com/matatk/landmarks/pull/102). (Documents shouldn't really do this, but the extension should point out correctly when they do.)
-    -   Correctly restore elements' outlines after they are highlighted [[#94]](https://github.com/matatk/landmarks/pull/94).
-    -   Automatically disable the extension on browsers' extensions store pages [[#97]](https://github.com/matatk/landmarks/pull/97).
-    -   Start exploring what's needed for Edge support in future [[#99]](https://github.com/matatk/landmarks/pull/99).
-    -   Improvements to the SVG to PNG process [[#95]](https://github.com/matatk/landmarks/pull/95).
+    -   Landmarks now ignores hidden regions. [[#85]](https://github.com/matatk/landmarks/pull/85)
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [[#102]](https://github.com/matatk/landmarks/pull/102)
+    -   Correctly restore elements' outlines after they are highlighted. [[#94]](https://github.com/matatk/landmarks/pull/94)
+    -   Automatically disable the extension on browsers' extensions store pages. [[#97]](https://github.com/matatk/landmarks/pull/97)
+    -   Start exploring what's needed for Edge support in future. [[#99]](https://github.com/matatk/landmarks/pull/99)
+    -   Improvements to the SVG to PNG process. [[#95]](https://github.com/matatk/landmarks/pull/95)
     -   Other more minor tweaks and fixes.
     -   README updates.
 -   2.0.7 - 11th of May 2017
