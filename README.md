@@ -179,7 +179,8 @@ Changes
     -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [[#111]](https://github.com/matatk/landmarks/pull/111)
     -   Add a keyboard shortcut to skip to the main landmark.  [[also #111]](https://github.com/matatk/landmarks/pull/111)
     -   Fix a bug whereby sibling landmarks may not be identified as such. [[#112]](https://github.com/matatk/landmarks/pull/112)
-    -   Use Mozilla's 'addons-linter'
+    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). [[#115]](https://github.com/matatk/landmarks/pull/115)
+    -   Use Mozilla's 'addons-linter' to check the built extension. [[err, also #111]](https://github.com/matatk/landmarks/pull/111)
 - 2.0.8 - 18th of September 2017
     -   Landmarks now ignores hidden regions. [[#85]](https://github.com/matatk/landmarks/pull/85)
     -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [[#102]](https://github.com/matatk/landmarks/pull/102)

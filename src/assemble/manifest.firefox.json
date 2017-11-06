@@ -13,6 +13,10 @@
     }
   },
 
+  "options_ui": {
+    "browser_style": true
+  },
+
   "applications": {
     "gecko": {
       "id": "ariaLandmarkNav@ibm.com",

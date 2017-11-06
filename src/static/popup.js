@@ -55,6 +55,7 @@ function addText(element, message) {
 // (Needs to be done this way to avoid CSP violation)
 function addReloadButton(element) {
 	const button = document.createElement('button')
+	button.className = 'browser-style'
 	button.appendChild(document.createTextNode(
 		browser.i18n.getMessage('tryReloading')))
 	button.addEventListener('click', reloadActivePage)
@@ -111,6 +112,7 @@ function makeLandmarksTree(landmarks, container) {
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
 		const button = document.createElement('button')
+		button.className = 'browser-style'
 		button.appendChild(document.createTextNode(landmarkName(landmark)))
 		button.addEventListener('click', function() {
 			focusLandmark(index)
