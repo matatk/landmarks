@@ -5,7 +5,7 @@ echo -e $LAYOUT_PREFIX > index.md
 cat README.md | tail -n +6 >> index.md
 git rm --force README.md
 git add index.md
-git commit -m "Sync README.md in master branch to index.md in gh-pages"
+git commit -m "Sync README.md in master to index.md in gh-pages"
 echo
 echo Now you may need to...
 echo "    git push origin gh-pages"
