@@ -175,7 +175,7 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
-- 2.1.0 - ??th of November 2017
+- 2.1.0 - 6th of November 2017
     -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [[#111]](https://github.com/matatk/landmarks/pull/111)
     -   Add a keyboard shortcut to skip to the main landmark.  [[also #111]](https://github.com/matatk/landmarks/pull/111)
     -   Fix a bug whereby sibling landmarks may not be identified as such. [[#112]](https://github.com/matatk/landmarks/pull/112)
