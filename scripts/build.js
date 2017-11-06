@@ -6,6 +6,7 @@ const merge = require('deepmerge')
 const archiver = require('archiver')
 const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const packageJson = require(path.join('..', 'package.json'))
+const replace = require('replace-in-file')
 // For restoring pre-2.0.0 deepmerge behaviour...
 const isMergeableObject = require('is-mergeable-object')
 const emptyTarget = value => Array.isArray(value) ? [] : {}
@@ -111,6 +112,20 @@ function pathToBuild(browser) {
 function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
+
+	if (browser === 'firefox') {
+		try {
+			const changes = replace.sync({
+				files: pathToBuild('firefox') + '/*.html',
+				from: '<script src="compatibility.js"></script>',
+				to: ''
+			})
+			console.log('Removed inclusion of compatibility.js from:',
+				changes.join(', '))
+		} catch (error) {
+			console.error('Error occurred:', error)
+		}
+	}
 }
 
 

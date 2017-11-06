@@ -31,6 +31,7 @@
     "is-mergeable-object": "~1.1",
     "jsdom": "~11.3",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs",
+    "replace-in-file": "~3.0",
     "rimraf": "~2.6",
     "test": "~0.6"
   }
