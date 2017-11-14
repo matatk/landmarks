@@ -1,5 +1,6 @@
 'use strict'
 const path = require('path')
+const fs = require('fs')
 const fse = require('fs-extra')
 const chalk = require('chalk')
 const merge = require('deepmerge')
@@ -165,7 +166,7 @@ function mergeManifest(browser) {
 	// the arrays of scripts to include, the compatibility one comes first.
 	const merged = merge(extraJson, commonJson, { arrayMerge: oldArrayMerge })
 	merged.version = extVersion
-	fse.writeFileSync(
+	fs.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
 		JSON.stringify(merged, null, 2)
 	)
@@ -209,7 +210,7 @@ function zipFileName(browser) {
 function makeZip(browser) {
 	logStep('Createing ZIP file...')
 	const outputFileName = zipFileName(browser)
-	const output = fse.createWriteStream(outputFileName)
+	const output = fs.createWriteStream(outputFileName)
 	const archive = archiver('zip')
 
 	output.on('close', function() {
