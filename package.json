@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": true,
   "scripts": {
     "pre_build": "npm test",
@@ -26,11 +26,11 @@
     "archiver": "~2.1",
     "chalk": "~2.3",
     "deepmerge": "~2.0",
-    "eslint": "~4.10",
+    "eslint": "~4.11",
     "fs-extra": "~4.0",
     "is-mergeable-object": "~1.1",
     "jsdom": "~11.3",
-    "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs",
+    "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
     "replace-in-file": "~3.0",
     "rimraf": "~2.6",
     "test": "~0.6"
