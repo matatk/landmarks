@@ -136,6 +136,7 @@ function shouldRefreshLandmarkss(mutations) {
 				if (/display|visibility/.test(mutation.target.getAttribute('style'))) {
 					return true
 				}
+				continue
 			}
 
 			// TODO: things that could be checked:
