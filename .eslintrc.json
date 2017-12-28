@@ -4,6 +4,9 @@
     "node": true
   },
   "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
   "root": true,
   "rules": {
     "block-scoped-var": "error",
