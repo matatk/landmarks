@@ -17,6 +17,7 @@
     "clean:edge": "rimraf build/edge landmarks-*-edge.zip",
     "clean:firefox": "rimraf build/firefox landmarks-*-firefox.zip",
     "clean:opera": "rimraf build/opera landmarks-*-opera.zip",
+    "precommit": "npm run build:all",
     "start:firefox": "web-ext run --source-dir build/firefox/",
     "pretest": "eslint .",
     "test": "node test/test.js"
@@ -28,6 +29,7 @@
     "deepmerge": "~2.0",
     "eslint": "~4.14",
     "fs-extra": "~5.0",
+    "husky": "~0.14",
     "is-mergeable-object": "~1.1",
     "jsdom": "~11.5",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
