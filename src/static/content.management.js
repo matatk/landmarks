@@ -96,18 +96,45 @@ function sendUpdateBadgeMessage() {
 	})
 }
 
+function findLandmarksAndUpdateBadge() {
+	lf.find()
+	sendUpdateBadgeMessage()
+}
+
 
 //
 // Bootstrapping and mutation observer setup
 //
 
-function setUpMutationObserver() {
-	const observer = new MutationObserver(function(mutations) {
-		if (shouldRefreshLandmarkss(mutations)) {
-			lf.find()
-			sendUpdateBadgeMessage()
+// Most pages I've tried have got to a readyState of 'complete' within
+// 10-100ms.  Therefore this should easily be sufficient.
+function bootstrap() {
+	const attemptInterval = 500
+	const maximumAttempts = 4
+	let landmarkFindingAttempts = 0
+
+	lf.reset()
+	sendUpdateBadgeMessage()
+
+	function bootstrapCore() {
+		landmarkFindingAttempts += 1
+
+		if (document.readyState === 'complete') {
+			findLandmarksAndUpdateBadge()
+			setUpMutationObserver()
+		} else if (landmarkFindingAttempts < maximumAttempts) {
+			setTimeout(bootstrapCore, attemptInterval)
+		} else {
+			throw new Error('Landmarks: page not available for scanning '
+				+ `after ${maximumAttempts} attempts.`)
 		}
-	})
+	}
+
+	setTimeout(bootstrapCore, attemptInterval)
+}
+
+function setUpMutationObserver() {
+	const observer = new MutationObserver(handleMutationEvents)
 
 	observer.observe(document, {
 		attributes: true,
@@ -117,6 +144,31 @@ function setUpMutationObserver() {
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
 		]
 	})
+}
+
+const mutationHandlingPause = 2000
+let lastMutationTime = Date.now()
+let waitingForScan = false
+
+function handleMutationEvents(mutations) {
+	// Guard against being innundated by mutation events
+	// (which happens in e.g. Google Docs)
+	if (Date.now() > lastMutationTime + mutationHandlingPause) {
+		// It's been a while since the last time we reacted to a DOM mutation.
+		if (shouldRefreshLandmarkss(mutations)) {
+			findLandmarksAndUpdateBadge()
+		}
+		lastMutationTime = Date.now()
+	} else if (!waitingForScan) {
+		// We are getting a lot of mutation events. We don't know if we should
+		// have responded to them, so schedule a scan for landmarks (if we are
+		// not already waiting for a scheduled scan).
+		waitingForScan = true
+		setTimeout(() => {
+			findLandmarksAndUpdateBadge()
+			waitingForScan = false
+		}, mutationHandlingPause)
+	}
 }
 
 function shouldRefreshLandmarkss(mutations) {
@@ -151,34 +203,6 @@ function shouldRefreshLandmarkss(mutations) {
 		}
 	}
 	return false
-}
-
-// Most pages I've tried have got to a readyState of 'complete' within
-// 10-100ms.  Therefore this should easily be sufficient.
-function bootstrap() {
-	const attemptInterval = 500
-	const maximumAttempts = 4
-	let landmarkFindingAttempts = 0
-
-	lf.reset()
-	sendUpdateBadgeMessage()
-
-	function bootstrapCore() {
-		landmarkFindingAttempts += 1
-
-		if (document.readyState === 'complete') {
-			lf.find()
-			sendUpdateBadgeMessage()
-			setUpMutationObserver()
-		} else if (landmarkFindingAttempts < maximumAttempts) {
-			setTimeout(bootstrapCore, attemptInterval)
-		} else {
-			throw new Error('Landmarks: unable to find landmarks '
-				+ `after ${maximumAttempts} attempts.`)
-		}
-	}
-
-	setTimeout(bootstrapCore, attemptInterval)
 }
 
 bootstrap()

@@ -177,6 +177,7 @@ Changes
 -------
 
 -   2.1.1 - ???th of January 2018
+	-   Improve performance on sites that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [[#131](https://github.com/matatk/landmarks/pull/131)]
     -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
 -   2.1.0 - 6th of November 2017
     -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [\[\#111\]](https://github.com/matatk/landmarks/pull/111)
