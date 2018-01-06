@@ -1,8 +1,9 @@
 'use strict'
-/* global LandmarksFinder ElementFocuser */
+/* global LandmarksFinder ElementFocuser PauseHandler */
 
 const lf = new LandmarksFinder(window, document)
 const ef = new ElementFocuser()
+const ph = new PauseHandler()
 
 
 //
@@ -134,7 +135,17 @@ function bootstrap() {
 }
 
 function setUpMutationObserver() {
-	const observer = new MutationObserver(handleMutationEvents)
+	// Guard against being innundated by mutation events
+	// (which happens in e.g. Google Docs)
+	const observer = new MutationObserver((mutations) => {
+		ph.run(
+			function() {
+				if (shouldRefreshLandmarkss(mutations)) {
+					findLandmarksAndUpdateBadge()
+				}
+			},
+			findLandmarksAndUpdateBadge)
+	})
 
 	observer.observe(document, {
 		attributes: true,
@@ -144,31 +155,6 @@ function setUpMutationObserver() {
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
 		]
 	})
-}
-
-const mutationHandlingPause = 2000
-let lastMutationTime = Date.now()
-let waitingForScan = false
-
-function handleMutationEvents(mutations) {
-	// Guard against being innundated by mutation events
-	// (which happens in e.g. Google Docs)
-	if (Date.now() > lastMutationTime + mutationHandlingPause) {
-		// It's been a while since the last time we reacted to a DOM mutation.
-		if (shouldRefreshLandmarkss(mutations)) {
-			findLandmarksAndUpdateBadge()
-		}
-		lastMutationTime = Date.now()
-	} else if (!waitingForScan) {
-		// We are getting a lot of mutation events. We don't know if we should
-		// have responded to them, so schedule a scan for landmarks (if we are
-		// not already waiting for a scheduled scan).
-		waitingForScan = true
-		setTimeout(() => {
-			findLandmarksAndUpdateBadge()
-			waitingForScan = false
-		}, mutationHandlingPause)
-	}
 }
 
 function shouldRefreshLandmarkss(mutations) {
