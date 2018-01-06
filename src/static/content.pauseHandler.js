@@ -21,6 +21,36 @@ function PauseHandler() {
 	let lastEvent = Date.now()
 	let decreasePauseTimeout = null
 	let haveIncreasedPauseAndScheduledTask = false
+	let logging = false
+
+
+	//
+	// Reflecting options and Loggign
+	//
+
+	function log() {
+		if (logging) {
+			console.log.apply(null, arguments)
+		}
+	}
+
+	function getDebugInfoOption() {
+		browser.storage.sync.get({
+			debugInfo: false
+		}, function(items) {
+			logging = items.debugInfo
+		})
+	}
+
+	function handleOptionsChange(changes) {
+		const changedOptions = Object.keys(changes)
+		if (changedOptions.includes('debugInfo')) {
+			logging = changes.debugInfo.newValue
+		}
+	}
+
+	getDebugInfoOption()
+	browser.storage.onChanged.addListener(handleOptionsChange)
 
 
 	//
@@ -33,7 +63,7 @@ function PauseHandler() {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		console.log('Increased pause to:', pause)
+		log('Increased pause to:', pause)
 	}
 
 	function decreasePause() {
@@ -48,13 +78,13 @@ function PauseHandler() {
 		} else {
 			decreasePause()
 		}
-		console.log('Decreased pause to:', pause)
+		log('Decreased pause to:', pause)
 	}
 
 	function stopDecreasingPause() {
 		clearTimeout(decreasePauseTimeout)
 		decreasePauseTimeout = null
-		console.log('Stopped decreasing the pause')
+		log('Stopped decreasing the pause')
 	}
 
 
@@ -62,19 +92,17 @@ function PauseHandler() {
 	// Public API
 	//
 
-	console.log('PAUSE HELPER CREATED')
-
 	this.run = function(guardedTask, scheduledTask) {
 		const now = Date.now()
 		if (now > lastEvent + pause) {
-			console.log('SCAN mutation')
+			log('SCAN mutation')
 			guardedTask()
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
-			console.log('Scheduling scan in:', pause)
+			log('Scheduling scan in:', pause)
 			setTimeout(() => {
-				console.log('SCAN as scheduled')
+				log('SCAN as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false

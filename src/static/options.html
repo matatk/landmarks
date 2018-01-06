@@ -3,9 +3,14 @@
 	<head>
 		<meta charset="UTF-8">
 		<title data-message="prefsTitle"></title>
+		<style>
+div.option {
+	padding-bottom: 0.75em;
+}
+		</style>
 	</head>
 	<body>
-		<div>
+		<div class="option">
 			<label for="border-type" data-message="prefsBorderType"></label>
 
 			<select id="border-type" class="browser-style">
@@ -13,6 +18,11 @@
 				<option value="persistent" data-message="prefsPersistent"></option>
 				<option value="none" data-message="prefsNone"></option>
 			</select>
+		</div>
+
+		<div class="option">
+			<input id="debug-info" type="checkbox">
+			<label for="debug-info" data-message="prefsDebugInfo"></label>
 		</div>
 
 		<div>

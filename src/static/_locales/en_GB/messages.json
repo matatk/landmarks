@@ -80,6 +80,10 @@
 		"message": "None"
 	},
 
+  "prefsDebugInfo": {
+    "message": "Show debugging info in the console"
+  },
+
 	"prefsSaveButton": {
 		"message": "Save"
 	},
