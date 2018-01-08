@@ -39,9 +39,10 @@ Navigating Landmarks
 
 You can use shortcut keys to navigate between landmarks. By default, the keys are:
 
--   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd>
--   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd>
--   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>m</kbd>
+-   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
+-   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
+-   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
+-   Show the landmarks pop-up: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.
 
 (On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
 
@@ -175,6 +176,8 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+- 2.1.1 - ???th of January 2018
+    -   Add a keyboard shortcut to show the landmarks pop-up. [[#135]](https://github.com/matatk/landmarks/pull/135)
 - 2.1.0 - 6th of November 2017
     -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [[#111]](https://github.com/matatk/landmarks/pull/111)
     -   Add a keyboard shortcut to skip to the main landmark.  [[also #111]](https://github.com/matatk/landmarks/pull/111)
