@@ -23,7 +23,7 @@ function restoreOptions() {
 
 // Wrapper to simplify saving settings, and handle the status update.
 function setWrapper(options) {
-	const area = browser.storage.sync || browser.storage.local
+	const area = browser.storage.sync
 	area.set(options, function() {
 		const statusRegion = document.getElementById('status')
 		statusRegion.textContent = browser.i18n.getMessage('prefsSaved')
