@@ -9,7 +9,7 @@ Landmarks broadly signpost the areas of a page (e.g. navigation, search, main c
 
 The following sections explain how to install and use the extension.
 
-If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)---in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
+If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)&mdash;in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
 Table of Contents
 -----------------
@@ -39,10 +39,10 @@ Navigating Landmarks
 
 You can use shortcut keys to navigate between landmarks. By default, the keys are:
 
--   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
--   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
--   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
--   Show the landmarks pop-up: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.
+-   **Next landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
+-   **Previous landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
+-   **Main landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
+-   **Open the landmarks pop-up:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.
 
 (On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
 
@@ -177,8 +177,10 @@ Changes
 -------
 
 -   2.1.1 - ???th of January 2018
-	-   Improve performance on sites that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [[#131](https://github.com/matatk/landmarks/pull/131)]
+    -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#???\]](https://github.com/matatk/landmarks/pull/???)
     -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
+    -   Give the options page a title that shows up for Opera users. [\[\#136\]](https://github.com/matatk/landmarks/pull/136)
+    -   Behind-the-scenes code and infrastructure improvements for improved quality. \[[\#124](https://github.com/matatk/landmarks/pull/124), [\#128](https://github.com/matatk/landmarks/pull/128), [\#129](https://github.com/matatk/landmarks/pull/129), [\#130](https://github.com/matatk/landmarks/pull/130)\]
 -   2.1.0 - 6th of November 2017
     -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [\[\#111\]](https://github.com/matatk/landmarks/pull/111)
     -   Add a keyboard shortcut to skip to the main landmark. [\[also \#111\]](https://github.com/matatk/landmarks/pull/111)
@@ -206,7 +208,7 @@ Changes
     -   Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
     -   No user-facing changes.
-    -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like---oops!)
+    -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
     -   Add more code robustosity checks with ESLint.
 -   2.0.4 - 4th of December 2016
     -   Clean up the appearance of the pop-up.
