@@ -5,11 +5,11 @@ Landmarks
 
 This is a browser extension (for Firefox, Chrome and Opera) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu (from the extension's toolbar button).
 
-Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
+Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
 The following sections explain how to install and use the extension.
 
-If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)—in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
+If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)---in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
 Table of Contents
 -----------------
@@ -39,9 +39,10 @@ Navigating Landmarks
 
 You can use shortcut keys to navigate between landmarks. By default, the keys are:
 
--   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>n</kbd>
--   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>p</kbd>
--   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>m</kbd>
+-   Next landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
+-   Previous landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
+-   Main landmark: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
+-   Show the landmarks pop-up: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.
 
 (On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
 
@@ -175,26 +176,28 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
-- 2.1.0 - 6th of November 2017
-    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [[#111]](https://github.com/matatk/landmarks/pull/111)
-    -   Add a keyboard shortcut to skip to the main landmark.  [[also #111]](https://github.com/matatk/landmarks/pull/111)
-    -   Fix a bug whereby sibling landmarks may not be identified as such. [[#112]](https://github.com/matatk/landmarks/pull/112)
-    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). [[#115]](https://github.com/matatk/landmarks/pull/115)
-    -   Use Mozilla's 'addons-linter' to check the built extension. [[err, also #111]](https://github.com/matatk/landmarks/pull/111)
-- 2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions. [[#85]](https://github.com/matatk/landmarks/pull/85)
-    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [[#102]](https://github.com/matatk/landmarks/pull/102)
-    -   Correctly restore elements' outlines after they are highlighted. [[#94]](https://github.com/matatk/landmarks/pull/94)
-    -   Automatically disable the extension on browsers' extensions store pages. [[#97]](https://github.com/matatk/landmarks/pull/97)
-    -   Start exploring what's needed for Edge support in future. [[#99]](https://github.com/matatk/landmarks/pull/99)
-    -   Improvements to the SVG to PNG process. [[#95]](https://github.com/matatk/landmarks/pull/95)
+-   2.1.1 - ???th of January 2018
+    -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
+-   2.1.0 - 6th of November 2017
+    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [\[\#111\]](https://github.com/matatk/landmarks/pull/111)
+    -   Add a keyboard shortcut to skip to the main landmark. [\[also \#111\]](https://github.com/matatk/landmarks/pull/111)
+    -   Fix a bug whereby sibling landmarks may not be identified as such. [\[\#112\]](https://github.com/matatk/landmarks/pull/112)
+    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). [\[\#115\]](https://github.com/matatk/landmarks/pull/115)
+    -   Use Mozilla's 'addons-linter' to check the built extension. [\[err, also \#111\]](https://github.com/matatk/landmarks/pull/111)
+-   2.0.8 - 18th of September 2017
+    -   Landmarks now ignores hidden regions. [\[\#85\]](https://github.com/matatk/landmarks/pull/85)
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [\[\#102\]](https://github.com/matatk/landmarks/pull/102)
+    -   Correctly restore elements' outlines after they are highlighted. [\[\#94\]](https://github.com/matatk/landmarks/pull/94)
+    -   Automatically disable the extension on browsers' extensions store pages. [\[\#97\]](https://github.com/matatk/landmarks/pull/97)
+    -   Start exploring what's needed for Edge support in future. [\[\#99\]](https://github.com/matatk/landmarks/pull/99)
+    -   Improvements to the SVG to PNG process. [\[\#95\]](https://github.com/matatk/landmarks/pull/95)
     -   Other more minor tweaks and fixes.
     -   README updates.
 -   2.0.7 - 11th of May 2017
     -   Officially support Opera.
     -   Make the landmark highlight more visible.
     -   Open a help page when the extension is installed/updated on Firefox (this was already supported on Chrome, and is on Opera).
-    -   Make use of Firefox’s synching of settings across devices.
+    -   Make use of Firefox's synching of settings across devices.
     -   More tests, and numerous other code improvements behind the scenes.
     -   Partly works on Edge; still a few things to sort out before it's robust (also, the extensions store is not yet immediately open to submissions from allcomers).
 -   2.0.6 - 2nd of February 2017
@@ -202,7 +205,7 @@ Changes
     -   Various large internal code-quality improvements.
 -   2.0.5 - 5th of December 2016
     -   No user-facing changes.
-    -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like—oops!)
+    -   Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like---oops!)
     -   Add more code robustosity checks with ESLint.
 -   2.0.4 - 4th of December 2016
     -   Clean up the appearance of the pop-up.
@@ -218,4 +221,3 @@ Changes
     -   Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
 -   2.0.2 - 12th of August 2016
     -   First WebExtension Release
-

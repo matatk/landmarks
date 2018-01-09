@@ -32,6 +32,11 @@
   ],
 
   "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      }
+    },
     "next-landmark": {
       "suggested_key": {
         "default": "Alt+Shift+N"
