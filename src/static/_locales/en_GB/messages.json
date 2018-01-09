@@ -60,6 +60,10 @@
 
 
 
+  "prefsTitle": {
+    "message": "Landmarks Options"
+  },
+
 	"prefsBorderType": {
 		"message": "Border type:"
 	},
