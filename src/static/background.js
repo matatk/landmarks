@@ -102,7 +102,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		default:
-			throw new Error(
+			throw Error(
 				'Landmarks: background script received unknown message:',
 				message, 'from', sender)
 	}

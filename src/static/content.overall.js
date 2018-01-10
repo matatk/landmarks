@@ -82,7 +82,7 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			bootstrap()
 			break
 		default:
-			throw new Error(
+			throw Error(
 				'Landmarks: content script received unknown message: '
 				+ message.request)
 	}
@@ -91,10 +91,14 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 function sendUpdateBadgeMessage() {
 	// Let the background script know how many landmarks were found, so
 	// that it can update the browser action badge.
-	browser.runtime.sendMessage({
-		request: 'update-badge',
-		landmarks: lf.numberOfLandmarks()
-	})
+	try {
+		browser.runtime.sendMessage({
+			request: 'update-badge',
+			landmarks: lf.numberOfLandmarks()
+		})
+	} catch (error) {
+		throw Error('I found this:', error.message)
+	}
 }
 
 function findLandmarksAndUpdateBadge() {
@@ -126,7 +130,7 @@ function bootstrap() {
 		} else if (landmarkFindingAttempts < maximumAttempts) {
 			setTimeout(bootstrapCore, attemptInterval)
 		} else {
-			throw new Error('Landmarks: page not available for scanning '
+			throw Error('Landmarks: page not available for scanning '
 				+ `after ${maximumAttempts} attempts.`)
 		}
 	}
@@ -135,9 +139,9 @@ function bootstrap() {
 }
 
 function setUpMutationObserver() {
-	// Guard against being innundated by mutation events
-	// (which happens in e.g. Google Docs)
 	const observer = new MutationObserver((mutations) => {
+		// Guard against being innundated by mutation events
+		// (which happens in e.g. Google Docs)
 		ph.run(
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
