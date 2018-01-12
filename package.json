@@ -23,7 +23,7 @@
     "test": "node test/test.js"
   },
   "devDependencies": {
-    "addons-linter": "~0.31",
+    "addons-linter": "~0.32",
     "archiver": "~2.1",
     "chalk": "~2.3",
     "deepmerge": "~2.0",
