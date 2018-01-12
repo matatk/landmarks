@@ -1,31 +1,54 @@
 'use strict'
 /* global LandmarksFinder ElementFocuser PauseHandler */
+const logger = new Logger()
+let observer = null
 
 const lf = new LandmarksFinder(window, document)
 const ef = new ElementFocuser()
-const ph = new PauseHandler()
+const ph = new PauseHandler(logger)
 
 
 //
-// Guard for focusing elements
+// Log messages according to user setting
 //
 
-// Check that it is OK to focus an landmark element
-function checkFocusElement(callbackReturningElement) {
-	// The user may use the keyboard commands before landmarks have been found
-	// However, the content script will run and find any landmarks very soon
-	// after the page has loaded.
-	if (!lf.haveSearchedForLandmarks()) {
-		alert(browser.i18n.getMessage('pageNotLoadedYet') + '.')
-		return
+function Logger() {
+	let logging = null
+
+	function getDebugInfoOption(callback) {
+		browser.storage.sync.get({
+			debugInfo: false
+		}, function(items) {
+			logging = items.debugInfo
+			if (callback) {
+				callback()
+			}
+		})
 	}
 
-	if (lf.numberOfLandmarks === 0) {
-		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
-		return
+	function handleOptionsChange(changes) {
+		const changedOptions = Object.keys(changes)
+		if (changedOptions.includes('debugInfo')) {
+			logging = changes.debugInfo.newValue
+		}
 	}
 
-	ef.focusElement(callbackReturningElement())
+	// We may wish to log messages right way, but the call to get the user
+	// setting is asynchronous. Therefore, we need to pass our bootstrapping
+	// code as a callback that is run when the option has been fetched.
+	//
+	// Also, we only define the log() function after successfully initing, so
+	// as to trap any errant uses of the logger.
+	this.init = function(callback) {
+		getDebugInfoOption(callback)
+		browser.storage.onChanged.addListener(handleOptionsChange)
+
+		this.log = function() {
+			if (logging) {
+				console.log.apply(null, arguments)
+			}
+		}
+	}
 }
 
 
@@ -34,36 +57,27 @@ function checkFocusElement(callbackReturningElement) {
 //
 
 // Act on requests from the background or pop-up scripts
-browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+function messageHandler(message, sender, sendResponse) {
 	switch (message.request) {
 		case 'get-landmarks':
 			// The pop-up is requesting the list of landmarks on the page
-
-			if (!lf.haveSearchedForLandmarks()) {
-				sendResponse('wait')
-			}
-			// We only guard for landmarks having been found here because the
-			// other messages still need to be handled regardless (or, in some
-			// cases, won't be recieved until after the pop-up has been
-			// displayed, so this check only needs to be here).
-
 			sendResponse(lf.filter())
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
-			checkFocusElement(() => lf.landmarkElement(message.index))
+			checkFocusElement(() => lf.getLandmarkElement(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			checkFocusElement(lf.nextLandmarkElement)
+			checkFocusElement(lf.getNextLandmarkElement)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			checkFocusElement(lf.previousLandmarkElement)
+			checkFocusElement(lf.getPreviousLandmarkElement)
 			break
 		case 'main-landmark': {
-			const mainElement = lf.selectMainElement()
+			const mainElement = lf.getMainElement()
 			if (mainElement) {
 				ef.focusElement(mainElement)
 			} else {
@@ -78,32 +92,51 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
+			logger.log('Landmarks: trigger-refresh')
 			ef.removeBorderOnCurrentlySelectedElement()
-			bootstrap()
+			findLandmarksAndUpdateBadge()
 			break
 		default:
-			throw Error(
-				'Landmarks: content script received unknown message: '
+			throw Error('Landmarks: content script received unknown message: '
 				+ message.request)
 	}
-})
-
-function sendUpdateBadgeMessage() {
-	// Let the background script know how many landmarks were found, so
-	// that it can update the browser action badge.
-	try {
-		browser.runtime.sendMessage({
-			request: 'update-badge',
-			landmarks: lf.numberOfLandmarks()
-		})
-	} catch (error) {
-		throw Error('I found this:', error.message)
-	}
 }
+
+function checkFocusElement(callbackReturningElement) {
+	if (lf.getNumberOfLandmarks() === 0) {
+		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
+		return
+	}
+
+	ef.focusElement(callbackReturningElement())
+}
+
+
+//
+// Actually finding landmarks
+//
 
 function findLandmarksAndUpdateBadge() {
 	lf.find()
 	sendUpdateBadgeMessage()
+}
+
+function sendUpdateBadgeMessage() {
+	try {
+		browser.runtime.sendMessage({
+			request: 'update-badge',
+			landmarks: lf.getNumberOfLandmarks()
+		})
+	} catch (error) {
+		// The most likely error is that, on !Firefox this content script has
+		// been retired because the extension was unloaded/reloaded. In which
+		// case, we don't want to keep handling mutations.
+		if (observer) {
+			observer.disconnect()
+		} else {
+			throw error
+		}
+	}
 }
 
 
@@ -111,35 +144,18 @@ function findLandmarksAndUpdateBadge() {
 // Bootstrapping and mutation observer setup
 //
 
-// Most pages I've tried have got to a readyState of 'complete' within
-// 10-100ms.  Therefore this should easily be sufficient.
 function bootstrap() {
-	const attemptInterval = 500
-	const maximumAttempts = 4
-	let landmarkFindingAttempts = 0
-
-	lf.reset()
-	sendUpdateBadgeMessage()
-
-	function bootstrapCore() {
-		landmarkFindingAttempts += 1
-
-		if (document.readyState === 'complete') {
-			findLandmarksAndUpdateBadge()
-			setUpMutationObserver()
-		} else if (landmarkFindingAttempts < maximumAttempts) {
-			setTimeout(bootstrapCore, attemptInterval)
-		} else {
-			throw Error('Landmarks: page not available for scanning '
-				+ `after ${maximumAttempts} attempts.`)
-		}
-	}
-
-	setTimeout(bootstrapCore, attemptInterval)
+	logger.init(() => {
+		logger.log('Bootstrapping Landmarks')
+		logger.log(`Document state: ${document.readyState}`)
+		findLandmarksAndUpdateBadge()
+		setUpMutationObserver()
+		browser.runtime.onMessage.addListener(messageHandler)
+	})
 }
 
 function setUpMutationObserver() {
-	const observer = new MutationObserver((mutations) => {
+	observer = new MutationObserver((mutations) => {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		ph.run(
@@ -194,5 +210,10 @@ function shouldRefreshLandmarkss(mutations) {
 	}
 	return false
 }
+
+
+//
+// Entry point
+//
 
 bootstrap()

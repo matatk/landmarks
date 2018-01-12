@@ -63,8 +63,6 @@ function LandmarksFinder(win, doc) {
 	//   label: (string or null) -- author-supplied label
 	//   element: (HTML*Element) -- in-memory element
 
-	let haveSearchedForLandmarks = false
-
 
 	//
 	// Keeping track of landmark navigation
@@ -259,15 +257,6 @@ function LandmarksFinder(win, doc) {
 		mainElementIndex = -1
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
-		haveSearchedForLandmarks = true
-	}
-
-	this.haveSearchedForLandmarks = function() {
-		return haveSearchedForLandmarks
-	}
-
-	this.reset = function() {
-		haveSearchedForLandmarks = false
 	}
 
 	this.filter = function() {
@@ -278,26 +267,26 @@ function LandmarksFinder(win, doc) {
 		}))
 	}
 
-	this.numberOfLandmarks = function() {
-		return haveSearchedForLandmarks ? landmarks.length : -1
+	this.getNumberOfLandmarks = function() {
+		return landmarks.length
 	}
 
-	this.nextLandmarkElement = function() {
+	this.getNextLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
-	this.previousLandmarkElement = function() {
+	this.getPreviousLandmarkElement = function() {
 		return updateSelectedIndexAndReturnElement(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
-	this.landmarkElement = function(index) {
+	this.getLandmarkElement = function(index) {
 		return updateSelectedIndexAndReturnElement(index)
 	}
 
-	this.selectMainElement = function() {
+	this.getMainElement = function() {
 		return mainElementIndex < 0 ?
 			null : updateSelectedIndexAndReturnElement(mainElementIndex)
 	}

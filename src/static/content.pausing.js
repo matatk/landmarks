@@ -1,7 +1,7 @@
 'use strict'
 /* exported PauseHandler */
 
-function PauseHandler() {
+function PauseHandler(logger) {
 	//
 	// Constants
 	//
@@ -21,36 +21,6 @@ function PauseHandler() {
 	let lastEvent = Date.now()
 	let decreasePauseTimeout = null
 	let haveIncreasedPauseAndScheduledTask = false
-	let logging = false
-
-
-	//
-	// Reflecting options and Loggign
-	//
-
-	function log() {
-		if (logging) {
-			console.log.apply(null, arguments)
-		}
-	}
-
-	function getDebugInfoOption() {
-		browser.storage.sync.get({
-			debugInfo: false
-		}, function(items) {
-			logging = items.debugInfo
-		})
-	}
-
-	function handleOptionsChange(changes) {
-		const changedOptions = Object.keys(changes)
-		if (changedOptions.includes('debugInfo')) {
-			logging = changes.debugInfo.newValue
-		}
-	}
-
-	getDebugInfoOption()
-	browser.storage.onChanged.addListener(handleOptionsChange)
 
 
 	//
@@ -63,7 +33,7 @@ function PauseHandler() {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		log('Increased pause to:', pause)
+		logger.log('Increased pause to:', pause)
 	}
 
 	function decreasePause() {
@@ -78,13 +48,13 @@ function PauseHandler() {
 		} else {
 			decreasePause()
 		}
-		log('Decreased pause to:', pause)
+		logger.log('Decreased pause to:', pause)
 	}
 
 	function stopDecreasingPause() {
 		clearTimeout(decreasePauseTimeout)
 		decreasePauseTimeout = null
-		log('Stopped decreasing the pause')
+		logger.log('Stopped decreasing the pause')
 	}
 
 
@@ -95,14 +65,14 @@ function PauseHandler() {
 	this.run = function(guardedTask, scheduledTask) {
 		const now = Date.now()
 		if (now > lastEvent + pause) {
-			log('SCAN mutation')
+			logger.log('SCAN mutation')
 			guardedTask()
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
-			log('Scheduling scan in:', pause)
+			logger.log('Scheduling scan in:', pause)
 			setTimeout(() => {
-				log('SCAN as scheduled')
+				logger.log('SCAN as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
