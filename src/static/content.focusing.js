@@ -2,6 +2,7 @@
 /* exported ElementFocuser */
 
 function ElementFocuser() {
+	const momentaryBorderTime = 2000
 	let currentlySelectedElement
 
 
@@ -38,7 +39,7 @@ function ElementFocuser() {
 				addBorder(element)
 
 				if (borderTypePref === 'momentary') {
-					setTimeout(() => removeBorder(element), 2000)
+					setTimeout(() => removeBorder(element), momentaryBorderTime)
 				}
 			}
 

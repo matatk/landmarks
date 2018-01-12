@@ -1,5 +1,6 @@
 'use strict'
 /* global LandmarksFinder ElementFocuser PauseHandler */
+const outOfDateTime = 2000
 const logger = new Logger()
 let observer = null
 
@@ -61,22 +62,27 @@ function messageHandler(message, sender, sendResponse) {
 	switch (message.request) {
 		case 'get-landmarks':
 			// The pop-up is requesting the list of landmarks on the page
+			handleOutdatedResults()
 			sendResponse(lf.filter())
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
+			handleOutdatedResults()
 			checkFocusElement(() => lf.getLandmarkElement(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
+			handleOutdatedResults()
 			checkFocusElement(lf.getNextLandmarkElement)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
+			handleOutdatedResults()
 			checkFocusElement(lf.getPreviousLandmarkElement)
 			break
 		case 'main-landmark': {
+			handleOutdatedResults()
 			const mainElement = lf.getMainElement()
 			if (mainElement) {
 				ef.focusElement(mainElement)
@@ -99,6 +105,13 @@ function messageHandler(message, sender, sendResponse) {
 		default:
 			throw Error('Landmarks: content script received unknown message: '
 				+ message.request)
+	}
+}
+
+function handleOutdatedResults() {
+	if (ph.getPauseTime() > outOfDateTime) {
+		logger.log(`Landmarks may be out of date (pause: ${ph.getPauseTime()}); scanning now...`)
+		findLandmarksAndUpdateBadge()
 	}
 }
 
@@ -132,6 +145,7 @@ function sendUpdateBadgeMessage() {
 		// been retired because the extension was unloaded/reloaded. In which
 		// case, we don't want to keep handling mutations.
 		if (observer) {
+			logger.log('Disconnecting observer from retired content script')
 			observer.disconnect()
 		} else {
 			throw error
@@ -161,6 +175,7 @@ function setUpMutationObserver() {
 		ph.run(
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
+					logger.log('SCAN mutation')
 					findLandmarksAndUpdateBadge()
 				}
 			},

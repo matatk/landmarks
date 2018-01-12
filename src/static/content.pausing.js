@@ -65,7 +65,6 @@ function PauseHandler(logger) {
 	this.run = function(guardedTask, scheduledTask) {
 		const now = Date.now()
 		if (now > lastEvent + pause) {
-			logger.log('SCAN mutation')
 			guardedTask()
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
@@ -79,5 +78,9 @@ function PauseHandler(logger) {
 			}, pause)
 			haveIncreasedPauseAndScheduledTask = true
 		}
+	}
+
+	this.getPauseTime = function() {
+		return pause
 	}
 }
