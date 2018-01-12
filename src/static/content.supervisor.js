@@ -14,13 +14,17 @@ const ph = new PauseHandler(logger)
 //
 
 function Logger() {
-	let logging = null
+	const that = this
 
 	function getDebugInfoOption(callback) {
 		browser.storage.sync.get({
 			debugInfo: false
 		}, function(items) {
-			logging = items.debugInfo
+			// We only define the log() function after successfully initing, so
+			// as to trap any errant uses of the logger.
+			handleOptionsChange({
+				debugInfo: items.debugInfo
+			})
 			if (callback) {
 				callback()
 			}
@@ -28,27 +32,24 @@ function Logger() {
 	}
 
 	function handleOptionsChange(changes) {
-		const changedOptions = Object.keys(changes)
-		if (changedOptions.includes('debugInfo')) {
-			logging = changes.debugInfo.newValue
+		if (changes.hasOwnProperty('debugInfo')) {
+			// Ensure the correct line number is reported
+			// https://stackoverflow.com/a/32928812/1485308
+			// https://stackoverflow.com/a/28668819/1485308
+			if (changes.debugInfo) {
+				that.log = console.log.bind(window.console)
+			} else {
+				that.log = function() {}
+			}
 		}
 	}
 
 	// We may wish to log messages right way, but the call to get the user
 	// setting is asynchronous. Therefore, we need to pass our bootstrapping
 	// code as a callback that is run when the option has been fetched.
-	//
-	// Also, we only define the log() function after successfully initing, so
-	// as to trap any errant uses of the logger.
 	this.init = function(callback) {
 		getDebugInfoOption(callback)
 		browser.storage.onChanged.addListener(handleOptionsChange)
-
-		this.log = function() {
-			if (logging) {
-				console.log.apply(null, arguments)
-			}
-		}
 	}
 }
 
