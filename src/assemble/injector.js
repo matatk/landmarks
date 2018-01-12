@@ -19,7 +19,7 @@ function landmarksContentScriptInjector() {
 								file:'content.pausing.js'
 							}, function() {
 								browser.tabs.executeScript(tabs[i].id, {
-									file: 'content.overall.js'
+									file: 'content.supervisor.js'
 								})
 							})
 						})

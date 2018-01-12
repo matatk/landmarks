@@ -27,7 +27,7 @@
         "content.finder.js",
         "content.focusing.js",
         "content.pausing.js",
-        "content.overall.js"
+        "content.supervisor.js"
       ]
     }
   ],
