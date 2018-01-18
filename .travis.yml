@@ -1,11 +1,8 @@
 language: node_js
-node_js:
-    - '7'
+node_js: '8'
 cache:
   directories:
     - node_modules
     - build/png-cache
-install:
-  - npm install
-script:
-  - npm run build:all
+install: npm install
+script: npm run build:all
