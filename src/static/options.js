@@ -1,29 +1,35 @@
 'use strict'
+const statusMessageDuration = 2000
 const borderTypeId = 'border-type'
+const debugInfoId = 'debug-info'
 
 function saveOptions() {
 	setWrapper({
-		borderType: document.getElementById(borderTypeId).value
+		borderType: document.getElementById(borderTypeId).value,
+		debugInfo: document.getElementById(debugInfoId).checked
 	})
 }
 
 function restoreOptions() {
 	browser.storage.sync.get({
-		borderType: 'momentary',  // default value
+		// These are default values
+		borderType: 'momentary',
+		debugInfo: false
 	}, function(items) {
 		document.getElementById(borderTypeId).value = items.borderType
+		document.getElementById(debugInfoId).checked = items.debugInfo
 	})
 }
 
 // Wrapper to simplify saving settings, and handle the status update.
 function setWrapper(options) {
-	const area = browser.storage.sync || browser.storage.local
+	const area = browser.storage.sync
 	area.set(options, function() {
 		const statusRegion = document.getElementById('status')
 		statusRegion.textContent = browser.i18n.getMessage('prefsSaved')
 		setTimeout(function() {
 			statusRegion.textContent = ''
-		}, 750)
+		}, statusMessageDuration)
 	})
 }
 

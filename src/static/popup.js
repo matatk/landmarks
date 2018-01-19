@@ -29,8 +29,6 @@ function handleLandmarksResponse(response) {
 		} else {
 			makeLandmarksTree(response, display)
 		}
-	} else if (response === 'wait') {
-		addText(display, browser.i18n.getMessage('pageNotLoadedYet'))
 	} else {
 		addText(display, errorString() + 'content script sent: ' + response)
 	}

@@ -49,10 +49,6 @@
 		"message": "No landmarks found"
 	},
 
-	"pageNotLoadedYet": {
-		"message": "The page has not yet been checked for landmarks; please try again"
-	},
-
 	"tryReloading": {
 		"message": "Try reloading the page"
 	},
@@ -79,6 +75,10 @@
 	"prefsNone": {
 		"message": "None"
 	},
+
+  "prefsDebugInfo": {
+    "message": "Show debugging info in the console"
+  },
 
 	"prefsSaveButton": {
 		"message": "Save"

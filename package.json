@@ -23,17 +23,17 @@
     "test": "node test/test.js"
   },
   "devDependencies": {
-    "addons-linter": "~0.31",
+    "addons-linter": "~0.32",
     "archiver": "~2.1",
     "chalk": "~2.3",
     "deepmerge": "~2.0",
-    "eslint": "~4.14",
+    "eslint": "~4.15",
     "fs-extra": "~5.0",
     "husky": "~0.14",
     "is-mergeable-object": "~1.1",
     "jsdom": "~11.5",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
-    "puppeteer": "~0.13",
+    "puppeteer": "~1.0",
     "replace-in-file": "~3.1",
     "rimraf": "~2.6",
     "test": "~0.6"

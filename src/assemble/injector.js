@@ -16,7 +16,11 @@ function landmarksContentScriptInjector() {
 							file: 'content.focusing.js'
 						}, function() {
 							browser.tabs.executeScript(tabs[i].id, {
-								file: 'content.management.js'
+								file:'content.pausing.js'
+							}, function() {
+								browser.tabs.executeScript(tabs[i].id, {
+									file: 'content.supervisor.js'
+								})
 							})
 						})
 					})

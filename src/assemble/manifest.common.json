@@ -26,7 +26,8 @@
       "js": [
         "content.finder.js",
         "content.focusing.js",
-        "content.management.js"
+        "content.pausing.js",
+        "content.supervisor.js"
       ]
     }
   ],
