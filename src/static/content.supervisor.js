@@ -148,6 +148,7 @@ function sendUpdateBadgeMessage() {
 		if (observer) {
 			logger.log('Disconnecting observer from retired content script')
 			observer.disconnect()
+			observer = null
 		} else {
 			throw error
 		}
