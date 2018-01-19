@@ -52,9 +52,11 @@ function PauseHandler(logger) {
 	}
 
 	function stopDecreasingPause() {
-		clearTimeout(decreasePauseTimeout)
-		decreasePauseTimeout = null
-		logger.log('Stopped decreasing the pause')
+		if (decreasePauseTimeout) {
+			clearTimeout(decreasePauseTimeout)
+			decreasePauseTimeout = null
+			logger.log('Stopped decreasing the pause')
+		}
 	}
 
 
