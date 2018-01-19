@@ -1,26 +1,26 @@
 {
-	"extensionShortName": {
-		"message": "Landmarks"
-	},
+  "extensionShortName": {
+    "message": "Landmarks"
+  },
 
-	"extensionFullName": {
-		"message": "Landmark Navigation via Keyboard or Pop-up"
-	},
+  "extensionFullName": {
+    "message": "Landmark Navigation via Keyboard or Pop-up"
+  },
 
-	"extensionDescription": {
-		"message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
-	},
-
-
+  "extensionDescription": {
+    "message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
+  },
 
 
-	"nextLandmarkShortcutDescription": {
-		"message": "Move to and highlight the next landmark"
-	},
 
-	"previousLandmarkShortcutDescription": {
-		"message": "Move to and highlight the previous landmark"
-	},
+
+  "nextLandmarkShortcutDescription": {
+    "message": "Move to and highlight the next landmark"
+  },
+
+  "previousLandmarkShortcutDescription": {
+    "message": "Move to and highlight the previous landmark"
+  },
 
   "mainLandmarkShortcutDescription": {
     "message": "Move to and highlight the main landmark"
@@ -33,25 +33,25 @@
 
 
 
-	"popupHeading": {
-		"message": "Landmarks on page"
-	},
+  "popupHeading": {
+    "message": "Landmarks on page"
+  },
 
-	"errorWord": {
-		"message": "Error"
-	},
+  "errorWord": {
+    "message": "Error"
+  },
 
-	"errorGettingLandmarksFromContentScript": {
-		"message": "Sorry, there was an error when trying to find landmarks"
-	},
+  "errorGettingLandmarksFromContentScript": {
+    "message": "Sorry, there was an error when trying to find landmarks"
+  },
 
-	"noLandmarksFound": {
-		"message": "No landmarks found"
-	},
+  "noLandmarksFound": {
+    "message": "No landmarks found"
+  },
 
-	"tryReloading": {
-		"message": "Try reloading the page"
-	},
+  "tryReloading": {
+    "message": "Try reloading the page"
+  },
 
 
 
@@ -60,31 +60,31 @@
     "message": "Landmarks Options"
   },
 
-	"prefsBorderType": {
-		"message": "Border type:"
-	},
+  "prefsBorderType": {
+    "message": "Border type:"
+  },
 
-	"prefsMomentary": {
-		"message": "Momentary"
-	},
+  "prefsMomentary": {
+    "message": "Momentary"
+  },
 
-	"prefsPersistent": {
-		"message": "Persistent"
-	},
+  "prefsPersistent": {
+    "message": "Persistent"
+  },
 
-	"prefsNone": {
-		"message": "None"
-	},
+  "prefsNone": {
+    "message": "None"
+  },
 
   "prefsDebugInfo": {
     "message": "Show debugging info in the console"
   },
 
-	"prefsSaveButton": {
-		"message": "Save"
-	},
+  "prefsSaveButton": {
+    "message": "Save"
+  },
 
-	"prefsSaved": {
-		"message": "Options saved"
-	}
+  "prefsSaved": {
+    "message": "Options saved"
+  }
 }
