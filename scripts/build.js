@@ -6,13 +6,14 @@ const chalk = require('chalk')
 const merge = require('deepmerge')
 const archiver = require('archiver')
 const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
-const packageJson = require(path.join('..', 'package.json'))
 const replace = require('replace-in-file')
+
 // For restoring pre-2.0.0 deepmerge behaviour...
 const isMergeableObject = require('is-mergeable-object')
 const emptyTarget = value => Array.isArray(value) ? [] : {}
 const clone = (value, options) => merge(emptyTarget(value), value, options)
 
+const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
 const extVersion = packageJson.version
 const buildDir = 'build'
@@ -27,7 +28,7 @@ const validBrowsers = Object.freeze([
 	'opera',
 	'edge'
 ])
-const buildModes = Object.freeze(validBrowsers.concat(['all']))
+const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
 	'firefox': [
@@ -71,6 +72,8 @@ const linters = Object.freeze({
 	'firefox': lintFirefox
 })
 
+let testMode = false  // are we building a test (alpha/beta) version?
+
 
 function error(message) {
 	console.error(chalk.bold.red('✖ ' + message))
@@ -84,25 +87,30 @@ function logStep(name) {
 }
 
 
-// Check we got only one argument and it's valid; return list of builds to make
+// First user argument is the name of a browser (or 'all').
+// Second user argument is (optionally) 'test' to signify a test release.
 function checkBuildMode() {
-	const args = process.argv.slice(2)
+	const browser = process.argv[2]
+	testMode = process.argv[3] === 'test' ? true : false
 
-	if (args.length !== 1 || buildModes.indexOf(args[0]) === -1) {
-		error(`Invalid build mode requested: expected one of [${buildModes}] but received '${args}'`)
+	if (!buildTargets.includes(browser)) {
+		error(`Invalid build mode requested: expected one of [${buildTargets}] but received '${browser}'`)
 	}
 
-	if (args[0] === 'all') {
-		return validBrowsers
+	if (testMode && browser !== 'chrome') {
+		error('Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as "2.1.0alpha1" can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.')
 	}
 
-	return args
+	return browser === 'all' ? validBrowsers : [browser]
 }
 
 
 // Return path for extension in build folder
 function pathToBuild(browser) {
-	if (validBrowsers.indexOf(browser) !== -1) {
+	if (validBrowsers.includes(browser)) {
+		if (testMode) {
+			return path.join(buildDir, browser + '-test')
+		}
 		return path.join(buildDir, browser)
 	}
 
@@ -117,14 +125,14 @@ function copyStaticFiles(browser) {
 	if (browser === 'firefox') {
 		try {
 			const changes = replace.sync({
-				files: pathToBuild('firefox') + '/*.html',
+				files: path.join(pathToBuild('firefox'), '*.html'),
 				from: '<script src="compatibility.js"></script>',
 				to: ''
 			})
 			console.log('Removed inclusion of compatibility.js from:',
 				changes.join(', '))
 		} catch (error) {
-			console.error('Error occurred:', error)
+			error('Error occurred:', error)
 		}
 	}
 }
@@ -202,8 +210,25 @@ function getPngs(converter, browser) {
 }
 
 
+function renameTestVersion(browser) {
+	try {
+		const changes = replace.sync({
+			files: path.join(pathToBuild(browser), '**', 'messages.json'),
+			from: /"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
+			to: '"Landmarks (test version)"'
+			// Note: Chrome Web Store has a limit of 45 characters for name.
+		})
+		console.log('Suffixed name to indicate test version:',
+			changes.join(', '))
+	} catch (error) {
+		error('Error occurred:', error)
+	}
+}
+
+
 function zipFileName(browser) {
-	return extName + '-' + extVersion + '-' + browser + '.zip'
+	const test = testMode ? '-test' : ''
+	return extName + '-' + extVersion + test + '-' + browser + '.zip'
 }
 
 
@@ -244,7 +269,7 @@ function lintFirefox() {
 	})
 
 	linter.run().catch((err) => {
-		console.error(err)
+		error(err)
 	})
 }
 
@@ -258,21 +283,28 @@ function copyESLintRC() {
 }
 
 
-// Overall build process
-console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
-const browsers = checkBuildMode()
-const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
+function main() {
+	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
+	const browsers = checkBuildMode()
+	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
+	const testModeMessage = testMode ? ' (test version)' : ''
 
-browsers.forEach((browser) => {
-	console.log()
-	logStep(chalk.bold(`Building for ${browser}...`))
+	browsers.forEach((browser) => {
+		console.log()
+		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
+		copyStaticFiles(browser)
+		copySpecialPagesFile(browser)
+		mergeManifest(browser)
+		copyCompatibilityShimAndContentScriptInjector(browser)
+		getPngs(sp, browser)
+		if (testMode) {
+			renameTestVersion(browser)
+		}
+		makeZip(browser)
+	})
 
-	copyStaticFiles(browser)
-	copySpecialPagesFile(browser)
-	mergeManifest(browser)
-	copyCompatibilityShimAndContentScriptInjector(browser)
-	getPngs(sp, browser)
-	makeZip(browser)
-})
+	copyESLintRC()
+}
 
-copyESLintRC()
+
+main()
