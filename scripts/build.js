@@ -7,6 +7,7 @@ const merge = require('deepmerge')
 const archiver = require('archiver')
 const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
+const glob = require('glob')
 
 // For restoring pre-2.0.0 deepmerge behaviour...
 const isMergeableObject = require('is-mergeable-object')
@@ -75,8 +76,10 @@ const linters = Object.freeze({
 let testMode = false  // are we building a test (alpha/beta) version?
 
 
-function error(message) {
-	console.error(chalk.bold.red('✖ ' + message))
+function error() {
+	const argStrings = [...arguments].map((x) =>
+		typeof x === 'string' ? x : JSON.stringify(x, null, 2))
+	console.error(chalk.bold.red.apply(this, ['✖'].concat(argStrings)))
 	process.exit(42)
 }
 
@@ -115,6 +118,33 @@ function pathToBuild(browser) {
 	}
 
 	error(`pathToBuild: invalid browser ${browser} given`)
+}
+
+
+function checkMessages() {
+	logStep('Checking for unused messages...')
+
+	const translationsFile = path.join(
+		srcStaticDir, '_locales', 'en_GB', 'messages.json')
+	const messages = JSON.parse(fs.readFileSync(translationsFile))
+	const files = glob.sync(path.join('src', '**'), {
+		nodir: true,
+		ignore: [translationsFile]
+	})
+	const messageSummary = {}  // count usages of each message
+
+	for (const messageName in messages) {
+		messageSummary[messageName] = 0
+		for (const file of files) {
+			messageSummary[messageName] +=
+				(fs.readFileSync(file).toString().match(
+					new RegExp(messageName, 'g')) || []).length
+		}
+	}
+
+	if (Object.values(messageSummary).some((x) => x === 0)) {
+		error('Some messages are unused:', messageSummary)
+	}
 }
 
 
@@ -288,6 +318,9 @@ function main() {
 	const browsers = checkBuildMode()
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
+
+	console.log()
+	checkMessages()
 
 	browsers.forEach((browser) => {
 		console.log()
