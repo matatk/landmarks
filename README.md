@@ -149,6 +149,30 @@ If a landmark label is present (via the `aria-labelledby` or `aria-label` attrib
 
 There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form` or `region` landmarks, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
+### Digital Publishing ARIA Landmarks
+
+The following additional landmark roles defined in the [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/) are also supported.
+
+-    `doc-acknowledgements`
+-    `doc-afterword`
+-    `doc-appendix`
+-    `doc-bibliography`
+-    `doc-chapter`
+-    `doc-conclusion`
+-    `doc-credits`
+-    `doc-endnotes`
+-    `doc-epilogue`
+-    `doc-errata`
+-    `doc-foreword`
+-    `doc-glossary`
+-    `doc-index` (is a landmark via `navigation`)
+-    `doc-introduction`
+-    `doc-pagelist` (is a landmark via `navigation`)
+-    `doc-part`
+-    `doc-preface`
+-    `doc-prologue`
+-    `doc-toc` (is a landmark via `navigation`)
+
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
 
