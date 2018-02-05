@@ -86,5 +86,116 @@
 
   "prefsSaved": {
     "message": "Options saved"
+  },
+
+
+
+
+  "roleBanner": {
+    "message": "Banner"
+  },
+
+  "roleComplementary": {
+    "message": "Complementary"
+  },
+
+  "roleContentinfo": {
+    "message": "Content Information"
+  },
+
+  "roleForm": {
+    "message": "Form"
+  },
+
+  "roleMain": {
+    "message": "Main"
+  },
+
+  "roleNavigation": {
+    "message": "Navigation"
+  },
+
+  "roleRegion": {
+    "message": "Region"
+  },
+
+  "roleSearch": {
+    "message": "Search"
+  },
+
+  "roleAcknowledgements": {
+    "message": "Acknowledgements"
+  },
+
+  "roleAfterword": {
+    "message": "Afterword"
+  },
+
+  "roleAppendix": {
+    "message": "Appendix"
+  },
+
+  "roleBibliography": {
+    "message": "Bibliography"
+  },
+
+  "roleChapter": {
+    "message": "Chapter"
+  },
+
+  "roleConclusion": {
+    "message": "Conclusion"
+  },
+
+  "roleCredits": {
+    "message": "Credits"
+  },
+
+  "roleEndnotes": {
+    "message": "Endnotes"
+  },
+
+  "roleEpilogue": {
+    "message": "Epilogue"
+  },
+
+  "roleErrata": {
+    "message": "Errata"
+  },
+
+  "roleForeword": {
+    "message": "Foreword"
+  },
+
+  "roleGlossary": {
+    "message": "Glossary"
+  },
+
+  "roleIndex": {
+    "message": "Index"
+  },
+
+  "roleIntroduction": {
+    "message": "Introduction"
+  },
+
+  "rolePagelist": {
+    "message": "Pagelist"
+  },
+
+  "rolePart": {
+    "message": "Part"
+  },
+
+  "rolePreface": {
+    "message": "Preface"
+  },
+
+  "rolePrologue": {
+    "message": "Prologue"
+  },
+
+  "roleToc": {
+    "message": "Table of Contents"
   }
 }
