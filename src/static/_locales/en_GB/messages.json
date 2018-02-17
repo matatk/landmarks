@@ -100,7 +100,7 @@
   },
 
   "roleContentinfo": {
-    "message": "Content Information"
+    "message": "Content information"
   },
 
   "roleForm": {
@@ -196,6 +196,6 @@
   },
 
   "roleToc": {
-    "message": "Table of Contents"
+    "message": "Table of contents"
   }
 }
