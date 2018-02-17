@@ -32,6 +32,7 @@ function ElementFocuser() {
 				element.setAttribute('tabindex', '-1')
 			}
 
+			element.scrollIntoView()  // always go to the top of it
 			element.focus()
 
 			// Add the border and set a timer to remove it (if required by user)
