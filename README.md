@@ -203,7 +203,7 @@ Changes
 -------
 
 -   2.2.0 - ???th of February 2018
-    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#???](https://github.com/matatk/landmarks/pull/???)\]
+    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
     -   Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
 -   2.1.1 - 19th of January 2018
     -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#139\]](https://github.com/matatk/landmarks/pull/139)
