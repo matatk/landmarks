@@ -8,6 +8,7 @@ function LandmarksFinder(win, doc) {
 
 	// List of landmarks to navigate
 	const regionTypes = Object.freeze([
+		// Core ARIA
 		'banner',
 		'complementary',
 		'contentinfo',
@@ -15,7 +16,28 @@ function LandmarksFinder(win, doc) {
 		'main',
 		'navigation',
 		'region',         // must label
-		'search'
+		'search',
+
+		// Digital Publishing ARIA module
+		'doc-acknowledgements',
+		'doc-afterword',
+		'doc-appendix',
+		'doc-bibliography',
+		'doc-chapter',
+		'doc-conclusion',
+		'doc-credits',
+		'doc-endnotes',
+		'doc-epilogue',
+		'doc-errata',
+		'doc-foreword',
+		'doc-glossary',
+		'doc-index',         // via navigation
+		'doc-introduction',
+		'doc-pagelist',      // via navigation
+		'doc-part',
+		'doc-preface',
+		'doc-prologue',
+		'doc-toc'            // via navigation
 	])
 
 	// Mapping of HTML5 elements to implicit roles

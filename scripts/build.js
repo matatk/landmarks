@@ -122,7 +122,7 @@ function pathToBuild(browser) {
 
 
 function checkMessages() {
-	logStep('Checking for unused messages...')
+	logStep('Checking for unused messages (except role names)...')
 
 	const translationsFile = path.join(
 		srcStaticDir, '_locales', 'en_GB', 'messages.json')
@@ -135,6 +135,13 @@ function checkMessages() {
 
 	for (const messageName in messages) {
 		messageSummary[messageName] = 0
+
+		if (messageName.startsWith('role')) {
+			// The role names' calls are constructed dynamically (and are
+			// probably OK).
+			messageSummary[messageName] = '?'
+		}
+
 		for (const file of files) {
 			messageSummary[messageName] +=
 				(fs.readFileSync(file).toString().match(

@@ -149,6 +149,30 @@ If a landmark label is present (via the `aria-labelledby` or `aria-label` attrib
 
 There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form` or `region` landmarks, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
+### Digital Publishing ARIA Landmarks
+
+The following additional landmark roles defined in the [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/) are also supported.
+
+-    `doc-acknowledgements`
+-    `doc-afterword`
+-    `doc-appendix`
+-    `doc-bibliography`
+-    `doc-chapter`
+-    `doc-conclusion`
+-    `doc-credits`
+-    `doc-endnotes`
+-    `doc-epilogue`
+-    `doc-errata`
+-    `doc-foreword`
+-    `doc-glossary`
+-    `doc-index` (is a landmark via `navigation`)
+-    `doc-introduction`
+-    `doc-pagelist` (is a landmark via `navigation`)
+-    `doc-part`
+-    `doc-preface`
+-    `doc-prologue`
+-    `doc-toc` (is a landmark via `navigation`)
+
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
 
@@ -178,7 +202,8 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.?.? - ???th of ??? 2018
+-   2.2.0 - ???th of February 2018
+    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
     -   Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
 -   2.1.1 - 19th of January 2018
     -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#139\]](https://github.com/matatk/landmarks/pull/139)

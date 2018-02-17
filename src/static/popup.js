@@ -95,7 +95,8 @@ function makeLandmarksTree(landmarks, container) {
 			base = base.parentElement.parentElement
 		}
 
-		// If the depth has changed, insert/step back the appropriate number of levels
+		// If the depth has changed, insert/step back the appropriate number of
+		// levels
 
 		if (absDepthChange > 0) {
 			const operation =
@@ -130,10 +131,18 @@ function makeLandmarksTree(landmarks, container) {
 // otherwise the name is just 'role'
 function landmarkName(landmark) {
 	if (landmark.label) {
-		return landmark.label + ' (' + landmark.role + ')'
+		return landmark.label + ' (' + processRole(landmark.role) + ')'
 	}
 
-	return landmark.role
+	return processRole(landmark.role)
+}
+
+// Fetch the user-friendly name for a role
+function processRole(role) {
+	const capRole = base => (base.charAt(0).toUpperCase() + base.slice(1))
+
+	return browser.i18n.getMessage('role' +
+		(role.startsWith('doc-') ? capRole(role.slice(4)) : capRole(role)))
 }
 
 // When a landmark's corresponding button in the UI is clicked, focus it
