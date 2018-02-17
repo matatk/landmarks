@@ -1,0 +1,28 @@
+{
+  "expected": [
+    { "depth": 0, "role": "doc-part", "label": "Frontmatter" },
+    { "depth": 1, "role": "doc-toc", "label": null },
+    { "depth": 1, "role": "doc-pagelist", "label": null },
+    { "depth": 1, "role": "doc-preface", "label": null },
+    { "depth": 1, "role": "doc-foreword", "label": null },
+    { "depth": 1, "role": "doc-acknowledgements", "label": null },
+    { "depth": 1, "role": "doc-prologue", "label": null },
+    { "depth": 1, "role": "doc-introduction", "label": null },
+    { "depth": 0, "role": "doc-part", "label": "Mainmatter" },
+    { "depth": 1, "role": "doc-chapter", "label": "Beginnings" },
+    { "depth": 1, "role": "doc-chapter", "label": "Middles" },
+    { "depth": 1, "role": "doc-chapter", "label": "Endings" },
+    { "depth": 1, "role": "doc-conclusion", "label": null },
+    { "depth": 0, "role": "doc-part", "label": "Backmatter" },
+    { "depth": 1, "role": "doc-epilogue", "label": null },
+    { "depth": 1, "role": "doc-afterword", "label": null },
+    { "depth": 1, "role": "doc-endnotes", "label": null },
+    { "depth": 1, "role": "doc-bibliography", "label": "References" },
+    { "depth": 1, "role": "doc-glossary", "label": null },
+    { "depth": 1, "role": "doc-index", "label": null },
+    { "depth": 1, "role": "doc-credits", "label": null },
+    { "depth": 1, "role": "doc-errata", "label": null },
+    { "depth": 1, "role": "doc-appendix", "label": "Technical specification" },
+    { "depth": 1, "role": "doc-appendix", "label": "Detailed schematics" }
+  ]
+}
