@@ -109,11 +109,13 @@ Some further info on the test/build process:
 
 -   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
 
--   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:firefox`, `npm run clean:chrome` or `npm run clean:all`, as with the build scripts above.
+-   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:<browser>` and `npm run clean:all`, as with the build scripts above.
 
--   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached, so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+-   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
 
 -   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
+
+-   The `build:chrome:test` script is provided for making an alpha/beta/test build for Chrome, which is the same as a normal build, but the extension is retitled to "Landmarks (test version)". A separate extension listing is required for publishing test versions in the Chrome Web Store. For Firefox Add-ons, a version number such as "2.1.0beta1" can be used and the built package can be uploaded to the extension's beta channel.
 
 ### Test Pages
 
@@ -146,6 +148,30 @@ If a landmark label is present (via the `aria-labelledby` or `aria-label` attrib
 
 There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form` or `region` landmarks, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
 
+### Digital Publishing ARIA Landmarks
+
+The following additional landmark roles defined in the [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/) are also supported.
+
+-    `doc-acknowledgements`
+-    `doc-afterword`
+-    `doc-appendix`
+-    `doc-bibliography`
+-    `doc-chapter`
+-    `doc-conclusion`
+-    `doc-credits`
+-    `doc-endnotes`
+-    `doc-epilogue`
+-    `doc-errata`
+-    `doc-foreword`
+-    `doc-glossary`
+-    `doc-index` (is a landmark via `navigation`)
+-    `doc-introduction`
+-    `doc-pagelist` (is a landmark via `navigation`)
+-    `doc-part`
+-    `doc-preface`
+-    `doc-prologue`
+-    `doc-toc` (is a landmark via `navigation`)
+
 Information for Web Authors, Designers and Developers
 -----------------------------------------------------
 
@@ -175,6 +201,10 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.2.0 - 18th of February 2018
+    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
+    -   Always scroll to the top of a landmark when moving to it. \[[\#151](https://github.com/matatk/landmarks/pull/151)\]
+    -   Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
 -   2.1.1 - 19th of January 2018
     -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#139\]](https://github.com/matatk/landmarks/pull/139)
     -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
