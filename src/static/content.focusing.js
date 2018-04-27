@@ -24,36 +24,37 @@ function ElementFocuser() {
 		browser.storage.sync.get({
 			borderType: 'momentary'
 		}, function(items) {
+			const element = elementInfo.element
+			const borderPref = items.borderType
+
 			removeBorderOnCurrentlySelectedElement()
 
 			// Ensure that the element is focusable
-			const originalTabindex = elementInfo.element.getAttribute('tabindex')
+			const originalTabindex = element.getAttribute('tabindex')
 			if (originalTabindex === null || originalTabindex === '0') {
-				elementInfo.element.setAttribute('tabindex', '-1')
+				element.setAttribute('tabindex', '-1')
 			}
 
-			elementInfo.element.scrollIntoView()  // always go to the top of it
-			elementInfo.element.focus()
+			element.scrollIntoView()  // always go to the top of it
+			element.focus()
 
 			// Add the border and set a timer to remove it (if required by user)
-			if (items.borderType === 'persistent' || items.borderType === 'momentary') {
-				addBorder(elementInfo.element, landmarkName(elementInfo))
+			if (borderPref === 'persistent' || borderPref === 'momentary') {
+				addBorder(element, landmarkName(elementInfo))
 
-				if (items.borderType === 'momentary') {
-					setTimeout(
-						() => removeBorder(elementInfo.element),
-						momentaryBorderTime)
+				if (borderPref === 'momentary') {
+					setTimeout(() => removeBorder(element), momentaryBorderTime)
 				}
 			}
 
 			// Restore tabindex value
 			if (originalTabindex === null) {
-				elementInfo.element.removeAttribute('tabindex')
+				element.removeAttribute('tabindex')
 			} else if (originalTabindex === '0') {
-				elementInfo.element.setAttribute('tabindex', '0')
+				element.setAttribute('tabindex', '0')
 			}
 
-			currentlyFocusedElement = elementInfo.element
+			currentlyFocusedElement = element
 		})
 	}
 
@@ -69,7 +70,7 @@ function ElementFocuser() {
 
 	// Did we just make changes to a border? If so the mutations can be
 	// ignored.
-	this.getJustMadeChanges = function() {
+	this.didJustMakeChanges = function() {
 		const didChanges = justMadeChanges
 		justMadeChanges = false
 		return didChanges
@@ -83,7 +84,7 @@ function ElementFocuser() {
 	const elementBorders = {}  // TODO limit growth
 
 	function addBorder(element, name) {
-		const zIndex = 1000000
+		const zIndex = 10000000
 		const bounds = element.getBoundingClientRect()
 
 		const labelContent = document.createTextNode(name)
@@ -91,7 +92,7 @@ function ElementFocuser() {
 		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = 'red'
 		labelDiv.style.color = 'white'
-		labelDiv.style.fontSize = '1em'
+		labelDiv.style.fontSize = '18px'
 		labelDiv.style.fontWeight = 'bold'
 		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.float = 'right'

@@ -176,7 +176,7 @@ function setUpMutationObserver() {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		ph.run(
-			ef.getJustMadeChanges,
+			ef.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('SCAN mutation')
