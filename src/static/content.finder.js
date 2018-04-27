@@ -99,11 +99,14 @@ function LandmarksFinder(win, doc) {
 	// changes and the landmarks are updated.
 	let selectedElement
 
-	function updateSelectedIndexAndReturnElement(index) {
+	function updateSelectedIndexAndReturnElementInfo(index) {
 		if (landmarks.length === 0) return
 		currentlySelectedIndex = index
-		selectedElement = landmarks[index].element
-		return selectedElement
+		return {
+			element: landmarks[index].element,
+			role: landmarks[index].role,
+			label: landmarks[index].label
+		}
 	}
 
 
@@ -293,23 +296,26 @@ function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	this.getNextLandmarkElement = function() {
-		return updateSelectedIndexAndReturnElement(
+	// These all return elements and their public-facing info:
+	// { element: HTMLElement, role: <string>, label: <string> }
+
+	this.getNextLandmarkElementRoleLabel = function() {
+		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
-	this.getPreviousLandmarkElement = function() {
-		return updateSelectedIndexAndReturnElement(
+	this.getPreviousLandmarkElementRoleLabel = function() {
+		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
-	this.getLandmarkElement = function(index) {
-		return updateSelectedIndexAndReturnElement(index)
+	this.getLandmarkElementRoleLabel = function(index) {
+		return updateSelectedIndexAndReturnElementInfo(index)
 	}
 
-	this.getMainElement = function() {
+	this.getMainElementRoleLabel = function() {
 		return mainElementIndex < 0 ?
-			null : updateSelectedIndexAndReturnElement(mainElementIndex)
+			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
 	}
 }

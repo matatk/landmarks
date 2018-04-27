@@ -1,5 +1,6 @@
 'use strict'
 /* exported ElementFocuser */
+/* global landmarkName */
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
@@ -10,48 +11,48 @@ function ElementFocuser() {
 	// Public API
 	//
 
-	// Set focus on the selected landmark element.
+	// Set focus on the selected landmark element. It takes an element info
+	// object, as returned by the various LandmarksFinder functions.
 	//
-	// This function requires an actual DOM element, as returned by various
-	// functions of the LandmarksFinder.
+	// { element: HTMLElement, role: <string>, label: <string> }
 	//
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	this.focusElement = function(element) {
+	this.focusElement = function(elementInfo) {
 		browser.storage.sync.get({
 			borderType: 'momentary'
 		}, function(items) {
 			removeBorderOnCurrentlySelectedElement()
 
-			const borderTypePref = items.borderType
-
 			// Ensure that the element is focusable
-			const originalTabindex = element.getAttribute('tabindex')
+			const originalTabindex = elementInfo.element.getAttribute('tabindex')
 			if (originalTabindex === null || originalTabindex === '0') {
-				element.setAttribute('tabindex', '-1')
+				elementInfo.element.setAttribute('tabindex', '-1')
 			}
 
-			element.scrollIntoView()  // always go to the top of it
-			element.focus()
+			elementInfo.element.scrollIntoView()  // always go to the top of it
+			elementInfo.element.focus()
 
 			// Add the border and set a timer to remove it (if required by user)
-			if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
-				addBorder(element)
+			if (items.borderType === 'persistent' || items.borderType === 'momentary') {
+				addBorder(elementInfo.element, landmarkName(elementInfo))
 
-				if (borderTypePref === 'momentary') {
-					setTimeout(() => removeBorder(element), momentaryBorderTime)
+				if (items.borderType === 'momentary') {
+					setTimeout(
+						() => removeBorder(elementInfo.element),
+						momentaryBorderTime)
 				}
 			}
 
 			// Restore tabindex value
 			if (originalTabindex === null) {
-				element.removeAttribute('tabindex')
+				elementInfo.element.removeAttribute('tabindex')
 			} else if (originalTabindex === '0') {
-				element.setAttribute('tabindex', '0')
+				elementInfo.element.setAttribute('tabindex', '0')
 			}
 
-			currentlySelectedElement = element
+			currentlySelectedElement = elementInfo.element
 		})
 	}
 
@@ -70,21 +71,48 @@ function ElementFocuser() {
 	// Private API
 	//
 
-	function addBorder(element) {
-		element.dataset.landmarksOriginalOutline = element.style.outline
-		element.dataset.landmarksOriginalOutlineOffset =
-			element.style.outlineOffset
+	const elementBorders = {}  // TODO limit growth
 
-		element.style.outline = '5px solid red'
-		element.style.outlineOffset = '-3px'
+	function addBorder(element, name) {
+		console.log('adding border to', name)
+		const zIndex = 99999
+		const bounds = element.getBoundingClientRect()
+
+		const labelContent = document.createTextNode(name)
+
+		const labelDiv = document.createElement('div')
+		labelDiv.style.backgroundColor = 'red'
+		labelDiv.style.color = 'white'
+		labelDiv.style.fontSize = '1em'
+		labelDiv.style.fontWeight = 'bold'
+		labelDiv.style.fontFamily = 'sans-serif'
+		labelDiv.style.float = 'right'
+		labelDiv.style.paddingLeft = '0.25em'
+		labelDiv.style.paddingRight = '0.25em'
+		labelDiv.style.zIndex = zIndex
+		labelDiv.appendChild(labelContent)
+
+		const borderDiv = document.createElement('div')
+		borderDiv.style.left = window.scrollX + bounds.left + 'px'
+		borderDiv.style.top = window.scrollY + bounds.top + 'px'
+		borderDiv.style.width = bounds.width + 'px'
+		borderDiv.style.height = bounds.height + 'px'
+		borderDiv.style.border = '2px solid red'
+		borderDiv.style.outline = '2px solid red'
+		borderDiv.style.position = 'absolute'
+		borderDiv.style.zIndex = zIndex
+		borderDiv.dataset.isLandmarkBorder = true
+
+		borderDiv.appendChild(labelDiv)
+		document.body.appendChild(borderDiv)
+
+		elementBorders[element] = borderDiv
 	}
 
 	function removeBorder(element) {
-		element.style.outline = element.dataset.landmarksOriginalOutline
-		element.style.outlineOffset =
-			element.dataset.landmarksOriginalOutlineOffset
-
-		element.removeAttribute('data-landmarks-original-outline')
-		element.removeAttribute('data-landmarks-original-outline-offset')
+		if (element in elementBorders) {
+			elementBorders[element].remove()
+			delete elementBorders[element]
+		}
 	}
 }

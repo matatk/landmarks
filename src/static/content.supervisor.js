@@ -70,17 +70,18 @@ function messageHandler(message, sender, sendResponse) {
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
 			handleOutdatedResults()
-			checkFocusElement(() => lf.getLandmarkElement(message.index))
+			checkFocusElement(
+				() => lf.getLandmarkElementRoleLabel(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getNextLandmarkElement)
+			checkFocusElement(lf.getNextLandmarkElementRoleLabel)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getPreviousLandmarkElement)
+			checkFocusElement(lf.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
 			handleOutdatedResults()
@@ -116,13 +117,13 @@ function handleOutdatedResults() {
 	}
 }
 
-function checkFocusElement(callbackReturningElement) {
+function checkFocusElement(callbackReturningElementInfo) {
 	if (lf.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
 		return
 	}
 
-	ef.focusElement(callbackReturningElement())
+	ef.focusElement(callbackReturningElementInfo())
 }
 
 
@@ -201,6 +202,10 @@ function shouldRefreshLandmarkss(mutations) {
 			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
 				for (const node of nodes) {
 					if (node.nodeType === Node.ELEMENT_NODE) {
+						// Ignore border elements added by Landmarks
+						if (node.dataset.isLandmarkBorder) {
+							continue
+						}
 						return true
 					}
 				}
