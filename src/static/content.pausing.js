@@ -64,7 +64,9 @@ function PauseHandler(logger) {
 	// Public API
 	//
 
-	this.run = function(guardedTask, scheduledTask) {
+	this.run = function(ignoreCheck, guardedTask, scheduledTask) {
+		if (ignoreCheck()) return
+
 		const now = Date.now()
 		if (now > lastEvent + pause) {
 			guardedTask()

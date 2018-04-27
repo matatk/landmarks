@@ -85,9 +85,9 @@ function messageHandler(message, sender, sendResponse) {
 			break
 		case 'main-landmark': {
 			handleOutdatedResults()
-			const mainElement = lf.getMainElement()
-			if (mainElement) {
-				ef.focusElement(mainElement)
+			const mainElementInfo = lf.getMainElementRoleLabel()
+			if (mainElementInfo) {
+				ef.focusElement(mainElementInfo)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
 			}
@@ -176,6 +176,7 @@ function setUpMutationObserver() {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		ph.run(
+			ef.getJustMadeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('SCAN mutation')
@@ -202,10 +203,6 @@ function shouldRefreshLandmarkss(mutations) {
 			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
 				for (const node of nodes) {
 					if (node.nodeType === Node.ELEMENT_NODE) {
-						// Ignore border elements added by Landmarks
-						if (node.dataset.isLandmarkBorder) {
-							continue
-						}
 						return true
 					}
 				}

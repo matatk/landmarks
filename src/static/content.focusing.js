@@ -4,7 +4,8 @@
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
-	let currentlySelectedElement
+	let justMadeChanges = false
+	let currentlyFocusedElement
 
 
 	//
@@ -52,19 +53,27 @@ function ElementFocuser() {
 				elementInfo.element.setAttribute('tabindex', '0')
 			}
 
-			currentlySelectedElement = elementInfo.element
+			currentlyFocusedElement = elementInfo.element
 		})
 	}
 
 	function removeBorderOnCurrentlySelectedElement() {
-		if (currentlySelectedElement) {
-			removeBorder(currentlySelectedElement)
+		if (currentlyFocusedElement) {
+			removeBorder(currentlyFocusedElement)
 		}
 	}
 
 	// Also needs to be available publicly
 	this.removeBorderOnCurrentlySelectedElement =
 		removeBorderOnCurrentlySelectedElement
+
+	// Did we just make changes to a border? If so the mutations can be
+	// ignored.
+	this.getJustMadeChanges = function() {
+		const didChanges = justMadeChanges
+		justMadeChanges = false
+		return didChanges
+	}
 
 
 	//
@@ -74,8 +83,7 @@ function ElementFocuser() {
 	const elementBorders = {}  // TODO limit growth
 
 	function addBorder(element, name) {
-		console.log('adding border to', name)
-		const zIndex = 99999
+		const zIndex = 1000000
 		const bounds = element.getBoundingClientRect()
 
 		const labelContent = document.createTextNode(name)
@@ -90,7 +98,6 @@ function ElementFocuser() {
 		labelDiv.style.paddingLeft = '0.25em'
 		labelDiv.style.paddingRight = '0.25em'
 		labelDiv.style.zIndex = zIndex
-		labelDiv.appendChild(labelContent)
 
 		const borderDiv = document.createElement('div')
 		borderDiv.style.left = window.scrollX + bounds.left + 'px'
@@ -103,7 +110,9 @@ function ElementFocuser() {
 		borderDiv.style.zIndex = zIndex
 		borderDiv.dataset.isLandmarkBorder = true
 
+		labelDiv.appendChild(labelContent)
 		borderDiv.appendChild(labelDiv)
+		justMadeChanges = true
 		document.body.appendChild(borderDiv)
 
 		elementBorders[element] = borderDiv
@@ -111,6 +120,7 @@ function ElementFocuser() {
 
 	function removeBorder(element) {
 		if (element in elementBorders) {
+			justMadeChanges = true
 			elementBorders[element].remove()
 			delete elementBorders[element]
 		}

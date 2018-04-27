@@ -97,13 +97,14 @@ function LandmarksFinder(win, doc) {
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmarks are updated.
-	let selectedElement
+	let currentlySelectedElement
 
 	function updateSelectedIndexAndReturnElementInfo(index) {
 		if (landmarks.length === 0) return
 		currentlySelectedIndex = index
+		currentlySelectedElement = landmarks[index].element
 		return {
-			element: landmarks[index].element,
+			element: currentlySelectedElement,
 			role: landmarks[index].role,
 			label: landmarks[index].label
 		}
@@ -151,7 +152,7 @@ function LandmarksFinder(win, doc) {
 
 					// Was this element selected before we were called (i.e.
 					// before the page was dynamically updated)?
-					if (selectedElement === elementChild) {
+					if (currentlySelectedElement === elementChild) {
 						currentlySelectedIndex = landmarks.length - 1
 					}
 
