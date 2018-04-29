@@ -1,11 +1,12 @@
 'use strict'
 /* exported ElementFocuser */
-/* global landmarkName */
+/* global landmarkName defaultSettings */
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
 	let justMadeChanges = false
-	let currentlyFocusedElement
+	let currentlyFocusedElementBorder = null
+	let timer = null
 
 
 	//
@@ -21,11 +22,10 @@ function ElementFocuser() {
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	this.focusElement = function(elementInfo) {
-		browser.storage.sync.get({
-			borderType: 'momentary'
-		}, function(items) {
+		browser.storage.sync.get(defaultSettings, function(items) {
 			const element = elementInfo.element
 			const borderPref = items.borderType
+			const borderColour = items.borderColour
 
 			removeBorderOnCurrentlySelectedElement()
 
@@ -40,10 +40,15 @@ function ElementFocuser() {
 
 			// Add the border and set a timer to remove it (if required by user)
 			if (borderPref === 'persistent' || borderPref === 'momentary') {
-				addBorder(element, landmarkName(elementInfo))
+				addBorder(borderColour, element, landmarkName(elementInfo))
 
 				if (borderPref === 'momentary') {
-					setTimeout(() => removeBorder(element), momentaryBorderTime)
+					if (timer) {
+						clearTimeout(timer)
+					}
+					timer = setTimeout(
+						removeBorderOnCurrentlySelectedElement,
+						momentaryBorderTime)
 				}
 			}
 
@@ -53,14 +58,13 @@ function ElementFocuser() {
 			} else if (originalTabindex === '0') {
 				element.setAttribute('tabindex', '0')
 			}
-
-			currentlyFocusedElement = element
 		})
 	}
 
 	function removeBorderOnCurrentlySelectedElement() {
-		if (currentlyFocusedElement) {
-			removeBorder(currentlyFocusedElement)
+		if (currentlyFocusedElementBorder) {
+			currentlyFocusedElementBorder.remove()
+			currentlyFocusedElementBorder = null  // TOOD needed?
 		}
 	}
 
@@ -81,16 +85,14 @@ function ElementFocuser() {
 	// Private API
 	//
 
-	const elementBorders = {}  // TODO limit growth
-
-	function addBorder(element, name) {
+	function addBorder(colour, element, name) {
 		const zIndex = 10000000
 		const bounds = element.getBoundingClientRect()
 
 		const labelContent = document.createTextNode(name)
 
 		const labelDiv = document.createElement('div')
-		labelDiv.style.backgroundColor = 'red'
+		labelDiv.style.backgroundColor = colour
 		labelDiv.style.color = 'white'
 		labelDiv.style.fontSize = '18px'
 		labelDiv.style.fontWeight = 'bold'
@@ -105,8 +107,8 @@ function ElementFocuser() {
 		borderDiv.style.top = window.scrollY + bounds.top + 'px'
 		borderDiv.style.width = bounds.width + 'px'
 		borderDiv.style.height = bounds.height + 'px'
-		borderDiv.style.border = '2px solid red'
-		borderDiv.style.outline = '2px solid red'
+		borderDiv.style.border = '2px solid ' + colour
+		borderDiv.style.outline = '2px solid ' + colour
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
 		borderDiv.dataset.isLandmarkBorder = true
@@ -115,15 +117,8 @@ function ElementFocuser() {
 		borderDiv.appendChild(labelDiv)
 		justMadeChanges = true
 		document.body.appendChild(borderDiv)
+		// FIXME what if changing viewport size?
 
-		elementBorders[element] = borderDiv
-	}
-
-	function removeBorder(element) {
-		if (element in elementBorders) {
-			justMadeChanges = true
-			elementBorders[element].remove()
-			delete elementBorders[element]
-		}
+		currentlyFocusedElementBorder = borderDiv
 	}
 }

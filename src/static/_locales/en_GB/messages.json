@@ -76,6 +76,10 @@
     "message": "None"
   },
 
+  "prefsBorderColour": {
+    "message": "Border colour:"
+  },
+
   "prefsDebugInfo": {
     "message": "Show debugging info in the console"
   },

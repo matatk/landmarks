@@ -1,22 +1,26 @@
 'use strict'
+/* global defaultSettings */
 const statusMessageDuration = 2000
 const borderTypeId = 'border-type'
+const borderColourId = 'border-colour'
 const debugInfoId = 'debug-info'
 
 function saveOptions() {
 	setWrapper({
 		borderType: document.getElementById(borderTypeId).value,
-		debugInfo: document.getElementById(debugInfoId).checked
+		debugInfo: document.getElementById(debugInfoId).checked,
+		borderColour: document.getElementById(borderColourId).value
 	})
 }
 
 function restoreOptions() {
-	browser.storage.sync.get({
-		// These are default values
-		borderType: 'momentary',
+	const fullDefaultSettings = Object.assign({
 		debugInfo: false
-	}, function(items) {
+	}, defaultSettings)
+
+	browser.storage.sync.get(fullDefaultSettings, function(items) {
 		document.getElementById(borderTypeId).value = items.borderType
+		document.getElementById(borderColourId).value = items.borderColour
 		document.getElementById(debugInfoId).checked = items.debugInfo
 	})
 }
