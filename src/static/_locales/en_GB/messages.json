@@ -80,6 +80,10 @@
     "message": "Border colour:"
   },
 
+  "prefsBorderLabelFontSize": {
+    "message": "Border label font size (pixels):"
+  },
+
   "prefsDebugInfo": {
     "message": "Show debugging info in the console"
   },

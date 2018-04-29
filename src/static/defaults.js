@@ -1,7 +1,15 @@
 'use strict'
-/* exported defaultSettings */
+/* exported defaultBorderSettings defaultSettings */
 
-const defaultSettings = Object.freeze({
+const defaultBorderSettings = Object.freeze({
 	borderType: 'momentary',
-	borderColour: '#ff0000'
+	borderColour: '#ff0000',
+	borderLabelFontSize: '18'
 })
+
+const defaultDebugSettings = Object.freeze({
+	debugInfo: false
+})
+
+const defaultSettings = Object.freeze(
+	Object.assign({}, defaultBorderSettings, defaultDebugSettings))

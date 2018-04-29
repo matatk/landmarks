@@ -7,6 +7,10 @@
 div.option {
 	padding-bottom: 0.75em;
 }
+
+input[type=number] {
+	width: 4em;
+}
 		</style>
 	</head>
 	<body>
@@ -23,6 +27,11 @@ div.option {
 		<div class="option">
 			<label for="border-colour" data-message="prefsBorderColour"></label>
 			<input type="color" id="border-colour">
+		</div>
+
+		<div class="option">
+			<label for="border-label-font-size" data-message="prefsBorderLabelFontSize"></label>
+			<input type="number" id="border-label-font-size">
 		</div>
 
 		<div class="option">
