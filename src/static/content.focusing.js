@@ -27,6 +27,7 @@ function ElementFocuser() {
 			const borderShown = items.borderType
 			const borderPrefs = {
 				colour: items.borderColour,
+				fontColour: items.borderLabelColour,
 				fontSize: items.borderLabelFontSize
 			}
 
@@ -91,7 +92,8 @@ function ElementFocuser() {
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it.
 	//
-	// The format of the settings object is { colour: #<hex>, fontSize: <int> }
+	// The format of the settings object is
+	//     { colour: #<hex>, fontColour: #<hex>, fontSize: <int> }
 	function addBorder(element, name, settings) {
 		const zIndex = 10000000
 		const bounds = element.getBoundingClientRect()
@@ -100,7 +102,7 @@ function ElementFocuser() {
 
 		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = settings.colour
-		labelDiv.style.color = 'white'
+		labelDiv.style.color = settings.fontColour
 		labelDiv.style.fontSize = settings.fontSize + 'px'
 		labelDiv.style.fontWeight = 'bold'
 		labelDiv.style.fontFamily = 'sans-serif'
