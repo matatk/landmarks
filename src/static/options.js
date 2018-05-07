@@ -3,7 +3,6 @@
 const statusMessageDuration = 2000
 const borderTypeId = 'border-type'
 const borderColourId = 'border-colour'
-const borderLabelColourId = 'border-label-colour'
 const borderLabelFontSizeId = 'border-label-font-size'
 const debugInfoId = 'debug-info'
 
@@ -11,7 +10,6 @@ function saveOptions() {
 	setWrapper({
 		borderType: document.getElementById(borderTypeId).value,
 		borderColour: document.getElementById(borderColourId).value,
-		borderLabelColour: document.getElementById(borderLabelColourId).value,
 		borderLabelFontSize:
 			document.getElementById(borderLabelFontSizeId).value,
 		debugInfo: document.getElementById(debugInfoId).checked,
@@ -22,8 +20,6 @@ function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
 		document.getElementById(borderTypeId).value = items.borderType
 		document.getElementById(borderColourId).value = items.borderColour
-		document.getElementById(borderLabelColourId).value =
-			items.borderLabelColour
 		document.getElementById(borderLabelFontSizeId).value =
 			items.borderLabelFontSize
 		document.getElementById(debugInfoId).checked = items.debugInfo

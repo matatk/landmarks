@@ -30,16 +30,20 @@ function landmarksContentScriptInjector() {
 							file: 'defaults.js'
 						}, function() {
 							browser.tabs.executeScript(tabs[i].id, {
-								file: 'content.finder.js'
+								file: 'contrast.js'
 							}, function() {
 								browser.tabs.executeScript(tabs[i].id, {
-									file: 'content.focusing.js'
+									file: 'content.finder.js'
 								}, function() {
 									browser.tabs.executeScript(tabs[i].id, {
-										file:'content.pausing.js'
+										file: 'content.focusing.js'
 									}, function() {
 										browser.tabs.executeScript(tabs[i].id, {
-											file: 'content.supervisor.js'
+											file:'content.pausing.js'
+										}, function() {
+											browser.tabs.executeScript(tabs[i].id, {
+												file: 'content.supervisor.js'
+											})
 										})
 									})
 								})

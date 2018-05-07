@@ -1,6 +1,6 @@
 'use strict'
 /* exported ElementFocuser */
-/* global landmarkName defaultBorderSettings */
+/* global landmarkName defaultBorderSettings ContrastChecker */
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
@@ -9,12 +9,16 @@ function ElementFocuser() {
 	let currentResizeHandler = null
 	let timer = null
 
+	const contrastChecker = new ContrastChecker()
+
 	// Get settings and keep them up-to-date
 	const settings = {}
+	let labelFontColour = null
 
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		for (const option in items) {
 			settings[option] = items[option]
+			checkLabelFontColour(option)
 		}
 	})
 
@@ -22,6 +26,7 @@ function ElementFocuser() {
 		for (const option in changes) {
 			if (settings.hasOwnProperty(option)) {
 				settings[option] = changes[option].newValue
+				checkLabelFontColour(option)
 			}
 		}
 	})
@@ -42,9 +47,9 @@ function ElementFocuser() {
 	this.focusElement = function(elementInfo) {
 		const element = elementInfo.element
 		const type = settings.borderType
-		const appearance = {
+		const appearance = {  // passed to lower-level drawing code
 			colour: settings.borderColour,
-			fontColour: settings.borderLabelColour,
+			fontColour: labelFontColour,
 			fontSize: settings.borderLabelFontSize
 		}
 
@@ -162,5 +167,13 @@ function ElementFocuser() {
 	// When the viewport changes, update the border <div>
 	function resize(element) {
 		sizeBorder(element, currentlyFocusedElementBorder)
+	}
+
+	// When getting or updating options, update the label font colour in
+	// line with the border colour
+	function checkLabelFontColour(option) {
+		if (option === 'borderColour') {
+			labelFontColour = contrastChecker.labelTextColour(settings[option])
+		}
 	}
 }

@@ -80,10 +80,6 @@
     "message": "Border colour:"
   },
 
-  "prefsBorderLabelColour": {
-    "message": "Border label colour:"
-  },
-
   "prefsBorderLabelFontSize": {
     "message": "Border label font size (pixels):"
   },

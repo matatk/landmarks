@@ -4,7 +4,6 @@
 const defaultBorderSettings = Object.freeze({
 	borderType: 'momentary',
 	borderColour: '#008000',
-	borderLabelColour: '#ffffff',
 	borderLabelFontSize: '18'
 })
 

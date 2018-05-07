@@ -26,6 +26,7 @@
       "js": [
         "landmarkName.js",
         "defaults.js",
+        "contrast.js",
         "content.finder.js",
         "content.focusing.js",
         "content.pausing.js",
