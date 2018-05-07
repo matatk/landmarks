@@ -133,8 +133,10 @@ function ElementFocuser() {
 		labelDiv.style.fontWeight = 'bold'
 		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.float = 'right'
-		labelDiv.style.paddingLeft = '0.25em'
-		labelDiv.style.paddingRight = '0.25em'
+		labelDiv.style.paddingLeft = '0.75em'
+		labelDiv.style.paddingRight = '0.75em'
+		labelDiv.style.paddingTop = '0.25em'
+		labelDiv.style.paddingBottom = '0.25em'
 		labelDiv.style.zIndex = zIndex
 
 		const borderDiv = document.createElement('div')
