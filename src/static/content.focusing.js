@@ -9,6 +9,23 @@ function ElementFocuser() {
 	let currentResizeHandler = null
 	let timer = null
 
+	// Get settings and keep them up-to-date
+	const settings = {}
+
+	browser.storage.sync.get(defaultBorderSettings, function(items) {
+		for (const option in items) {
+			settings[option] = items[option]
+		}
+	})
+
+	browser.storage.onChanged.addListener(function(changes) {
+		for (const option in changes) {
+			if (settings.hasOwnProperty(option)) {
+				settings[option] = changes[option].newValue
+			}
+		}
+	})
+
 
 	//
 	// Public API
@@ -23,54 +40,53 @@ function ElementFocuser() {
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	this.focusElement = function(elementInfo) {
-		browser.storage.sync.get(defaultBorderSettings, function(items) {
-			const element = elementInfo.element
-			const borderShown = items.borderType
-			const borderPrefs = {
-				colour: items.borderColour,
-				fontColour: items.borderLabelColour,
-				fontSize: items.borderLabelFontSize
-			}
+		const element = elementInfo.element
+		const type = settings.borderType
+		const appearance = {
+			colour: settings.borderColour,
+			fontColour: settings.borderLabelColour,
+			fontSize: settings.borderLabelFontSize
+		}
 
-			removeBorderOnCurrentlySelectedElement()
+		removeBorderOnCurrentlySelectedElement()
 
-			// Ensure that the element is focusable
-			const originalTabindex = element.getAttribute('tabindex')
-			if (originalTabindex === null || originalTabindex === '0') {
-				element.setAttribute('tabindex', '-1')
-			}
+		// Ensure that the element is focusable
+		const originalTabindex = element.getAttribute('tabindex')
+		if (originalTabindex === null || originalTabindex === '0') {
+			element.setAttribute('tabindex', '-1')
+		}
 
-			element.scrollIntoView()  // always go to the top of it
-			element.focus()
+		element.scrollIntoView()  // always go to the top of it
+		element.focus()
 
-			// Add the border and set a timer to remove it (if required by user)
-			if (borderShown === 'persistent' || borderShown === 'momentary') {
-				addBorder(element, landmarkName(elementInfo), borderPrefs)
+		// Add the border and set a timer to remove it (if required by user)
+		if (type === 'persistent' || type === 'momentary') {
+			addBorder(element, landmarkName(elementInfo), appearance)
 
-				if (borderShown === 'momentary') {
-					if (timer) {
-						clearTimeout(timer)
-					}
-					timer = setTimeout(
-						removeBorderOnCurrentlySelectedElement,
-						momentaryBorderTime)
+			if (type === 'momentary') {
+				if (timer) {
+					clearTimeout(timer)
 				}
+				timer = setTimeout(
+					removeBorderOnCurrentlySelectedElement,
+					momentaryBorderTime)
 			}
+		}
 
-			// Restore tabindex value
-			if (originalTabindex === null) {
-				element.removeAttribute('tabindex')
-			} else if (originalTabindex === '0') {
-				element.setAttribute('tabindex', '0')
-			}
-		})
+		// Restore tabindex value
+		if (originalTabindex === null) {
+			element.removeAttribute('tabindex')
+		} else if (originalTabindex === '0') {
+			element.setAttribute('tabindex', '0')
+		}
 	}
 
 	function removeBorderOnCurrentlySelectedElement() {
 		if (currentlyFocusedElementBorder) {
+			justMadeChanges = true
 			currentlyFocusedElementBorder.remove()
 			window.removeEventListener('resize', currentResizeHandler)
-			currentlyFocusedElementBorder = null  // TOOD needed?
+			currentlyFocusedElementBorder = null
 		}
 	}
 

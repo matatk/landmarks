@@ -7,6 +7,7 @@
     "_build": "node scripts/build.js",
     "post_build": "eslint build",
     "build:all": "npm run clean:all && npm run _build -- all",
+    "build:all:quick": "node scripts/build.js all",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
     "build:chrome:test": "npm run clean:chrome && npm run _build -- chrome test",
     "build:edge": "npm run clean:edge && npm run _build -- edge",

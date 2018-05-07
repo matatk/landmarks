@@ -23,7 +23,9 @@ function Logger() {
 			// We only define the log() function after successfully initing, so
 			// as to trap any errant uses of the logger.
 			handleOptionsChange({
-				debugInfo: items.debugInfo
+				debugInfo: {
+					newValue: items.debugInfo
+				}
 			})
 			if (callback) {
 				callback()
@@ -36,7 +38,7 @@ function Logger() {
 			// Ensure the correct line number is reported
 			// https://stackoverflow.com/a/32928812/1485308
 			// https://stackoverflow.com/a/28668819/1485308
-			if (changes.debugInfo) {
+			if (changes.debugInfo.newValue === true) {
 				that.log = console.log.bind(window.console)
 			} else {
 				that.log = function() {}
