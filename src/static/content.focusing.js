@@ -6,6 +6,7 @@ function ElementFocuser() {
 	const momentaryBorderTime = 2000
 	let justMadeChanges = false
 	let currentlyFocusedElementBorder = null
+	let currentResizeHandler = null
 	let timer = null
 
 
@@ -68,6 +69,7 @@ function ElementFocuser() {
 	function removeBorderOnCurrentlySelectedElement() {
 		if (currentlyFocusedElementBorder) {
 			currentlyFocusedElementBorder.remove()
+			window.removeEventListener('resize', currentResizeHandler)
 			currentlyFocusedElementBorder = null  // TOOD needed?
 		}
 	}
@@ -89,6 +91,16 @@ function ElementFocuser() {
 	// Private API
 	//
 
+	// Given an element on the page and an element acting as the border, size
+	// the border appropriately for the element
+	function sizeBorder(element, border) {
+		const bounds = element.getBoundingClientRect()
+		border.style.left = window.scrollX + bounds.left + 'px'
+		border.style.top = window.scrollY + bounds.top + 'px'
+		border.style.width = bounds.width + 'px'
+		border.style.height = bounds.height + 'px'
+	}
+
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it.
 	//
@@ -96,8 +108,6 @@ function ElementFocuser() {
 	//     { colour: #<hex>, fontColour: #<hex>, fontSize: <int> }
 	function addBorder(element, name, settings) {
 		const zIndex = 10000000
-		const bounds = element.getBoundingClientRect()
-
 		const labelContent = document.createTextNode(name)
 
 		const labelDiv = document.createElement('div')
@@ -112,10 +122,7 @@ function ElementFocuser() {
 		labelDiv.style.zIndex = zIndex
 
 		const borderDiv = document.createElement('div')
-		borderDiv.style.left = window.scrollX + bounds.left + 'px'
-		borderDiv.style.top = window.scrollY + bounds.top + 'px'
-		borderDiv.style.width = bounds.width + 'px'
-		borderDiv.style.height = bounds.height + 'px'
+		sizeBorder(element, borderDiv)
 		borderDiv.style.border = '2px solid ' + settings.colour
 		borderDiv.style.outline = '2px solid ' + settings.colour
 		borderDiv.style.position = 'absolute'
@@ -126,8 +133,15 @@ function ElementFocuser() {
 		borderDiv.appendChild(labelDiv)
 		justMadeChanges = true
 		document.body.appendChild(borderDiv)
-		// FIXME what if changing viewport size?
 
 		currentlyFocusedElementBorder = borderDiv
+		currentResizeHandler = () => resize(element)
+
+		window.addEventListener('resize', currentResizeHandler)
+	}
+
+	// When the viewport changes, update the border <div>
+	function resize(element) {
+		sizeBorder(element, currentlyFocusedElementBorder)
 	}
 }
