@@ -18,8 +18,47 @@ exports['test the damage report machine'] = function(assert) {
 	assert.ok(true, 'damage report machine intact')
 }
 
-exports["test if it's callable"] = function(assert) {
-	assert.equal(contrastChecker.contrastRatio(0, 0), 42)
+exports['test white on black'] = function(assert) {
+	assert.equal(
+		contrastChecker.contrastRatio('#ffffff', '#000000'),
+		21,
+		'21:1')
+}
+
+exports['test red on white'] = function(assert) {
+	assert.equal(
+		contrastChecker.contrastRatio('#ff0000', '#ffffff').toFixed(2),
+		'4.00',
+		'4.00:1')
+}
+
+exports['test white on pink'] = function(assert) {
+	assert.equal(
+		contrastChecker.contrastRatio('#ffffff', '#ff2f92').toFixed(2),
+		'3.46',
+		'3.46:1')
+	// Note: http://contrast-ratio.com/#%23FF2F92-on-white says 3.45:1
+}
+
+exports['test black on pink'] = function(assert) {
+	assert.equal(
+		contrastChecker.contrastRatio('#000000', '#ff2f92').toFixed(2),
+		'6.07',
+		'6.07:1')
+}
+
+exports['test label colour for pink'] = function(assert) {
+	assert.equal(
+		contrastChecker.labelTextColour('#ff2f92'),
+		'white',
+		'white')
+}
+
+exports['test label colour for orange'] = function(assert) {
+	assert.equal(
+		contrastChecker.labelTextColour('#ff9300'),
+		'black',
+		'black')
 }
 
 if (module === require.main) {

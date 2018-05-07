@@ -91,6 +91,7 @@ function ElementFocuser() {
 	}
 
 	// Also needs to be available publicly
+	// TODO just define the above as this.blah
 	this.removeBorderOnCurrentlySelectedElement =
 		removeBorderOnCurrentlySelectedElement
 
