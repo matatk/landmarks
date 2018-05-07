@@ -22,7 +22,9 @@
     "precommit": "npm run build:all",
     "start:firefox": "web-ext run --source-dir build/firefox/",
     "pretest": "eslint .",
-    "test": "node test/test.js"
+    "test": "npm run test:landmarks && npm run test:contrast",
+    "test:contrast": "node test/test-contrast.js",
+    "test:landmarks": "node test/test-landmarks.js"
   },
   "devDependencies": {
     "addons-linter": "~0.32",
