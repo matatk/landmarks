@@ -18,8 +18,8 @@ function ElementFocuser() {
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		for (const option in items) {
 			settings[option] = items[option]
-			checkLabelFontColour(option)
 		}
+		setLabelFontColour()
 	})
 
 	browser.storage.onChanged.addListener(function(changes) {
@@ -169,11 +169,20 @@ function ElementFocuser() {
 		sizeBorder(element, currentlyFocusedElementBorder)
 	}
 
-	// When getting or updating options, update the label font colour in
-	// line with the border colour
+	// When updating options, update the label font colour in line with the
+	// border colour and font size -- if a relevant option changed
 	function checkLabelFontColour(option) {
-		if (option === 'borderColour') {
-			labelFontColour = contrastChecker.labelTextColour(settings[option])
+		if (option === 'borderColour' || option === 'borderLabelFontSize') {
+			setLabelFontColour()
 		}
+	}
+
+	// Set the label font colour, based on existing settings (used when all
+	// settings have been retrieved at once)
+	function setLabelFontColour() {
+		labelFontColour = contrastChecker.foregroundTextColour(
+			settings.borderColour,
+			settings.borderLabelFontSize,
+			true)  // the font is always bold
 	}
 }

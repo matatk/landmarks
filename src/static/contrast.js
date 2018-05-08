@@ -18,9 +18,12 @@ function ContrastChecker() {
 		return contrast(l2, l1)
 	}
 
-	this.labelTextColour = function(borderColour) {
-		const contrastWhite = this.contrastRatio('#ffffff', borderColour)
-		if (contrastWhite > 3) {
+	this.foregroundTextColour = function(backgroundColour, fontSize, bold) {
+		const contrastWhite = this.contrastRatio('#ffffff', backgroundColour)
+		const threshold =
+			((fontSize >= 18) || (fontSize >= 14 && bold === true)) ? 3 : 4.5
+
+		if (contrastWhite >= threshold) {
 			return 'white'
 		}
 		return 'black'

@@ -49,14 +49,28 @@ exports['test black on pink'] = function(assert) {
 
 exports['test label colour for pink'] = function(assert) {
 	assert.equal(
-		contrastChecker.labelTextColour('#ff2f92'),
+		contrastChecker.foregroundTextColour('#ff2f92', 18, true),
 		'white',
 		'white')
 }
 
+exports['test label colour for pink, small text'] = function(assert) {
+	assert.equal(
+		contrastChecker.foregroundTextColour('#ff2f92', 14, true),
+		'white',
+		'white')
+}
+
+exports['test label colour for pink, small text, not bold'] = function(assert) {
+	assert.equal(
+		contrastChecker.foregroundTextColour('#ff2f92', 14, false),
+		'black',
+		'black')
+}
+
 exports['test label colour for orange'] = function(assert) {
 	assert.equal(
-		contrastChecker.labelTextColour('#ff9300'),
+		contrastChecker.foregroundTextColour('#ff9300', 18, true),
 		'black',
 		'black')
 }
