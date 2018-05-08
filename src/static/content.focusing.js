@@ -53,7 +53,7 @@ function ElementFocuser() {
 			fontSize: settings.borderLabelFontSize
 		}
 
-		removeBorderOnCurrentlySelectedElement()
+		this.removeBorderOnCurrentlySelectedElement()
 
 		// Ensure that the element is focusable
 		const originalTabindex = element.getAttribute('tabindex')
@@ -73,7 +73,7 @@ function ElementFocuser() {
 					clearTimeout(timer)
 				}
 				timer = setTimeout(
-					removeBorderOnCurrentlySelectedElement,
+					this.removeBorderOnCurrentlySelectedElement,
 					momentaryBorderTime)
 			}
 		}
@@ -86,7 +86,7 @@ function ElementFocuser() {
 		}
 	}
 
-	function removeBorderOnCurrentlySelectedElement() {
+	this.removeBorderOnCurrentlySelectedElement = function() {
 		if (currentlyFocusedElementBorder) {
 			justMadeChanges = true
 			currentlyFocusedElementBorder.remove()
@@ -94,11 +94,6 @@ function ElementFocuser() {
 			currentlyFocusedElementBorder = null
 		}
 	}
-
-	// Also needs to be available publicly
-	// TODO just define the above as this.blah
-	this.removeBorderOnCurrentlySelectedElement =
-		removeBorderOnCurrentlySelectedElement
 
 	// Did we just make changes to a border? If so the mutations can be
 	// ignored.
