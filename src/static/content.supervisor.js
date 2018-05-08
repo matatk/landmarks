@@ -23,7 +23,9 @@ function Logger() {
 			// We only define the log() function after successfully initing, so
 			// as to trap any errant uses of the logger.
 			handleOptionsChange({
-				debugInfo: items.debugInfo
+				debugInfo: {
+					newValue: items.debugInfo
+				}
 			})
 			if (callback) {
 				callback()
@@ -36,7 +38,7 @@ function Logger() {
 			// Ensure the correct line number is reported
 			// https://stackoverflow.com/a/32928812/1485308
 			// https://stackoverflow.com/a/28668819/1485308
-			if (changes.debugInfo) {
+			if (changes.debugInfo.newValue === true) {
 				that.log = console.log.bind(window.console)
 			} else {
 				that.log = function() {}
@@ -70,23 +72,24 @@ function messageHandler(message, sender, sendResponse) {
 			// Triggered by clicking on an item in the pop-up, or indirectly
 			// via one of the keyboard shortcuts (if landmarks are present)
 			handleOutdatedResults()
-			checkFocusElement(() => lf.getLandmarkElement(message.index))
+			checkFocusElement(
+				() => lf.getLandmarkElementRoleLabel(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getNextLandmarkElement)
+			checkFocusElement(lf.getNextLandmarkElementRoleLabel)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getPreviousLandmarkElement)
+			checkFocusElement(lf.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
 			handleOutdatedResults()
-			const mainElement = lf.getMainElement()
-			if (mainElement) {
-				ef.focusElement(mainElement)
+			const mainElementInfo = lf.getMainElementRoleLabel()
+			if (mainElementInfo) {
+				ef.focusElement(mainElementInfo)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
 			}
@@ -116,13 +119,13 @@ function handleOutdatedResults() {
 	}
 }
 
-function checkFocusElement(callbackReturningElement) {
+function checkFocusElement(callbackReturningElementInfo) {
 	if (lf.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
 		return
 	}
 
-	ef.focusElement(callbackReturningElement())
+	ef.focusElement(callbackReturningElementInfo())
 }
 
 
@@ -175,6 +178,7 @@ function setUpMutationObserver() {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		ph.run(
+			ef.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('SCAN mutation')

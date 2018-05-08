@@ -1,2 +1,2 @@
-test/test-code-in-harness.js
+test/test-code-in-harness-*.js
 _site

@@ -7,4 +7,4 @@ landmarks-chrome-out.png
 landmarks-opera-out.png
 landmarks-*.zip
 npm-debug.log
-test/test-code-in-harness.js
+test/test-code-in-harness-*.js

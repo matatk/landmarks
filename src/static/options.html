@@ -4,13 +4,31 @@
 		<meta charset="UTF-8">
 		<title data-message="prefsTitle"></title>
 		<style>
-div.option {
-	padding-bottom: 0.75em;
+div.label-first {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	padding-bottom: 0.5em;
+}
+
+div.input-first {
+	padding-bottom: 0.5em;
+}
+
+div.label-first label {
+	grid-column: 1 / 2;
+}
+
+div.label-first input, div.label-first select {
+	grid-column: 2 / 3;
+}
+
+input[type=number] {
+	width: 3em;
 }
 		</style>
 	</head>
 	<body>
-		<div class="option">
+		<div class="label-first">
 			<label for="border-type" data-message="prefsBorderType"></label>
 
 			<select id="border-type" class="browser-style">
@@ -20,7 +38,17 @@ div.option {
 			</select>
 		</div>
 
-		<div class="option">
+		<div class="browser-style label-first">
+			<label for="border-colour" data-message="prefsBorderColour"></label>
+			<input type="color" id="border-colour">
+		</div>
+
+		<div class="browser-style label-first">
+			<label for="border-label-font-size" data-message="prefsBorderLabelFontSize"></label>
+			<input type="number" id="border-label-font-size">
+		</div>
+
+		<div class="browser-style input-first">
 			<input id="debug-info" type="checkbox">
 			<label for="debug-info" data-message="prefsDebugInfo"></label>
 		</div>
@@ -31,6 +59,7 @@ div.option {
 		</div>
 
 		<script src="compatibility.js"></script>
+		<script src="defaults.js"></script>
 		<script src="options.js"></script>
 	</body>
 </html>

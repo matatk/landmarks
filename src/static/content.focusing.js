@@ -1,90 +1,183 @@
 'use strict'
 /* exported ElementFocuser */
+/* global landmarkName defaultBorderSettings ContrastChecker */
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
-	let currentlySelectedElement
+	let justMadeChanges = false
+	let currentlyFocusedElementBorder = null
+	let currentResizeHandler = null
+	let timer = null
+
+	const contrastChecker = new ContrastChecker()
+
+	// Get settings and keep them up-to-date
+	const settings = {}
+	let labelFontColour = null
+
+	browser.storage.sync.get(defaultBorderSettings, function(items) {
+		for (const option in items) {
+			settings[option] = items[option]
+		}
+		setLabelFontColour()
+	})
+
+	browser.storage.onChanged.addListener(function(changes) {
+		for (const option in changes) {
+			if (settings.hasOwnProperty(option)) {
+				settings[option] = changes[option].newValue
+				checkLabelFontColour(option)
+			}
+		}
+	})
 
 
 	//
 	// Public API
 	//
 
-	// Set focus on the selected landmark element.
+	// Set focus on the selected landmark element. It takes an element info
+	// object, as returned by the various LandmarksFinder functions.
 	//
-	// This function requires an actual DOM element, as returned by various
-	// functions of the LandmarksFinder.
+	// { element: HTMLElement, role: <string>, label: <string> }
 	//
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	this.focusElement = function(element) {
-		browser.storage.sync.get({
-			borderType: 'momentary'
-		}, function(items) {
-			removeBorderOnCurrentlySelectedElement()
+	this.focusElement = function(elementInfo) {
+		const element = elementInfo.element
+		const type = settings.borderType
+		const appearance = {  // passed to lower-level drawing code
+			colour: settings.borderColour,
+			fontColour: labelFontColour,
+			fontSize: settings.borderLabelFontSize
+		}
 
-			const borderTypePref = items.borderType
+		this.removeBorderOnCurrentlySelectedElement()
 
-			// Ensure that the element is focusable
-			const originalTabindex = element.getAttribute('tabindex')
-			if (originalTabindex === null || originalTabindex === '0') {
-				element.setAttribute('tabindex', '-1')
-			}
+		// Ensure that the element is focusable
+		const originalTabindex = element.getAttribute('tabindex')
+		if (originalTabindex === null || originalTabindex === '0') {
+			element.setAttribute('tabindex', '-1')
+		}
 
-			element.scrollIntoView()  // always go to the top of it
-			element.focus()
+		element.scrollIntoView()  // always go to the top of it
+		element.focus()
 
-			// Add the border and set a timer to remove it (if required by user)
-			if (borderTypePref === 'persistent' || borderTypePref === 'momentary') {
-				addBorder(element)
+		// Add the border and set a timer to remove it (if required by user)
+		if (type === 'persistent' || type === 'momentary') {
+			addBorder(element, landmarkName(elementInfo), appearance)
 
-				if (borderTypePref === 'momentary') {
-					setTimeout(() => removeBorder(element), momentaryBorderTime)
+			if (type === 'momentary') {
+				if (timer) {
+					clearTimeout(timer)
 				}
+				timer = setTimeout(
+					this.removeBorderOnCurrentlySelectedElement,
+					momentaryBorderTime)
 			}
+		}
 
-			// Restore tabindex value
-			if (originalTabindex === null) {
-				element.removeAttribute('tabindex')
-			} else if (originalTabindex === '0') {
-				element.setAttribute('tabindex', '0')
-			}
-
-			currentlySelectedElement = element
-		})
-	}
-
-	function removeBorderOnCurrentlySelectedElement() {
-		if (currentlySelectedElement) {
-			removeBorder(currentlySelectedElement)
+		// Restore tabindex value
+		if (originalTabindex === null) {
+			element.removeAttribute('tabindex')
+		} else if (originalTabindex === '0') {
+			element.setAttribute('tabindex', '0')
 		}
 	}
 
-	// Also needs to be available publicly
-	this.removeBorderOnCurrentlySelectedElement =
-		removeBorderOnCurrentlySelectedElement
+	this.removeBorderOnCurrentlySelectedElement = function() {
+		if (currentlyFocusedElementBorder) {
+			justMadeChanges = true
+			currentlyFocusedElementBorder.remove()
+			window.removeEventListener('resize', currentResizeHandler)
+			currentlyFocusedElementBorder = null
+		}
+	}
+
+	// Did we just make changes to a border? If so the mutations can be
+	// ignored.
+	this.didJustMakeChanges = function() {
+		const didChanges = justMadeChanges
+		justMadeChanges = false
+		return didChanges
+	}
 
 
 	//
 	// Private API
 	//
 
-	function addBorder(element) {
-		element.dataset.landmarksOriginalOutline = element.style.outline
-		element.dataset.landmarksOriginalOutlineOffset =
-			element.style.outlineOffset
-
-		element.style.outline = '5px solid red'
-		element.style.outlineOffset = '-3px'
+	// Given an element on the page and an element acting as the border, size
+	// the border appropriately for the element
+	function sizeBorder(element, border) {
+		const bounds = element.getBoundingClientRect()
+		border.style.left = window.scrollX + bounds.left + 'px'
+		border.style.top = window.scrollY + bounds.top + 'px'
+		border.style.width = bounds.width + 'px'
+		border.style.height = bounds.height + 'px'
 	}
 
-	function removeBorder(element) {
-		element.style.outline = element.dataset.landmarksOriginalOutline
-		element.style.outlineOffset =
-			element.dataset.landmarksOriginalOutlineOffset
+	// Create an element on the page to act as a border for the element to be
+	// highlighted, and a label for it.
+	//
+	// The format of the settings object is
+	//     { colour: #<hex>, fontColour: #<hex>, fontSize: <int> }
+	function addBorder(element, name, settings) {
+		const zIndex = 10000000
+		const labelContent = document.createTextNode(name)
 
-		element.removeAttribute('data-landmarks-original-outline')
-		element.removeAttribute('data-landmarks-original-outline-offset')
+		const labelDiv = document.createElement('div')
+		labelDiv.style.backgroundColor = settings.colour
+		labelDiv.style.color = settings.fontColour
+		labelDiv.style.fontSize = settings.fontSize + 'px'
+		labelDiv.style.fontWeight = 'bold'
+		labelDiv.style.fontFamily = 'sans-serif'
+		labelDiv.style.float = 'right'
+		labelDiv.style.paddingLeft = '0.75em'
+		labelDiv.style.paddingRight = '0.75em'
+		labelDiv.style.paddingTop = '0.25em'
+		labelDiv.style.paddingBottom = '0.25em'
+		labelDiv.style.zIndex = zIndex
+
+		const borderDiv = document.createElement('div')
+		sizeBorder(element, borderDiv)
+		borderDiv.style.border = '2px solid ' + settings.colour
+		borderDiv.style.outline = '2px solid ' + settings.colour
+		borderDiv.style.position = 'absolute'
+		borderDiv.style.zIndex = zIndex
+		borderDiv.dataset.isLandmarkBorder = true
+
+		labelDiv.appendChild(labelContent)
+		borderDiv.appendChild(labelDiv)
+		justMadeChanges = true
+		document.body.appendChild(borderDiv)
+
+		currentlyFocusedElementBorder = borderDiv
+		currentResizeHandler = () => resize(element)
+
+		window.addEventListener('resize', currentResizeHandler)
+	}
+
+	// When the viewport changes, update the border <div>
+	function resize(element) {
+		sizeBorder(element, currentlyFocusedElementBorder)
+	}
+
+	// When updating options, update the label font colour in line with the
+	// border colour and font size -- if a relevant option changed
+	function checkLabelFontColour(option) {
+		if (option === 'borderColour' || option === 'borderLabelFontSize') {
+			setLabelFontColour()
+		}
+	}
+
+	// Set the label font colour, based on existing settings (used when all
+	// settings have been retrieved at once)
+	function setLabelFontColour() {
+		labelFontColour = contrastChecker.foregroundTextColour(
+			settings.borderColour,
+			settings.borderLabelFontSize,
+			true)  // the font is always bold
 	}
 }

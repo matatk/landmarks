@@ -97,13 +97,17 @@ function LandmarksFinder(win, doc) {
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmarks are updated.
-	let selectedElement
+	let currentlySelectedElement
 
-	function updateSelectedIndexAndReturnElement(index) {
+	function updateSelectedIndexAndReturnElementInfo(index) {
 		if (landmarks.length === 0) return
 		currentlySelectedIndex = index
-		selectedElement = landmarks[index].element
-		return selectedElement
+		currentlySelectedElement = landmarks[index].element
+		return {
+			element: currentlySelectedElement,
+			role: landmarks[index].role,
+			label: landmarks[index].label
+		}
 	}
 
 
@@ -148,7 +152,7 @@ function LandmarksFinder(win, doc) {
 
 					// Was this element selected before we were called (i.e.
 					// before the page was dynamically updated)?
-					if (selectedElement === elementChild) {
+					if (currentlySelectedElement === elementChild) {
 						currentlySelectedIndex = landmarks.length - 1
 					}
 
@@ -293,23 +297,26 @@ function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	this.getNextLandmarkElement = function() {
-		return updateSelectedIndexAndReturnElement(
+	// These all return elements and their public-facing info:
+	// { element: HTMLElement, role: <string>, label: <string> }
+
+	this.getNextLandmarkElementRoleLabel = function() {
+		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
-	this.getPreviousLandmarkElement = function() {
-		return updateSelectedIndexAndReturnElement(
+	this.getPreviousLandmarkElementRoleLabel = function() {
+		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
-	this.getLandmarkElement = function(index) {
-		return updateSelectedIndexAndReturnElement(index)
+	this.getLandmarkElementRoleLabel = function(index) {
+		return updateSelectedIndexAndReturnElementInfo(index)
 	}
 
-	this.getMainElement = function() {
+	this.getMainElementRoleLabel = function() {
 		return mainElementIndex < 0 ?
-			null : updateSelectedIndexAndReturnElement(mainElementIndex)
+			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
 	}
 }
