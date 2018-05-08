@@ -207,6 +207,7 @@ Changes
 
 -   2.3.0 - 8th of May 2018
     -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158)\]
+    -   Minor tweaks to documentation and LICENCE dates. \[[\#159](https://github.com/matatk/landmarks/pull/159)\]
 -   2.2.0 - 18th of February 2018
     -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
     -   Always scroll to the top of a landmark when moving to it. \[[\#151](https://github.com/matatk/landmarks/pull/151)\]
