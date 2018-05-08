@@ -207,28 +207,29 @@ Changes
 
 -   2.3.0 - 8th of May 2018
     -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158)\]
+    -   Minor tweaks to documentation and LICENCE dates. \[[\#159](https://github.com/matatk/landmarks/pull/159)\]
 -   2.2.0 - 18th of February 2018
-    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
+    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
     -   Always scroll to the top of a landmark when moving to it. \[[\#151](https://github.com/matatk/landmarks/pull/151)\]
     -   Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
 -   2.1.1 - 19th of January 2018
-    -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#139\]](https://github.com/matatk/landmarks/pull/139)
-    -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
-    -   Give the options page a title that shows up for Opera users. [\[\#136\]](https://github.com/matatk/landmarks/pull/136)
+    -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. \[[\#139](https://github.com/matatk/landmarks/pull/139)\]
+    -   Add a keyboard shortcut to show the landmarks pop-up. \[[\#135](https://github.com/matatk/landmarks/pull/135)\]
+    -   Give the options page a title that shows up for Opera users. \[[\#136](https://github.com/matatk/landmarks/pull/136)\]
     -   Behind-the-scenes code and infrastructure improvements for improved quality. \[[\#124](https://github.com/matatk/landmarks/pull/124), [\#128](https://github.com/matatk/landmarks/pull/128), [\#129](https://github.com/matatk/landmarks/pull/129), [\#130](https://github.com/matatk/landmarks/pull/130), [\#142](https://github.com/matatk/landmarks/pull/142), [\#143](https://github.com/matatk/landmarks/pull/143)\]
 -   2.1.0 - 6th of November 2017
-    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [\[\#111\]](https://github.com/matatk/landmarks/pull/111)
-    -   Add a keyboard shortcut to skip to the main landmark. [\[also \#111\]](https://github.com/matatk/landmarks/pull/111)
-    -   Fix a bug whereby sibling landmarks may not be identified as such. [\[\#112\]](https://github.com/matatk/landmarks/pull/112)
-    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). [\[\#115\]](https://github.com/matatk/landmarks/pull/115)
-    -   Use Mozilla's 'addons-linter' to check the built extension. [\[err, also \#111\]](https://github.com/matatk/landmarks/pull/111)
+    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. \[[\#111](https://github.com/matatk/landmarks/pull/111)\]
+    -   Add a keyboard shortcut to skip to the main landmark. \[[also \#111](https://github.com/matatk/landmarks/pull/111)\]
+    -   Fix a bug whereby sibling landmarks may not be identified as such. \[[\#112](https://github.com/matatk/landmarks/pull/112)\]
+    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). \[[\#115](https://github.com/matatk/landmarks/pull/115)\]
+    -   Use Mozilla's 'addons-linter' to check the built extension. \[[err, also \#111](https://github.com/matatk/landmarks/pull/111)\]
 -   2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions. [\[\#85\]](https://github.com/matatk/landmarks/pull/85)
-    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [\[\#102\]](https://github.com/matatk/landmarks/pull/102)
-    -   Correctly restore elements' outlines after they are highlighted. [\[\#94\]](https://github.com/matatk/landmarks/pull/94)
-    -   Automatically disable the extension on browsers' extensions store pages. [\[\#97\]](https://github.com/matatk/landmarks/pull/97)
-    -   Start exploring what's needed for Edge support in future. [\[\#99\]](https://github.com/matatk/landmarks/pull/99)
-    -   Improvements to the SVG to PNG process. [\[\#95\]](https://github.com/matatk/landmarks/pull/95)
+    -   Landmarks now ignores hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. \[[\#102](https://github.com/matatk/landmarks/pull/102)\]
+    -   Correctly restore elements' outlines after they are highlighted. \[[\#94](https://github.com/matatk/landmarks/pull/94)\]
+    -   Automatically disable the extension on browsers' extensions store pages. \[[\#97](https://github.com/matatk/landmarks/pull/97)\]
+    -   Start exploring what's needed for Edge support in future. \[[\#99](https://github.com/matatk/landmarks/pull/99)\]
+    -   Improvements to the SVG to PNG process. \[[\#95](https://github.com/matatk/landmarks/pull/95)\]
     -   Other more minor tweaks and fixes.
     -   README updates.
 -   2.0.7 - 11th of May 2017
