@@ -1,6 +1,7 @@
 'use strict'
 /* exported ElementFocuser */
 /* global landmarkName defaultBorderSettings ContrastChecker */
+// TODO redraw/update border if it's persistent and settings change
 
 function ElementFocuser() {
 	const momentaryBorderTime = 2000

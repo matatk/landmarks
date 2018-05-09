@@ -136,16 +136,16 @@ function checkMessages() {
 	for (const messageName in messages) {
 		messageSummary[messageName] = 0
 
-		if (messageName.startsWith('role')) {
-			// The role names' calls are constructed dynamically (and are
-			// probably OK).
-			messageSummary[messageName] = '?'
-		}
-
 		for (const file of files) {
 			messageSummary[messageName] +=
 				(fs.readFileSync(file).toString().match(
 					new RegExp(messageName, 'g')) || []).length
+		}
+
+		if (messageName.startsWith('role')) {
+			// The role names' calls are constructed dynamically (and are
+			// probably OK).
+			messageSummary[messageName] = '(not checked)'
 		}
 	}
 
