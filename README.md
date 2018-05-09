@@ -80,8 +80,6 @@ You can get to the extension's settings as follows.
 -   **Firefox:** Menu ☰ → Add-ons → Extensions \[on left-hand side, if not already activated\] → Preferences \[under Landmarks, then scroll down\]
 -   **Chrome/Opera:** Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options
 
-**Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
-
 This Extension's Support for Landmarks
 --------------------------------------
 
