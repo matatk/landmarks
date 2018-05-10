@@ -168,7 +168,6 @@ function ElementFocuser() {
 		borderDiv.style.outline = '2px solid ' + colour
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
-		borderDiv.style.setProperty('margin', '0', '!important')
 		borderDiv.style.margin = '0'
 		borderDiv.style.padding = '0'
 
