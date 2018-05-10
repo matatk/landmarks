@@ -36,7 +36,6 @@ function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
 		for (const option of options) {
 			option.element[option.property] = items[option.name]
-			console.log('Landmarks: restored', option.name, items[option.name])
 		}
 	})
 }
@@ -44,15 +43,11 @@ function restoreOptions() {
 function setUpOptionHandlers() {
 	for (const option of options) {
 		option.element.addEventListener('change', () => {
-			saveOption(option.name, option.element[option.property])
+			browser.storage.sync.set({
+				[option.name]: option.element[option.property]
+			})
 		})
 	}
-}
-
-function saveOption(option, datum) {
-	const save = { [option]: datum }
-	console.log('Landmarks: saving', save)
-	browser.storage.sync.set(save)  // no error handler
 }
 
 document.addEventListener('DOMContentLoaded', translateStuff)
