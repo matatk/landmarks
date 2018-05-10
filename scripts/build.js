@@ -163,7 +163,7 @@ function copyStaticFiles(browser) {
 		try {
 			const changes = replace.sync({
 				files: path.join(pathToBuild('firefox'), '*.html'),
-				from: '<script src="compatibility.js"></script>',
+				from: '\n\t\t<script src="compatibility.js"></script>',
 				to: ''
 			})
 			console.log('Removed inclusion of compatibility.js from:',
