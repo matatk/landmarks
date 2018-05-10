@@ -80,8 +80,6 @@ You can get to the extension's settings as follows.
 -   **Firefox:** Menu ☰ → Add-ons → Extensions \[on left-hand side, if not already activated\] → Preferences \[under Landmarks, then scroll down\]
 -   **Chrome/Opera:** Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options
 
-**Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
-
 This Extension's Support for Landmarks
 --------------------------------------
 
@@ -147,7 +145,7 @@ Please bear in mind the following when implementing landmarks...
 
     **Rule of thumb:** Use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
 
--   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentialy you would use either the `aria-labelledby` or `aria-label` attribute.
+-   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
 
     **Rule of thumb:** If you've more than one type of landmark, then be sure to label them, so their purpose is clear.
 
@@ -205,8 +203,9 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
--   2.3.0 - 8th of May 2018
+-   2.3.0 - ??th of May 2018
     -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158)\]
+    -   Options are saved as they're changed by the user, and borders get updated to reflect settings changes immediately. \[[\#160](https://github.com/matatk/landmarks/pull/160)\]
     -   Minor tweaks to documentation and LICENCE dates. \[[\#159](https://github.com/matatk/landmarks/pull/159)\]
 -   2.2.0 - 18th of February 2018
     -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
