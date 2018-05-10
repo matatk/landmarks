@@ -158,6 +158,9 @@ function ElementFocuser() {
 		labelDiv.style.paddingTop = '0.25em'
 		labelDiv.style.paddingBottom = '0.25em'
 		labelDiv.style.zIndex = zIndex
+		labelDiv.style.margin = '0'
+		labelDiv.style.border = 'none'
+		labelDiv.style.outline = 'none'
 
 		const borderDiv = document.createElement('div')
 		sizeBorder(element, borderDiv)
@@ -165,7 +168,9 @@ function ElementFocuser() {
 		borderDiv.style.outline = '2px solid ' + colour
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
-		borderDiv.dataset.isLandmarkBorder = true
+		borderDiv.style.setProperty('margin', '0', '!important')
+		borderDiv.style.margin = '0'
+		borderDiv.style.padding = '0'
 
 		labelDiv.appendChild(labelContent)
 		borderDiv.appendChild(labelDiv)
