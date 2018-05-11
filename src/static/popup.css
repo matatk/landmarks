@@ -13,6 +13,12 @@ li {
 
 button {
 	margin: 0.25em;
+	height: auto;         /* stops Firefox causing overflows on Windows
+	                         https://github.com/matatk/landmarks/issues/149 */
+	padding-left: 0.5em;  /* These are needed due to the above */
+	padding-right: 0.5em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
 }
 
 body {
