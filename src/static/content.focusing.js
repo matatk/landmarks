@@ -38,7 +38,7 @@ function ElementFocuser() {
 			}
 		}
 
-		if ('borderColour' in changes || 'borderLabelFontSize' in changes) {
+		if ('borderColour' in changes || 'borderFontSize' in changes) {
 			updateLabelFontColour()
 			redrawBorder()
 		}
@@ -137,7 +137,7 @@ function ElementFocuser() {
 			landmarkName(elementInfo),
 			settings.borderColour,
 			labelFontColour,  // computed as a result of settings
-			settings.borderLabelFontSize)
+			settings.borderFontSize)
 	}
 
 	// Create an element on the page to act as a border for the element to be
@@ -201,7 +201,7 @@ function ElementFocuser() {
 	function updateLabelFontColour() {
 		labelFontColour = contrastChecker.foregroundTextColour(
 			settings.borderColour,
-			settings.borderLabelFontSize,
+			settings.borderFontSize,
 			true)  // the font is always bold
 	}
 

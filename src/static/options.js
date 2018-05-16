@@ -9,8 +9,8 @@ const options = [{
 	element: document.getElementById('border-colour'),
 	property: 'value'
 }, {
-	name: 'borderLabelFontSize',
-	element: document.getElementById('border-label-font-size'),
+	name: 'borderFontSize',
+	element: document.getElementById('border-font-size'),
 	property: 'value'
 }, {
 	name: 'debugInfo',
