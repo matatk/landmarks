@@ -16,9 +16,9 @@ Table of Contents
 -   [Installation](#installation)
 -   [Navigating Landmarks](#navigating-landmarks)
 -   [Border Preferences](#border-preferences)
--   [Development](#development)
 -   [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
 -   [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
+-   [Development](#development)
 -   [Acknowledgements](#acknowledgements)
 -   [Changes](#changes)
 
@@ -65,64 +65,19 @@ If landmarks are found on the page, the Landmarks button in the toolbar (which l
 Border Preferences
 ------------------
 
-A border can be drawn around the landmarks as you navigate them, to make it clear where you are on the page. You can change the border style in the extension's preferences/options page. The available border styles are:
+A border will be drawn around the landmarks as you navigate them. The border contains a label that displays the landmark's type and name (if one was provided by the author of the page). You can customise various aspects of this in the extension's preferences/options page. The available settings are:
 
--   **Momentary (default):** the border remains visible for a short time, then disappears.
--   **Persistent:** the border remains visible at all times.
--   **None:** no border is drawn.
+-   **If the border should be displayed, and for how long.**
+    -   **Momentary (default):** the border remains visible for a short time, then disappears.
+    -   **Persistent:** the border remains visible at all times.
+    -   **None:** no border is drawn.
+-   **The border's colour.**
+-   **The font size used in the landmark label.**
 
-You can change this setting as follows.
+You can get to the extension's settings as follows.
 
 -   **Firefox:** Menu ☰ → Add-ons → Extensions \[on left-hand side, if not already activated\] → Preferences \[under Landmarks, then scroll down\]
 -   **Chrome/Opera:** Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options
-
-**Remember to use the "Save" button to save any changes.** Also, due to the varied way in which web pages can be styled, the border will sometimes not appear to fully surround the landmark element.
-
-Development
------------
-
-You can build and run the current code locally as follows.
-
-1.  Clone [the Landmarks repository on GitHub](https://github.com/matatk/landmarks) to your computer.
-
-2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
-
-3.  Run the build script to build one or all of the extensions:
-
-    -   `npm run build:firefox`
-    -   `npm run build:chrome`
-    -   `npm run build:opera`
-    -   `npm run build:edge` (Edge support is in development, but not fully ready yet.)
-    -   `npm run build:all`
-
-    The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
-
-4.  To load and use the extension locally in your browser...
-    -   **Firefox:** either:
-        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
-        -   if you have [`web-ext`](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
-    -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
-    -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
-    -   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
-
-Some further info on the test/build process:
-
--   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
-
--   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:<browser>` and `npm run clean:all`, as with the build scripts above.
-
--   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
-
--   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
-
--   The `build:chrome:test` script is provided for making an alpha/beta/test build for Chrome, which is the same as a normal build, but the extension is retitled to "Landmarks (test version)". A separate extension listing is required for publishing test versions in the Chrome Web Store. For Firefox Add-ons, a version number such as "2.1.0beta1" can be used and the built package can be uploaded to the extension's beta channel.
-
-### Test Pages
-
-The following pages are incorporated into the automated test suite, but you can also visit them in-browser to try out the extension's UI.
-
--   [HTML5Accessibility: ARIA landmarks](http://www.html5accessibility.com/tests/roles-land.html)
--   [HTML5Accessibility: structural elements](http://www.html5accessibility.com/tests/structural-elements.html)
 
 This Extension's Support for Landmarks
 --------------------------------------
@@ -189,9 +144,55 @@ Please bear in mind the following when implementing landmarks...
 
     **Rule of thumb:** Use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
 
--   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentialy you would use either the `aria-labelledby` or `aria-label` attribute.
+-   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
 
     **Rule of thumb:** If you've more than one type of landmark, then be sure to label them, so their purpose is clear.
+
+Development
+-----------
+
+You can build and run the current code locally as follows.
+
+1.  Clone [the Landmarks repository on GitHub](https://github.com/matatk/landmarks) to your computer.
+
+2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
+
+3.  Run the build script to build one or all of the extensions:
+
+    -   `npm run build:firefox`
+    -   `npm run build:chrome`
+    -   `npm run build:opera`
+    -   `npm run build:edge` (Edge support is in development, but not fully ready yet.)
+    -   `npm run build:all`
+
+    The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
+
+4.  To load and use the extension locally in your browser...
+    -   **Firefox:** either:
+        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
+        -   if you have [`web-ext`](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
+    -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#unpacked).
+    -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
+    -   **Edge:** use the [Adding, moving, and removing extensions for Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions) instructions on Microsoft's developer site.
+
+Some further info on the test/build process:
+
+-   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
+
+-   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:<browser>` and `npm run clean:all`, as with the build scripts above.
+
+-   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+
+-   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
+
+-   The `build:chrome:test` script is provided for making an alpha/beta/test build for Chrome, which is the same as a normal build, but the extension is retitled to "Landmarks (test version)". A separate extension listing is required for publishing test versions in the Chrome Web Store. For Firefox Add-ons, a version number such as "2.1.0beta1" can be used and the built package can be uploaded to the extension's beta channel.
+
+### Test Pages
+
+The following pages are incorporated into the automated test suite, but you can also visit them in-browser to try out the extension's UI.
+
+-   [HTML5Accessibility: ARIA landmarks](http://www.html5accessibility.com/tests/roles-land.html)
+-   [HTML5Accessibility: structural elements](http://www.html5accessibility.com/tests/structural-elements.html)
 
 Acknowledgements
 ----------------
@@ -201,28 +202,33 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.3.0 - 17th of May 2018
+    -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158), [\#162](https://github.com/matatk/landmarks/pull/162)\]
+    -   Options are saved as they're changed by the user, and borders get updated to reflect settings changes immediately. \[[\#160](https://github.com/matatk/landmarks/pull/160)\]
+    -   Fix text sometimes overflowing buttons in Firefox. \[[\#163](https://github.com/matatk/landmarks/pull/163)\]
+    -   Minor tweaks to documentation, build process; library package bumps. \[[\#159](https://github.com/matatk/landmarks/pull/159), [\#161](https://github.com/matatk/landmarks/pull/161), [\#164](https://github.com/matatk/landmarks/pull/164)\]
 -   2.2.0 - 18th of February 2018
-    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) Landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
+    -   Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
     -   Always scroll to the top of a landmark when moving to it. \[[\#151](https://github.com/matatk/landmarks/pull/151)\]
     -   Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
 -   2.1.1 - 19th of January 2018
-    -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. [\[\#139\]](https://github.com/matatk/landmarks/pull/139)
-    -   Add a keyboard shortcut to show the landmarks pop-up. [\[\#135\]](https://github.com/matatk/landmarks/pull/135)
-    -   Give the options page a title that shows up for Opera users. [\[\#136\]](https://github.com/matatk/landmarks/pull/136)
+    -   Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. \[[\#139](https://github.com/matatk/landmarks/pull/139)\]
+    -   Add a keyboard shortcut to show the landmarks pop-up. \[[\#135](https://github.com/matatk/landmarks/pull/135)\]
+    -   Give the options page a title that shows up for Opera users. \[[\#136](https://github.com/matatk/landmarks/pull/136)\]
     -   Behind-the-scenes code and infrastructure improvements for improved quality. \[[\#124](https://github.com/matatk/landmarks/pull/124), [\#128](https://github.com/matatk/landmarks/pull/128), [\#129](https://github.com/matatk/landmarks/pull/129), [\#130](https://github.com/matatk/landmarks/pull/130), [\#142](https://github.com/matatk/landmarks/pull/142), [\#143](https://github.com/matatk/landmarks/pull/143)\]
 -   2.1.0 - 6th of November 2017
-    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. [\[\#111\]](https://github.com/matatk/landmarks/pull/111)
-    -   Add a keyboard shortcut to skip to the main landmark. [\[also \#111\]](https://github.com/matatk/landmarks/pull/111)
-    -   Fix a bug whereby sibling landmarks may not be identified as such. [\[\#112\]](https://github.com/matatk/landmarks/pull/112)
-    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). [\[\#115\]](https://github.com/matatk/landmarks/pull/115)
-    -   Use Mozilla's 'addons-linter' to check the built extension. [\[err, also \#111\]](https://github.com/matatk/landmarks/pull/111)
+    -   Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. \[[\#111](https://github.com/matatk/landmarks/pull/111)\]
+    -   Add a keyboard shortcut to skip to the main landmark. \[[also \#111](https://github.com/matatk/landmarks/pull/111)\]
+    -   Fix a bug whereby sibling landmarks may not be identified as such. \[[\#112](https://github.com/matatk/landmarks/pull/112)\]
+    -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). \[[\#115](https://github.com/matatk/landmarks/pull/115)\]
+    -   Use Mozilla's 'addons-linter' to check the built extension. \[[err, also \#111](https://github.com/matatk/landmarks/pull/111)\]
 -   2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions. [\[\#85\]](https://github.com/matatk/landmarks/pull/85)
-    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. [\[\#102\]](https://github.com/matatk/landmarks/pull/102)
-    -   Correctly restore elements' outlines after they are highlighted. [\[\#94\]](https://github.com/matatk/landmarks/pull/94)
-    -   Automatically disable the extension on browsers' extensions store pages. [\[\#97\]](https://github.com/matatk/landmarks/pull/97)
-    -   Start exploring what's needed for Edge support in future. [\[\#99\]](https://github.com/matatk/landmarks/pull/99)
-    -   Improvements to the SVG to PNG process. [\[\#95\]](https://github.com/matatk/landmarks/pull/95)
+    -   Landmarks now ignores hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
+    -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. \[[\#102](https://github.com/matatk/landmarks/pull/102)\]
+    -   Correctly restore elements' outlines after they are highlighted. \[[\#94](https://github.com/matatk/landmarks/pull/94)\]
+    -   Automatically disable the extension on browsers' extensions store pages. \[[\#97](https://github.com/matatk/landmarks/pull/97)\]
+    -   Start exploring what's needed for Edge support in future. \[[\#99](https://github.com/matatk/landmarks/pull/99)\]
+    -   Improvements to the SVG to PNG process. \[[\#95](https://github.com/matatk/landmarks/pull/95)\]
     -   Other more minor tweaks and fixes.
     -   README updates.
 -   2.0.7 - 11th of May 2017
