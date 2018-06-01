@@ -9,11 +9,6 @@ const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
 const glob = require('glob')
 
-// For restoring pre-2.0.0 deepmerge behaviour...
-const isMergeableObject = require('is-mergeable-object')
-const emptyTarget = value => Array.isArray(value) ? [] : {}
-const clone = (value, options) => merge(emptyTarget(value), value, options)
-
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
 const extVersion = packageJson.version
@@ -190,16 +185,21 @@ function mergeManifest(browser) {
 	const commonJson = require(common)
 	const extraJson = require(extra)
 
-	function oldArrayMerge(target, source, optionsArgument) {
+	// For pre-2.0.0 deepmerge behaviour...
+	// https://github.com/KyleAMathews/deepmerge#examples (and scroll a bit)
+	const emptyTarget = value => Array.isArray(value) ? [] : {}
+	const clone = (value, options) => merge(emptyTarget(value), value, options)
+
+	function legacyArrayMerge(target, source, options) {
 		const destination = target.slice()
 
 		source.forEach(function(e, i) {
 			if (typeof destination[i] === 'undefined') {
-				const cloneRequested = !optionsArgument || optionsArgument.clone !== false
-				const shouldClone = cloneRequested && isMergeableObject(e)
-				destination[i] = shouldClone ? clone(e, optionsArgument) : e
-			} else if (isMergeableObject(e)) {
-				destination[i] = merge(target[i], e, optionsArgument)
+				const cloneRequested = options.clone !== false
+				const shouldClone = cloneRequested && options.isMergeableObject(e)
+				destination[i] = shouldClone ? clone(e, options) : e
+			} else if (options.isMergeableObject(e)) {
+				destination[i] = merge(target[i], e, options)
 			} else if (target.indexOf(e) === -1) {
 				destination.push(e)
 			}
@@ -209,7 +209,7 @@ function mergeManifest(browser) {
 
 	// Merging this way 'round just happens to make it so that, when merging
 	// the arrays of scripts to include, the compatibility one comes first.
-	const merged = merge(extraJson, commonJson, { arrayMerge: oldArrayMerge })
+	const merged = merge(extraJson, commonJson, { arrayMerge: legacyArrayMerge })
 	merged.version = extVersion
 	fs.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
