@@ -203,6 +203,8 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.3.1 - 1st of June 2018
+    -   Small refinements to the build process and documentation. [\#174](https://github.com/matatk/landmarks/pull/174)
 -   2.3.0 - 17th of May 2018
     -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158), [\#162](https://github.com/matatk/landmarks/pull/162)\]
     -   Options are saved as they're changed by the user, and borders get updated to reflect settings changes immediately. \[[\#160](https://github.com/matatk/landmarks/pull/160)\]
