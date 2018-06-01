@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "scripts": {
     "pre_build": "npm test",
@@ -28,15 +28,14 @@
     "test:landmarks": "node test/test-landmarks.js"
   },
   "devDependencies": {
-    "addons-linter": "~1.0",
+    "addons-linter": "~1.1",
     "archiver": "~2.1",
     "chalk": "~2.4",
     "deepmerge": "~2.1",
     "eslint": "~4.19",
     "fs-extra": "~6.0",
     "husky": "~0.14",
-    "is-mergeable-object": "~1.1",
-    "jsdom": "~11.10",
+    "jsdom": "~11.11",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
     "puppeteer": "~1.4",
     "replace-in-file": "~3.4",
