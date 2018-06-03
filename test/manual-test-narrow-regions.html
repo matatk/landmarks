@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Narrow regions test</title>
+		<title>Narrow regions and side-scrolling test</title>
 		<style>
 header, nav, main, aside, footer {
 	border: 2px solid black;
@@ -20,7 +20,9 @@ header, nav, main, aside, footer {
 }
 
 .content {
+	width: 100vw;
 	flex-grow: 1;
+	margin-left: 50vw;
 }
 
 nav {
@@ -40,7 +42,7 @@ aside {
 	</head>
 	<body class="container page">
 		<header>
-			<h1>Narrow regions test</h1>
+			<h1>Narrow regions and side-scrolling test</h1>
 		</header>
 		<div class="container content">
 			<nav aria-label="Really long-winded name">
@@ -49,7 +51,7 @@ aside {
 			<main>
 				Focus the "nav" region and resize the viewport; the label will switch to being anchored to the left side of the border (instead of the right) at the point that it would've gone off-screen to the left.
 			</main>
-			<aside aria-label="Another overly verbose handle">
+			<aside aria-label="Another overly-verbose handle">
 				aside
 			</aside>
 		</div>

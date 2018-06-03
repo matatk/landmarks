@@ -195,23 +195,30 @@ function ElementFocuser() {
 	// Given an element on the page and an element acting as the border, size
 	// the border appropriately for the element
 	function sizeBorder(element, border, label) {
-		const bounds = element.getBoundingClientRect()
+		const elementBounds = element.getBoundingClientRect()
 
-		border.style.left = window.scrollX + bounds.left + 'px'
-		border.style.top = window.scrollY + bounds.top + 'px'
-		border.style.width = bounds.width + 'px'
-		border.style.height = bounds.height + 'px'
+		const elementTopEdgePx = window.scrollY + elementBounds.top
 
-		// TODO test on side-scrolling page
-		label.style.top = window.scrollY + bounds.top - borderWidthPx + 'px'
-		label.style.right =
-			(window.innerWidth -
-				(window.scrollX + bounds.right + 2 * borderWidthPx)) + 'px'
+		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
+
+		const elementRightEdgeStyle =
+			window.innerWidth
+			- (window.scrollX + elementBounds.right + 2 * borderWidthPx)
+			+ 'px'
+
+		border.style.left = elementLeftEdgeStyle
+		border.style.top = elementTopEdgePx + 'px'
+		border.style.width = elementBounds.width + 'px'
+		border.style.height = elementBounds.height + 'px'
+
+		label.style.top = elementTopEdgePx - borderWidthPx + 'px'
+		label.style.right = elementRightEdgeStyle
 
 		// Is part of the label off-screen?
 		const labelBounds = label.getBoundingClientRect()
-		if (labelBounds.left < 0) {  // TODO test on side-scrolling page
+		if (labelBounds.left < 0) {
 			label.style.removeProperty('right')
+			label.style.left = elementLeftEdgeStyle
 		}
 
 		justMadeChanges = true  // TODO seems to be in the right place
