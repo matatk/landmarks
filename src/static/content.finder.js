@@ -174,10 +174,10 @@ function LandmarksFinder(win, doc) {
 	function getARIAProvidedLabel(element) {
 		let label = null
 
-		const labelIDs = element.getAttribute('aria-labelledby')
-		if (labelIDs !== null) {
-			const innerTexts = Array.from(labelIDs.split(' '), labelID => {
-				const labelElement = doc.getElementById(labelID)
+		const idRefs = element.getAttribute('aria-labelledby')
+		if (idRefs !== null && idRefs.length > 0) {
+			const innerTexts = Array.from(idRefs.split(' '), idRef => {
+				const labelElement = doc.getElementById(idRef)
 				return getInnerText(labelElement)
 			})
 			label = innerTexts.join(' ')
