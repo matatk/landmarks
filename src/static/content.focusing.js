@@ -165,6 +165,7 @@ function ElementFocuser() {
 		labelDiv.style.backgroundColor = colour
 		labelDiv.style.border = 'none'
 		labelDiv.style.color = fontColour
+		labelDiv.style.display = 'inline-block'
 		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.fontSize = fontSize + 'px'
 		labelDiv.style.fontWeight = 'bold'
@@ -175,6 +176,7 @@ function ElementFocuser() {
 		labelDiv.style.paddingRight = '0.75em'
 		labelDiv.style.paddingTop = '0.25em'
 		labelDiv.style.position = 'absolute'
+		labelDiv.style.whiteSpace = 'nowrap'
 		labelDiv.style.zIndex = zIndex
 
 		labelDiv.appendChild(labelContent)
@@ -192,8 +194,9 @@ function ElementFocuser() {
 		window.addEventListener('resize', currentBorderResizeHandler)
 	}
 
-	// Given an element on the page and an element acting as the border, size
-	// the border appropriately for the element
+	// Given an element on the page and elements acting as the border and
+	// label, size the border, and position the label, appropriately for the
+	// element
 	function sizeBorder(element, border, label) {
 		const elementBounds = element.getBoundingClientRect()
 
@@ -211,12 +214,20 @@ function ElementFocuser() {
 		border.style.width = elementBounds.width + 'px'
 		border.style.height = elementBounds.height + 'px'
 
+		// Try aligning the right edge of the label to the right edge of the
+		// border.
+		//
+		// If the label is too wide, align the left edge of the label to the
+		// left edge of the border.
+
+		label.style.removeProperty('left')  // in case this was set before
+
 		label.style.top = elementTopEdgePx - borderWidthPx + 'px'
 		label.style.right = elementRightEdgeStyle
 
 		// Is part of the label off-screen?
 		const labelBounds = label.getBoundingClientRect()
-		if (labelBounds.left < 0) {
+		if (labelBounds.left < 0 || label.scrollWidth > label.offsetWidth) {
 			label.style.removeProperty('right')
 			label.style.left = elementLeftEdgeStyle
 		}
