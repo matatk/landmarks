@@ -5,15 +5,19 @@
 function ElementFocuser() {
 	const momentaryBorderTime = 2000
 	let justMadeChanges = false
-	let currentlyFocusedElementInfo = null    // keep for border redraws
-	let currentlyFocusedElementBorder = null  // indicates if border is shown
-	let borderRemovalTimer = null
+
+	const borderWidthPx = 2
+	const outlineWidthPx = 2
 
 	const settings = {}         // caches options locally (for simpler code)
 	let labelFontColour = null  // computed based on border colour
 	const contrastChecker = new ContrastChecker()
 
-	let currentBorderResizeHandler = null
+	let currentlyFocusedElementInfo = null    // keep for border redraws
+	let currentlyFocusedElementBorder = null  // indicates border; resizing
+	let currentlyFocusedElementLabel = null   // needed when resizing
+	let currentBorderResizeHandler = null     // tracked so it can be removed
+	let borderRemovalTimer = null             // tracked so it can be cleared
 
 
 	//
@@ -103,8 +107,10 @@ function ElementFocuser() {
 		if (currentlyFocusedElementBorder) {
 			justMadeChanges = true
 			currentlyFocusedElementBorder.remove()
+			currentlyFocusedElementLabel.remove()
 			window.removeEventListener('resize', currentBorderResizeHandler)
 			currentlyFocusedElementBorder = null
+			currentlyFocusedElementLabel = null
 		}
 
 		// currentlyFocusedElementInfo is not deleted, as we may be in the
@@ -144,39 +150,43 @@ function ElementFocuser() {
 	// highlighted, and a label for it; position and style them appropriately
 	function drawBorder(element, label, colour, fontColour, fontSize) {
 		const zIndex = 10000000
+
 		const labelContent = document.createTextNode(label)
+
+		const borderDiv = document.createElement('div')
+		borderDiv.style.border = borderWidthPx + 'px solid ' + colour
+		borderDiv.style.margin = '0'
+		borderDiv.style.outline = outlineWidthPx + 'px solid ' + colour
+		borderDiv.style.padding = '0'
+		borderDiv.style.position = 'absolute'
+		borderDiv.style.zIndex = zIndex
 
 		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = colour
+		labelDiv.style.border = 'none'
 		labelDiv.style.color = fontColour
+		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.fontSize = fontSize + 'px'
 		labelDiv.style.fontWeight = 'bold'
-		labelDiv.style.fontFamily = 'sans-serif'
-		labelDiv.style.float = 'right'
+		labelDiv.style.margin = '0'
+		labelDiv.style.outline = 'none'
+		labelDiv.style.paddingBottom = '0.25em'
 		labelDiv.style.paddingLeft = '0.75em'
 		labelDiv.style.paddingRight = '0.75em'
 		labelDiv.style.paddingTop = '0.25em'
-		labelDiv.style.paddingBottom = '0.25em'
+		labelDiv.style.position = 'absolute'
 		labelDiv.style.zIndex = zIndex
-		labelDiv.style.margin = '0'
-		labelDiv.style.border = 'none'
-		labelDiv.style.outline = 'none'
-
-		const borderDiv = document.createElement('div')
-		sizeBorder(element, borderDiv)
-		borderDiv.style.border = '2px solid ' + colour
-		borderDiv.style.outline = '2px solid ' + colour
-		borderDiv.style.position = 'absolute'
-		borderDiv.style.zIndex = zIndex
-		borderDiv.style.margin = '0'
-		borderDiv.style.padding = '0'
 
 		labelDiv.appendChild(labelContent)
-		borderDiv.appendChild(labelDiv)
-		justMadeChanges = true
+
 		document.body.appendChild(borderDiv)
+		document.body.appendChild(labelDiv)
+		justMadeChanges = true  // TODO seems to be covered by sizeBorder()
+
+		sizeBorder(element, borderDiv, labelDiv)
 
 		currentlyFocusedElementBorder = borderDiv
+		currentlyFocusedElementLabel = labelDiv
 		currentBorderResizeHandler = () => resize(element)
 
 		window.addEventListener('resize', currentBorderResizeHandler)
@@ -184,17 +194,35 @@ function ElementFocuser() {
 
 	// Given an element on the page and an element acting as the border, size
 	// the border appropriately for the element
-	function sizeBorder(element, border) {
+	function sizeBorder(element, border, label) {
 		const bounds = element.getBoundingClientRect()
+
 		border.style.left = window.scrollX + bounds.left + 'px'
 		border.style.top = window.scrollY + bounds.top + 'px'
 		border.style.width = bounds.width + 'px'
 		border.style.height = bounds.height + 'px'
+
+		// TODO test on side-scrolling page
+		label.style.top = window.scrollY + bounds.top - borderWidthPx + 'px'
+		label.style.right =
+			(window.innerWidth -
+				(window.scrollX + bounds.right + 2 * borderWidthPx)) + 'px'
+
+		// Is part of the label off-screen?
+		const labelBounds = label.getBoundingClientRect()
+		if (labelBounds.left < 0) {  // TODO test on side-scrolling page
+			label.style.removeProperty('right')
+		}
+
+		justMadeChanges = true  // TODO seems to be in the right place
 	}
 
 	// When the viewport changes, update the border <div>'s size
 	function resize(element) {
-		sizeBorder(element, currentlyFocusedElementBorder)
+		sizeBorder(
+			element,
+			currentlyFocusedElementBorder,
+			currentlyFocusedElementLabel)
 	}
 
 	// Work out if the label font colour should be black or white
