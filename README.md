@@ -209,6 +209,7 @@ Changes
 
 -   2.3.1 - 3rd of June 2018
     -   Support multiple labelling elements when `aria-labelledby` is used. \[[\#176](https://github.com/matatk/landmarks/pull/176)\]
+    -   Keep labels legible, and borders neat, when landmark regions are narrow. \[[\#179](https://github.com/matatk/landmarks/pull/179)\]
     -   Small refinements to the build process, documentation and error-handling. \[[\#174](https://github.com/matatk/landmarks/pull/174), [\#178](https://github.com/matatk/landmarks/pull/178)\]
 -   2.3.0 - 17th of May 2018
     -   Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158), [\#162](https://github.com/matatk/landmarks/pull/162)\]
