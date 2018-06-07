@@ -4,9 +4,15 @@
 		<meta charset="utf-8">
 		<title>Narrow regions and side-scrolling test</title>
 		<style>
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
 header, nav, main, aside, footer {
 	border: 2px solid black;
-	margin-bottom: 0.5em;
+	margin-top: 0.5em;
 	padding: 0.5em;
 }
 
@@ -16,7 +22,11 @@ header, nav, main, aside, footer {
 
 .page {
 	flex-direction: column;
-	height: 95vh;
+	height: 100%;
+	box-sizing: border-box;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-bottom: 0.5em;
 }
 
 .content {
