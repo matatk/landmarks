@@ -164,6 +164,8 @@ function ElementFocuser() {
 		borderDiv.style.margin = '0'
 		borderDiv.style.outline = outlineWidthPx + 'px solid ' + colour
 		borderDiv.style.padding = '0'
+		// Pass events through - https://stackoverflow.com/a/6441884/1485308
+		borderDiv.style.pointerEvents = 'none'
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
 
