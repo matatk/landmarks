@@ -3,21 +3,27 @@
 /* global landmarkName defaultBorderSettings ContrastChecker */
 
 function ElementFocuser() {
-	const momentaryBorderTime = 2000
-	let justMadeChanges = false
+	const contrastChecker = new ContrastChecker()
 
+	const momentaryBorderTime = 2000
 	const borderWidthPx = 2
 	const outlineWidthPx = 2
 
-	const settings = {}         // caches options locally (for simpler code)
+	const settings = {}         // caches options locally (simpler drawing code)
 	let labelFontColour = null  // computed based on border colour
-	const contrastChecker = new ContrastChecker()
 
-	let currentlyFocusedElementInfo = null    // keep for border redraws
-	let currentlyFocusedElementBorder = null  // indicates border; resizing
-	let currentlyFocusedElementLabel = null   // needed when resizing
-	let currentBorderResizeHandler = null     // tracked so it can be removed
-	let borderRemovalTimer = null             // tracked so it can be cleared
+	// Keep a reference to the current element, its role and name for redraws
+	let currentlyFocusedElementInfo = null
+
+	// Drawn border elements: the first is used as a convenient indicator that
+	// the border is drawn. They are both needed when resizing/repositioning
+	// the border/label.
+	let currentBorderElement = null
+	let currentLabelElement = null
+
+	let currentResizeHandler = null  // tracked so it can be removed
+	let borderRemovalTimer = null    // tracked so it can be cleared
+	let justMadeChanges = false      // we are asked this by mutation observer
 
 
 	//
@@ -44,7 +50,7 @@ function ElementFocuser() {
 
 		if ('borderColour' in changes || 'borderFontSize' in changes) {
 			updateLabelFontColour()
-			redrawBorder()
+			redrawBorderAndLabel()
 		}
 
 		if ('borderType' in changes) {
@@ -104,13 +110,13 @@ function ElementFocuser() {
 	}
 
 	function removeBorderOnCurrentlySelectedElement() {
-		if (currentlyFocusedElementBorder) {
+		if (currentBorderElement) {
 			justMadeChanges = true
-			currentlyFocusedElementBorder.remove()
-			currentlyFocusedElementLabel.remove()
-			window.removeEventListener('resize', currentBorderResizeHandler)
-			currentlyFocusedElementBorder = null
-			currentlyFocusedElementLabel = null
+			currentBorderElement.remove()
+			currentLabelElement.remove()
+			window.removeEventListener('resize', currentResizeHandler)
+			currentBorderElement = null
+			currentLabelElement = null
 		}
 
 		// currentlyFocusedElementInfo is not deleted, as we may be in the
@@ -138,7 +144,7 @@ function ElementFocuser() {
 	// Add the landmark border and label for an element
 	// Note: only one should be drawn at a time
 	function addBorder(elementInfo) {
-		drawBorder(
+		drawBorderAndLabel(
 			elementInfo.element,
 			landmarkName(elementInfo),
 			settings.borderColour,
@@ -148,7 +154,7 @@ function ElementFocuser() {
 
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it; position and style them appropriately
-	function drawBorder(element, label, colour, fontColour, fontSize) {
+	function drawBorderAndLabel(element, label, colour, fontColour, fontSize) {
 		const zIndex = 10000000
 
 		const labelContent = document.createTextNode(label)
@@ -183,27 +189,24 @@ function ElementFocuser() {
 
 		document.body.appendChild(borderDiv)
 		document.body.appendChild(labelDiv)
-		justMadeChanges = true  // TODO seems to be covered by sizeBorder()
+		justMadeChanges = true  // seems to be covered by sizeBorderAndLabel()
 
-		sizeBorder(element, borderDiv, labelDiv)
+		sizeBorderAndLabel(element, borderDiv, labelDiv)
 
-		currentlyFocusedElementBorder = borderDiv
-		currentlyFocusedElementLabel = labelDiv
-		currentBorderResizeHandler = () => resize(element)
+		currentBorderElement = borderDiv
+		currentLabelElement = labelDiv
+		currentResizeHandler = () => resize(element)
 
-		window.addEventListener('resize', currentBorderResizeHandler)
+		window.addEventListener('resize', currentResizeHandler)
 	}
 
 	// Given an element on the page and elements acting as the border and
 	// label, size the border, and position the label, appropriately for the
 	// element
-	function sizeBorder(element, border, label) {
+	function sizeBorderAndLabel(element, border, label) {
 		const elementBounds = element.getBoundingClientRect()
-
 		const elementTopEdgePx = window.scrollY + elementBounds.top
-
 		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
-
 		const elementRightEdgeStyle =
 			window.innerWidth
 			- (window.scrollX + elementBounds.right + 2 * borderWidthPx)
@@ -217,8 +220,8 @@ function ElementFocuser() {
 		// Try aligning the right edge of the label to the right edge of the
 		// border.
 		//
-		// If the label is too wide, align the left edge of the label to the
-		// left edge of the border.
+		// If the label would go off-screen left, align the left edge of the
+		// label to the left edge of the border.
 
 		label.style.removeProperty('left')  // in case this was set before
 
@@ -227,20 +230,20 @@ function ElementFocuser() {
 
 		// Is part of the label off-screen?
 		const labelBounds = label.getBoundingClientRect()
-		if (labelBounds.left < 0 || label.scrollWidth > label.offsetWidth) {
+		if (labelBounds.left < 0) {
 			label.style.removeProperty('right')
 			label.style.left = elementLeftEdgeStyle
 		}
 
-		justMadeChanges = true  // TODO seems to be in the right place
+		justMadeChanges = true  // seems to be in the right place
 	}
 
 	// When the viewport changes, update the border <div>'s size
 	function resize(element) {
-		sizeBorder(
+		sizeBorderAndLabel(
 			element,
-			currentlyFocusedElementBorder,
-			currentlyFocusedElementLabel)
+			currentBorderElement,
+			currentLabelElement)
 	}
 
 	// Work out if the label font colour should be black or white
@@ -252,8 +255,8 @@ function ElementFocuser() {
 	}
 
 	// Redraw an existing border
-	function redrawBorder() {
-		if (currentlyFocusedElementBorder) {
+	function redrawBorderAndLabel() {
+		if (currentBorderElement) {
 			if (settings.borderType === 'persistent') {
 				removeBorderOnCurrentlySelectedElement()
 				addBorder(currentlyFocusedElementInfo)
