@@ -6,8 +6,7 @@ function ElementFocuser() {
 	const contrastChecker = new ContrastChecker()
 
 	const momentaryBorderTime = 2000
-	const borderWidthPx = 2
-	const outlineWidthPx = 2
+	const borderWidthPx = 4
 
 	const settings = {}         // caches options locally (simpler drawing code)
 	let labelFontColour = null  // computed based on border colour
@@ -161,8 +160,8 @@ function ElementFocuser() {
 
 		const borderDiv = document.createElement('div')
 		borderDiv.style.border = borderWidthPx + 'px solid ' + colour
+		borderDiv.style.boxSizing = 'border-box'
 		borderDiv.style.margin = '0'
-		borderDiv.style.outline = outlineWidthPx + 'px solid ' + colour
 		borderDiv.style.padding = '0'
 		// Pass events through - https://stackoverflow.com/a/6441884/1485308
 		borderDiv.style.pointerEvents = 'none'
@@ -172,13 +171,13 @@ function ElementFocuser() {
 		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = colour
 		labelDiv.style.border = 'none'
+		labelDiv.style.boxSizing = 'border-box'
 		labelDiv.style.color = fontColour
 		labelDiv.style.display = 'inline-block'
 		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.fontSize = fontSize + 'px'
 		labelDiv.style.fontWeight = 'bold'
 		labelDiv.style.margin = '0'
-		labelDiv.style.outline = 'none'
 		labelDiv.style.paddingBottom = '0.25em'
 		labelDiv.style.paddingLeft = '0.75em'
 		labelDiv.style.paddingRight = '0.75em'
@@ -207,15 +206,13 @@ function ElementFocuser() {
 	// element
 	function sizeBorderAndLabel(element, border, label) {
 		const elementBounds = element.getBoundingClientRect()
-		const elementTopEdgePx = window.scrollY + elementBounds.top
+		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
 		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
 		const elementRightEdgeStyle =
-			window.innerWidth
-			- (window.scrollX + elementBounds.right + 2 * borderWidthPx)
-			+ 'px'
+			window.innerWidth - (window.scrollX + elementBounds.right) + 'px'
 
 		border.style.left = elementLeftEdgeStyle
-		border.style.top = elementTopEdgePx + 'px'
+		border.style.top = elementTopEdgeStyle
 		border.style.width = elementBounds.width + 'px'
 		border.style.height = elementBounds.height + 'px'
 
@@ -227,7 +224,7 @@ function ElementFocuser() {
 
 		label.style.removeProperty('left')  // in case this was set before
 
-		label.style.top = elementTopEdgePx - borderWidthPx + 'px'
+		label.style.top = elementTopEdgeStyle
 		label.style.right = elementRightEdgeStyle
 
 		// Is part of the label off-screen?
