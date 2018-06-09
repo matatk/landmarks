@@ -208,8 +208,8 @@ function ElementFocuser() {
 		const elementBounds = element.getBoundingClientRect()
 		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
 		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
-		const elementRightEdgeStyle =
-			window.innerWidth - (window.scrollX + elementBounds.right) + 'px'
+		const elementRightEdgeStyle = document.documentElement.clientWidth -
+			(window.scrollX + elementBounds.right) + 'px'
 
 		border.style.left = elementLeftEdgeStyle
 		border.style.top = elementTopEdgeStyle
