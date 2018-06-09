@@ -1,5 +1,8 @@
 #!/bin/bash
 LAYOUT_PREFIX='---\r\nlayout: index\r\n---\r\n'
+git checkout master
+git pull
+git checkout gh-pages
 git checkout master -- README.md
 echo -e $LAYOUT_PREFIX > index.md
 cat README.md | tail -n +6 >> index.md
