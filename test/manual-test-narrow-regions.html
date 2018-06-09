@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Narrow regions and side-scrolling test</title>
+		<style>
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+header, nav, main, aside, footer {
+	border: 2px solid black;
+	margin-top: 0.5em;
+	padding: 0.5em;
+}
+
+.container {
+	display: flex;
+}
+
+.page {
+	flex-direction: column;
+	height: 100%;
+	box-sizing: border-box;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-bottom: 0.5em;
+}
+
+.content {
+	width: 100vw;
+	flex-grow: 1;
+	margin-left: 50vw;
+}
+
+nav {
+	width: 25vw;
+}
+
+main {
+	flex-grow: 1;
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
+aside {
+	width: 5vw;
+}
+		</style>
+	</head>
+	<body class="container page">
+		<header>
+			<h1>Narrow regions and side-scrolling test</h1>
+		</header>
+		<div class="container content">
+			<nav aria-label="Really long-winded name">
+				nav
+			</nav>
+			<main>
+				Move through the landmarks in this document, then go backwards after passing the "nav" region; the label will be drawn so that it doesn't go off-screen left. This can also be triggered on viewport resize.
+			</main>
+			<aside aria-label="Another overly-verbose handle">
+				aside
+			</aside>
+		</div>
+		<footer>
+			footer
+		</footer>
+	</body>
+</html>

@@ -3,17 +3,26 @@
 /* global landmarkName defaultBorderSettings ContrastChecker */
 
 function ElementFocuser() {
-	const momentaryBorderTime = 2000
-	let justMadeChanges = false
-	let currentlyFocusedElementInfo = null    // keep for border redraws
-	let currentlyFocusedElementBorder = null  // indicates if border is shown
-	let borderRemovalTimer = null
-
-	const settings = {}         // caches options locally (for simpler code)
-	let labelFontColour = null  // computed based on border colour
 	const contrastChecker = new ContrastChecker()
 
-	let currentBorderResizeHandler = null
+	const momentaryBorderTime = 2000
+	const borderWidthPx = 4
+
+	const settings = {}         // caches options locally (simpler drawing code)
+	let labelFontColour = null  // computed based on border colour
+
+	// Keep a reference to the current element, its role and name for redraws
+	let currentlyFocusedElementInfo = null
+
+	// Drawn border elements: the first is used as a convenient indicator that
+	// the border is drawn. They are both needed when resizing/repositioning
+	// the border/label.
+	let currentBorderElement = null
+	let currentLabelElement = null
+
+	let currentResizeHandler = null  // tracked so it can be removed
+	let borderRemovalTimer = null    // tracked so it can be cleared
+	let justMadeChanges = false      // we are asked this by mutation observer
 
 
 	//
@@ -40,7 +49,7 @@ function ElementFocuser() {
 
 		if ('borderColour' in changes || 'borderFontSize' in changes) {
 			updateLabelFontColour()
-			redrawBorder()
+			redrawBorderAndLabel()
 		}
 
 		if ('borderType' in changes) {
@@ -100,11 +109,13 @@ function ElementFocuser() {
 	}
 
 	function removeBorderOnCurrentlySelectedElement() {
-		if (currentlyFocusedElementBorder) {
+		if (currentBorderElement) {
 			justMadeChanges = true
-			currentlyFocusedElementBorder.remove()
-			window.removeEventListener('resize', currentBorderResizeHandler)
-			currentlyFocusedElementBorder = null
+			currentBorderElement.remove()
+			currentLabelElement.remove()
+			window.removeEventListener('resize', currentResizeHandler)
+			currentBorderElement = null
+			currentLabelElement = null
 		}
 
 		// currentlyFocusedElementInfo is not deleted, as we may be in the
@@ -132,7 +143,7 @@ function ElementFocuser() {
 	// Add the landmark border and label for an element
 	// Note: only one should be drawn at a time
 	function addBorder(elementInfo) {
-		drawBorder(
+		drawBorderAndLabel(
 			elementInfo.element,
 			landmarkName(elementInfo),
 			settings.borderColour,
@@ -142,59 +153,96 @@ function ElementFocuser() {
 
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it; position and style them appropriately
-	function drawBorder(element, label, colour, fontColour, fontSize) {
+	function drawBorderAndLabel(element, label, colour, fontColour, fontSize) {
 		const zIndex = 10000000
+
 		const labelContent = document.createTextNode(label)
+
+		const borderDiv = document.createElement('div')
+		borderDiv.style.border = borderWidthPx + 'px solid ' + colour
+		borderDiv.style.boxSizing = 'border-box'
+		borderDiv.style.margin = '0'
+		borderDiv.style.padding = '0'
+		// Pass events through - https://stackoverflow.com/a/6441884/1485308
+		borderDiv.style.pointerEvents = 'none'
+		borderDiv.style.position = 'absolute'
+		borderDiv.style.zIndex = zIndex
 
 		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = colour
+		labelDiv.style.border = 'none'
+		labelDiv.style.boxSizing = 'border-box'
 		labelDiv.style.color = fontColour
+		labelDiv.style.display = 'inline-block'
+		labelDiv.style.fontFamily = 'sans-serif'
 		labelDiv.style.fontSize = fontSize + 'px'
 		labelDiv.style.fontWeight = 'bold'
-		labelDiv.style.fontFamily = 'sans-serif'
-		labelDiv.style.float = 'right'
+		labelDiv.style.margin = '0'
+		labelDiv.style.paddingBottom = '0.25em'
 		labelDiv.style.paddingLeft = '0.75em'
 		labelDiv.style.paddingRight = '0.75em'
 		labelDiv.style.paddingTop = '0.25em'
-		labelDiv.style.paddingBottom = '0.25em'
+		labelDiv.style.position = 'absolute'
+		labelDiv.style.whiteSpace = 'nowrap'
 		labelDiv.style.zIndex = zIndex
-		labelDiv.style.margin = '0'
-		labelDiv.style.border = 'none'
-		labelDiv.style.outline = 'none'
-
-		const borderDiv = document.createElement('div')
-		sizeBorder(element, borderDiv)
-		borderDiv.style.border = '2px solid ' + colour
-		borderDiv.style.outline = '2px solid ' + colour
-		borderDiv.style.position = 'absolute'
-		borderDiv.style.zIndex = zIndex
-		borderDiv.style.margin = '0'
-		borderDiv.style.padding = '0'
 
 		labelDiv.appendChild(labelContent)
-		borderDiv.appendChild(labelDiv)
-		justMadeChanges = true
+
 		document.body.appendChild(borderDiv)
+		document.body.appendChild(labelDiv)
+		justMadeChanges = true  // seems to be covered by sizeBorderAndLabel()
 
-		currentlyFocusedElementBorder = borderDiv
-		currentBorderResizeHandler = () => resize(element)
+		sizeBorderAndLabel(element, borderDiv, labelDiv)
 
-		window.addEventListener('resize', currentBorderResizeHandler)
+		currentBorderElement = borderDiv
+		currentLabelElement = labelDiv
+		currentResizeHandler = () => resize(element)
+
+		window.addEventListener('resize', currentResizeHandler)
 	}
 
-	// Given an element on the page and an element acting as the border, size
-	// the border appropriately for the element
-	function sizeBorder(element, border) {
-		const bounds = element.getBoundingClientRect()
-		border.style.left = window.scrollX + bounds.left + 'px'
-		border.style.top = window.scrollY + bounds.top + 'px'
-		border.style.width = bounds.width + 'px'
-		border.style.height = bounds.height + 'px'
+	// Given an element on the page and elements acting as the border and
+	// label, size the border, and position the label, appropriately for the
+	// element
+	function sizeBorderAndLabel(element, border, label) {
+		const elementBounds = element.getBoundingClientRect()
+		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
+		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
+		const elementRightEdgeStyle = document.documentElement.clientWidth -
+			(window.scrollX + elementBounds.right) + 'px'
+
+		border.style.left = elementLeftEdgeStyle
+		border.style.top = elementTopEdgeStyle
+		border.style.width = elementBounds.width + 'px'
+		border.style.height = elementBounds.height + 'px'
+
+		// Try aligning the right edge of the label to the right edge of the
+		// border.
+		//
+		// If the label would go off-screen left, align the left edge of the
+		// label to the left edge of the border.
+
+		label.style.removeProperty('left')  // in case this was set before
+
+		label.style.top = elementTopEdgeStyle
+		label.style.right = elementRightEdgeStyle
+
+		// Is part of the label off-screen?
+		const labelBounds = label.getBoundingClientRect()
+		if (labelBounds.left < 0) {
+			label.style.removeProperty('right')
+			label.style.left = elementLeftEdgeStyle
+		}
+
+		justMadeChanges = true  // seems to be in the right place
 	}
 
 	// When the viewport changes, update the border <div>'s size
 	function resize(element) {
-		sizeBorder(element, currentlyFocusedElementBorder)
+		sizeBorderAndLabel(
+			element,
+			currentBorderElement,
+			currentLabelElement)
 	}
 
 	// Work out if the label font colour should be black or white
@@ -206,8 +254,8 @@ function ElementFocuser() {
 	}
 
 	// Redraw an existing border
-	function redrawBorder() {
-		if (currentlyFocusedElementBorder) {
+	function redrawBorderAndLabel() {
+		if (currentBorderElement) {
 			if (settings.borderType === 'persistent') {
 				removeBorderOnCurrentlySelectedElement()
 				addBorder(currentlyFocusedElementInfo)
