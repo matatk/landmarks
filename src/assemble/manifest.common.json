@@ -32,6 +32,11 @@
         "content.pausing.js",
         "content.supervisor.js"
       ]
+    },
+    {
+      "matches": ["http://matatk.agrip.org.uk/landmarks/"],
+      "js": ["splash.js"],
+      "css": ["splash.css"]
     }
   ],
 
