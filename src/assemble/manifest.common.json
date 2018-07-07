@@ -63,6 +63,9 @@
         "default": "Alt+Shift+M"
       },
       "description": "__MSG_mainLandmarkShortcutDescription__"
+    },
+    "show-all-landmarks": {
+      "description": "__MSG_showAllLandmarksShortcutDescription__"
     }
   },
 
