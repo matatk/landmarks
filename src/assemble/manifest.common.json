@@ -41,22 +41,8 @@
   ],
 
   "commands": {
-    "_execute_browser_action": {
-      "suggested_key": {
-        "default": "Alt+Shift+L"
-      }
-    },
-    "next-landmark": {
-      "suggested_key": {
-        "default": "Alt+Shift+N"
-      },
-      "description": "__MSG_nextLandmarkShortcutDescription__"
-    },
-    "prev-landmark": {
-      "suggested_key": {
-        "default": "Alt+Shift+P"
-      },
-      "description": "__MSG_previousLandmarkShortcutDescription__"
+    "show-all-landmarks": {
+      "description": "__MSG_showAllLandmarksShortcutDescription__"
     },
     "main-landmark": {
       "suggested_key": {
@@ -64,8 +50,22 @@
       },
       "description": "__MSG_mainLandmarkShortcutDescription__"
     },
-    "show-all-landmarks": {
-      "description": "__MSG_showAllLandmarksShortcutDescription__"
+    "prev-landmark": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "__MSG_previousLandmarkShortcutDescription__"
+    },
+    "next-landmark": {
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
+      "description": "__MSG_nextLandmarkShortcutDescription__"
+    },
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      }
     }
   },
 

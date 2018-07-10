@@ -4,6 +4,7 @@
 
 const chromeLike = window.chrome ? true : false
 
+// The code below adds a rows for the commands to this
 const tableRows = [
 	{
 		element: 'tr',
@@ -79,60 +80,99 @@ function splashFirst(parent, element) {
 }
 
 
+function addCommandRowAndReportIfMissing(command) {
+	let missingShortcut = false
+
+	// Work out the command's friendly name
+	let action
+
+	if (command.name === '_execute_browser_action') {
+		action = 'Show pop-up'
+	} else if (chromeLike) {
+		// Chrome returns the full descriptions
+		action = command.description
+	} else {
+		// Firefox requires the descriptions to be translated
+		const messageName = command.description.slice(6, -2)
+		action = browser.i18n.getMessage(messageName)
+	}
+
+	// Work out the command's shortcut
+	let shortcutCellElement
+
+	if (command.shortcut) {
+		// Firefox gives "Alt+Shift+N" but Chrome gives ⌥⇧N
+		if (chromeLike) {
+			shortcutCellElement = { element: 'td', contains: [
+				{ element: 'kbd', content: command.shortcut }
+			]}
+		} else {
+			shortcutCellElement = { element: 'td', contains:
+				firefoxShortcutElements(command.shortcut)
+			}
+		}
+	} else {
+		shortcutCellElement = { element: 'td', class: 'error', contains: [
+			{ text: 'Not set up' }
+		]}
+		missingShortcut = true
+	}
+
+	tableRows.push({
+		element: 'tr',
+		contains: [
+			{ element: 'td', content: action },
+			shortcutCellElement
+		]
+	})
+
+	return missingShortcut
+}
+
+
+function firefoxShortcutElements(shortcut) {
+	const shortcutElements = []
+	const shortcutParts = shortcut.split(/(\+)/)
+
+	for (const keyOrPlus of shortcutParts) {
+		if (keyOrPlus !== '+') {
+			shortcutElements.push({ element: 'kbd', content: keyOrPlus })
+		} else {
+			shortcutElements.push({ text: ' + ' })
+		}
+	}
+
+	return shortcutElements
+}
+
+
 browser.runtime.onMessage.addListener(function(message) {
 	if (message.request !== 'splash-populate-commands') return
 
+	// Chrome allows only four keyboard shortcuts to be specified in the
+	// manifest; Firefox allows many.
+	//
+	// The extra ones for Firefox are patched in via its specific manifest file
+	// when the manifest is merged.
+	//
+	// The commands are in the manifest in the opposite order to that which
+	// seems most logical, and need to be reversed to pop out in the right
+	// order on the splash page. This is because the merging in of the extra
+	// keyboard shortcuts means that the commands with added keyboard shortucts
+	// in Firefox are bumped to the top of the commands object.
+	//
+	// What is a bit odd is that, on Chrome, it appears the reversal is not
+	// needed.
+	const commandsInOrder = chromeLike ?
+		message.commands : message.commands.reverse()
+
 	let missingShortcuts = false
 
-	for (const command of message.commands) {
-		// Work out the command's friendly name
-		let action
-
-		if (command.name === '_execute_browser_action') {
-			action = 'Show pop-up'
-		} else if (chromeLike) {
-			// Chrome returns the full descriptions
-			action = command.description
-		} else {
-			// Firefox requires the descriptions to be translated
-			const messageName = command.description.slice(6, -2)
-			action = browser.i18n.getMessage(messageName)
-		}
-
-		// Work out the command's shortcut
-		// FIXME Firefox gives "Alt+Shift+N" but Chrome gives ⌥⇧N
-		let shortcutCellElement
-
-		if (command.shortcut) {
-			const shortcutParts = command.shortcut.split(/(\+)/)
-			const shortcutElements = []
-
-			for (const keyOrPlus of shortcutParts) {
-				if (keyOrPlus !== '+') {
-					shortcutElements.push({ element: 'kbd', content: keyOrPlus })
-				} else {
-					shortcutElements.push({ text: ' + ' })
-				}
-			}
-
-			shortcutCellElement = { element: 'td', contains: shortcutElements }
-		} else {
-			shortcutCellElement = { element: 'td', class: 'error' }
-			missingShortcuts = true
-		}
-
-		tableRows.push({
-			element: 'tr',
-			contains: [
-				{ element: 'td', content: action },
-				shortcutCellElement
-			]
-		})
+	for (const command of commandsInOrder) {
+		missingShortcuts = addCommandRowAndReportIfMissing(command)
 	}
 
-	if (chromeLike) {
-		splashPage.contains.push(chromeKeyboardShortcutsButton)
-	}
+	if (chromeLike) splashPage.contains.push(chromeKeyboardShortcutsButton)
 
 	if (missingShortcuts) {
 		splashPage.contains.push({ element: 'p', text: 'Missing shortcuts!' })

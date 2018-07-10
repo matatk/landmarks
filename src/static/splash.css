@@ -1,4 +1,5 @@
 td.error {
 	background-color: #d00;
 	color: white;
+	font-weight: bold;
 }
