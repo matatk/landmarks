@@ -4,8 +4,14 @@
 
 const chromeLike = window.chrome ? true : false
 
-// The code below adds a rows for the commands to this
-const tableRows = [
+const splashPage = {
+	contains: [
+		{ element: 'h1', content: 'Welcome to Landmarks' }
+		// more stuff is added later
+	]
+}
+
+const shortcutTableRows = [
 	{
 		element: 'tr',
 		contains: [
@@ -14,16 +20,6 @@ const tableRows = [
 		]
 	}
 ]
-
-const splashPage = {
-	contains: [
-		{ element: 'h1', content: 'Welcome to Landmarks' },
-		{
-			element: 'table',
-			contains: tableRows
-		}
-	]
-}
 
 const chromeKeyboardShortcutsButton = {
 	element: 'p', contains: [{
@@ -75,14 +71,7 @@ function makePart(structure, root) {
 }
 
 
-function splashFirst(parent, element) {
-	parent.insertBefore(makePart(splashPage, element), parent.firstChild)
-}
-
-
 function addCommandRowAndReportIfMissing(command) {
-	let missingShortcut = false
-
 	// Work out the command's friendly name
 	let action
 
@@ -115,18 +104,15 @@ function addCommandRowAndReportIfMissing(command) {
 		shortcutCellElement = { element: 'td', class: 'error', contains: [
 			{ text: 'Not set up' }
 		]}
-		missingShortcut = true
 	}
 
-	tableRows.push({
+	shortcutTableRows.push({
 		element: 'tr',
 		contains: [
 			{ element: 'td', content: action },
 			shortcutCellElement
 		]
 	})
-
-	return missingShortcut
 }
 
 
@@ -166,19 +152,21 @@ browser.runtime.onMessage.addListener(function(message) {
 	const commandsInOrder = chromeLike ?
 		message.commands : message.commands.reverse()
 
-	let missingShortcuts = false
-
 	for (const command of commandsInOrder) {
-		missingShortcuts = addCommandRowAndReportIfMissing(command)
+		addCommandRowAndReportIfMissing(command)
 	}
+
+	splashPage.contains.push({
+		element: 'table',
+		contains: shortcutTableRows
+	})
 
 	if (chromeLike) splashPage.contains.push(chromeKeyboardShortcutsButton)
 
-	if (missingShortcuts) {
-		splashPage.contains.push({ element: 'p', text: 'Missing shortcuts!' })
-	}
+	const parent = document.querySelector('main')
 
-	splashFirst(document.querySelector('main'), document.createElement('div'))
+	parent.insertBefore(
+		makePart(splashPage, document.createElement('div')), parent.firstChild)
 })
 
 
