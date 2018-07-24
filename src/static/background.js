@@ -10,6 +10,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'next-landmark':
 		case 'prev-landmark':
 		case 'main-landmark':
+		case 'show-all-landmarks':
 			sendToActiveTab({request: command})
 			break
 	}
@@ -102,7 +103,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		case 'get-commands':
-			browser.commands.getAll(function(commands) {
+			browser.commands.getAll(async function(commands) {
 				sendToActiveTab({
 					request: 'splash-populate-commands',
 					commands: commands

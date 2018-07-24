@@ -6,7 +6,6 @@ const chromeLike = window.chrome ? true : false
 
 const splashPage = {
 	contains: [
-		{ element: 'h1', content: 'Welcome to Landmarks' }
 		// more stuff is added later
 	]
 }
@@ -163,13 +162,53 @@ browser.runtime.onMessage.addListener(function(message) {
 
 	if (chromeLike) splashPage.contains.push(chromeKeyboardShortcutsButton)
 
-	const parent = document.querySelector('main')
+
+	// Create new bits
+
+	const heading = document.getElementById('via-shortcut-key')
+	const parent = heading.parentNode
+	const splashContainer = document.createElement('div')
 
 	parent.insertBefore(
-		makePart(splashPage, document.createElement('div')), parent.firstChild)
+		makePart(splashPage, splashContainer), heading.nextSibling)
 })
 
 
-browser.runtime.sendMessage({
-	request: 'get-commands'
-})
+function main() {
+	// Check for various README elements and escape if things aren't as expected
+
+	const installationTocEntry = document.getElementsByTagName('li')[0]
+	if (!installationTocEntry
+		|| installationTocEntry.textContent !== 'Installation') return
+
+	const installationHeading = document.getElementById('installation')
+	if (!installationHeading) return
+
+	const shortcutKeysHeading = document.getElementById('via-shortcut-key')
+	if (!shortcutKeysHeading) return
+
+	// Remove installation section
+
+	installationTocEntry.remove()
+
+	while (installationHeading.nextSibling.tagName !== 'H2') {  // FIXME H
+		installationHeading.nextSibling.remove()
+	}
+
+	installationHeading.remove()
+
+	// Remove static keyboard shortcuts section content
+
+	while (shortcutKeysHeading.nextSibling.tagName !== 'H3') {  // FIXME H
+		shortcutKeysHeading.nextSibling.remove()
+	}
+
+	// Kickstart process to get commands and create new HTML
+
+	browser.runtime.sendMessage({
+		request: 'get-commands'
+	})
+}
+
+
+main()
