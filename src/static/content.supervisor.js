@@ -107,8 +107,11 @@ function messageHandler(message, sender, sendResponse) {
 			findLandmarksAndUpdateBadge()
 			break
 		default:
-			throw Error('Landmarks: content script received unknown message: '
-				+ message.request)
+			if (!message.request || !message.request.startsWith('splash-')) {
+				throw Error(
+					'Landmarks: content script received unexpected request: '
+					+ message.request)
+			}
 	}
 }
 

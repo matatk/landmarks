@@ -32,20 +32,23 @@
         "content.pausing.js",
         "content.supervisor.js"
       ]
+    },
+    {
+      "matches": ["http://matatk.agrip.org.uk/landmarks/"],
+      "js": ["splash.js"],
+      "css": ["splash.css"]
     }
   ],
 
   "commands": {
-    "_execute_browser_action": {
-      "suggested_key": {
-        "default": "Alt+Shift+L"
-      }
+    "show-all-landmarks": {
+      "description": "__MSG_showAllLandmarksShortcutDescription__"
     },
-    "next-landmark": {
+    "main-landmark": {
       "suggested_key": {
-        "default": "Alt+Shift+N"
+        "default": "Alt+Shift+M"
       },
-      "description": "__MSG_nextLandmarkShortcutDescription__"
+      "description": "__MSG_mainLandmarkShortcutDescription__"
     },
     "prev-landmark": {
       "suggested_key": {
@@ -53,11 +56,16 @@
       },
       "description": "__MSG_previousLandmarkShortcutDescription__"
     },
-    "main-landmark": {
+    "next-landmark": {
       "suggested_key": {
-        "default": "Alt+Shift+M"
+        "default": "Alt+Shift+N"
       },
-      "description": "__MSG_mainLandmarkShortcutDescription__"
+      "description": "__MSG_nextLandmarkShortcutDescription__"
+    },
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      }
     }
   },
 

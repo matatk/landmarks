@@ -26,6 +26,10 @@
     "message": "Move to and highlight the main landmark"
   },
 
+  "showAllLandmarksShortcutDescription": {
+    "message": "Toggle the outline on all landmarks"
+  },
+
   "noMainLandmarkFound": {
     "message": "No main landmark found"
   },

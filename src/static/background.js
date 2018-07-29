@@ -10,6 +10,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'next-landmark':
 		case 'prev-landmark':
 		case 'main-landmark':
+		case 'show-all-landmarks':
 			sendToActiveTab({request: command})
 			break
 	}
@@ -91,7 +92,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 
 //
-// Browser action badge updating
+// Browser action badge updating; Command enumeration
 //
 
 // When the content script has loaded and any landmarks found, it will let us
@@ -101,10 +102,24 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'update-badge':
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
+		case 'get-commands':
+			browser.commands.getAll(async function(commands) {
+				sendToActiveTab({
+					request: 'splash-populate-commands',
+					commands: commands
+				})
+			})
+			break
+		case 'splash-open-configure-shortcuts':
+			// FIXME TODO disable for !Chrome
+			browser.tabs.create({
+				url: 'chrome://extensions/configureCommands'
+			})
+			break
 		default:
 			throw Error(
-				'Landmarks: background script received unknown message:',
-				message, 'from', sender)
+				'Landmarks: background script received unexpected request '
+				+ message.request + ' from tab ' + sender.tab.id)
 	}
 })
 
