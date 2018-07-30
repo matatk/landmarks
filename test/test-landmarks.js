@@ -4,8 +4,6 @@ const path = require('path')
 const jsdom = require('jsdom')
 const { JSDOM } = jsdom
 
-const codePath = path.join(__dirname, '..', 'src', 'static', 'content.finder.js')
-const testHarnessPath = path.join(__dirname, 'test-harness-landmarks.js')
 const testCodePath = path.join(__dirname, 'test-code-in-harness-landmarks.js')
 const fixturesDir = path.join(__dirname, 'fixtures')
 const dataDir = path.join(__dirname, 'data')
@@ -36,18 +34,11 @@ function createTest(testName, testFixture, testData) {
 	}
 }
 
-function prepare() {
-	fs.writeFileSync(
-		testCodePath,
-		fs.readFileSync(codePath) + fs.readFileSync(testHarnessPath))
-}
-
 exports['test the damage report machine'] = function(assert) {
 	assert.ok(true, 'damage report machine intact')
 }
 
 if (module === require.main) {
-	prepare()
 	createAllTests()
 	require('test').run(exports)
 }

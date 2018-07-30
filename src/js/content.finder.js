@@ -1,7 +1,4 @@
-'use strict'
-/* exported LandmarksFinder */
-
-function LandmarksFinder(win, doc) {
+export default function(win, doc) {
 	//
 	// Constants
 	//

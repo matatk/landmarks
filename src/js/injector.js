@@ -1,8 +1,6 @@
-'use strict'
-/* exported landmarksContentScriptInjector */
-/* global specialPages */
+import specialPages from './specialPages.firefox.js'  // FIXME
 
-function landmarksContentScriptInjector() {
+export default function() {
 	// Inject content script manually
 	browser.tabs.query({}, function(tabs) {
 		for (const i in tabs) {

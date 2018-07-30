@@ -147,12 +147,12 @@ function copyStaticFiles(browser) {
 }
 
 
-function copySpecialPagesFile(browser) {
+/* function copySpecialPagesFile(browser) {
 	logStep(`Copying special pages file for ${browser}...`)
 	fse.copySync(
 		path.join(srcAssembleDir, `specialPages.${browser}.js`),
 		path.join(pathToBuild(browser), 'specialPages.js'))
-}
+} */
 
 
 function mergeMessages(browser) {
@@ -255,7 +255,7 @@ function mergeManifest(browser) {
 }
 
 
-function copyCompatibilityShimAndContentScriptInjector(browser) {
+/* function copyCompatibilityShimAndContentScriptInjector(browser) {
 	if (browser !== 'firefox') {
 		const variant = browser === 'edge' ? browser : 'chrome-opera'
 		logStep('Copying browser API compatibility shim...')
@@ -268,7 +268,7 @@ function copyCompatibilityShimAndContentScriptInjector(browser) {
 			path.join(srcAssembleDir, 'injector.js'),
 			path.join(pathToBuild(browser), 'injector.js'))
 	}
-}
+} */
 
 
 // Get PNG files from the cache (which will generate them if needed)
@@ -365,11 +365,11 @@ function main() {
 		console.log()
 		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
 		copyStaticFiles(browser)
-		copySpecialPagesFile(browser)
+		// copySpecialPagesFile(browser)
 		mergeMessages(browser)
 		checkMessages(browser)
 		mergeManifest(browser)
-		copyCompatibilityShimAndContentScriptInjector(browser)
+		// copyCompatibilityShimAndContentScriptInjector(browser)
 		getPngs(sp, browser)
 		if (testMode) {
 			renameTestVersion(browser)

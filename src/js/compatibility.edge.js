@@ -1,5 +1,3 @@
-'use strict'
-
 window.browser.commands = {
 	onCommand: {
 		addListener: function() {

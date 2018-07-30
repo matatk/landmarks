@@ -1,7 +1,4 @@
-'use strict'
-/* exported ContrastChecker */
-
-function ContrastChecker() {
+export default function() {
 	const channelStringPositions = { r: 1, g: 3, b: 5 }
 
 

@@ -14,9 +14,6 @@
 
   "background": {
     "scripts": [
-      "sendToActiveTab.js",
-      "specialPages.js",
-      "defaults.js",
       "background.js"
     ]
   },
@@ -25,13 +22,7 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "landmarkName.js",
-        "defaults.js",
-        "contrast.js",
-        "content.finder.js",
-        "content.focusing.js",
-        "content.pausing.js",
-        "content.supervisor.js"
+        "content.js"
       ]
     },
     {

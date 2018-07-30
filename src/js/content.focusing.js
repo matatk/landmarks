@@ -1,8 +1,8 @@
-'use strict'
-/* exported ElementFocuser */
-/* global landmarkName defaultBorderSettings ContrastChecker */
+import landmarkName from './landmarkName.js'
+import { defaultBorderSettings } from './defaults.js'
+import ContrastChecker from './contrast.js'
 
-function ElementFocuser() {
+export default function() {
 	const contrastChecker = new ContrastChecker()
 
 	const momentaryBorderTime = 2000

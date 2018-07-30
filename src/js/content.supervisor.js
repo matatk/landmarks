@@ -1,5 +1,7 @@
-'use strict'
-/* global LandmarksFinder ElementFocuser PauseHandler */
+import LandmarksFinder from './content.finder.js'
+import ElementFocuser from './content.focusing.js'
+import PauseHandler from './content.pausing.js'
+
 const outOfDateTime = 2000
 const logger = new Logger()
 let observer = null
