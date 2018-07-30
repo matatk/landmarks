@@ -39,8 +39,8 @@ function switchInterface(mode) {
 			console.log('Landmarks: switching to sidebar')
 			browser.browserAction.setPopup({ popup: '' })
 			// TODO better handling / use rollup
+			// FIXME Opera doesn't have open() nor isOpen()
 			if (browser.sidebarAction) {
-				// FIXME Opera doesn't have isOpen()
 				browser.sidebarAction.isOpen({}).then(isOpen => {
 					if (isOpen) {
 						console.log('Landmarks: sidebar currently open')
@@ -106,7 +106,7 @@ browser.commands.onCommand.addListener(function(command) {
 //
 
 // When the user moves between tabs, the content of the sidebar needs updating
-browser.tabs.onActivated.addListener(function(activeInfo) {
+browser.tabs.onActivated.addListener(function() {
 	if (useSidebar) {
 		try {
 			browser.runtime.sendMessage({
