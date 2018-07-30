@@ -13,6 +13,15 @@
     }
   },
 
+  "sidebar_action": {
+    "default_title": "Landmarks",
+    "default_panel": "popup.html",
+    "default_icon": {
+      "32": "landmarks-32.png",
+      "64": "landmarks-64.png"
+    }
+  },
+
   "options_ui": {
     "browser_style": true
   },

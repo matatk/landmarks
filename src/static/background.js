@@ -1,5 +1,89 @@
 'use strict'
-/* global sendToActiveTab landmarksContentScriptInjector specialPages */
+/* global sendToActiveTab landmarksContentScriptInjector specialPages defaultInterfaceSettings */
+
+//
+// User interface handling
+//
+
+// TODO FIXME don't do any of this on Chrome
+
+let useSidebar
+
+// If the user has elected to use the sidebar, the pop-up is disabled, and we
+// will receive events, which we can then use to open the sidebar.
+//
+// Have to do this in a really hacky way at the moment due to
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1438465
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1398833
+//
+// Also Opera doesn't have isOpen() anyway (though at the moment it's still
+// used for the initial set-up of this).
+
+function openSidebarWhenClicked() {
+	console.log('opening sidebar')
+	browser.browserAction.onClicked.removeListener(openSidebarWhenClicked)
+	browser.sidebarAction.open()
+	browser.browserAction.onClicked.addListener(closeSidebarWhenClicked)
+}
+
+function closeSidebarWhenClicked() {
+	console.log('closing sidebar')
+	browser.browserAction.onClicked.removeListener(closeSidebarWhenClicked)
+	browser.sidebarAction.close()
+	browser.browserAction.onClicked.addListener(openSidebarWhenClicked)
+}
+
+function switchInterface(mode) {
+	switch (mode) {
+		case 'sidebar':
+			console.log('Landmarks: switching to sidebar')
+			browser.browserAction.setPopup({ popup: '' })
+			// TODO better handling / use rollup
+			// FIXME Opera doesn't have open() nor isOpen()
+			if (browser.sidebarAction) {
+				browser.sidebarAction.isOpen({}).then(isOpen => {
+					if (isOpen) {
+						console.log('Landmarks: sidebar currently open')
+						browser.browserAction.onClicked.addListener(
+							closeSidebarWhenClicked)
+					} else {
+						console.log('Landmarks: sidebar currently closed')
+						browser.browserAction.onClicked.addListener(
+							openSidebarWhenClicked)
+					}
+				})
+			}
+			useSidebar = true
+			break
+		case 'popup':
+			console.log('Landmarks: switching to popup')
+			// On Firefox this could be set to null to return to the default
+			// popup. However Chrome doesn't support this.
+			// FIXME TODO remove Chrome code and go back to null after rollup
+			browser.browserAction.setPopup({ popup: 'popup.html' })
+
+			browser.browserAction.onClicked.removeListener(
+				openSidebarWhenClicked)
+			browser.browserAction.onClicked.removeListener(
+				closeSidebarWhenClicked)
+
+			useSidebar = false
+			break
+		default:
+			throw Error(`Invalid interface "${mode}" given`)
+	}
+}
+
+browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+	switchInterface(items.interface)
+})
+
+browser.storage.onChanged.addListener(function(changes) {
+	if (changes.hasOwnProperty('interface')) {
+		switchInterface(changes.interface.newValue)
+	}
+})
+
 
 //
 // Keyboard shortcut handling
@@ -11,7 +95,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'show-all-landmarks':
-			sendToActiveTab({request: command})
+			sendToActiveTab({ request: command })
 			break
 	}
 })
@@ -20,6 +104,19 @@ browser.commands.onCommand.addListener(function(command) {
 //
 // Navigation events
 //
+
+// When the user moves between tabs, the content of the sidebar needs updating
+browser.tabs.onActivated.addListener(function() {
+	if (useSidebar) {
+		try {
+			browser.runtime.sendMessage({
+				request: 'update-sidebar'
+			})
+		} catch (err) {
+			// The sidebar may not be open; Opera doesn't support isOpen()
+		}
+	}
+})
 
 // Listen for URL change events on all tabs and disable the browser action if
 // the URL does not start with 'http://' or 'https://' (or 'file://', for
@@ -83,7 +180,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	browser.tabs.get(details.tabId, function() {
 		browser.tabs.sendMessage(
 			details.tabId,
-			{request: 'trigger-refresh'}
+			{ request: 'trigger-refresh' }
 		)
 		// Note: The content script on the page will respond by sending
 		//       an 'update-badge' request back (if landmarks are found).
@@ -103,7 +200,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		case 'get-commands':
-			browser.commands.getAll(async function(commands) {
+			browser.commands.getAll(function(commands) {
 				sendToActiveTab({
 					request: 'splash-populate-commands',
 					commands: commands
@@ -115,6 +212,8 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			browser.tabs.create({
 				url: 'chrome://extensions/configureCommands'
 			})
+			// FIXME TODO Opera: opera://settings/configureCommands
+			// https://github.com/openstyles/stylus/issues/52#issuecomment-302409069
 			break
 		default:
 			throw Error(
@@ -147,6 +246,7 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
 		// Don't inject the content script on Firefox
+		// TODO refactor when using rollup/similar?
 		if (typeof landmarksContentScriptInjector !== 'undefined') {
 			landmarksContentScriptInjector()
 		}

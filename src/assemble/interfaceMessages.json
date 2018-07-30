@@ -1,0 +1,13 @@
+{
+  "prefsInterface": {
+    "message": "Show landmarks in"
+  },
+
+  "prefsPopup": {
+    "message": "Toolbar popup"
+  },
+
+  "prefsSidebar": {
+    "message": "Sidebar"
+  }
+}

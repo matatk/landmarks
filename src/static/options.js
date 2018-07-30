@@ -1,6 +1,10 @@
 'use strict'
 /* global defaultSettings */
 const options = [{
+	name: 'interface',
+	element: document.getElementById('landmarks-interface'),
+	property: 'value'
+},{
 	name: 'borderType',
 	element: document.getElementById('border-type'),
 	property: 'value'
@@ -43,6 +47,8 @@ function restoreOptions() {
 function setUpOptionHandlers() {
 	for (const option of options) {
 		option.element.addEventListener('change', () => {
+			console.log('Setting:', {
+				[option.name]: option.element[option.property]})
 			browser.storage.sync.set({
 				[option.name]: option.element[option.property]
 			})
