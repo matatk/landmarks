@@ -11,7 +11,6 @@
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
 function handleLandmarksResponse(response) {
-	console.log(`Landmarks popup: ${response}`)
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
@@ -137,9 +136,28 @@ function focusLandmark(index) {
 	})
 }
 
-// When the pop-up opens, grab and process the list of page landmarks
-document.addEventListener('DOMContentLoaded', function() {
+// Send a message to ask for the latest landmarks
+function bootstrap() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
-	sendToActiveTab({request: 'get-landmarks'}, handleLandmarksResponse)
+	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
+}
+
+// When the pop-up opens, grab and process the list of page landmarks
+// TODO: Using this approach means that, in the case of the sidebar, there will
+//       be an error encountered at first, as the sidebar loads before the
+//       content script runs, and this will quickly be overwritten when the
+//       update-sidebar or update-badge message is handled.
+document.addEventListener('DOMContentLoaded', function() {
+	bootstrap()
+})
+
+// We may be running in a sidebar, in which case listen for requests to update
+browser.runtime.onMessage.addListener(function(message) {
+	switch (message.request) {
+		case 'update-sidebar':
+		case 'update-badge':
+			bootstrap()
+			break
+	}
 })

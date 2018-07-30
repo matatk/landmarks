@@ -2,10 +2,12 @@
 /* global sendToActiveTab landmarksContentScriptInjector specialPages defaultInterfaceSettings */
 
 //
-// User option handling
+// User interface handling
 //
 
 // TODO FIXME don't do any of this on Chrome
+
+let useSidebar
 
 // If the user has elected to use the sidebar, the pop-up is disabled, and we
 // will receive events, which we can then use to open the sidebar.
@@ -51,6 +53,7 @@ function switchInterface(mode) {
 					}
 				})
 			}
+			useSidebar = true
 			break
 		case 'popup':
 			console.log('Landmarks: switching to popup')
@@ -63,6 +66,8 @@ function switchInterface(mode) {
 				openSidebarWhenClicked)
 			browser.browserAction.onClicked.removeListener(
 				closeSidebarWhenClicked)
+
+			useSidebar = false
 			break
 		default:
 			throw Error(`Invalid interface "${mode}" given`)
@@ -90,7 +95,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'show-all-landmarks':
-			sendToActiveTab({request: command})
+			sendToActiveTab({ request: command })
 			break
 	}
 })
@@ -99,6 +104,19 @@ browser.commands.onCommand.addListener(function(command) {
 //
 // Navigation events
 //
+
+// When the user moves between tabs, the content of the sidebar needs updating
+browser.tabs.onActivated.addListener(function(activeInfo) {
+	if (useSidebar) {
+		try {
+			browser.runtime.sendMessage({
+				request: 'update-sidebar'
+			})
+		} catch (err) {
+			// The sidebar may not be open; Opera doesn't support isOpen()
+		}
+	}
+})
 
 // Listen for URL change events on all tabs and disable the browser action if
 // the URL does not start with 'http://' or 'https://' (or 'file://', for
@@ -182,7 +200,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
 			break
 		case 'get-commands':
-			browser.commands.getAll(async function(commands) {
+			browser.commands.getAll(function(commands) {
 				sendToActiveTab({
 					request: 'splash-populate-commands',
 					commands: commands
