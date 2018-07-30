@@ -74,8 +74,7 @@ let testMode = false	// are we building a test (alpha/beta) version?
 
 
 function error() {
-	const argStrings = [...arguments].map((x) =>
-		typeof x === 'string' ? x : JSON.stringify(x, null, 2))
+	const argStrings = [...arguments].map(x => String(x))
 	console.error(chalk.bold.red.apply(this, ['✖'].concat(argStrings)))
 	process.exit(42)
 }
@@ -122,18 +121,28 @@ function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 
-	if (browser === 'firefox') {
+	function doReplace(from, to, message) {
 		try {
 			const changes = replace.sync({
-				files: path.join(pathToBuild('firefox'), '*.html'),
-				from: '\n\t\t<script src="compatibility.js"></script>',
-				to: ''
+				'files': path.join(pathToBuild(browser), '*.html'),
+				'from': from,
+				'to': to
 			})
-			console.log('Removed inclusion of compatibility.js from:',
-				changes.join(', '))
-		} catch (error) {
-			error('Error occurred:', error)
+			console.log(message, changes.join(', '))
+		} catch (err) {
+			error('Error occurred:', err)
 		}
+	}
+
+	if (browser === 'firefox') {
+		doReplace('\n\t\t<script src="compatibility.js"></script>', '',
+			'Removed inclusion of compatibility.js from:')
+	}
+
+	if (browser === 'chrome' || browser === 'edge') {
+		doReplace(/<!-- ui -->[\s\S]*<!-- \/ui -->\s*/,
+			'',
+			'Removed UI options in:')
 	}
 }
 
