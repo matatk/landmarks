@@ -11,10 +11,12 @@
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
 function handleLandmarksResponse(response) {
+	console.log(`Landmarks popup: ${response}`)
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
 	if (browser.runtime.lastError) {
+		console.log(`Landmarks popup error: ${browser.runtime.lastError}`)
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)

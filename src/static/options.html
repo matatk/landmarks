@@ -7,8 +7,15 @@
 	</head>
 	<body>
 		<div class="label-first">
-			<label for="border-type" data-message="prefsBorderType"></label>
+			<label for="landmarks-interface" data-message="prefsInterface"></label>
+			<select id="landmarks-interface" class="browser-style">
+				<option value="popup" data-message="prefsPopup"></option>
+				<option value="sidebar" data-message="prefsSidebar"></option>
+			</select>
+		</div>
 
+		<div class="label-first">
+			<label for="border-type" data-message="prefsBorderType"></label>
 			<select id="border-type" class="browser-style">
 				<option value="momentary" data-message="prefsMomentary"></option>
 				<option value="persistent" data-message="prefsPersistent"></option>

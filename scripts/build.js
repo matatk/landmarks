@@ -17,6 +17,8 @@ const srcStaticDir = path.join('src', 'static')
 const srcAssembleDir = path.join('src', 'assemble')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
+const localeSubPath = path.join('_locales', 'en_GB')
+const messagesSubPath = path.join(localeSubPath, 'messages.json')
 
 const validBrowsers = Object.freeze([
 	'firefox',
@@ -28,39 +30,39 @@ const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
 	'firefox': [
-		18,  // Firefox (toolbar)
-		32,  // Firefox (menu panel) + Chrome (Windows)
-		36,  // Firefox (toolbar x2)
-		48,  // Both    (general)
-		64,  // Firefox (menu panel x2)
-		96   // Firefox (general x2)
+		18,	// Firefox (toolbar)
+		32,	// Firefox (menu panel) + Chrome (Windows)
+		36,	// Firefox (toolbar x2)
+		48,	// Both		(general)
+		64,	// Firefox (menu panel x2)
+		96	 // Firefox (general x2)
 	],
 	'chrome': [
-		16,  // Chrome  (favicon)
-		19,  // Chrome  (toolbar)
-		32,  // Chrome  (Windows) + Firefox (menu panel)
-		38,  // Chrome  (tooblar x2)
-		48,  // Both    (general)
-		128  // Chrome  (store)
+		16,	// Chrome	(favicon)
+		19,	// Chrome	(toolbar)
+		32,	// Chrome	(Windows) + Firefox (menu panel)
+		38,	// Chrome	(tooblar x2)
+		48,	// Both		(general)
+		128	// Chrome	(store)
 	],
 	'opera': [
 		// https://dev.opera.com/extensions/manifest/#icons
 		// https://dev.opera.com/extensions/browser-actions/
-		16,   // Icon
-		19,   // Browser action
-		38,   // Browser action
-		48,   // Icon
-		128,  // Icon
+		16,	 // Icon
+		19,	 // Browser action
+		38,	 // Browser action
+		48,	 // Icon
+		128,	// Icon
 	],
 	'edge': [
 		// https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/design
-		20,  // Normal browser action
-		40,  // 2x browser action
-		24,  // Management UI
-		48,  // 2x Management UI
-		44,  // Windows UI (App List, Settings -> System -> Apps & features
-		50,  // Packaging requirement (not visible anywhere)
-		150  // Icon for Windows Store
+		20,	// Normal browser action
+		40,	// 2x browser action
+		24,	// Management UI
+		48,	// 2x Management UI
+		44,	// Windows UI (App List, Settings -> System -> Apps & features
+		50,	// Packaging requirement (not visible anywhere)
+		150	// Icon for Windows Store
 	]
 })
 
@@ -68,7 +70,7 @@ const linters = Object.freeze({
 	'firefox': lintFirefox
 })
 
-let testMode = false  // are we building a test (alpha/beta) version?
+let testMode = false	// are we building a test (alpha/beta) version?
 
 
 function error() {
@@ -116,40 +118,6 @@ function pathToBuild(browser) {
 }
 
 
-function checkMessages() {
-	logStep('Checking for unused messages (except role names)...')
-
-	const translationsFile = path.join(
-		srcStaticDir, '_locales', 'en_GB', 'messages.json')
-	const messages = JSON.parse(fs.readFileSync(translationsFile))
-	const files = glob.sync(path.join('src', '**'), {
-		nodir: true,
-		ignore: [translationsFile]
-	})
-	const messageSummary = {}  // count usages of each message
-
-	for (const messageName in messages) {
-		messageSummary[messageName] = 0
-
-		for (const file of files) {
-			messageSummary[messageName] +=
-				(fs.readFileSync(file).toString().match(
-					new RegExp(messageName, 'g')) || []).length
-		}
-
-		if (messageName.startsWith('role')) {
-			// The role names' calls are constructed dynamically (and are
-			// probably OK).
-			messageSummary[messageName] = '(not checked)'
-		}
-	}
-
-	if (Object.values(messageSummary).some((x) => x === 0)) {
-		error('Some messages are unused:', messageSummary)
-	}
-}
-
-
 function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
@@ -175,6 +143,64 @@ function copySpecialPagesFile(browser) {
 	fse.copySync(
 		path.join(srcAssembleDir, `specialPages.${browser}.js`),
 		path.join(pathToBuild(browser), 'specialPages.js'))
+}
+
+
+function mergeMessages(browser) {
+	logStep('Merging messages JSON files...')
+	const common = path.join(srcAssembleDir, 'commonMessages.json')
+	const destinationDir = path.join(pathToBuild(browser), localeSubPath)
+	const destinationFile = path.join(pathToBuild(browser), messagesSubPath)
+
+	fse.ensureDirSync(destinationDir)
+
+	if (browser === 'firefox' || browser === 'opera') {
+		const ui = path.join(srcAssembleDir, 'interfaceMessages.json')
+		const commonJson = require('../' + common)  // TODO check Windows
+		const uiJson = require('../' + ui)          // TODO check Windows
+		const merged = merge(commonJson, uiJson)
+		fs.writeFileSync(destinationFile, JSON.stringify(merged, null, 2))
+	} else {
+		// Instead of just copying the common file, write it in the same way as
+		// the merged one, so that diffs between builds are minimal.
+		const commonJson = require('../' + common)
+		fs.writeFileSync(destinationFile, JSON.stringify(commonJson, null, 2))
+	}
+
+	console.log(chalk.green(`✔ messages.json written for ${browser}.`))
+}
+
+
+function checkMessages(browser) {
+	logStep(`Checking for unused messages (except role names) on ${browser}...`)
+
+	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
+	const messages = JSON.parse(fs.readFileSync(translationsFile))
+	const files = glob.sync(path.join('src', '**'), {
+		nodir: true,
+		ignore: ['commonMessages.json', 'popupMessages.json']
+	})
+	const messageSummary = {}	// count usages of each message
+
+	for (const messageName in messages) {
+		messageSummary[messageName] = 0
+
+		for (const file of files) {
+			messageSummary[messageName] +=
+				(fs.readFileSync(file).toString().match(
+					new RegExp(messageName, 'g')) || []).length
+		}
+
+		if (messageName.startsWith('role')) {
+			// The role names' calls are constructed dynamically (and are
+			// probably OK).
+			messageSummary[messageName] = '(not checked)'
+		}
+	}
+
+	if (Object.values(messageSummary).some((x) => x === 0)) {
+		error('Some messages are unused:', messageSummary)
+	}
 }
 
 
@@ -326,14 +352,13 @@ function main() {
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
 
-	console.log()
-	checkMessages()
-
 	browsers.forEach((browser) => {
 		console.log()
 		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
 		copyStaticFiles(browser)
 		copySpecialPagesFile(browser)
+		mergeMessages(browser)
+		checkMessages(browser)
 		mergeManifest(browser)
 		copyCompatibilityShimAndContentScriptInjector(browser)
 		getPngs(sp, browser)
