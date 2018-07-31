@@ -8,3 +8,9 @@ landmarks-opera-out.png
 landmarks-*.zip
 npm-debug.log
 test/test-code-in-harness-*.js
+
+# FIXME These should be removed from here and .eslintignore when conditional build is finished
+src/static/background.js
+src/static/content.js
+src/static/popup.js
+src/static/options.js
