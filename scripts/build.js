@@ -8,6 +8,7 @@ const archiver = require('archiver')
 const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
 const glob = require('glob')
+const rollup = require('rollup')
 
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
@@ -15,6 +16,7 @@ const extVersion = packageJson.version
 const buildDir = 'build'
 const srcStaticDir = path.join('src', 'static')
 const srcAssembleDir = path.join('src', 'assemble')
+const srcCodeDir = path.join('src', 'js')  // FIXME js -> code
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubPath = path.join('_locales', 'en_GB')
@@ -117,6 +119,44 @@ function pathToBuild(browser) {
 }
 
 
+async function flattenCode(browser) {
+	const ioPairs = [{
+		input: path.join(srcCodeDir, 'background.js'),
+		output: path.join(pathToBuild(browser), 'background.js'),
+	}, {
+		input: path.join(srcCodeDir, 'content.supervisor.js'),
+		output: path.join(pathToBuild(browser), 'content.js'),
+	}, {
+		input: path.join(srcCodeDir, 'options.js'),
+		output: path.join(pathToBuild(browser), 'options.js'),
+	}, {
+		input: path.join(srcCodeDir, 'popup.js'),
+		output: path.join(pathToBuild(browser), 'popup.js'),
+	}]
+
+	const bundleOptions = []
+
+	for (const ioPair of ioPairs) {
+		const bundleOption = {}
+		bundleOption.input = {
+			input: ioPair.input
+		}
+		bundleOption.output = {
+			file: ioPair.output,
+			format: 'iife'
+		}
+		bundleOptions.push(bundleOption)
+	}
+
+	for (const options of bundleOptions) {
+		const bundle = await rollup.rollup(options.input)
+		await bundle.write(options.output)
+	}
+
+	console.log(chalk.green(`✔ flattened code written for ${browser}.`))
+}
+
+
 function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
@@ -147,7 +187,8 @@ function copyStaticFiles(browser) {
 }
 
 
-/* function copySpecialPagesFile(browser) {
+/* TODO remove
+function copySpecialPagesFile(browser) {
 	logStep(`Copying special pages file for ${browser}...`)
 	fse.copySync(
 		path.join(srcAssembleDir, `specialPages.${browser}.js`),
@@ -255,7 +296,8 @@ function mergeManifest(browser) {
 }
 
 
-/* function copyCompatibilityShimAndContentScriptInjector(browser) {
+/* TODO remove
+function copyCompatibilityShimAndContentScriptInjector(browser) {
 	if (browser !== 'firefox') {
 		const variant = browser === 'edge' ? browser : 'chrome-opera'
 		logStep('Copying browser API compatibility shim...')
@@ -304,16 +346,15 @@ function zipFileName(browser) {
 }
 
 
-function makeZip(browser) {
+async function makeZip(browser) {
 	logStep('Createing ZIP file...')
 	const outputFileName = zipFileName(browser)
 	const output = fs.createWriteStream(outputFileName)
 	const archive = archiver('zip')
 
+	/* TODO remove
 	output.on('close', function() {
-		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
-		lint(browser)
-	})
+	}) */
 
 	archive.on('error', function(err) {
 		throw err
@@ -321,18 +362,20 @@ function makeZip(browser) {
 
 	archive.pipe(output)
 	archive.directory(pathToBuild(browser), '')
-	archive.finalize()
+	await archive.finalize().then(() => {
+		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
+	})
 }
 
 
-function lint(browser) {
+async function lint(browser) {
 	if (browser in linters) {
-		linters[browser]()
+		await linters[browser]()
 	}
 }
 
 
-function lintFirefox() {
+async function lintFirefox() {
 	const linter = require('addons-linter').createInstance({
 		config: {
 			_: [zipFileName('firefox')],
@@ -340,44 +383,50 @@ function lintFirefox() {
 		}
 	})
 
-	linter.run().catch((err) => {
+	await linter.run().catch((err) => {
 		error(err)
 	})
 }
 
 
+/* TODO reinstate or remove
 function copyESLintRC() {
 	logStep('Copying src ESLint config to build directory...')
 	const basename = '.eslintrc.json'
 	fse.copySync(
 		path.join('src', basename),
 		path.join('build', basename))
-}
+} */
 
 
-function main() {
+async function main() {
 	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 	const browsers = checkBuildMode()
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
 
-	browsers.forEach((browser) => {
+	for (const browser of browsers) {
 		console.log()
 		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
+		await flattenCode(browser)
 		copyStaticFiles(browser)
+		// TODO remove
 		// copySpecialPagesFile(browser)
 		mergeMessages(browser)
 		checkMessages(browser)
 		mergeManifest(browser)
+		// TODO remove
 		// copyCompatibilityShimAndContentScriptInjector(browser)
 		getPngs(sp, browser)
 		if (testMode) {
 			renameTestVersion(browser)
 		}
-		makeZip(browser)
-	})
+		await makeZip(browser)
+		await lint(browser)
+	}
 
-	copyESLintRC()
+	// TODO reinstate or remove
+	// copyESLintRC()
 }
 
 
