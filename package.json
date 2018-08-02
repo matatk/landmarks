@@ -20,7 +20,7 @@
     "clean:opera": "rimraf build/opera build/opera-test landmarks-*-opera.zip",
     "precommit": "npm run build:all",
     "profile": "node scripts/profile.js",
-    "start:firefox": "web-ext run --source-dir build/firefox/",
+    "start:firefox": "web-ext run --firefox=firefoxdeveloperedition --browser-console --source-dir build/firefox/",
     "pretest": "eslint . && rollup src/js/content.finder.js -f cjs > test/test-code-in-harness-landmarks.js && rollup src/js/contrast.js -f cjs > test/test-code-in-harness-contrast.js",
     "test": "npm run test:landmarks && npm run test:contrast",
     "test:contrast": "node test/test-contrast.js",

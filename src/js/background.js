@@ -43,17 +43,13 @@ function switchInterface(mode) {
 			// TODO better handling / use rollup
 			// FIXME Opera doesn't have open() nor isOpen()
 			if (browser.sidebarAction) {
-				browser.sidebarAction.isOpen({}).then(isOpen => {
-					if (isOpen) {
-						console.log('Landmarks: sidebar currently open')
-						browser.browserAction.onClicked.addListener(
-							closeSidebarWhenClicked)
-					} else {
-						console.log('Landmarks: sidebar currently closed')
-						browser.browserAction.onClicked.addListener(
-							openSidebarWhenClicked)
-					}
-				})
+				// On Firefox at least the sidebar will be closed because we
+				// are setting "open_at_install" to false. It might be nice to
+				// actually show the sidebar at install, but isOpen() isn't
+				// usable because it breaks propogation of the user input
+				// event.
+				browser.browserAction.onClicked.addListener(
+					openSidebarWhenClicked)
 			}
 			useSidebar = true
 			break
