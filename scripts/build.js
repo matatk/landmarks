@@ -16,7 +16,7 @@ const extVersion = packageJson.version
 const buildDir = 'build'
 const srcStaticDir = path.join('src', 'static')
 const srcAssembleDir = path.join('src', 'assemble')
-const srcCodeDir = path.join('src', 'js')  // FIXME js -> code
+const srcCodeDir = path.join('src', 'code')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubPath = path.join('_locales', 'en_GB')
@@ -174,6 +174,7 @@ function copyStaticFiles(browser) {
 		}
 	}
 
+	// FIXME remove
 	if (browser === 'firefox') {
 		doReplace('\n\t\t<script src="compatibility.js"></script>', '',
 			'Removed inclusion of compatibility.js from:')
