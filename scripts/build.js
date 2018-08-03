@@ -9,6 +9,7 @@ const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
 const glob = require('glob')
 const rollup = require('rollup')
+const terser = require('rollup-plugin-terser').terser
 
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
@@ -139,7 +140,22 @@ async function flattenCode(browser) {
 	for (const ioPair of ioPairs) {
 		const bundleOption = {}
 		bundleOption.input = {
-			input: ioPair.input
+			input: ioPair.input,
+			plugins: [terser({
+				mangle: false,
+				compress: {
+					defaults: false,
+					// eslint-disable-next-line camelcase
+					global_defs: {
+						ENV: browser
+					},
+					// eslint-disable-next-line camelcase
+					dead_code: true
+				},
+				output: {
+					beautify: true
+				}
+			})]
 		}
 		bundleOption.output = {
 			file: ioPair.output,

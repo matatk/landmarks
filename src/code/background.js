@@ -1,7 +1,17 @@
+/* global ENV */
 import sendToActiveTab from './sendToActiveTab.js'
 // import landmarksContentScriptInjector from './injector.js'
 import specialPages from './specialPages.firefox.js'  // FIXME
 import { defaultInterfaceSettings } from './defaults.js'  // TODO remove on Chrome
+
+console.log('Landmarks: Running on...')
+
+switch (ENV) {
+	case 'firefox': console.log('firefox')
+		break
+	case 'chrome': console.log('chrome')
+		break
+}
 
 //
 // User interface handling
