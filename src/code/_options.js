@@ -40,18 +40,22 @@ function translateStuff() {
 function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
 		for (const option of options) {
-			option.element[option.property] = items[option.name]
+			if (option.element) {  // Sidebar option will be null on Chrome
+				option.element[option.property] = items[option.name]
+			}
 		}
 	})
 }
 
 function setUpOptionHandlers() {
 	for (const option of options) {
-		option.element.addEventListener('change', () => {
-			browser.storage.sync.set({
-				[option.name]: option.element[option.property]
+		if (option.element) {  // Sidebar option will be null on Chrome
+			option.element.addEventListener('change', () => {
+				browser.storage.sync.set({
+					[option.name]: option.element[option.property]
+				})
 			})
-		})
+		}
 	}
 }
 
