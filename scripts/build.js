@@ -148,6 +148,7 @@ async function flattenCode(browser) {
 					global_defs: {       // eslint-disable-line camelcase
 						BROWSER: browser
 					},
+					conditionals: true,
 					dead_code: true,     // eslint-disable-line camelcase
 					evaluate: true,
 					side_effects: true,  // eslint-disable-line camelcase
@@ -194,12 +195,6 @@ function copyStaticFiles(browser) {
 		} catch (err) {
 			error('Error occurred:', err)
 		}
-	}
-
-	// FIXME remove
-	if (browser === 'firefox') {
-		doReplace('\n\t\t<script src="compatibility.js"></script>', '',
-			'Removed inclusion of compatibility.js from:')
 	}
 
 	if (browser === 'chrome' || browser === 'edge') {

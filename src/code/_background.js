@@ -1,6 +1,6 @@
 import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
-// import landmarksContentScriptInjector from './injector.js'
+import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
 import { defaultInterfaceSettings } from './defaults'  // TODO remove on Chrome
 
@@ -246,11 +246,9 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
 		// Don't inject the content script on Firefox
-		// TODO refactor when using rollup/similar?
-		/* TODO sort this out
-		if (typeof landmarksContentScriptInjector !== 'undefined') {
-			landmarksContentScriptInjector()
-		}*/
+		if (BROWSER !== 'firefox') {
+			contentScriptInjector()
+		}
 
 		// Show website and get it to display an appropriate notice
 		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
