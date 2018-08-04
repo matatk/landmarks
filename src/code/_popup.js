@@ -1,5 +1,6 @@
-'use strict'
-/* global sendToActiveTab, landmarkName */
+import './compatibility'
+import sendToActiveTab from './sendToActiveTab'
+import landmarkName from './landmarkName'
 
 // Handle incoming landmarks message response
 //
@@ -15,7 +16,6 @@ function handleLandmarksResponse(response) {
 	removeChildNodes(display)
 
 	if (browser.runtime.lastError) {
-		console.log(`Landmarks popup error: ${browser.runtime.lastError}`)
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)

@@ -1,88 +1,101 @@
-'use strict'
-/* global sendToActiveTab landmarksContentScriptInjector specialPages defaultInterfaceSettings */
+import './compatibility'
+import sendToActiveTab from './sendToActiveTab'
+import contentScriptInjector from './contentScriptInjector'
+import specialPages from './specialPages'
+import { defaultInterfaceSettings } from './defaults'
 
-//
-// User interface handling
-//
 
-// TODO FIXME don't do any of this on Chrome
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
+	//
+	// Sidebar handling
+	//
 
-let useSidebar
+	let useSidebar
 
-// If the user has elected to use the sidebar, the pop-up is disabled, and we
-// will receive events, which we can then use to open the sidebar.
-//
-// Have to do this in a really hacky way at the moment due to
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1438465
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1398833
-//
-// Also Opera doesn't have isOpen() anyway (though at the moment it's still
-// used for the initial set-up of this).
+	// If the user has elected to use the sidebar, the pop-up is disabled, and
+	// we will receive events, which we can then use to open the sidebar.
+	//
+	// Have to do this in a really hacky way at the moment due to
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=1438465
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=1398833
+	//
+	// Also Opera doesn't have open().
 
-function openSidebarWhenClicked() {
-	console.log('opening sidebar')
-	browser.browserAction.onClicked.removeListener(openSidebarWhenClicked)
-	browser.sidebarAction.open()
-	browser.browserAction.onClicked.addListener(closeSidebarWhenClicked)
-}
+	// eslint-disable-next-line no-inner-declarations
+	function openSidebarWhenClicked() {
+		browser.browserAction.onClicked.removeListener(openSidebarWhenClicked)
+		browser.sidebarAction.open()
+		browser.browserAction.onClicked.addListener(closeSidebarWhenClicked)
+	}
 
-function closeSidebarWhenClicked() {
-	console.log('closing sidebar')
-	browser.browserAction.onClicked.removeListener(closeSidebarWhenClicked)
-	browser.sidebarAction.close()
-	browser.browserAction.onClicked.addListener(openSidebarWhenClicked)
-}
+	// eslint-disable-next-line no-inner-declarations
+	function closeSidebarWhenClicked() {
+		browser.browserAction.onClicked.removeListener(closeSidebarWhenClicked)
+		browser.sidebarAction.close()
+		browser.browserAction.onClicked.addListener(openSidebarWhenClicked)
+	}
 
-function switchInterface(mode) {
-	switch (mode) {
-		case 'sidebar':
-			console.log('Landmarks: switching to sidebar')
-			browser.browserAction.setPopup({ popup: '' })
-			// TODO better handling / use rollup
-			// FIXME Opera doesn't have open() nor isOpen()
-			if (browser.sidebarAction) {
-				browser.sidebarAction.isOpen({}).then(isOpen => {
-					if (isOpen) {
-						console.log('Landmarks: sidebar currently open')
-						browser.browserAction.onClicked.addListener(
-							closeSidebarWhenClicked)
-					} else {
-						console.log('Landmarks: sidebar currently closed')
-						browser.browserAction.onClicked.addListener(
-							openSidebarWhenClicked)
-					}
+	// eslint-disable-next-line no-inner-declarations
+	function switchInterface(mode) {
+		switch (mode) {
+			case 'sidebar':
+				console.log('switching to sidebar')
+				browser.browserAction.setPopup({ popup: '' })
+
+				if (BROWSER === 'firefox') {
+					// The sidebar will be closed because we are setting
+					// "open_at_install" to false. It might be nice to actually
+					// show the sidebar at install, but isOpen() isn't usable
+					// because it breaks propogation of the user input event.
+					browser.browserAction.onClicked.addListener(
+						openSidebarWhenClicked)
+				}
+
+				useSidebar = true
+				break
+			case 'popup':
+				console.log('switching to popup')
+				// On Firefox this could be set to null to return to the
+				// default popup. However Chrome/Opera doesn't support this.
+				browser.browserAction.setPopup({ popup: 'popup.html' })
+
+				if (BROWSER === 'firefox') {
+					browser.browserAction.onClicked.removeListener(
+						openSidebarWhenClicked)
+					browser.browserAction.onClicked.removeListener(
+						closeSidebarWhenClicked)
+				}
+
+				useSidebar = false
+				break
+			default:
+				throw Error(`Invalid interface "${mode}" given`)
+		}
+	}
+
+	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+		switchInterface(items.interface)
+	})
+
+	browser.storage.onChanged.addListener(function(changes) {
+		if (changes.hasOwnProperty('interface')) {
+			switchInterface(changes.interface.newValue)
+		}
+	})
+
+	// When the user moves between tabs, the sidebar needs updating
+	browser.tabs.onActivated.addListener(function() {
+		if (useSidebar) {
+			try {
+				browser.runtime.sendMessage({
+					request: 'update-sidebar'
 				})
+			} catch (err) {
+				// The sidebar may not be open; Opera doesn't support isOpen()
 			}
-			useSidebar = true
-			break
-		case 'popup':
-			console.log('Landmarks: switching to popup')
-			// On Firefox this could be set to null to return to the default
-			// popup. However Chrome doesn't support this.
-			// FIXME TODO remove Chrome code and go back to null after rollup
-			browser.browserAction.setPopup({ popup: 'popup.html' })
-
-			browser.browserAction.onClicked.removeListener(
-				openSidebarWhenClicked)
-			browser.browserAction.onClicked.removeListener(
-				closeSidebarWhenClicked)
-
-			useSidebar = false
-			break
-		default:
-			throw Error(`Invalid interface "${mode}" given`)
-	}
+		}
+	})
 }
-
-browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-	switchInterface(items.interface)
-})
-
-browser.storage.onChanged.addListener(function(changes) {
-	if (changes.hasOwnProperty('interface')) {
-		switchInterface(changes.interface.newValue)
-	}
-})
 
 
 //
@@ -104,19 +117,6 @@ browser.commands.onCommand.addListener(function(command) {
 //
 // Navigation events
 //
-
-// When the user moves between tabs, the content of the sidebar needs updating
-browser.tabs.onActivated.addListener(function() {
-	if (useSidebar) {
-		try {
-			browser.runtime.sendMessage({
-				request: 'update-sidebar'
-			})
-		} catch (err) {
-			// The sidebar may not be open; Opera doesn't support isOpen()
-		}
-	}
-})
 
 // Listen for URL change events on all tabs and disable the browser action if
 // the URL does not start with 'http://' or 'https://' (or 'file://', for
@@ -246,9 +246,8 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
 		// Don't inject the content script on Firefox
-		// TODO refactor when using rollup/similar?
-		if (typeof landmarksContentScriptInjector !== 'undefined') {
-			landmarksContentScriptInjector()
+		if (BROWSER !== 'firefox') {
+			contentScriptInjector()
 		}
 
 		// Show website and get it to display an appropriate notice

@@ -5,7 +5,6 @@
   "scripts": {
     "pre_build": "npm test",
     "_build": "node scripts/build.js",
-    "post_build": "eslint build",
     "build:all": "npm run clean:all && npm run _build -- all",
     "build:all:quick": "node scripts/build.js all",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
@@ -21,8 +20,8 @@
     "clean:opera": "rimraf build/opera build/opera-test landmarks-*-opera.zip",
     "precommit": "npm run build:all",
     "profile": "node scripts/profile.js",
-    "start:firefox": "web-ext run --source-dir build/firefox/",
-    "pretest": "eslint .",
+    "start:firefox": "web-ext run --firefox=firefoxdeveloperedition --browser-console --source-dir build/firefox/",
+    "pretest": "eslint . && rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js && rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
     "test": "npm run test:landmarks && npm run test:contrast",
     "test:contrast": "node test/test-contrast.js",
     "test:landmarks": "node test/test-landmarks.js"
@@ -40,6 +39,9 @@
     "puppeteer": "~1.6",
     "replace-in-file": "~3.4",
     "rimraf": "~2.6",
+    "rollup": "~0.63",
+    "rollup-plugin-esformatter": "~0.5",
+    "rollup-plugin-terser": "~1.0",
     "test": "~0.6"
   }
 }

@@ -4,6 +4,7 @@
     "node": false
   },
   "globals": {
-    "browser": true
+    "browser": false,
+    "BROWSER": false
   }
 }

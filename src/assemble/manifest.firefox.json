@@ -19,7 +19,8 @@
     "default_icon": {
       "32": "landmarks-32.png",
       "64": "landmarks-64.png"
-    }
+    },
+    "open_at_install": false
   },
 
   "options_ui": {
@@ -29,7 +30,7 @@
   "applications": {
     "gecko": {
       "id": "ariaLandmarkNav@ibm.com",
-      "strict_min_version": "56.0"
+      "strict_min_version": "62.0"
     }
   },
 

@@ -26,15 +26,5 @@
 
   "minimum_opera_version": "44",
 
-  "background": {
-    "scripts": ["compatibility.js", "injector.js"]
-  },
-
-  "content_scripts": [
-    {
-      "js": ["compatibility.js", "injector.js"]
-    }
-  ],
-
   "permissions": ["<all_urls>"]
 }

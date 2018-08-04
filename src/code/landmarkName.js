@@ -1,9 +1,6 @@
-'use strict'
-/* exported landmarkName */
-
 // If the landmark has a label, the name is: 'label (role)'
 // otherwise the name is just 'role'
-function landmarkName(landmark) {
+export default function landmarkName(landmark) {
 	if (landmark.label) {
 		return landmark.label + ' (' + processRole(landmark.role) + ')'
 	}

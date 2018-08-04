@@ -12,15 +12,8 @@
   },
 
   "background": {
-    "persistent": true,
-    "scripts": ["compatibility.js", "injector.js"]
+    "persistent": true
   },
-
-  "content_scripts": [
-    {
-      "js": ["compatibility.js", "injector.js"]
-    }
-  ],
 
   "permissions": ["<all_urls>"]
 }

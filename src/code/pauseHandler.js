@@ -1,7 +1,4 @@
-'use strict'
-/* exported PauseHandler */
-
-function PauseHandler(logger) {
+export default function PauseHandler(logger) {
 	//
 	// Constants
 	//
