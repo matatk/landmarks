@@ -1,4 +1,3 @@
-/* global ENV */
 import sendToActiveTab from './sendToActiveTab.js'
 // import landmarksContentScriptInjector from './injector.js'
 import specialPages from './specialPages.firefox.js'  // FIXME
@@ -6,7 +5,7 @@ import { defaultInterfaceSettings } from './defaults.js'  // TODO remove on Chro
 
 console.log('Landmarks: Running on...')
 
-switch (ENV) {
+switch (BROWSER) {
 	case 'firefox': console.log('firefox')
 		break
 	case 'chrome': console.log('chrome')

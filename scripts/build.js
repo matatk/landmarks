@@ -145,15 +145,20 @@ async function flattenCode(browser) {
 				mangle: false,
 				compress: {
 					defaults: false,
-					// eslint-disable-next-line camelcase
-					global_defs: {
-						ENV: browser
+					global_defs: {       // eslint-disable-line camelcase
+						BROWSER: browser
 					},
-					// eslint-disable-next-line camelcase
-					dead_code: true
+					dead_code: true,     // eslint-disable-line camelcase
+					evaluate: true,
+					side_effects: true,  // eslint-disable-line camelcase
+					switches: true,
+					unused: true
 				},
 				output: {
-					beautify: true
+					beautify: true,
+					braces: true,
+					comments: true
+					// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
 				}
 			})]
 		}
