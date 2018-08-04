@@ -23,7 +23,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 
 	// eslint-disable-next-line no-inner-declarations
 	function openSidebarWhenClicked() {
-		console.log('opening sidebar')
 		browser.browserAction.onClicked.removeListener(openSidebarWhenClicked)
 		browser.sidebarAction.open()
 		browser.browserAction.onClicked.addListener(closeSidebarWhenClicked)
@@ -31,7 +30,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 
 	// eslint-disable-next-line no-inner-declarations
 	function closeSidebarWhenClicked() {
-		console.log('closing sidebar')
 		browser.browserAction.onClicked.removeListener(closeSidebarWhenClicked)
 		browser.sidebarAction.close()
 		browser.browserAction.onClicked.addListener(openSidebarWhenClicked)
@@ -41,21 +39,22 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	function switchInterface(mode) {
 		switch (mode) {
 			case 'sidebar':
-				console.log('Landmarks: switching to sidebar')
+				console.log('switching to sidebar')
 				browser.browserAction.setPopup({ popup: '' })
-				if (BROWSER === 'firefox' && browser.sidebarAction) {
-					// On Firefox at least the sidebar will be closed because
-					// we are setting "open_at_install" to false. It might be
-					// nice to actually show the sidebar at install, but
-					// isOpen() isn't usable because it breaks propogation of
-					// the user input event.
+
+				if (BROWSER === 'firefox') {
+					// The sidebar will be closed because we are setting
+					// "open_at_install" to false. It might be nice to actually
+					// show the sidebar at install, but isOpen() isn't usable
+					// because it breaks propogation of the user input event.
 					browser.browserAction.onClicked.addListener(
 						openSidebarWhenClicked)
 				}
+
 				useSidebar = true
 				break
 			case 'popup':
-				console.log('Landmarks: switching to popup')
+				console.log('switching to popup')
 				// On Firefox this could be set to null to return to the
 				// default popup. However Chrome/Opera doesn't support this.
 				browser.browserAction.setPopup({ popup: 'popup.html' })

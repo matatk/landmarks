@@ -16,7 +16,6 @@ function handleLandmarksResponse(response) {
 	removeChildNodes(display)
 
 	if (browser.runtime.lastError) {
-		console.log(`Landmarks popup error: ${browser.runtime.lastError}`)
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)
