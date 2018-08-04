@@ -1,5 +1,3 @@
-console.log(`compatibility: running on ${BROWSER}`)
-
 switch (BROWSER) {
 	case 'firefox':
 		break

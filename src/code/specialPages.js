@@ -1,5 +1,3 @@
-console.log(`specialPages: running on ${BROWSER}`)
-
 let specialPages
 
 switch (BROWSER) {

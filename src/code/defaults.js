@@ -12,7 +12,25 @@ export const defaultInterfaceSettings = Object.freeze({
 	interface: 'popup'
 })
 
-// FIXME TODO don't include sidebar settings on Chrome when using rollup/similar
-export const defaultSettings = Object.freeze(
-	Object.assign({},
-		defaultBorderSettings, defaultDebugSettings, defaultInterfaceSettings))
+
+let _defaultSettings
+
+switch (BROWSER) {
+	case 'firefox':
+	case 'opera':
+		_defaultSettings = Object.freeze(Object.assign({},
+			defaultBorderSettings,
+			defaultDebugSettings,
+			defaultInterfaceSettings))
+		break
+	case 'chrome':
+	case 'edge':
+		_defaultSettings = Object.freeze(Object.assign({},
+			defaultBorderSettings,
+			defaultDebugSettings))
+		break
+	default:
+		throw Error(`Landmarks: invalid browser ${BROWSER} given.`)
+}
+
+export const defaultSettings = _defaultSettings

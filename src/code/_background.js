@@ -2,7 +2,7 @@ import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
-import { defaultInterfaceSettings } from './defaults'  // TODO remove on Chrome
+import { defaultInterfaceSettings } from './defaults'
 
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
