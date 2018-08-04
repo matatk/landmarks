@@ -1,7 +1,7 @@
 import './compatibility'
-import LandmarksFinder from './content.finder.js'
-import ElementFocuser from './content.focusing.js'
-import PauseHandler from './content.pausing.js'
+import LandmarksFinder from './landmarksFinder.js'
+import ElementFocuser from './elementFocuser.js'
+import PauseHandler from './pauseHandler.js'
 
 const outOfDateTime = 2000
 const logger = new Logger()

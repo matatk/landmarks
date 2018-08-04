@@ -31,13 +31,13 @@ export default function() {
 								file: 'contrast.js'
 							}, function() {
 								browser.tabs.executeScript(tabs[i].id, {
-									file: 'content.finder.js'
+									file: 'landmarksFinder.js'
 								}, function() {
 									browser.tabs.executeScript(tabs[i].id, {
-										file: 'content.focusing.js'
+										file: 'elementFocuser.js'
 									}, function() {
 										browser.tabs.executeScript(tabs[i].id, {
-											file:'content.pausing.js'
+											file:'pauseHandler.js'
 										}, function() {
 											browser.tabs.executeScript(tabs[i].id, {
 												file: 'content.supervisor.js'

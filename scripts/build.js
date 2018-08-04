@@ -122,16 +122,16 @@ function pathToBuild(browser) {
 
 async function flattenCode(browser) {
 	const ioPairs = [{
-		input: path.join(srcCodeDir, 'background.js'),
+		input: path.join(srcCodeDir, '_background.js'),
 		output: path.join(pathToBuild(browser), 'background.js'),
 	}, {
-		input: path.join(srcCodeDir, 'content.supervisor.js'),
+		input: path.join(srcCodeDir, '_content.js'),
 		output: path.join(pathToBuild(browser), 'content.js'),
 	}, {
-		input: path.join(srcCodeDir, 'options.js'),
+		input: path.join(srcCodeDir, '_options.js'),
 		output: path.join(pathToBuild(browser), 'options.js'),
 	}, {
-		input: path.join(srcCodeDir, 'popup.js'),
+		input: path.join(srcCodeDir, '_popup.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
 	}]
 
