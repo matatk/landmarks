@@ -10,6 +10,7 @@ const replace = require('replace-in-file')
 const glob = require('glob')
 const rollup = require('rollup')
 const terser = require('rollup-plugin-terser').terser
+const esformatter = require('rollup-plugin-esformatter')
 
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
@@ -162,7 +163,8 @@ async function flattenCode(browser) {
 					comments: true
 					// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
 				}
-			})]
+			}),
+			esformatter()]
 		}
 		bundleOption.output = {
 			file: ioPair.output,
