@@ -1,5 +1,5 @@
 import './compatibility'
-import { defaultSettings } from './defaults.js'
+import { defaultSettings } from './defaults'
 
 const options = [{
 	name: 'interface',
@@ -48,8 +48,6 @@ function restoreOptions() {
 function setUpOptionHandlers() {
 	for (const option of options) {
 		option.element.addEventListener('change', () => {
-			console.log('Setting:', {
-				[option.name]: option.element[option.property]})
 			browser.storage.sync.set({
 				[option.name]: option.element[option.property]
 			})

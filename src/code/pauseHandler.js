@@ -1,4 +1,4 @@
-export default function(logger) {
+export default function PauseHandler(logger) {
 	//
 	// Constants
 	//

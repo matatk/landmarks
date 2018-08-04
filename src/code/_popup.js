@@ -1,6 +1,6 @@
 import './compatibility'
-import sendToActiveTab from './sendToActiveTab.js'
-import landmarkName from './landmarkName.js'
+import sendToActiveTab from './sendToActiveTab'
+import landmarkName from './landmarkName'
 
 // Handle incoming landmarks message response
 //

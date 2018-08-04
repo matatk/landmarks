@@ -1,4 +1,4 @@
-export default function(win, doc) {
+export default function LandmarksFinder(win, doc) {
 	//
 	// Constants
 	//
