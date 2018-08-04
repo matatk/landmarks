@@ -13,17 +13,13 @@
   },
 
   "background": {
-    "scripts": [
-      "background.js"
-    ]
+    "scripts": ["background.js"]
   },
 
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "content.js"
-      ]
+      "js": ["content.js"]
     },
     {
       "matches": ["http://matatk.agrip.org.uk/landmarks/"],

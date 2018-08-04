@@ -16,15 +16,5 @@
     "chrome_style": true
   },
 
-  "background": {
-    "scripts": ["compatibility.js", "injector.js"]
-  },
-
-  "content_scripts": [
-    {
-      "js": ["compatibility.js", "injector.js"]
-    }
-  ],
-
   "permissions": ["<all_urls>"]
 }

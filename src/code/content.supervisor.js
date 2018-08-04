@@ -1,3 +1,4 @@
+import './compatibility'
 import LandmarksFinder from './content.finder.js'
 import ElementFocuser from './content.focusing.js'
 import PauseHandler from './content.pausing.js'

@@ -1,3 +1,4 @@
+import './compatibility'
 import sendToActiveTab from './sendToActiveTab.js'
 import landmarkName from './landmarkName.js'
 

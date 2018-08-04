@@ -1,16 +1,9 @@
-import sendToActiveTab from './sendToActiveTab.js'
+import './compatibility'
+import sendToActiveTab from './sendToActiveTab'
 // import landmarksContentScriptInjector from './injector.js'
-import specialPages from './specialPages.firefox.js'  // FIXME
-import { defaultInterfaceSettings } from './defaults.js'  // TODO remove on Chrome
+import specialPages from './specialPages'
+import { defaultInterfaceSettings } from './defaults'  // TODO remove on Chrome
 
-console.log('Landmarks: Running on...')
-
-switch (BROWSER) {
-	case 'firefox': console.log('firefox')
-		break
-	case 'chrome': console.log('chrome')
-		break
-}
 
 //
 // User interface handling

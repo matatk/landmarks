@@ -152,7 +152,8 @@ async function flattenCode(browser) {
 					evaluate: true,
 					side_effects: true,  // eslint-disable-line camelcase
 					switches: true,
-					unused: true
+					unused: true,
+					passes: 2  // stops stray "firefox" string in compatibility
 				},
 				output: {
 					beautify: true,
@@ -207,15 +208,6 @@ function copyStaticFiles(browser) {
 			'Removed UI options in:')
 	}
 }
-
-
-/* TODO remove
-function copySpecialPagesFile(browser) {
-	logStep(`Copying special pages file for ${browser}...`)
-	fse.copySync(
-		path.join(srcAssembleDir, `specialPages.${browser}.js`),
-		path.join(pathToBuild(browser), 'specialPages.js'))
-} */
 
 
 function mergeMessages(browser) {
@@ -318,23 +310,6 @@ function mergeManifest(browser) {
 }
 
 
-/* TODO remove
-function copyCompatibilityShimAndContentScriptInjector(browser) {
-	if (browser !== 'firefox') {
-		const variant = browser === 'edge' ? browser : 'chrome-opera'
-		logStep('Copying browser API compatibility shim...')
-		fse.copySync(
-			path.join(srcAssembleDir, `compatibility.${variant}.js`),
-			path.join(pathToBuild(browser), 'compatibility.js'))
-
-		logStep('Copying content script injector...')
-		fse.copySync(
-			path.join(srcAssembleDir, 'injector.js'),
-			path.join(pathToBuild(browser), 'injector.js'))
-	}
-} */
-
-
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(converter, browser) {
 	logStep('Generating/copying in PNG files...')
@@ -373,10 +348,6 @@ async function makeZip(browser) {
 	const outputFileName = zipFileName(browser)
 	const output = fs.createWriteStream(outputFileName)
 	const archive = archiver('zip')
-
-	/* TODO remove
-	output.on('close', function() {
-	}) */
 
 	archive.on('error', function(err) {
 		throw err
@@ -432,13 +403,9 @@ async function main() {
 		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
 		await flattenCode(browser)
 		copyStaticFiles(browser)
-		// TODO remove
-		// copySpecialPagesFile(browser)
 		mergeMessages(browser)
 		checkMessages(browser)
 		mergeManifest(browser)
-		// TODO remove
-		// copyCompatibilityShimAndContentScriptInjector(browser)
 		getPngs(sp, browser)
 		if (testMode) {
 			renameTestVersion(browser)

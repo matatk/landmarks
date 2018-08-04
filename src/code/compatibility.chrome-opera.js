@@ -1,1 +1,0 @@
-window.browser = window.chrome

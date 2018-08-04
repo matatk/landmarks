@@ -1,3 +1,4 @@
+import './compatibility'
 import { defaultSettings } from './defaults.js'
 
 const options = [{
