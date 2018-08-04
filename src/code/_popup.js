@@ -15,7 +15,14 @@ function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
+	if (response === undefined && browser.runtime.lastError) {
+		addText(display, 'Landmarks cannot run on this page.')  // FIXME translate
+		// doesn't appear that the problem is the page has not loaded yet (?)
+		return
+	}
+
 	if (browser.runtime.lastError) {
+		// Seems this is not going to happen
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)
@@ -159,5 +166,18 @@ browser.runtime.onMessage.addListener(function(message) {
 		case 'update-badge':
 			bootstrap()
 			break
+	}
+})
+
+// The sidebar may be open whilst the user interface setting is changed
+browser.storage.onChanged.addListener(function(changes) {
+	if (changes.hasOwnProperty('interface')) {
+		if (changes.interface.newValue === 'sidebar') {
+			bootstrap()
+		} else {
+			const display = document.getElementById('landmarks')
+			removeChildNodes(display)
+			addText(display, 'Landmarks will be displayed via the pop-up; please close this sidebar.')  // FIXME translate
+		}
 	}
 })

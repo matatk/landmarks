@@ -39,7 +39,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	function switchInterface(mode) {
 		switch (mode) {
 			case 'sidebar':
-				console.log('switching to sidebar')
 				browser.browserAction.setPopup({ popup: '' })
 
 				if (BROWSER === 'firefox') {
@@ -54,7 +53,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 				useSidebar = true
 				break
 			case 'popup':
-				console.log('switching to popup')
 				// On Firefox this could be set to null to return to the
 				// default popup. However Chrome/Opera doesn't support this.
 				browser.browserAction.setPopup({ popup: 'popup.html' })
