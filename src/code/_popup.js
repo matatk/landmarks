@@ -2,6 +2,11 @@ import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
 
+
+//
+// Creating a landmarks tree in response to info from content script
+//
+
 // Handle incoming landmarks message response
 //
 // If there are landmarks, then the response will be a list of objects that
@@ -40,45 +45,6 @@ function handleLandmarksResponse(response) {
 	} else {
 		addText(display, errorString() + 'content script sent: ' + response)
 	}
-}
-
-// Remove all nodes contained within a node
-function removeChildNodes(element) {
-	while (element.firstChild) {
-		element.removeChild(element.firstChild)
-	}
-}
-
-// Append text paragraph to the given element
-function addText(element, message) {
-	const newPara = document.createElement('p')
-	const newParaText = document.createTextNode(message)
-	newPara.appendChild(newParaText)
-	element.appendChild(newPara)
-}
-
-// Create a button that reloads the current page and add it to an element
-// (Needs to be done this way to avoid CSP violation)
-function addReloadButton(element) {
-	const button = document.createElement('button')
-	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(
-		browser.i18n.getMessage('tryReloading')))
-	button.addEventListener('click', reloadActivePage)
-	element.appendChild(button)
-}
-
-// Function to reload the page in the current tab
-function reloadActivePage() {
-	browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		browser.tabs.reload(tabs[0].tabId)
-	})
-	window.close()
-}
-
-// Return localised "Error: " string
-function errorString() {
-	return browser.i18n.getMessage('errorWord') + ': '
 }
 
 // Go through the landmarks identified for the page and create an HTML
@@ -135,6 +101,42 @@ function makeLandmarksTree(landmarks, container) {
 	container.appendChild(root)
 }
 
+
+//
+// DOM manipulation utilities
+//
+
+// Remove all nodes contained within a node
+function removeChildNodes(element) {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild)
+	}
+}
+
+// Append text paragraph to the given element
+function addText(element, message) {
+	const newPara = document.createElement('p')
+	const newParaText = document.createTextNode(message)
+	newPara.appendChild(newParaText)
+	element.appendChild(newPara)
+}
+
+// Create a button that reloads the current page and add it to an element
+// (Needs to be done this way to avoid CSP violation)
+function addReloadButton(element) {
+	const button = document.createElement('button')
+	button.className = 'browser-style'
+	button.appendChild(document.createTextNode(
+		browser.i18n.getMessage('tryReloading')))
+	button.addEventListener('click', reloadActivePage)
+	element.appendChild(button)
+}
+
+
+//
+// General utilities
+//
+
 // When a landmark's corresponding button in the UI is clicked, focus it
 function focusLandmark(index) {
 	sendToActiveTab({
@@ -143,10 +145,28 @@ function focusLandmark(index) {
 	})
 }
 
+// Function to reload the page in the current tab
+function reloadActivePage() {
+	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+		browser.tabs.reload(tabs[0].tabId)
+	})
+	window.close()
+}
+
+// Return localised "Error: " string
+function errorString() {
+	return browser.i18n.getMessage('errorWord') + ': '
+}
+
+
+//
+// Management
+//
+
 // Send a message to ask for the latest landmarks
 function bootstrap() {
 	document.getElementById('heading').innerText =
-		browser.i18n.getMessage('popupHeading')
+		browser.i18n.getMessage('popupHeading')  // FIXME only needs doing once?
 	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
 }
 
@@ -169,7 +189,10 @@ browser.runtime.onMessage.addListener(function(message) {
 	}
 })
 
-// The sidebar may be open whilst the user interface setting is changed
+// The sidebar may be open whilst the user interface setting is changed. This
+// relies on the fact that the popup can't be open when the user is making
+// these changes. We don't react to the value of this preference on load for
+// the same reason -- that would require knowing if we are the sidebar or not.
 browser.storage.onChanged.addListener(function(changes) {
 	if (changes.hasOwnProperty('interface')) {
 		if (changes.interface.newValue === 'sidebar') {
@@ -181,3 +204,6 @@ browser.storage.onChanged.addListener(function(changes) {
 		}
 	}
 })
+
+// FIXME What if we're running in the sidebar, but the user has asked for the
+//       popup to present the results?
