@@ -10,8 +10,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	// Sidebar handling
 	//
 
-	let useSidebar
-
 	// If the user has elected to use the sidebar, the pop-up is disabled, and
 	// we will receive events, which we can then use to open the sidebar.
 	//
@@ -49,8 +47,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 					browser.browserAction.onClicked.addListener(
 						openSidebarWhenClicked)
 				}
-
-				useSidebar = true
 				break
 			case 'popup':
 				// On Firefox this could be set to null to return to the
@@ -63,8 +59,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 					browser.browserAction.onClicked.removeListener(
 						closeSidebarWhenClicked)
 				}
-
-				useSidebar = false
 				break
 			default:
 				throw Error(`Invalid interface "${mode}" given`)
@@ -81,17 +75,16 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		}
 	})
 
-	// When the user moves between tabs, the sidebar needs updating
+	// When the user moves between tabs, the sidebar needs updating. This
+	// message will be sent even when the primary interface is set to the
+	// pop-up, because we've no way to know if the sidebar is open or not; if
+	// it's open it should update. If it is open, but the primary interface is
+	// the pop-up, a note will be inserted (by the popup code) to alert the
+	// user to the potential misconfiguration.
 	browser.tabs.onActivated.addListener(function() {
-		if (useSidebar) {
-			try {
-				browser.runtime.sendMessage({
-					request: 'update-sidebar'
-				})
-			} catch (err) {
-				// The sidebar may not be open; Opera doesn't support isOpen()
-			}
-		}
+		browser.runtime.sendMessage({
+			request: 'update-sidebar'
+		})
 	})
 }
 

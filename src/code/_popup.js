@@ -1,7 +1,7 @@
 import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings } from './defaults'  // TODO WIP
+import { defaultInterfaceSettings } from './defaults'
 
 
 //
@@ -164,35 +164,39 @@ function errorString() {
 // Management
 //
 
-// FIXME RENAME AND MAYBE UN-FACTOR OUT
 // Send a message to ask for the latest landmarks
-function bootstrap() {
-	document.getElementById('heading').innerText =
-		browser.i18n.getMessage('popupHeading')  // FIXME only needs doing once?
+function requestLandmarks() {
 	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
 }
 
-if (INTERFACE === 'popup') {
-	// When the pop-up opens, grab and process the list of page landmarks
-	document.addEventListener('DOMContentLoaded', function() {
-		bootstrap()
-	})
-}
-
 if (INTERFACE === 'sidebar') {
+	function createNote() {  // eslint-disable-line no-inner-declarations
+		const para = document.createElement('p')
+		para.id = 'config-message'
+		const text = document.createTextNode('Landmarks is set up to use a pop-up to display the Landmarks on the page. The sidebar will still work, but using the SHORTCUT KEY will make the pop-up appear. If you would rather use the sidebar DO_STUFF')
+		para.appendChild(text)
+		document.body.insertBefore(para, document.body.firstChild)
+	}
+
+	function removeNote() {  // eslint-disable-line no-inner-declarations
+		const message = document.getElementById('config-message')
+		if (message) message.remove()
+	}
+
 	// We may be running in a sidebar, in which case listen for requests to update
 	browser.runtime.onMessage.addListener(function(message) {
 		switch (message.request) {
 			case 'update-sidebar':
 			case 'update-badge':  // FIXME COULD HAPPEN WHEN POPUP OPEN?
-				bootstrap()
+				requestLandmarks()
 				break
 		}
 	})
 
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-		const text = document.createTextNode('setting:' + items.interface)
-		document.body.insertBefore(text, document.body.firstChild)
+		if (items.interface === 'popup') {
+			createNote()
+		}
 	})
 
 	// The sidebar may be open whilst the user interface setting is changed. This
@@ -201,13 +205,24 @@ if (INTERFACE === 'sidebar') {
 	// the same reason -- that would require knowing if we are the sidebar or not.
 	browser.storage.onChanged.addListener(function(changes) {
 		if (changes.hasOwnProperty('interface')) {
-			if (changes.interface.newValue === 'sidebar') {
-				bootstrap()
-			} else {
-				const display = document.getElementById('landmarks')
-				removeChildNodes(display)
-				addText(display, 'Landmarks will be displayed via the pop-up; please close this sidebar.')  // FIXME translate
+			switch (changes.interface.newValue) {
+				case 'sidebar': removeNote()
+					break
+				case 'popup': createNote()
+					break
+				default:
+					throw Error(`Unknown interface type "${changes.interface.newValue}`)  // FIXME DRY-ish (at least the error message?)
 			}
 		}
 	})
 }
+
+// When the pop-up (or sidebar) opens, translate the heading and grab and
+// process the list of page landmarks
+// FIXME https://github.com/matatk/landmarks/issues/192
+document.addEventListener('DOMContentLoaded', function() {
+	document.getElementById('heading').innerText =
+		browser.i18n.getMessage('popupHeading')
+
+	requestLandmarks()
+})
