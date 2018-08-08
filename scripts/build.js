@@ -428,16 +428,6 @@ async function lintFirefox() {
 }
 
 
-/* TODO reinstate or remove
-function copyESLintRC() {
-	logStep('Copying src ESLint config to build directory...')
-	const basename = '.eslintrc.json'
-	fse.copySync(
-		path.join('src', basename),
-		path.join('build', basename))
-} */
-
-
 async function main() {
 	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 	const browsers = checkBuildMode()
@@ -459,9 +449,6 @@ async function main() {
 		await makeZip(browser)
 		await lint(browser)
 	}
-
-	// TODO reinstate or remove
-	// copyESLintRC()
 }
 
 
