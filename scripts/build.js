@@ -78,6 +78,20 @@ const linters = Object.freeze({
 let testMode = false	// are we building a test (alpha/beta) version?
 
 
+function doReplace(files, from, to, message) {
+	try {
+		const changes = replace.sync({
+			'files': files,
+			'from': from,
+			'to': to
+		})
+		console.log(chalk.green(`✔ ${message}`, changes.join(', ')))
+	} catch (err) {
+		error('Error occurred:', err)
+	}
+}
+
+
 function error() {
 	const argStrings = [...arguments].map(x => String(x))
 	console.error(chalk.bold.red.apply(this, ['✖'].concat(argStrings)))
@@ -216,19 +230,6 @@ function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 
-	function doReplace(files, from, to, message) {
-		try {
-			const changes = replace.sync({
-				'files': files,
-				'from': from,
-				'to': to
-			})
-			console.log(chalk.green(`✔ ${message}`, changes.join(', ')))
-		} catch (err) {
-			error('Error occurred:', err)
-		}
-	}
-
 	if (browser === 'chrome' || browser === 'edge') {
 		doReplace(
 			path.join(pathToBuild(browser), '*.html'),
@@ -366,20 +367,13 @@ function getPngs(converter, browser) {
 }
 
 
-// FIXME DRY
 function renameTestVersion(browser) {
-	try {
-		const changes = replace.sync({
-			files: path.join(pathToBuild(browser), '**', 'messages.json'),
-			from: /"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
-			to: '"Landmarks (test version)"'
-			// Note: Chrome Web Store has a limit of 45 characters for name.
-		})
-		console.log('Suffixed name to indicate test version:',
-			changes.join(', '))
-	} catch (error) {
-		error('Error occurred:', error)
-	}
+	logStep('Changing test version name in messages.json...')
+	doReplace(
+		path.join(pathToBuild(browser), '**', 'messages.json'),
+		/"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
+		'"Landmarks (test version)"',
+		'Suffixed name to indicate test version in:')
 }
 
 
