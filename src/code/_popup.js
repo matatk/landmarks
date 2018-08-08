@@ -1,6 +1,7 @@
 import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
+import { defaultInterfaceSettings } from './defaults'  // TODO WIP
 
 
 //
@@ -163,6 +164,7 @@ function errorString() {
 // Management
 //
 
+// FIXME RENAME AND MAYBE UN-FACTOR OUT
 // Send a message to ask for the latest landmarks
 function bootstrap() {
 	document.getElementById('heading').innerText =
@@ -170,40 +172,42 @@ function bootstrap() {
 	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
 }
 
-// When the pop-up opens, grab and process the list of page landmarks
-// TODO: Using this approach means that, in the case of the sidebar, there will
-//       be an error encountered at first, as the sidebar loads before the
-//       content script runs, and this will quickly be overwritten when the
-//       update-sidebar or update-badge message is handled.
-document.addEventListener('DOMContentLoaded', function() {
-	bootstrap()
-})
+if (INTERFACE === 'popup') {
+	// When the pop-up opens, grab and process the list of page landmarks
+	document.addEventListener('DOMContentLoaded', function() {
+		bootstrap()
+	})
+}
 
-// We may be running in a sidebar, in which case listen for requests to update
-browser.runtime.onMessage.addListener(function(message) {
-	switch (message.request) {
-		case 'update-sidebar':
-		case 'update-badge':
-			bootstrap()
-			break
-	}
-})
-
-// The sidebar may be open whilst the user interface setting is changed. This
-// relies on the fact that the popup can't be open when the user is making
-// these changes. We don't react to the value of this preference on load for
-// the same reason -- that would require knowing if we are the sidebar or not.
-browser.storage.onChanged.addListener(function(changes) {
-	if (changes.hasOwnProperty('interface')) {
-		if (changes.interface.newValue === 'sidebar') {
-			bootstrap()
-		} else {
-			const display = document.getElementById('landmarks')
-			removeChildNodes(display)
-			addText(display, 'Landmarks will be displayed via the pop-up; please close this sidebar.')  // FIXME translate
+if (INTERFACE === 'sidebar') {
+	// We may be running in a sidebar, in which case listen for requests to update
+	browser.runtime.onMessage.addListener(function(message) {
+		switch (message.request) {
+			case 'update-sidebar':
+			case 'update-badge':  // FIXME COULD HAPPEN WHEN POPUP OPEN?
+				bootstrap()
+				break
 		}
-	}
-})
+	})
 
-// FIXME What if we're running in the sidebar, but the user has asked for the
-//       popup to present the results?
+	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+		const text = document.createTextNode('setting:' + items.interface)
+		document.body.insertBefore(text, document.body.firstChild)
+	})
+
+	// The sidebar may be open whilst the user interface setting is changed. This
+	// relies on the fact that the popup can't be open when the user is making
+	// these changes. We don't react to the value of this preference on load for
+	// the same reason -- that would require knowing if we are the sidebar or not.
+	browser.storage.onChanged.addListener(function(changes) {
+		if (changes.hasOwnProperty('interface')) {
+			if (changes.interface.newValue === 'sidebar') {
+				bootstrap()
+			} else {
+				const display = document.getElementById('landmarks')
+				removeChildNodes(display)
+				addText(display, 'Landmarks will be displayed via the pop-up; please close this sidebar.')  // FIXME translate
+			}
+		}
+	})
+}

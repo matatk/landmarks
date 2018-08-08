@@ -1,4 +1,5 @@
 'use strict'
+// FIXME DRY chalk green
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
@@ -122,37 +123,64 @@ function pathToBuild(browser) {
 
 
 async function flattenCode(browser) {
-	const ioPairs = [{
+	logStep('Flattening JavaScript code...')
+
+	const ioPairsAndGlobals = [{
 		input: path.join(srcCodeDir, '_background.js'),
-		output: path.join(pathToBuild(browser), 'background.js'),
+		output: path.join(pathToBuild(browser), 'background.js')
 	}, {
 		input: path.join(srcCodeDir, '_content.js'),
-		output: path.join(pathToBuild(browser), 'content.js'),
+		output: path.join(pathToBuild(browser), 'content.js')
 	}, {
 		input: path.join(srcCodeDir, '_options.js'),
-		output: path.join(pathToBuild(browser), 'options.js'),
+		output: path.join(pathToBuild(browser), 'options.js')
 	}, {
 		input: path.join(srcCodeDir, '_popup.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
+		globals: {
+			INTERFACE: 'popup'
+		}
 	}]
+
+	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
+	// differs slightly. It uses popup.css.
+	if (browser === 'firefox' || browser === 'opera') {
+		ioPairsAndGlobals.push({
+			input: path.join(srcCodeDir, '_popup.js'),
+			output: path.join(pathToBuild(browser), 'panel.js'),
+			globals: {
+				INTERFACE: 'sidebar'
+			}
+		})
+	}
+
+	// Now create an array of full bundle options to pass to rollup. Each
+	// element of these specifies all the common rollup and terser options.
 
 	const bundleOptions = []
 
-	for (const ioPair of ioPairs) {
+	for (const ioPair of ioPairsAndGlobals) {
 		const bundleOption = {}
+
+		const defines = {
+			BROWSER: browser
+		}
+
+		for (const global in ioPair.globals) {
+			defines[global] = ioPair.globals[global]
+		}
+
 		bundleOption.input = {
 			input: ioPair.input,
 			plugins: [terser({
 				mangle: false,
 				compress: {
 					defaults: false,
-					global_defs: {       // eslint-disable-line camelcase
-						BROWSER: browser
-					},
+					global_defs: defines,  // eslint-disable-line camelcase
 					conditionals: true,
-					dead_code: true,     // eslint-disable-line camelcase
+					dead_code: true,       // eslint-disable-line camelcase
 					evaluate: true,
-					side_effects: true,  // eslint-disable-line camelcase
+					side_effects: true,    // eslint-disable-line camelcase
 					switches: true,
 					unused: true,
 					passes: 2  // stops stray "firefox" string in compatibility
@@ -166,19 +194,21 @@ async function flattenCode(browser) {
 			}),
 			esformatter()]
 		}
+
 		bundleOption.output = {
 			file: ioPair.output,
 			format: 'iife'
 		}
+
 		bundleOptions.push(bundleOption)
 	}
+
+	// Run each bundle through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
 		const bundle = await rollup.rollup(options.input)
 		await bundle.write(options.output)
 	}
-
-	console.log(chalk.green(`✔ flattened code written for ${browser}.`))
 }
 
 
@@ -186,23 +216,41 @@ function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 
-	function doReplace(from, to, message) {
+	function doReplace(files, from, to, message) {
 		try {
 			const changes = replace.sync({
-				'files': path.join(pathToBuild(browser), '*.html'),
+				'files': files,
 				'from': from,
 				'to': to
 			})
-			console.log(message, changes.join(', '))
+			console.log(chalk.green(`✔ ${message}`, changes.join(', ')))
 		} catch (err) {
 			error('Error occurred:', err)
 		}
 	}
 
 	if (browser === 'chrome' || browser === 'edge') {
-		doReplace(/<!-- ui -->[\s\S]*<!-- \/ui -->\s*/,
+		doReplace(
+			path.join(pathToBuild(browser), '*.html'),
+			/<!-- ui -->[\s\S]*<!-- \/ui -->\s*/,
 			'',
 			'Removed UI options in:')
+	}
+
+	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
+	// differs slightly. It uses popup.css.
+	if (browser === 'firefox' || browser === 'opera') {
+		fs.copyFileSync(
+			path.join(srcStaticDir, 'popup.html'),
+			path.join(pathToBuild(browser), 'panel.html'))
+
+		console.log(chalk.green(`✔ also created panel.html for ${browser}.`))
+
+		doReplace(
+			path.join(pathToBuild(browser), 'panel.html'),
+			'popup.js',
+			'panel.js',
+			'Included sidebar code in:')
 	}
 }
 
@@ -318,6 +366,7 @@ function getPngs(converter, browser) {
 }
 
 
+// FIXME DRY
 function renameTestVersion(browser) {
 	try {
 		const changes = replace.sync({
