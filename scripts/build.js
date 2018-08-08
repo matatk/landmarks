@@ -1,5 +1,4 @@
 'use strict'
-// FIXME DRY chalk green
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
@@ -85,10 +84,16 @@ function doReplace(files, from, to, message) {
 			'from': from,
 			'to': to
 		})
-		console.log(chalk.green(`✔ ${message}`, changes.join(', ')))
+		ok(message, changes.join(', '))
 	} catch (err) {
 		error('Error occurred:', err)
 	}
+}
+
+
+function ok() {
+	const argStrings = [...arguments].map(x => String(x))
+	console.error(chalk.green.apply(this, ['✔'].concat(argStrings)))
 }
 
 
@@ -245,7 +250,7 @@ function copyStaticFiles(browser) {
 			path.join(srcStaticDir, 'popup.html'),
 			path.join(pathToBuild(browser), 'panel.html'))
 
-		console.log(chalk.green(`✔ also created panel.html for ${browser}.`))
+		ok(`also created panel.html for ${browser}.`)
 
 		doReplace(
 			path.join(pathToBuild(browser), 'panel.html'),
@@ -277,7 +282,7 @@ function mergeMessages(browser) {
 		fs.writeFileSync(destinationFile, JSON.stringify(commonJson, null, 2))
 	}
 
-	console.log(chalk.green(`✔ messages.json written for ${browser}.`))
+	ok(`messages.json written for ${browser}.`)
 }
 
 
@@ -352,7 +357,7 @@ function mergeManifest(browser) {
 		JSON.stringify(merged, null, 2)
 	)
 
-	console.log(chalk.green(`✔ manifest.json written for ${browser}.`))
+	ok(`manifest.json written for ${browser}.`)
 }
 
 
@@ -396,7 +401,7 @@ async function makeZip(browser) {
 	archive.pipe(output)
 	archive.directory(pathToBuild(browser), '')
 	await archive.finalize().then(() => {
-		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
+		ok(archive.pointer() + ' total bytes for ' + outputFileName)
 	})
 }
 
