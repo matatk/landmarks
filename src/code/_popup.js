@@ -21,14 +21,15 @@ function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
+	// There is no connection from us to the current page; this means we must
+	// be running on a forbidden page.
 	if (response === undefined && browser.runtime.lastError) {
-		addText(display, 'Landmarks cannot run on this page.')  // FIXME translate
-		// doesn't appear that the problem is the page has not loaded yet (?)
+		addText(display, 'errorNoConnection')
 		return
 	}
 
+	// TODO: Not sure what may cause this condition to occur, given the above.
 	if (browser.runtime.lastError) {
-		// TODO: Seems this is not going to happen?
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)
@@ -36,8 +37,8 @@ function handleLandmarksResponse(response) {
 		return
 	}
 
+	// Content script would normally send back an array of landmarks
 	if (Array.isArray(response)) {
-		// Content script would normally send back an array of landmarks
 		if (response.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 		} else {
@@ -157,7 +158,7 @@ function reloadActivePage() {
 	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 		browser.tabs.reload(tabs[0].tabId)
 	})
-	window.close()  // FIXME not good for sidebar?
+	window.close()  // TODO not good for sidebar? + as above: when does this happen?
 }
 
 // Return localised "Error: " string
@@ -224,7 +225,7 @@ if (INTERFACE === 'sidebar') {
 	browser.runtime.onMessage.addListener(function(message) {
 		switch (message.request) {
 			case 'update-sidebar':
-			case 'update-badge':  // FIXME COULD HAPPEN WHEN POPUP OPEN?
+			case 'update-badge':  // TODO could happen when pop-up open?
 				requestLandmarks()
 				break
 		}
