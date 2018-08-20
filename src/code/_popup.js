@@ -176,6 +176,8 @@ function requestLandmarks() {
 }
 
 if (INTERFACE === 'sidebar') {
+	const noteId = 'note'
+
 	function createNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
 			if (!items.dismissedSidebarNotAlone) {
@@ -198,19 +200,23 @@ if (INTERFACE === 'sidebar') {
 						})
 					})
 
-				const container = document.createElement('div')
-				container.id = 'config-message'
-				container.appendChild(para)
-				container.appendChild(optionsButton)
-				container.appendChild(dismissButton)
+				// Contains buttons; allows for them to be flexbox'd
+				const buttons = document.createElement('div')
+				buttons.appendChild(optionsButton)
+				buttons.appendChild(dismissButton)
 
-				document.body.insertBefore(container, document.body.firstChild)
+				const note = document.createElement('div')
+				note.id = noteId
+				note.appendChild(para)
+				note.appendChild(buttons)
+
+				document.body.insertBefore(note, document.body.firstChild)
 			}
 		})
 	}
 
 	function removeNote() {  // eslint-disable-line no-inner-declarations
-		const message = document.getElementById('config-message')
+		const message = document.getElementById(noteId)
 		if (message) message.remove()
 	}
 

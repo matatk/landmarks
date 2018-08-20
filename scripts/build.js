@@ -241,6 +241,11 @@ function copyStaticFiles(browser) {
 			/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
 			'',
 			'Removed UI options in:')
+		doReplace(
+			path.join(pathToBuild(browser), '*.css'),
+			/\/\* ui \*\/[\s\S]*?\/\* \/ui \*\/\s*/g,
+			'',
+			'Removed UI styles in:')
 	}
 
 	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
