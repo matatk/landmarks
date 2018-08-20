@@ -122,15 +122,20 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
+function makeButton(nameMessage, onClick) {
+	const button = document.createElement('button')
+	button.className = 'browser-style'
+	button.appendChild(document.createTextNode(
+		browser.i18n.getMessage(nameMessage)))
+	button.onclick = onClick
+	return button
+}
+
 // Create a button that reloads the current page and add it to an element
 // (Needs to be done this way to avoid CSP violation)
 // TODO will this be needed?
 function addReloadButton(element) {
-	const button = document.createElement('button')
-	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(
-		browser.i18n.getMessage('tryReloading')))
-	button.addEventListener('click', reloadActivePage)
+	const button = makeButton('tryReloading', reloadActivePage)
 	element.appendChild(button)
 }
 
@@ -171,42 +176,33 @@ function requestLandmarks() {
 }
 
 if (INTERFACE === 'sidebar') {
-	// TODO: DRY out making buttons?
 	function createNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
 			if (!items.dismissedSidebarNotAlone) {
 				const para = document.createElement('p')
-				const text = document.createTextNode(
-					browser.i18n.getMessage('hintSidebarIsNotPrimary'))
-				para.appendChild(text)
+				para.appendChild(document.createTextNode(
+					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
 
-				const optionsButton = document.createElement('button')
-				const optionsText = document.createTextNode(
-					browser.i18n.getMessage('hintSidebarIsNotPrimaryOptions'))
-				optionsButton.appendChild(optionsText)
-				optionsButton.className = 'browser-style'
-				optionsButton.onclick = function() {
-					browser.runtime.openOptionsPage()
-				}
-
-				const dismissButton = document.createElement('button')
-				const dismissText = document.createTextNode(
-					browser.i18n.getMessage('hintDismiss'))
-				dismissButton.appendChild(dismissText)
-				dismissButton.className = 'browser-style'
-				dismissButton.onclick = function() {
-					browser.storage.sync.set({
-						dismissedSidebarNotAlone: true
-					}, function() {
-						removeNote()
+				const optionsButton = makeButton(
+					'hintSidebarIsNotPrimaryOptions',
+					function() {
+						browser.runtime.openOptionsPage()
 					})
-				}
+
+				const dismissButton = makeButton('hintDismiss',
+					function() {
+						browser.storage.sync.set({
+							dismissedSidebarNotAlone: true
+						}, function() {
+							removeNote()
+						})
+					})
 
 				const container = document.createElement('div')
+				container.id = 'config-message'
 				container.appendChild(para)
 				container.appendChild(optionsButton)
 				container.appendChild(dismissButton)
-				container.id = 'config-message'
 
 				document.body.insertBefore(container, document.body.firstChild)
 			}
