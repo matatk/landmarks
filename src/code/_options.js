@@ -89,7 +89,7 @@ function resetMessages() {
 		browser.storage.sync.set({
 			[dismissalState]: false
 		}, function() {
-			alert('Hints and other messages re-enabled') // FIXME translate
+			alert(browser.i18n.getMessage('prefsResetMessagesDone'))
 		})
 	}
 }

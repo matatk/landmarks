@@ -28,7 +28,7 @@ function handleLandmarksResponse(response) {
 	}
 
 	if (browser.runtime.lastError) {
-		// Seems this is not going to happen
+		// TODO: Seems this is not going to happen?
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
 		)
@@ -171,18 +171,30 @@ function requestLandmarks() {
 }
 
 if (INTERFACE === 'sidebar') {
+	// TODO: DRY out making buttons?
 	function createNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
 			if (!items.dismissedSidebarNotAlone) {
 				const para = document.createElement('p')
-				const text = document.createTextNode('Landmarks is set up to use a pop-up to display the Landmarks on the page. The sidebar will still work, but using the SHORTCUT KEY will make the pop-up appear. If you would rather use the sidebar DO_STUFF')  // FIXME translate
+				const text = document.createTextNode(
+					browser.i18n.getMessage('hintSidebarIsNotPrimary'))
 				para.appendChild(text)
 
-				const button = document.createElement('button')
-				const action = document.createTextNode('Dismiss')  // FIXME translate
-				button.appendChild(action)
-				button.className = 'browser-style'
-				button.onclick = function() {
+				const optionsButton = document.createElement('button')
+				const optionsText = document.createTextNode(
+					browser.i18n.getMessage('hintSidebarIsNotPrimaryOptions'))
+				optionsButton.appendChild(optionsText)
+				optionsButton.className = 'browser-style'
+				optionsButton.onclick = function() {
+					browser.runtime.openOptionsPage()
+				}
+
+				const dismissButton = document.createElement('button')
+				const dismissText = document.createTextNode(
+					browser.i18n.getMessage('hintDismiss'))
+				dismissButton.appendChild(dismissText)
+				dismissButton.className = 'browser-style'
+				dismissButton.onclick = function() {
 					browser.storage.sync.set({
 						dismissedSidebarNotAlone: true
 					}, function() {
@@ -192,7 +204,8 @@ if (INTERFACE === 'sidebar') {
 
 				const container = document.createElement('div')
 				container.appendChild(para)
-				container.appendChild(button)
+				container.appendChild(optionsButton)
+				container.appendChild(dismissButton)
 				container.id = 'config-message'
 
 				document.body.insertBefore(container, document.body.firstChild)

@@ -20,6 +20,24 @@
   },
 
   "prefsResetMessages": {
-    "message": "Reset hints"
+    "message": "Reinstate dismissed messages"
+  },
+
+  "prefsResetMessagesDone": {
+    "message": "Help messages have been reinstated."
+  },
+
+
+
+  "hintSidebarIsNotPrimary": {
+    "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear. If you would rather use the sidebar only, go to Landmarks' preferences."
+  },
+
+  "hintSidebarIsNotPrimaryOptions": {
+    "message": "Open options"
+  },
+
+  "hintDismiss": {
+    "message": "Dismiss info"
   }
 }
