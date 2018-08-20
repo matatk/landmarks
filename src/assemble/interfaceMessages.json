@@ -30,14 +30,14 @@
 
 
   "hintSidebarIsNotPrimary": {
-    "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear. If you would rather use the sidebar only, go to Landmarks' preferences."
+    "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar."
   },
 
   "hintSidebarIsNotPrimaryOptions": {
-    "message": "Open options"
+    "message": "Change options"
   },
 
   "hintDismiss": {
-    "message": "Dismiss info"
+    "message": "Dismiss note"
   }
 }
