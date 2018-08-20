@@ -1,10 +1,10 @@
+div.label-first, div.input-first {
+	padding-bottom: 1.25em;
+}
+
 div.label-first {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-}
-
-div.label-first, div.input-first {
-	padding-bottom: 1.25em;
 }
 
 div.label-first :first-child {

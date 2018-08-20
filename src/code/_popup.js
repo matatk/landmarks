@@ -1,7 +1,7 @@
 import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings } from './defaults'
+import { defaultInterfaceSettings, dismissalStates } from './defaults'
 
 
 //
@@ -124,6 +124,7 @@ function addText(element, message) {
 
 // Create a button that reloads the current page and add it to an element
 // (Needs to be done this way to avoid CSP violation)
+// TODO will this be needed?
 function addReloadButton(element) {
 	const button = document.createElement('button')
 	button.className = 'browser-style'
@@ -151,7 +152,7 @@ function reloadActivePage() {
 	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 		browser.tabs.reload(tabs[0].tabId)
 	})
-	window.close()
+	window.close()  // FIXME not good for sidebar?
 }
 
 // Return localised "Error: " string
@@ -171,11 +172,32 @@ function requestLandmarks() {
 
 if (INTERFACE === 'sidebar') {
 	function createNote() {  // eslint-disable-line no-inner-declarations
-		const para = document.createElement('p')
-		para.id = 'config-message'
-		const text = document.createTextNode('Landmarks is set up to use a pop-up to display the Landmarks on the page. The sidebar will still work, but using the SHORTCUT KEY will make the pop-up appear. If you would rather use the sidebar DO_STUFF')
-		para.appendChild(text)
-		document.body.insertBefore(para, document.body.firstChild)
+		browser.storage.sync.get(dismissalStates, function(items) {
+			if (!items.dismissedSidebarNotAlone) {
+				const para = document.createElement('p')
+				const text = document.createTextNode('Landmarks is set up to use a pop-up to display the Landmarks on the page. The sidebar will still work, but using the SHORTCUT KEY will make the pop-up appear. If you would rather use the sidebar DO_STUFF')  // FIXME translate
+				para.appendChild(text)
+
+				const button = document.createElement('button')
+				const action = document.createTextNode('Dismiss')  // FIXME translate
+				button.appendChild(action)
+				button.className = 'browser-style'
+				button.onclick = function() {
+					browser.storage.sync.set({
+						dismissedSidebarNotAlone: true
+					}, function() {
+						removeNote()
+					})
+				}
+
+				const container = document.createElement('div')
+				container.appendChild(para)
+				container.appendChild(button)
+				container.id = 'config-message'
+
+				document.body.insertBefore(container, document.body.firstChild)
+			}
+		})
 	}
 
 	function removeNote() {  // eslint-disable-line no-inner-declarations
