@@ -238,7 +238,7 @@ function copyStaticFiles(browser) {
 	if (browser === 'chrome' || browser === 'edge') {
 		doReplace(
 			path.join(pathToBuild(browser), '*.html'),
-			/<!-- ui -->[\s\S]*<!-- \/ui -->\s*/,
+			/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
 			'',
 			'Removed UI options in:')
 	}
