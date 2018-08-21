@@ -1,13 +1,43 @@
 {
   "prefsInterface": {
-    "message": "Show landmarks in"
+    "message": "Show landmarks in:"
   },
 
   "prefsPopup": {
-    "message": "Toolbar popup"
+    "message": "Toolbar pop-up and sidebar"
+  },
+
+  "prefsPopupExplanation": {
+    "message": "Activating the toolbar button or shortcut key will display landmarks in a pop-up. If you have the sidebar open, they will be shown there too."
   },
 
   "prefsSidebar": {
-    "message": "Sidebar"
+    "message": "Sidebar only"
+  },
+
+  "prefsSidebarExplanation": {
+    "message": "Landmarks will be shown in the sidebar, which can be opened via the toolbar button or shortcut key."
+  },
+
+  "prefsResetMessages": {
+    "message": "Reinstate dismissed messages"
+  },
+
+  "prefsResetMessagesDone": {
+    "message": "Help messages have been reinstated."
+  },
+
+
+
+  "hintSidebarIsNotPrimary": {
+    "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar."
+  },
+
+  "hintSidebarIsNotPrimaryOptions": {
+    "message": "Change options"
+  },
+
+  "hintDismiss": {
+    "message": "Dismiss note"
   }
 }

@@ -77,6 +77,26 @@ const linters = Object.freeze({
 let testMode = false	// are we building a test (alpha/beta) version?
 
 
+function doReplace(files, from, to, message) {
+	try {
+		const changes = replace.sync({
+			'files': files,
+			'from': from,
+			'to': to
+		})
+		ok(message, changes.join(', '))
+	} catch (err) {
+		error('Error occurred:', err)
+	}
+}
+
+
+function ok() {
+	const argStrings = [...arguments].map(x => String(x))
+	console.error(chalk.green.apply(this, ['✔'].concat(argStrings)))
+}
+
+
 function error() {
 	const argStrings = [...arguments].map(x => String(x))
 	console.error(chalk.bold.red.apply(this, ['✖'].concat(argStrings)))
@@ -122,37 +142,64 @@ function pathToBuild(browser) {
 
 
 async function flattenCode(browser) {
-	const ioPairs = [{
+	logStep('Flattening JavaScript code...')
+
+	const ioPairsAndGlobals = [{
 		input: path.join(srcCodeDir, '_background.js'),
-		output: path.join(pathToBuild(browser), 'background.js'),
+		output: path.join(pathToBuild(browser), 'background.js')
 	}, {
 		input: path.join(srcCodeDir, '_content.js'),
-		output: path.join(pathToBuild(browser), 'content.js'),
+		output: path.join(pathToBuild(browser), 'content.js')
 	}, {
 		input: path.join(srcCodeDir, '_options.js'),
-		output: path.join(pathToBuild(browser), 'options.js'),
+		output: path.join(pathToBuild(browser), 'options.js')
 	}, {
 		input: path.join(srcCodeDir, '_popup.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
+		globals: {
+			INTERFACE: 'popup'
+		}
 	}]
+
+	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
+	// differs slightly. It uses popup.css.
+	if (browser === 'firefox' || browser === 'opera') {
+		ioPairsAndGlobals.push({
+			input: path.join(srcCodeDir, '_popup.js'),
+			output: path.join(pathToBuild(browser), 'panel.js'),
+			globals: {
+				INTERFACE: 'sidebar'
+			}
+		})
+	}
+
+	// Now create an array of full bundle options to pass to rollup. Each
+	// element of these specifies all the common rollup and terser options.
 
 	const bundleOptions = []
 
-	for (const ioPair of ioPairs) {
+	for (const ioPair of ioPairsAndGlobals) {
 		const bundleOption = {}
+
+		const defines = {
+			BROWSER: browser
+		}
+
+		for (const global in ioPair.globals) {
+			defines[global] = ioPair.globals[global]
+		}
+
 		bundleOption.input = {
 			input: ioPair.input,
 			plugins: [terser({
 				mangle: false,
 				compress: {
 					defaults: false,
-					global_defs: {       // eslint-disable-line camelcase
-						BROWSER: browser
-					},
+					global_defs: defines,  // eslint-disable-line camelcase
 					conditionals: true,
-					dead_code: true,     // eslint-disable-line camelcase
+					dead_code: true,       // eslint-disable-line camelcase
 					evaluate: true,
-					side_effects: true,  // eslint-disable-line camelcase
+					side_effects: true,    // eslint-disable-line camelcase
 					switches: true,
 					unused: true,
 					passes: 2  // stops stray "firefox" string in compatibility
@@ -166,19 +213,21 @@ async function flattenCode(browser) {
 			}),
 			esformatter()]
 		}
+
 		bundleOption.output = {
 			file: ioPair.output,
 			format: 'iife'
 		}
+
 		bundleOptions.push(bundleOption)
 	}
+
+	// Run each bundle through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
 		const bundle = await rollup.rollup(options.input)
 		await bundle.write(options.output)
 	}
-
-	console.log(chalk.green(`✔ flattened code written for ${browser}.`))
 }
 
 
@@ -186,23 +235,33 @@ function copyStaticFiles(browser) {
 	logStep('Copying static files...')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 
-	function doReplace(from, to, message) {
-		try {
-			const changes = replace.sync({
-				'files': path.join(pathToBuild(browser), '*.html'),
-				'from': from,
-				'to': to
-			})
-			console.log(message, changes.join(', '))
-		} catch (err) {
-			error('Error occurred:', err)
-		}
-	}
-
 	if (browser === 'chrome' || browser === 'edge') {
-		doReplace(/<!-- ui -->[\s\S]*<!-- \/ui -->\s*/,
+		doReplace(
+			path.join(pathToBuild(browser), '*.html'),
+			/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
 			'',
 			'Removed UI options in:')
+		doReplace(
+			path.join(pathToBuild(browser), '*.css'),
+			/\/\* ui \*\/[\s\S]*?\/\* \/ui \*\/\s*/g,
+			'',
+			'Removed UI styles in:')
+	}
+
+	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
+	// differs slightly. It uses popup.css.
+	if (browser === 'firefox' || browser === 'opera') {
+		fs.copyFileSync(
+			path.join(srcStaticDir, 'popup.html'),
+			path.join(pathToBuild(browser), 'panel.html'))
+
+		ok(`also created panel.html for ${browser}.`)
+
+		doReplace(
+			path.join(pathToBuild(browser), 'panel.html'),
+			'popup.js',
+			'panel.js',
+			'Included sidebar code in:')
 	}
 }
 
@@ -228,7 +287,7 @@ function mergeMessages(browser) {
 		fs.writeFileSync(destinationFile, JSON.stringify(commonJson, null, 2))
 	}
 
-	console.log(chalk.green(`✔ messages.json written for ${browser}.`))
+	ok(`messages.json written for ${browser}.`)
 }
 
 
@@ -303,7 +362,7 @@ function mergeManifest(browser) {
 		JSON.stringify(merged, null, 2)
 	)
 
-	console.log(chalk.green(`✔ manifest.json written for ${browser}.`))
+	ok(`manifest.json written for ${browser}.`)
 }
 
 
@@ -319,18 +378,12 @@ function getPngs(converter, browser) {
 
 
 function renameTestVersion(browser) {
-	try {
-		const changes = replace.sync({
-			files: path.join(pathToBuild(browser), '**', 'messages.json'),
-			from: /"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
-			to: '"Landmarks (test version)"'
-			// Note: Chrome Web Store has a limit of 45 characters for name.
-		})
-		console.log('Suffixed name to indicate test version:',
-			changes.join(', '))
-	} catch (error) {
-		error('Error occurred:', error)
-	}
+	logStep('Changing test version name in messages.json...')
+	doReplace(
+		path.join(pathToBuild(browser), '**', 'messages.json'),
+		/"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
+		'"Landmarks (test version)"',
+		'Suffixed name to indicate test version in:')
 }
 
 
@@ -353,7 +406,7 @@ async function makeZip(browser) {
 	archive.pipe(output)
 	archive.directory(pathToBuild(browser), '')
 	await archive.finalize().then(() => {
-		console.log(chalk.green('✔ ' + archive.pointer() + ' total bytes for ' + outputFileName))
+		ok(archive.pointer() + ' total bytes for ' + outputFileName)
 	})
 }
 
@@ -379,16 +432,6 @@ async function lintFirefox() {
 }
 
 
-/* TODO reinstate or remove
-function copyESLintRC() {
-	logStep('Copying src ESLint config to build directory...')
-	const basename = '.eslintrc.json'
-	fse.copySync(
-		path.join('src', basename),
-		path.join('build', basename))
-} */
-
-
 async function main() {
 	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
 	const browsers = checkBuildMode()
@@ -410,9 +453,6 @@ async function main() {
 		await makeZip(browser)
 		await lint(browser)
 	}
-
-	// TODO reinstate or remove
-	// copyESLintRC()
 }
 
 

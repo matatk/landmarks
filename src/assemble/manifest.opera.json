@@ -13,7 +13,7 @@
 
   "sidebar_action": {
     "default_title": "Landmarks",
-    "default_panel": "popup.html",
+    "default_panel": "panel.html",
     "default_icon": {
       "19": "landmarks-19.png",
       "38": "landmarks-38.png"

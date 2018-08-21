@@ -1,6 +1,12 @@
 import './compatibility'
 import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
+import { defaultInterfaceSettings, dismissalStates } from './defaults'
+
+
+//
+// Creating a landmarks tree in response to info from content script
+//
 
 // Handle incoming landmarks message response
 //
@@ -15,6 +21,14 @@ function handleLandmarksResponse(response) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
+	// There is no connection from us to the current page; this means we must
+	// be running on a forbidden page.
+	if (response === undefined && browser.runtime.lastError) {
+		addText(display, 'errorNoConnection')
+		return
+	}
+
+	// TODO: Not sure what may cause this condition to occur, given the above.
 	if (browser.runtime.lastError) {
 		addText(display,
 			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
@@ -23,8 +37,8 @@ function handleLandmarksResponse(response) {
 		return
 	}
 
+	// Content script would normally send back an array of landmarks
 	if (Array.isArray(response)) {
-		// Content script would normally send back an array of landmarks
 		if (response.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 		} else {
@@ -33,45 +47,6 @@ function handleLandmarksResponse(response) {
 	} else {
 		addText(display, errorString() + 'content script sent: ' + response)
 	}
-}
-
-// Remove all nodes contained within a node
-function removeChildNodes(element) {
-	while (element.firstChild) {
-		element.removeChild(element.firstChild)
-	}
-}
-
-// Append text paragraph to the given element
-function addText(element, message) {
-	const newPara = document.createElement('p')
-	const newParaText = document.createTextNode(message)
-	newPara.appendChild(newParaText)
-	element.appendChild(newPara)
-}
-
-// Create a button that reloads the current page and add it to an element
-// (Needs to be done this way to avoid CSP violation)
-function addReloadButton(element) {
-	const button = document.createElement('button')
-	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(
-		browser.i18n.getMessage('tryReloading')))
-	button.addEventListener('click', reloadActivePage)
-	element.appendChild(button)
-}
-
-// Function to reload the page in the current tab
-function reloadActivePage() {
-	browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		browser.tabs.reload(tabs[0].tabId)
-	})
-	window.close()
-}
-
-// Return localised "Error: " string
-function errorString() {
-	return browser.i18n.getMessage('errorWord') + ': '
 }
 
 // Go through the landmarks identified for the page and create an HTML
@@ -128,6 +103,48 @@ function makeLandmarksTree(landmarks, container) {
 	container.appendChild(root)
 }
 
+
+//
+// DOM manipulation utilities
+//
+
+// Remove all nodes contained within a node
+function removeChildNodes(element) {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild)
+	}
+}
+
+// Append text paragraph to the given element
+function addText(element, message) {
+	const newPara = document.createElement('p')
+	const newParaText = document.createTextNode(message)
+	newPara.appendChild(newParaText)
+	element.appendChild(newPara)
+}
+
+function makeButton(nameMessage, onClick) {
+	const button = document.createElement('button')
+	button.className = 'browser-style'
+	button.appendChild(document.createTextNode(
+		browser.i18n.getMessage(nameMessage)))
+	button.onclick = onClick
+	return button
+}
+
+// Create a button that reloads the current page and add it to an element
+// (Needs to be done this way to avoid CSP violation)
+// TODO will this be needed?
+function addReloadButton(element) {
+	const button = makeButton('tryReloading', reloadActivePage)
+	element.appendChild(button)
+}
+
+
+//
+// General utilities
+//
+
 // When a landmark's corresponding button in the UI is clicked, focus it
 function focusLandmark(index) {
 	sendToActiveTab({
@@ -136,28 +153,114 @@ function focusLandmark(index) {
 	})
 }
 
+// Function to reload the page in the current tab
+function reloadActivePage() {
+	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+		browser.tabs.reload(tabs[0].tabId)
+	})
+	window.close()  // TODO not good for sidebar? + as above: when does this happen?
+}
+
+// Return localised "Error: " string
+function errorString() {
+	return browser.i18n.getMessage('errorWord') + ': '
+}
+
+
+//
+// Management
+//
+
 // Send a message to ask for the latest landmarks
-function bootstrap() {
-	document.getElementById('heading').innerText =
-		browser.i18n.getMessage('popupHeading')
+function requestLandmarks() {
 	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
 }
 
-// When the pop-up opens, grab and process the list of page landmarks
-// TODO: Using this approach means that, in the case of the sidebar, there will
-//       be an error encountered at first, as the sidebar loads before the
-//       content script runs, and this will quickly be overwritten when the
-//       update-sidebar or update-badge message is handled.
-document.addEventListener('DOMContentLoaded', function() {
-	bootstrap()
-})
+if (INTERFACE === 'sidebar') {
+	const noteId = 'note'
 
-// We may be running in a sidebar, in which case listen for requests to update
-browser.runtime.onMessage.addListener(function(message) {
-	switch (message.request) {
-		case 'update-sidebar':
-		case 'update-badge':
-			bootstrap()
-			break
+	function createNote() {  // eslint-disable-line no-inner-declarations
+		browser.storage.sync.get(dismissalStates, function(items) {
+			if (!items.dismissedSidebarNotAlone) {
+				const para = document.createElement('p')
+				para.appendChild(document.createTextNode(
+					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
+
+				const optionsButton = makeButton(
+					'hintSidebarIsNotPrimaryOptions',
+					function() {
+						browser.runtime.openOptionsPage()
+					})
+
+				const dismissButton = makeButton('hintDismiss',
+					function() {
+						browser.storage.sync.set({
+							dismissedSidebarNotAlone: true
+						}, function() {
+							removeNote()
+						})
+					})
+
+				// Contains buttons; allows for them to be flexbox'd
+				const buttons = document.createElement('div')
+				buttons.appendChild(optionsButton)
+				buttons.appendChild(dismissButton)
+
+				const note = document.createElement('div')
+				note.id = noteId
+				note.appendChild(para)
+				note.appendChild(buttons)
+
+				document.body.insertBefore(note, document.body.firstChild)
+			}
+		})
 	}
+
+	function removeNote() {  // eslint-disable-line no-inner-declarations
+		const message = document.getElementById(noteId)
+		if (message) message.remove()
+	}
+
+	// We may be running in a sidebar, in which case listen for requests to update
+	browser.runtime.onMessage.addListener(function(message) {
+		switch (message.request) {
+			case 'update-sidebar':
+			case 'update-badge':  // TODO could happen when pop-up open?
+				requestLandmarks()
+				break
+		}
+	})
+
+	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+		if (items.interface === 'popup') {
+			createNote()
+		}
+	})
+
+	// The sidebar may be open whilst the user interface setting is changed. This
+	// relies on the fact that the popup can't be open when the user is making
+	// these changes. We don't react to the value of this preference on load for
+	// the same reason -- that would require knowing if we are the sidebar or not.
+	browser.storage.onChanged.addListener(function(changes) {
+		if (changes.hasOwnProperty('interface')) {
+			switch (changes.interface.newValue) {
+				case 'sidebar': removeNote()
+					break
+				case 'popup': createNote()
+					break
+				default:
+					throw Error(`Unknown interface type "${changes.interface.newValue}`)  // FIXME DRY-ish (at least the error message?)
+			}
+		}
+	})
+}
+
+// When the pop-up (or sidebar) opens, translate the heading and grab and
+// process the list of page landmarks
+// FIXME https://github.com/matatk/landmarks/issues/192
+document.addEventListener('DOMContentLoaded', function() {
+	document.getElementById('heading').innerText =
+		browser.i18n.getMessage('popupHeading')
+
+	requestLandmarks()
 })

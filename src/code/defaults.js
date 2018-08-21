@@ -1,3 +1,7 @@
+//
+// User preferences
+//
+
 export const defaultBorderSettings = Object.freeze({
 	borderType: 'momentary',
 	borderColour: '#ff2f92',
@@ -11,7 +15,6 @@ export const defaultDebugSettings = Object.freeze({
 export const defaultInterfaceSettings = Object.freeze({
 	interface: 'popup'
 })
-
 
 let _defaultSettings
 
@@ -34,3 +37,18 @@ switch (BROWSER) {
 }
 
 export const defaultSettings = _defaultSettings
+
+
+//
+// Dismissal state of user interface messages
+//
+
+let _dismissalStates
+
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
+	_dismissalStates = Object.freeze({
+		dismissedSidebarNotAlone: false
+	})
+}
+
+export const dismissalStates = _dismissalStates

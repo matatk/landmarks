@@ -21,9 +21,11 @@
     "precommit": "npm run build:all",
     "profile": "node scripts/profile.js",
     "start:firefox": "web-ext run --firefox=firefoxdeveloperedition --browser-console --source-dir build/firefox/",
-    "pretest": "eslint . && rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js && rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
+    "pretest": "eslint .",
     "test": "npm run test:landmarks && npm run test:contrast",
+    "pretest:contrast": "rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
     "test:contrast": "node test/test-contrast.js",
+    "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
     "test:landmarks": "node test/test-landmarks.js"
   },
   "devDependencies": {

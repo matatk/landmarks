@@ -30,3 +30,27 @@ h1 {
 	padding: 0.25em;
 	margin: 0;
 }
+
+/* ui */
+#note {
+	background-color: #fee;
+	border: 1px solid red;
+}
+
+#note p {
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+}
+
+#note div {
+	display: flex;
+	flex-direction: column;
+}
+
+#note button {
+	flex-grow: 1;
+	border-color: red;
+	background-color: #fee;
+	text-align: center;
+}
+/* /ui */

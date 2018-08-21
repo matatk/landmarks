@@ -1,19 +1,24 @@
+div.label-first, div.input-first {
+	padding-bottom: 1.25em;
+}
+
 div.label-first {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	padding-bottom: 0.5em;
 }
 
-div.input-first {
-	padding-bottom: 0.5em;
-}
-
-div.label-first label {
+div.label-first :first-child {
 	grid-column: 1 / 2;
 }
 
-div.label-first input, div.label-first select {
+div.label-first :not(:first-child) {
 	grid-column: 2 / 3;
+}
+
+div.label-first p {
+	margin: 0;
+	padding: 0.25em;
+	padding-left: calc(8px + 3px);  /* Firefox */
 }
 
 input[type=number] {
