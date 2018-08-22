@@ -34,39 +34,39 @@ const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
 	'firefox': [
-		18,	// Firefox (toolbar)
-		32,	// Firefox (menu panel) + Chrome (Windows)
-		36,	// Firefox (toolbar x2)
-		48,	// Both		(general)
-		64,	// Firefox (menu panel x2)
-		96	 // Firefox (general x2)
+		18,  // Firefox (toolbar)
+		32,  // Firefox (menu panel) + Chrome (Windows)
+		36,  // Firefox (toolbar x2)
+		48,  // Both (general)
+		64,  // Firefox (menu panel x2)
+		96   // Firefox (general x2)
 	],
 	'chrome': [
-		16,	// Chrome	(favicon)
-		19,	// Chrome	(toolbar)
-		32,	// Chrome	(Windows) + Firefox (menu panel)
-		38,	// Chrome	(tooblar x2)
-		48,	// Both		(general)
-		128	// Chrome	(store)
+		16,  // Chrome (favicon)
+		19,  // Chrome (toolbar)
+		32,  // Chrome (Windows) + Firefox (menu panel)
+		38,  // Chrome (tooblar x2)
+		48,  // Both   (general)
+		128  // Chrome (store)
 	],
 	'opera': [
 		// https://dev.opera.com/extensions/manifest/#icons
 		// https://dev.opera.com/extensions/browser-actions/
-		16,	 // Icon
-		19,	 // Browser action
-		38,	 // Browser action
-		48,	 // Icon
-		128,	// Icon
+		16,  // Icon
+		19,  // Browser action
+		38,  // Browser action
+		48,  // Icon
+		128  // Icon
 	],
 	'edge': [
 		// https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/design
-		20,	// Normal browser action
-		40,	// 2x browser action
-		24,	// Management UI
-		48,	// 2x Management UI
-		44,	// Windows UI (App List, Settings -> System -> Apps & features
-		50,	// Packaging requirement (not visible anywhere)
-		150	// Icon for Windows Store
+		20,  // Normal browser action
+		40,  // 2x browser action
+		24,  // Management UI
+		48,  // 2x Management UI
+		44,  // Windows UI (App List, Settings -> System -> Apps & features
+		50,  // Packaging requirement (not visible anywhere)
+		150  // Icon for Windows Store
 	]
 })
 
