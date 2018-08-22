@@ -180,7 +180,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 
 //
-// Browser action badge updating; Command enumeration
+// Messages from content scripts
 //
 
 // When the content script has loaded and any landmarks found, it will let us
@@ -206,10 +206,15 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			// FIXME TODO Opera: opera://settings/configureCommands
 			// https://github.com/openstyles/stylus/issues/52#issuecomment-302409069
 			break
-		default:
+		default: {
+			const senderId = sender.tab
+				? 'tab ' + sender.tab.id
+				: JSON.stringify(sender)
+
 			throw Error(
 				'Landmarks: background script received unexpected request '
-				+ message.request + ' from tab ' + sender.tab.id)
+				+ message.request + ' from ' + senderId)
+		}
 	}
 })
 
@@ -228,6 +233,20 @@ function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
 		tabId: tabId
 	})
 }
+
+
+//
+// Messages from DevTools
+//
+
+// Handle the devtools page asking for landmarks from the content script.
+browser.runtime.onConnect.addListener(function(port) {
+	port.onMessage.addListener(function() {
+		sendToActiveTab({ request: 'get-landmarks' }, function(response) {
+			port.postMessage(response)
+		})
+	})
+})
 
 
 //

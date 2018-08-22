@@ -171,9 +171,15 @@ function errorString() {
 // Management
 //
 
+let port  // TODO fix scoping if possible
+
 // Send a message to ask for the latest landmarks
 function requestLandmarks() {
-	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
+	if (INTERFACE !== 'devtools') {
+		sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
+	} else {
+		port.postMessage({ request: 'devtools-passthrough' })
+	}
 }
 
 if (INTERFACE === 'sidebar') {
@@ -261,6 +267,14 @@ if (INTERFACE === 'sidebar') {
 document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
+
+	if (INTERFACE === 'devtools') {
+		port = browser.runtime.connect({ name: 'devtools-landmarks-panel' })
+
+		port.onMessage.addListener(function(message) {
+			handleLandmarksResponse(message)
+		})
+	}
 
 	requestLandmarks()
 })
