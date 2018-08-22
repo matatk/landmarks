@@ -84,7 +84,7 @@ function doReplace(files, from, to, message) {
 			'from': from,
 			'to': to
 		})
-		ok(message, changes.join(', '))
+		ok(message + ' in:', changes.join(', '))
 	} catch (err) {
 		error('Error occurred:', err)
 	}
@@ -106,7 +106,7 @@ function error() {
 
 // Log the start of a new step (styled)
 function logStep(name) {
-	console.log(chalk.underline(name))
+	console.log(chalk.underline(name + '...'))
 }
 
 
@@ -142,7 +142,7 @@ function pathToBuild(browser) {
 
 
 async function flattenCode(browser) {
-	logStep('Flattening JavaScript code...')
+	logStep('Flattening JavaScript code')
 
 	const ioPairsAndGlobals = [{
 		input: path.join(srcCodeDir, '_background.js'),
@@ -154,21 +154,29 @@ async function flattenCode(browser) {
 		input: path.join(srcCodeDir, '_options.js'),
 		output: path.join(pathToBuild(browser), 'options.js')
 	}, {
-		input: path.join(srcCodeDir, '_popup.js'),
+		input: path.join(srcCodeDir, '_gui.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
 		globals: {
 			INTERFACE: 'popup'
 		}
 	}]
 
-	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
-	// differs slightly. It uses popup.css.
 	if (browser === 'firefox' || browser === 'opera') {
 		ioPairsAndGlobals.push({
-			input: path.join(srcCodeDir, '_popup.js'),
-			output: path.join(pathToBuild(browser), 'panel.js'),
+			input: path.join(srcCodeDir, '_gui.js'),
+			output: path.join(pathToBuild(browser), 'sidebarPanel.js'),
 			globals: {
 				INTERFACE: 'sidebar'
+			}
+		})
+	}
+
+	if (browser === 'firefox') {
+		ioPairsAndGlobals.push({
+			input: path.join(srcCodeDir, '_gui.js'),
+			output: path.join(pathToBuild(browser), 'devtoolsPanel.js'),
+			globals: {
+				INTERFACE: 'devtools'
 			}
 		})
 	}
@@ -232,7 +240,7 @@ async function flattenCode(browser) {
 
 
 function copyStaticFiles(browser) {
-	logStep('Copying static files...')
+	logStep('Copying static files')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 
 	if (browser === 'chrome' || browser === 'edge') {
@@ -240,34 +248,45 @@ function copyStaticFiles(browser) {
 			path.join(pathToBuild(browser), '*.html'),
 			/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
 			'',
-			'Removed UI options in:')
+			'Removed UI options')
 		doReplace(
 			path.join(pathToBuild(browser), '*.css'),
 			/\/\* ui \*\/[\s\S]*?\/\* \/ui \*\/\s*/g,
 			'',
-			'Removed UI styles in:')
+			'Removed UI styles')
 	}
+}
 
-	// The sidebar panel is 'forked' from the popup HTML file. The JavaScript
-	// differs slightly. It uses popup.css.
-	if (browser === 'firefox' || browser === 'opera') {
+
+function copyGuiFiles(browser) {
+	logStep('Copying root GUI HTML to create the popup and other bits')
+
+	function copyOneGuiFile(destination) {
 		fs.copyFileSync(
-			path.join(srcStaticDir, 'popup.html'),
-			path.join(pathToBuild(browser), 'panel.html'))
-
-		ok(`also created panel.html for ${browser}.`)
+			path.join(srcAssembleDir, 'gui.html'),
+			path.join(pathToBuild(browser), `${destination}.html`))
 
 		doReplace(
-			path.join(pathToBuild(browser), 'panel.html'),
-			'popup.js',
-			'panel.js',
-			'Included sidebar code in:')
+			path.join(pathToBuild(browser), `${destination}.html`),
+			'GUIJS',
+			`${destination}.js`,
+			`Included ${destination} code`)
+	}
+
+	copyOneGuiFile('popup')
+
+	if (browser === 'firefox' || browser === 'opera') {
+		copyOneGuiFile('sidebarPanel')
+	}
+
+	if (browser === 'firefox') {
+		copyOneGuiFile('devtoolsPanel')
 	}
 }
 
 
 function mergeMessages(browser) {
-	logStep('Merging messages JSON files...')
+	logStep('Merging messages JSON files')
 	const common = path.join(srcAssembleDir, 'commonMessages.json')
 	const destinationDir = path.join(pathToBuild(browser), localeSubPath)
 	const destinationFile = path.join(pathToBuild(browser), messagesSubPath)
@@ -292,7 +311,7 @@ function mergeMessages(browser) {
 
 
 function checkMessages(browser) {
-	logStep(`Checking for unused messages (except role names) on ${browser}...`)
+	logStep(`Checking for unused messages (except role names) on ${browser}`)
 
 	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
 	const messages = JSON.parse(fs.readFileSync(translationsFile))
@@ -325,7 +344,7 @@ function checkMessages(browser) {
 
 
 function mergeManifest(browser) {
-	logStep('Merging manifest.json...')
+	logStep('Merging manifest.json')
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
 	const commonJson = require(common)
@@ -368,7 +387,7 @@ function mergeManifest(browser) {
 
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(converter, browser) {
-	logStep('Generating/copying in PNG files...')
+	logStep('Generating/copying in PNG files')
 	browserPngSizes[browser].forEach((size) => {
 		const pngPath = converter.getPngPath(size)
 		const basename = path.basename(pngPath)
@@ -378,12 +397,12 @@ function getPngs(converter, browser) {
 
 
 function renameTestVersion(browser) {
-	logStep('Changing test version name in messages.json...')
+	logStep('Changing test version name in messages.json')
 	doReplace(
 		path.join(pathToBuild(browser), '**', 'messages.json'),
 		/"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
 		'"Landmarks (test version)"',
-		'Suffixed name to indicate test version in:')
+		'Suffixed name to indicate test version')
 }
 
 
@@ -394,7 +413,7 @@ function zipFileName(browser) {
 
 
 async function makeZip(browser) {
-	logStep('Createing ZIP file...')
+	logStep('Createing ZIP file')
 	const outputFileName = zipFileName(browser)
 	const output = fs.createWriteStream(outputFileName)
 	const archive = archiver('zip')
@@ -440,9 +459,10 @@ async function main() {
 
 	for (const browser of browsers) {
 		console.log()
-		logStep(chalk.bold(`Building for ${browser}${testModeMessage}...`))
+		logStep(chalk.bold(`Building for ${browser}${testModeMessage}`))
 		await flattenCode(browser)
 		copyStaticFiles(browser)
+		copyGuiFiles(browser)
 		mergeMessages(browser)
 		checkMessages(browser)
 		mergeManifest(browser)

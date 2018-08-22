@@ -24,7 +24,7 @@ function handleLandmarksResponse(response) {
 	// There is no connection from us to the current page; this means we must
 	// be running on a forbidden page.
 	if (response === undefined && browser.runtime.lastError) {
-		addText(display, 'errorNoConnection')
+		addText(display, browser.i18n.getMessage('errorNoConnection'))
 		return
 	}
 
