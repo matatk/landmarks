@@ -40,5 +40,7 @@
         "default": "Alt+Shift+S"
       }
     }
-  }
+  },
+
+  "devtools_page": "devtools.html"
 }
