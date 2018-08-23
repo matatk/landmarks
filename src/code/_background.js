@@ -184,7 +184,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 //
 
 // When the content script has loaded and any landmarks found, it will let us
-// konw, so we can set the browser action badge.
+// know, so we can set the browser action badge.
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.request) {
 		case 'update-badge':
