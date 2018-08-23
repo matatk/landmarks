@@ -134,7 +134,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 
 function checkBrowserActionState(tabId, url) {
 	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
-		for (const specialPage of specialPages) {
+		for (const specialPage of specialPages) {  // TODO DRY
 			if (specialPage.test(url)) {
 				browser.browserAction.disable(tabId)
 				return

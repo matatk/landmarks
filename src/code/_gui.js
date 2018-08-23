@@ -86,11 +86,16 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		const button = document.createElement('button')
+		// FIXME factor out makeButton() and makeLocalisedButton() or similar FIXME need better names as both are localised
+		const button = document.createElement('button')  // TODO DRY use makeButton?
 		button.className = 'browser-style'
 		button.appendChild(document.createTextNode(landmarkName(landmark)))
 		button.addEventListener('click', function() {
-			focusLandmark(index)
+			if (INTERFACE !== 'devtools') {
+				focusLandmark(index)
+			} else {
+				console.log('landmark', index, 'clicked')
+			}
 		})
 		item.appendChild(button)
 		base.appendChild(item)  // add to current base
@@ -230,6 +235,7 @@ if (INTERFACE === 'sidebar') {
 	// We may be running in a sidebar, in which case listen for requests to update
 	browser.runtime.onMessage.addListener(function(message) {
 		switch (message.request) {
+			// FIXME both of these should update the devtools; can it listen via this method, or must it use the port?
 			case 'update-sidebar':
 			case 'update-badge':  // TODO could happen when pop-up open?
 				requestLandmarks()
