@@ -1,8 +1,204 @@
 import './compatibility'
-import sendToActiveTab from './sendToActiveTab'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
 import { defaultInterfaceSettings } from './defaults'
+import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
+
+const contentConnections = {}
+const devtoolsConnections = {}
+let sidebarConnection = null
+let popupConnection = null
+let activeTabId = null
+
+
+//
+// Message routing
+//
+
+function sendLandmarksToGUIs(fromTabId, message) {
+	if (popupConnection) popupConnection.postMessage(message)
+	if (sidebarConnection && fromTabId === activeTabId) {
+		sidebarConnection.postMessage(message)
+	}
+	if (devtoolsConnections.hasOwnProperty(fromTabId)) {
+		devtoolsConnections[fromTabId].postMessage(message)
+	}
+}
+
+function getLandmarksForActiveTab() {
+	if (contentConnections.hasOwnProperty(activeTabId)) {
+		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
+	} else {
+		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: `not connected to ${activeTabId}` })
+	}
+}
+
+function sendToActiveContentScriptIfExists(message) {
+	if (contentConnections.hasOwnProperty(activeTabId)) {
+		contentConnections[activeTabId].postMessage(message)
+	} else {
+		console.log(`No content script connected in tab ${activeTabId}`)
+	}
+}
+
+function updateBrowserActionBadge(tabId, numberOfLandmarks) {
+	let badgeText
+
+	if (numberOfLandmarks <= 0) {
+		badgeText = ''
+	} else {
+		badgeText = String(numberOfLandmarks)
+	}
+
+	browser.browserAction.setBadgeText({
+		text: badgeText,
+		tabId: tabId
+	})
+}
+
+
+//
+// Setting up and handling connections
+//
+
+browser.runtime.onConnect.addListener(function(connectingPort) {
+	// Disconnection management
+
+	function contentDisconnect(disconnectingPort) {
+		console.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
+		disconnectingPortErrorCheck(disconnectingPort)
+		delete contentConnections[disconnectingPort.sender.tab.id]
+		console.log(`${Object.keys(contentConnections).length} content connections`)
+	}
+
+	function devtoolsDisconnect(tabId) {
+		console.log(`DevTools script for tab ${tabId} disconnected`)
+		delete devtoolsConnections[tabId]
+		console.log(`${Object.keys(devtoolsConnections).length} devtools connections`)
+	}
+
+
+	// Message listeners
+
+	function contentListener(message, sendingPort) {
+		const tabId = sendingPort.sender.tab.id
+
+		console.log(`Content in ${tabId} ${sendingPort.sender.tab.url} sent ${message.name}`)
+
+		switch (message.name) {
+			case 'landmarks':
+				sendLandmarksToGUIs(tabId, message)
+				updateBrowserActionBadge(tabId, message.data.length)
+				break
+			default:
+				throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
+		}
+	}
+
+	function popupAndSidebarListener(message) {  // also gets: sendingPort
+		switch (message.name) {
+			case 'get-landmarks':
+				getLandmarksForActiveTab()
+				break
+			case 'focus-landmark':
+				sendToActiveContentScriptIfExists(message)
+				break
+			default:
+				throw Error(`Unknown message ${JSON.stringify(message)} from sidebar or popup`)
+		}
+	}
+
+	function devtoolsListner(message) {
+		switch (message.name) {
+			case 'init':
+				devtoolsConnections[message.tabId] = connectingPort
+				console.log(`${Object.keys(devtoolsConnections).length} devtools connections`)
+				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
+					disconnectingPortErrorCheck(disconnectingPort)
+					devtoolsDisconnect(message.tabId)
+				})
+				break
+			case 'get-landmarks':
+				getLandmarksForActiveTab()
+				break
+			case 'focus-landmark':
+				sendToActiveContentScriptIfExists(message)
+				break
+			default:
+				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
+		}
+	}
+
+	function splashListener(message, sendingPort) {
+		switch (message.name) {
+			case 'get-commands':
+				browser.commands.getAll(function(commands) {
+					sendingPort.postMessage({
+						name: 'splash-populate-commands',
+						commands: commands
+					})
+				})
+				break
+			case 'splash-open-configure-shortcuts':
+				// This should only appear on Chrome/Opera
+				browser.tabs.create({
+					url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands' : 'opera://settings/configureCommands'
+				})
+				break
+			default:
+				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
+		}
+	}
+
+
+	// Connection management
+
+	switch (connectingPort.name) {
+		case 'content':
+			contentConnections[connectingPort.sender.tab.id] = connectingPort
+			console.log(`${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} content script connected`)
+			console.log(`${Object.keys(contentConnections).length} content connections`)
+			connectingPort.onMessage.addListener(contentListener)
+			connectingPort.onDisconnect.addListener(contentDisconnect)
+			break
+		case 'devtools':
+			connectingPort.onMessage.addListener(devtoolsListner)
+			break
+		case 'popup':
+			if (popupConnection !== null) {
+				throw Error('Existing pop-up connection')
+			}
+			popupConnection = connectingPort
+			console.log('Pop-up connected')
+			connectingPort.onMessage.addListener(popupAndSidebarListener)
+			connectingPort.onDisconnect.addListener(function() {
+				console.log('Pop-up disconnected')
+				popupConnection = null
+			})
+			break
+		case 'sidebar':
+			if (sidebarConnection !== null) {
+				throw Error('Existing sidebar connection')
+			}
+			sidebarConnection = connectingPort
+			console.log('Sidebar connected')
+			connectingPort.onMessage.addListener(popupAndSidebarListener)
+			connectingPort.onDisconnect.addListener(function() {
+				console.log('Sidebar disconnected')
+				sidebarConnection = null
+			})
+			break
+		case 'splash':
+			console.log('Splash connected')
+			connectingPort.onMessage.addListener(splashListener)
+			connectingPort.onDisconnect.addListener(function() {
+				console.log('Splash disconnected')
+			})
+			break
+		default:
+			throw Error(`Unkown connection type ${connectingPort.name}`)
+	}
+})
 
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
@@ -74,18 +270,6 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 			switchInterface(changes.interface.newValue)
 		}
 	})
-
-	// When the user moves between tabs, the sidebar needs updating. This
-	// message will be sent even when the primary interface is set to the
-	// pop-up, because we've no way to know if the sidebar is open or not; if
-	// it's open it should update. If it is open, but the primary interface is
-	// the pop-up, a note will be inserted (by the popup code) to alert the
-	// user to the potential misconfiguration.
-	browser.tabs.onActivated.addListener(function() {
-		browser.runtime.sendMessage({
-			request: 'update-sidebar'
-		})
-	})
 }
 
 
@@ -99,25 +283,24 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'show-all-landmarks':
-			sendToActiveTab({ request: command })
+			sendToActiveContentScriptIfExists({ name: command })
 			break
+		default:
+			throw Error(`Unknown command ${JSON.stringify(command)}`)
 	}
 })
 
 
 //
-// Navigation events
+// Navigation and tab activation events
 //
 
 // Listen for URL change events on all tabs and disable the browser action if
 // the URL does not start with 'http://' or 'https://' (or 'file://', for
 // local pages).
 //
-// Notes:
-//  * This used to be wrapped in a query for the active tab, but on browser
-//    startup, URL changes are going on in all tabs.
-//  * The content script will send an 'update-badge' message back to us when
-//    the landmarks have been found.
+// Note: This used to be wrapped in a query for the active tab, but on browser
+//       startup, URL changes are going on in all tabs.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
@@ -164,88 +347,26 @@ function checkBrowserActionState(tabId, url) {
 //       'same URL' filtering.
 //
 // TODO: In some circumstances (most GitHub transitions, this fires two times on
-//       Firefox and three times on Chrome.  For YouTube, some transitions only
+//       Firefox and three times on Chrome. For YouTube, some transitions only
 //       cause this to fire once. Need to investigate this more...
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
-	browser.tabs.get(details.tabId, function() {
-		browser.tabs.sendMessage(
-			details.tabId,
-			{ request: 'trigger-refresh' }
-		)
-		// Note: The content script on the page will respond by sending
-		//       an 'update-badge' request back (if landmarks are found).
-	})
+	if (contentConnections.hasOwnProperty(activeTabId)) {  // could be special page
+		contentConnections[activeTabId].postMessage({ name: 'trigger-refresh' })
+	}
 })
 
-
-//
-// Messages from content scripts
-//
-
-// When the content script has loaded and any landmarks found, it will let us
-// know, so we can set the browser action badge.
-browser.runtime.onMessage.addListener(function(message, sender) {
-	switch (message.request) {
-		case 'update-badge':
-			landmarksBadgeUpdate(sender.tab.id, message.landmarks)
-			break
-		case 'get-commands':
-			browser.commands.getAll(function(commands) {
-				sendToActiveTab({
-					request: 'splash-populate-commands',
-					commands: commands
-				})
-			})
-			break
-		case 'splash-open-configure-shortcuts':
-			// FIXME TODO disable for !Chrome
-			browser.tabs.create({
-				url: 'chrome://extensions/configureCommands'
-			})
-			// FIXME TODO Opera: opera://settings/configureCommands
-			// https://github.com/openstyles/stylus/issues/52#issuecomment-302409069
-			break
-		default: {
-			const senderId = sender.tab
-				? 'tab ' + sender.tab.id
-				: JSON.stringify(sender)
-
-			throw Error(
-				'Landmarks: background script received unexpected request '
-				+ message.request + ' from ' + senderId)
+browser.tabs.onActivated.addListener(function(activeInfo) {
+	activeTabId = activeInfo.tabId
+	console.log(`Active tab is ${activeTabId}`)
+	if (popupConnection) {
+		getLandmarksForActiveTab()
+	}
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (sidebarConnection) {
+			getLandmarksForActiveTab()
 		}
 	}
-})
-
-// Given a tab ID and number, set the browser action badge
-function landmarksBadgeUpdate(tabId, numberOfLandmarks) {
-	let badgeText
-
-	if (numberOfLandmarks <= 0) {
-		badgeText = ''
-	} else {
-		badgeText = String(numberOfLandmarks)
-	}
-
-	browser.browserAction.setBadgeText({
-		text: badgeText,
-		tabId: tabId
-	})
-}
-
-
-//
-// Messages from DevTools
-//
-
-// Handle the devtools page asking for landmarks from the content script.
-browser.runtime.onConnect.addListener(function(port) {
-	port.onMessage.addListener(function() {
-		sendToActiveTab({ request: 'get-landmarks' }, function(response) {
-			port.postMessage(response)
-		})
-	})
 })
 
 
@@ -255,11 +376,6 @@ browser.runtime.onConnect.addListener(function(port) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
-		// Don't inject the content script on Firefox
-		if (BROWSER !== 'firefox') {
-			contentScriptInjector()
-		}
-
 		// Show website and get it to display an appropriate notice
 		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
 		browser.tabs.create({
@@ -270,7 +386,7 @@ browser.runtime.onInstalled.addListener(function(details) {
 
 
 //
-// Guard against browser action being errantly enabled
+// Actions when the extension starts up
 //
 
 // When the extension is loaded, if it's loaded into a page that is not an
@@ -281,3 +397,8 @@ browser.tabs.query({}, function(tabs) {
 		checkBrowserActionState(tabs[i].id, tabs[i].url)
 	}
 })
+
+// Don't inject the content script on Firefox
+if (BROWSER !== 'firefox') {
+	contentScriptInjector()
+}

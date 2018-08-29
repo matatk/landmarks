@@ -1,13 +1,18 @@
 import './compatibility'
-import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
+import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
+// FIXME remove message 'errorNoConnection'
+// FIXME remove message 'errorGettingLandmarksFromContentScript'
+// FIXME remove message about reloading the page
 
+let port
 
 //
 // Creating a landmarks tree in response to info from content script
 //
 
+// FIXME update comments
 // Handle incoming landmarks message response
 //
 // If there are landmarks, then the response will be a list of objects that
@@ -17,35 +22,19 @@ import { defaultInterfaceSettings, dismissalStates } from './defaults'
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksResponse(response) {
+function handleLandmarksMessage(data) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
-	// There is no connection from us to the current page; this means we must
-	// be running on a forbidden page.
-	if (response === undefined && browser.runtime.lastError) {
-		addText(display, browser.i18n.getMessage('errorNoConnection'))
-		return
-	}
-
-	// TODO: Not sure what may cause this condition to occur, given the above.
-	if (browser.runtime.lastError) {
-		addText(display,
-			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
-		)
-		addReloadButton(display)
-		return
-	}
-
 	// Content script would normally send back an array of landmarks
-	if (Array.isArray(response)) {
-		if (response.length === 0) {
+	if (Array.isArray(data)) {
+		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 		} else {
-			makeLandmarksTree(response, display)
+			makeLandmarksTree(data, display)
 		}
 	} else {
-		addText(display, errorString() + 'content script sent: ' + response)
+		addText(display, errorString() + 'content script sent: ' + data)
 	}
 }
 
@@ -86,16 +75,14 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		// FIXME factor out makeButton() and makeLocalisedButton() or similar FIXME need better names as both are localised
-		const button = document.createElement('button')  // TODO DRY use makeButton?
+		// FIXME factor out makeButton() and makeLocalisedButton() or similar
+		// FIXME need better names as both are localised
+		// TODO DRY use makeButton?
+		const button = document.createElement('button')
 		button.className = 'browser-style'
 		button.appendChild(document.createTextNode(landmarkName(landmark)))
 		button.addEventListener('click', function() {
-			if (INTERFACE !== 'devtools') {
-				focusLandmark(index)
-			} else {
-				console.log('landmark', index, 'clicked')
-			}
+			focusLandmark(index)
 		})
 		item.appendChild(button)
 		base.appendChild(item)  // add to current base
@@ -137,14 +124,6 @@ function makeButton(nameMessage, onClick) {
 	return button
 }
 
-// Create a button that reloads the current page and add it to an element
-// (Needs to be done this way to avoid CSP violation)
-// TODO will this be needed?
-function addReloadButton(element) {
-	const button = makeButton('tryReloading', reloadActivePage)
-	element.appendChild(button)
-}
-
 
 //
 // General utilities
@@ -152,18 +131,10 @@ function addReloadButton(element) {
 
 // When a landmark's corresponding button in the UI is clicked, focus it
 function focusLandmark(index) {
-	sendToActiveTab({
-		request: 'focus-landmark',
+	port.postMessage({
+		name: 'focus-landmark',
 		index: index
 	})
-}
-
-// Function to reload the page in the current tab
-function reloadActivePage() {
-	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		browser.tabs.reload(tabs[0].tabId)
-	})
-	window.close()  // TODO not good for sidebar? + as above: when does this happen?
 }
 
 // Return localised "Error: " string
@@ -176,15 +147,9 @@ function errorString() {
 // Management
 //
 
-let port  // TODO fix scoping if possible
-
 // Send a message to ask for the latest landmarks
 function requestLandmarks() {
-	if (INTERFACE !== 'devtools') {
-		sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
-	} else {
-		port.postMessage({ request: 'devtools-passthrough' })
-	}
+	port.postMessage({ name: 'get-landmarks' })
 }
 
 if (INTERFACE === 'sidebar') {
@@ -232,17 +197,6 @@ if (INTERFACE === 'sidebar') {
 		if (message) message.remove()
 	}
 
-	// We may be running in a sidebar, in which case listen for requests to update
-	browser.runtime.onMessage.addListener(function(message) {
-		switch (message.request) {
-			// FIXME both of these should update the devtools; can it listen via this method, or must it use the port?
-			case 'update-sidebar':
-			case 'update-badge':  // TODO could happen when pop-up open?
-				requestLandmarks()
-				break
-		}
-	})
-
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 		if (items.interface === 'popup') {
 			createNote()
@@ -274,13 +228,29 @@ document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
 
-	if (INTERFACE === 'devtools') {
-		port = browser.runtime.connect({ name: 'devtools-landmarks-panel' })
-
-		port.onMessage.addListener(function(message) {
-			handleLandmarksResponse(message)
-		})
-	}
-
 	requestLandmarks()
+})
+
+
+//
+// FIXME neaten up
+//
+
+if (INTERFACE === 'devtools') {
+	port = browser.runtime.connect({ name: INTERFACE })
+	port.postMessage({ name: 'init', tabId: browser.devtools.inspectedWindow.tabId })
+} else {
+	port = browser.runtime.connect({ name: INTERFACE })
+}
+
+port.onDisconnect.addListener(disconnectingPortErrorCheck)
+
+port.onMessage.addListener(function(message) {
+	switch (message.name) {
+		case 'landmarks':
+			handleLandmarksMessage(message.data)
+			break
+		default:
+			throw Error(`Unkown message ${JSON.stringify(message)}`)
+	}
 })

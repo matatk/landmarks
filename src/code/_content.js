@@ -3,27 +3,33 @@ import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import Logger from './logger'
+import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
-const outOfDateTime = 2000
 const logger = new Logger()
-let observer = null
-
 const lf = new LandmarksFinder(window, document)
 const ef = new ElementFocuser()
 const ph = new PauseHandler(logger)
+
+const outOfDateTime = 2000
+let observer = null
+let port = null
 
 
 //
 // Extension message management
 //
 
+// FIXME remove sendingPort; use port?
 // Act on requests from the background or pop-up scripts
-function messageHandler(message, sender, sendResponse) {
-	switch (message.request) {
+function messageHandler(message, sendingPort) {
+	console.log(`content script rx'd ${message.name}`)
+	switch (message.name) {
 		case 'get-landmarks':
+			// FIXME should this do lf.find() first? what did it used to do? compare this behaviour to findLandmarksAndUpdateBackgroundScript()
+			// FIXME should this even be supported anymore?
 			// The pop-up is requesting the list of landmarks on the page
 			handleOutdatedResults()
-			sendResponse(lf.filter())
+			sendingPort.postMessage({ name: 'landmarks', data: lf.filter() })
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in the pop-up, or indirectly
@@ -59,23 +65,19 @@ function messageHandler(message, sender, sendResponse) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			logger.log('Landmarks: trigger-refresh')
+			logger.log('Landmarks: refresh triggered')
 			ef.removeBorderOnCurrentlySelectedElement()
-			findLandmarksAndUpdateBadge()
+			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
-			if (!message.request || !message.request.startsWith('splash-')) {
-				throw Error(
-					'Landmarks: content script received unexpected request: '
-					+ message.request)
-			}
+			throw Error(`Unexpected message: ${JSON.stringify(message)}; sender: ${JSON.stringify(sendingPort)}`)
 	}
 }
 
 function handleOutdatedResults() {
 	if (ph.getPauseTime() > outOfDateTime) {
 		logger.log(`Landmarks may be out of date (pause: ${ph.getPauseTime()}); scanning now...`)
-		findLandmarksAndUpdateBadge()
+		findLandmarksAndUpdateBackgroundScript()
 	}
 }
 
@@ -93,70 +95,15 @@ function checkFocusElement(callbackReturningElementInfo) {
 // Actually finding landmarks
 //
 
-function findLandmarksAndUpdateBadge() {
+function findLandmarksAndUpdateBackgroundScript() {
 	lf.find()
-	sendUpdateBadgeMessage()
-}
-
-function sendUpdateBadgeMessage() {
-	try {
-		browser.runtime.sendMessage({
-			request: 'update-badge',
-			landmarks: lf.getNumberOfLandmarks()
-		})
-	} catch (error) {
-		// The most likely error is that, on !Firefox this content script has
-		// been retired because the extension was unloaded/reloaded. In which
-		// case, we don't want to keep handling mutations.
-		if (observer) {
-			logger.log('Disconnecting observer from retired content script')
-			observer.disconnect()
-			observer = null
-		} else {
-			throw error
-		}
-	}
+	port.postMessage({ name: 'landmarks', data: lf.filter() })
 }
 
 
 //
 // Bootstrapping and mutation observer setup
 //
-
-function bootstrap() {
-	logger.init(() => {
-		logger.log('Bootstrapping Landmarks')
-		logger.log(`Document state: ${document.readyState}`)
-		findLandmarksAndUpdateBadge()
-		setUpMutationObserver()
-		browser.runtime.onMessage.addListener(messageHandler)
-	})
-}
-
-function setUpMutationObserver() {
-	observer = new MutationObserver((mutations) => {
-		// Guard against being innundated by mutation events
-		// (which happens in e.g. Google Docs)
-		ph.run(
-			ef.didJustMakeChanges,
-			function() {
-				if (shouldRefreshLandmarkss(mutations)) {
-					logger.log('SCAN mutation')
-					findLandmarksAndUpdateBadge()
-				}
-			},
-			findLandmarksAndUpdateBadge)
-	})
-
-	observer.observe(document, {
-		attributes: true,
-		childList: true,
-		subtree: true,
-		attributeFilter: [
-			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
-		]
-	})
-}
 
 function shouldRefreshLandmarkss(mutations) {
 	for (const mutation of mutations) {
@@ -192,9 +139,70 @@ function shouldRefreshLandmarkss(mutations) {
 	return false
 }
 
+function setUpMutationObserver() {
+	observer = new MutationObserver((mutations) => {
+		// Guard against being innundated by mutation events
+		// (which happens in e.g. Google Docs)
+		ph.run(
+			ef.didJustMakeChanges,
+			function() {
+				if (shouldRefreshLandmarkss(mutations)) {
+					logger.log('SCAN mutation')
+					findLandmarksAndUpdateBackgroundScript()
+				}
+			},
+			findLandmarksAndUpdateBackgroundScript)
+	})
 
-//
-// Entry point
-//
+	observer.observe(document, {
+		attributes: true,
+		childList: true,
+		subtree: true,
+		attributeFilter: [
+			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+		]
+	})
+}
+
+function bootstrap() {
+	const maxConnectionAttempts = 10
+	let connectionAttempts = 0
+
+	logger.log('Bootstrapping Landmarks content script')
+
+	// FIXME comment
+	// Rather interesting: having this as a global variable borks it on
+	// Firefox; it seems to try to connect to the background page before
+	// the background page is ready for connections.
+
+	function tryToConnectAndSendLandmarks() {
+		connectionAttempts += 1
+		console.log(`Content script connection attempt ${connectionAttempts}`)
+		port = browser.runtime.connect({ name: 'content' })
+
+		port.onMessage.addListener(messageHandler)
+
+		port.onDisconnect.addListener(function(disconnectingPort) {
+			if (connectionAttempts < maxConnectionAttempts) {
+				try {
+					disconnectingPortErrorCheck(disconnectingPort)
+				} catch (error) {
+					console.log('Connection error; trying again...')
+					port = null
+					setTimeout(tryToConnectAndSendLandmarks, 100)
+				}
+			} else {
+				logger.log('Disconnecting observer from retired content script')
+				observer.disconnect()
+				observer = null
+			}
+		})
+
+		findLandmarksAndUpdateBackgroundScript()
+	}
+
+	tryToConnectAndSendLandmarks()
+	setUpMutationObserver()
+}
 
 bootstrap()

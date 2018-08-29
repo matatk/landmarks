@@ -26,5 +26,7 @@
 
   "minimum_opera_version": "44",
 
-  "permissions": ["<all_urls>"]
+  "permissions": ["<all_urls>"],
+
+  "devtools_page": "devtools.html"
 }

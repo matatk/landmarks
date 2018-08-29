@@ -16,5 +16,7 @@
     "chrome_style": true
   },
 
-  "permissions": ["<all_urls>"]
+  "permissions": ["<all_urls>"],
+
+  "devtools_page": "devtools.html"
 }

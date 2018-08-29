@@ -154,30 +154,35 @@ async function flattenCode(browser) {
 		input: path.join(srcCodeDir, '_options.js'),
 		output: path.join(pathToBuild(browser), 'options.js')
 	}, {
+		input: path.join(srcCodeDir, '_splash.js'),
+		output: path.join(pathToBuild(browser), 'splash.js')
+	}, {
 		input: path.join(srcCodeDir, '_gui.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
-		globals: {
-			INTERFACE: 'popup'
-		}
+		globals: { INTERFACE: 'popup' }
 	}]
 
 	if (browser === 'firefox' || browser === 'opera') {
 		ioPairsAndGlobals.push({
 			input: path.join(srcCodeDir, '_gui.js'),
 			output: path.join(pathToBuild(browser), 'sidebarPanel.js'),
-			globals: {
-				INTERFACE: 'sidebar'
-			}
+			globals: { INTERFACE: 'sidebar' }
 		})
 	}
 
-	if (browser === 'firefox') {
+	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
+		// Root DevTools HTML page script
+		ioPairsAndGlobals.push({
+			input: path.join(srcCodeDir, '_devtools.js'),
+			output: path.join(pathToBuild(browser), 'devtools.js'),
+			globals: { INTERFACE: 'devtools' }
+		})
+
+		// Landmarks DevTools panel
 		ioPairsAndGlobals.push({
 			input: path.join(srcCodeDir, '_gui.js'),
 			output: path.join(pathToBuild(browser), 'devtoolsPanel.js'),
-			globals: {
-				INTERFACE: 'devtools'
-			}
+			globals: { INTERFACE: 'devtools' }
 		})
 	}
 
@@ -233,8 +238,14 @@ async function flattenCode(browser) {
 	// Run each bundle through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
-		const bundle = await rollup.rollup(options.input)
-		await bundle.write(options.output)
+		await rollup.rollup(options.input)
+			.then(bundle => {
+				bundle.write(options.output)
+			})
+			.catch(error => {
+				console.error(error)
+				throw Error('there was an error')
+			})
 	}
 }
 
@@ -279,7 +290,7 @@ function copyGuiFiles(browser) {
 		copyOneGuiFile('sidebarPanel')
 	}
 
-	if (browser === 'firefox') {
+	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
 		copyOneGuiFile('devtoolsPanel')
 	}
 }

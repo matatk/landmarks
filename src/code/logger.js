@@ -1,20 +1,20 @@
+import { defaultDebugSettings } from './defaults'
+
 export default function Logger() {
 	const that = this
 
-	function getDebugInfoOption(callback) {
-		browser.storage.sync.get({
-			debugInfo: false
-		}, function(items) {
-			// We only define the log() function after successfully initing, so
-			// as to trap any errant uses of the logger.
+	this.log = function() {
+		const args = ['@@'].concat(Array.from(arguments))  // TODO quieten
+		console.log.apply(null, args)
+	}
+
+	function getDebugInfoOption() {
+		browser.storage.sync.get(defaultDebugSettings, function(items) {
 			handleOptionsChange({
 				debugInfo: {
 					newValue: items.debugInfo
 				}
 			})
-			if (callback) {
-				callback()
-			}
 		})
 	}
 
@@ -31,11 +31,6 @@ export default function Logger() {
 		}
 	}
 
-	// We may wish to log messages right way, but the call to get the user
-	// setting is asynchronous. Therefore, we need to pass our bootstrapping
-	// code as a callback that is run when the option has been fetched.
-	this.init = function(callback) {
-		getDebugInfoOption(callback)
-		browser.storage.onChanged.addListener(handleOptionsChange)
-	}
+	getDebugInfoOption()
+	browser.storage.onChanged.addListener(handleOptionsChange)
 }
