@@ -72,16 +72,18 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		// FIXME factor out makeButton() and makeLocalisedButton() or similar
-		// FIXME need better names as both are localised
-		// TODO DRY use makeButton?
-		const button = document.createElement('button')
-		button.className = 'browser-style'
-		button.appendChild(document.createTextNode(landmarkName(landmark)))
-		button.addEventListener('click', function() {
-			focusLandmark(index)
-		})
+		const button = makeButtonAlreadyTranslated(
+			landmarkName(landmark),
+			function() {
+				focusLandmark(index)
+			})
 		item.appendChild(button)
+		if (INTERFACE === 'devtools') {
+			const inspectButton = makeButtonI(function() {
+				console.log(landmark, index)
+			})
+			item.appendChild(inspectButton)
+		}
 		base.appendChild(item)  // add to current base
 
 		// Housekeeping
@@ -113,10 +115,17 @@ function addText(element, message) {
 }
 
 function makeButton(nameMessage, onClick) {
+	return makeButtonAlreadyTranslated(browser.i18n.getMessage(nameMessage), onClick)
+}
+
+function makeButtonI(onClick) {
+	return makeButtonAlreadyTranslated('i', onClick)  // FIXME translate
+}
+
+function makeButtonAlreadyTranslated(name, onClick) {
 	const button = document.createElement('button')
 	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(
-		browser.i18n.getMessage(nameMessage)))
+	button.appendChild(document.createTextNode(name))
 	button.onclick = onClick
 	return button
 }
@@ -135,16 +144,11 @@ function focusLandmark(index) {
 }
 
 
-//
-// Management
-//
-
-// Send a message to ask for the latest landmarks
-function requestLandmarks() {
-	port.postMessage({ name: 'get-landmarks' })
-}
-
 if (INTERFACE === 'sidebar') {
+	//
+	// Sidebar - Live updates and Preferences note
+	//
+
 	// The sidebar can be open even if the user has chosen the pop-up as the
 	// primary GUI for Landmarks. In this case, a note can be created in the
 	// sidebar to explain this to the user.
@@ -214,6 +218,11 @@ if (INTERFACE === 'sidebar') {
 	})
 }
 
+
+//
+// Management
+//
+
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 // FIXME https://github.com/matatk/landmarks/issues/192
@@ -221,29 +230,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
 
-	requestLandmarks()
-})
-
-
-//
-// FIXME neaten up
-//
-
-if (INTERFACE === 'devtools') {
-	port = browser.runtime.connect({ name: INTERFACE })
-	port.postMessage({ name: 'init', tabId: browser.devtools.inspectedWindow.tabId })
-} else {
-	port = browser.runtime.connect({ name: INTERFACE })
-}
-
-port.onDisconnect.addListener(disconnectingPortErrorCheck)
-
-port.onMessage.addListener(function(message) {
-	switch (message.name) {
-		case 'landmarks':
-			handleLandmarksMessage(message.data)
-			break
-		default:
-			throw Error(`Unkown message ${JSON.stringify(message)}`)
+	if (INTERFACE === 'devtools') {
+		port = browser.runtime.connect({ name: INTERFACE })
+		port.postMessage({
+			name: 'init',
+			tabId: browser.devtools.inspectedWindow.tabId
+		})
+	} else {
+		port = browser.runtime.connect({ name: INTERFACE })
 	}
+
+	port.onDisconnect.addListener(disconnectingPortErrorCheck)
+
+	port.onMessage.addListener(function(message) {
+		switch (message.name) {
+			case 'landmarks':
+				handleLandmarksMessage(message.data)
+				break
+			default:
+				throw Error(`Unkown message ${JSON.stringify(message)}`)
+		}
+	})
+
+	port.postMessage({ name: 'get-landmarks' })
 })
