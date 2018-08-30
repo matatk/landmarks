@@ -41,16 +41,8 @@
     "message": "Landmarks on page"
   },
 
-  "errorWord": {
-    "message": "Error"
-  },
-
   "errorNoConnection": {
     "message": "Landmarks cannot run on this page."
-  },
-
-  "errorGettingLandmarksFromContentScript": {
-    "message": "Sorry, there was an error when trying to find landmarks"
   },
 
   "noLandmarksFound": {

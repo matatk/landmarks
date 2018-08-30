@@ -27,14 +27,11 @@ const options = [{
 // Translation
 // http://tumble.jeremyhubert.com/post/7076881720
 // HT http://stackoverflow.com/questions/25467009/
-// TODO would be nice to use the doForEach wrpper on this
-// TODO try for of?
 function translateStuff() {
 	const objects = document.getElementsByTagName('*')
-	for(let i = 0; i < objects.length; i++) {
-		if (objects[i].dataset && objects[i].dataset.message) {
-			objects[i].innerText =
-				browser.i18n.getMessage(objects[i].dataset.message)
+	for(const object of objects) {
+		if (object.dataset && object.dataset.message) {
+			object.innerText = browser.i18n.getMessage(object.dataset.message)
 		}
 	}
 }
@@ -79,7 +76,7 @@ function setUpOptionHandlers() {
 function interfaceExplainer() {
 	const messageName = document
 		.getElementById('landmarks-interface')
-		.selectedOption[0].dataset.explainer
+		.selectedOptions[0].dataset.explainer
 	const explainer = document.getElementById('interface-explainer')
 	explainer.innerText = browser.i18n.getMessage(messageName)
 }

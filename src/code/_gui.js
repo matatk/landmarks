@@ -2,11 +2,8 @@ import './compatibility'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
-// FIXME remove message 'errorNoConnection'
-// FIXME remove message 'errorGettingLandmarksFromContentScript'
-// FIXME remove message about reloading the page
 
-let port
+let port = null
 
 //
 // Creating a landmarks tree in response to info from content script
@@ -34,7 +31,7 @@ function handleLandmarksMessage(data) {
 			makeLandmarksTree(data, display)
 		}
 	} else {
-		addText(display, errorString() + 'content script sent: ' + data)
+		addText(display, browser.i18n.getMessage('errorNoConnection'))
 	}
 }
 
@@ -137,11 +134,6 @@ function focusLandmark(index) {
 	})
 }
 
-// Return localised "Error: " string
-function errorString() {
-	return browser.i18n.getMessage('errorWord') + ': '
-}
-
 
 //
 // Management
@@ -153,6 +145,9 @@ function requestLandmarks() {
 }
 
 if (INTERFACE === 'sidebar') {
+	// The sidebar can be open even if the user has chosen the pop-up as the
+	// primary GUI for Landmarks. In this case, a note can be created in the
+	// sidebar to explain this to the user.
 	const noteId = 'note'
 
 	function createNote() {  // eslint-disable-line no-inner-declarations
@@ -197,16 +192,14 @@ if (INTERFACE === 'sidebar') {
 		if (message) message.remove()
 	}
 
+	// Should we create the note in the sidebar when it opens?
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 		if (items.interface === 'popup') {
 			createNote()
 		}
 	})
 
-	// The sidebar may be open whilst the user interface setting is changed. This
-	// relies on the fact that the popup can't be open when the user is making
-	// these changes. We don't react to the value of this preference on load for
-	// the same reason -- that would require knowing if we are the sidebar or not.
+	// What about if the sidebar is open and the user changes their preference?
 	browser.storage.onChanged.addListener(function(changes) {
 		if (changes.hasOwnProperty('interface')) {
 			switch (changes.interface.newValue) {
@@ -215,7 +208,7 @@ if (INTERFACE === 'sidebar') {
 				case 'popup': createNote()
 					break
 				default:
-					throw Error(`Unknown interface type "${changes.interface.newValue}`)  // FIXME DRY-ish (at least the error message?)
+					throw Error(`Unknown interface type "${changes.interface.newValue}`)
 			}
 		}
 	})

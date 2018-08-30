@@ -29,7 +29,7 @@ function getLandmarksForActiveTab() {
 	if (contentConnections.hasOwnProperty(activeTabId)) {
 		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
 	} else {
-		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: `Not connected to ${activeTabId}` })
+		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: null })
 	}
 }
 
