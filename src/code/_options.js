@@ -77,8 +77,9 @@ function setUpOptionHandlers() {
 
 // TODO check this doesn't appear on Chrome
 function interfaceExplainer() {
-	const ui = document.getElementById('landmarks-interface').value
-	const messageName = `prefs${ui}Explanation`
+	const messageName = document
+		.getElementById('landmarks-interface')
+		.selectedOption[0].dataset.explainer
 	const explainer = document.getElementById('interface-explainer')
 	explainer.innerText = browser.i18n.getMessage(messageName)
 }

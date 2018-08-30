@@ -98,7 +98,7 @@ function ok() {
 
 
 function error() {
-	const argStrings = [...arguments].map(x => String(x))
+	const argStrings = [...arguments].map(x => JSON.stringify(x, null, 2))
 	console.error(chalk.bold.red.apply(this, ['✖'].concat(argStrings)))
 	process.exit(42)
 }
@@ -322,13 +322,13 @@ function mergeMessages(browser) {
 
 
 function checkMessages(browser) {
-	logStep(`Checking for unused messages (except role names) on ${browser}`)
+	logStep('Checking for unused messages (except role names)')
 
 	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
 	const messages = JSON.parse(fs.readFileSync(translationsFile))
 	const files = glob.sync(path.join('src', '**'), {
 		nodir: true,
-		ignore: ['commonMessages.json', 'popupMessages.json']
+		ignore: ['**/*Messages.json']
 	})
 	const messageSummary = {}	// count usages of each message
 
