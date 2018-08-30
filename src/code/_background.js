@@ -29,29 +29,20 @@ function getLandmarksForActiveTab() {
 	if (contentConnections.hasOwnProperty(activeTabId)) {
 		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
 	} else {
-		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: `not connected to ${activeTabId}` })
+		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: `Not connected to ${activeTabId}` })
 	}
 }
 
 function sendToActiveContentScriptIfExists(message) {
+	// The check is needed when a keyboard command is used
 	if (contentConnections.hasOwnProperty(activeTabId)) {
 		contentConnections[activeTabId].postMessage(message)
-	} else {
-		console.log(`No content script connected in tab ${activeTabId}`)
 	}
 }
 
 function updateBrowserActionBadge(tabId, numberOfLandmarks) {
-	let badgeText
-
-	if (numberOfLandmarks <= 0) {
-		badgeText = ''
-	} else {
-		badgeText = String(numberOfLandmarks)
-	}
-
 	browser.browserAction.setBadgeText({
-		text: badgeText,
+		text: numberOfLandmarks <= 0 ? '' : String(numberOfLandmarks),
 		tabId: tabId
 	})
 }
@@ -65,16 +56,12 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	// Disconnection management
 
 	function contentDisconnect(disconnectingPort) {
-		console.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
 		disconnectingPortErrorCheck(disconnectingPort)
 		delete contentConnections[disconnectingPort.sender.tab.id]
-		console.log(`${Object.keys(contentConnections).length} content connections`)
 	}
 
 	function devtoolsDisconnect(tabId) {
-		console.log(`DevTools script for tab ${tabId} disconnected`)
 		delete devtoolsConnections[tabId]
-		console.log(`${Object.keys(devtoolsConnections).length} devtools connections`)
 	}
 
 
@@ -82,8 +69,6 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 
 	function contentListener(message, sendingPort) {
 		const tabId = sendingPort.sender.tab.id
-
-		console.log(`Content in ${tabId} ${sendingPort.sender.tab.url} sent ${message.name}`)
 
 		switch (message.name) {
 			case 'landmarks':
@@ -112,7 +97,6 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = connectingPort
-				console.log(`${Object.keys(devtoolsConnections).length} devtools connections`)
 				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
 					disconnectingPortErrorCheck(disconnectingPort)
 					devtoolsDisconnect(message.tabId)
@@ -156,8 +140,6 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	switch (connectingPort.name) {
 		case 'content':
 			contentConnections[connectingPort.sender.tab.id] = connectingPort
-			console.log(`${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} content script connected`)
-			console.log(`${Object.keys(contentConnections).length} content connections`)
 			connectingPort.onMessage.addListener(contentListener)
 			connectingPort.onDisconnect.addListener(contentDisconnect)
 			break
@@ -169,10 +151,8 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 				throw Error('Existing pop-up connection')
 			}
 			popupConnection = connectingPort
-			console.log('Pop-up connected')
 			connectingPort.onMessage.addListener(popupAndSidebarListener)
 			connectingPort.onDisconnect.addListener(function() {
-				console.log('Pop-up disconnected')
 				popupConnection = null
 			})
 			break
@@ -181,19 +161,13 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 				throw Error('Existing sidebar connection')
 			}
 			sidebarConnection = connectingPort
-			console.log('Sidebar connected')
 			connectingPort.onMessage.addListener(popupAndSidebarListener)
 			connectingPort.onDisconnect.addListener(function() {
-				console.log('Sidebar disconnected')
 				sidebarConnection = null
 			})
 			break
 		case 'splash':
-			console.log('Splash connected')
 			connectingPort.onMessage.addListener(splashListener)
-			connectingPort.onDisconnect.addListener(function() {
-				console.log('Splash disconnected')
-			})
 			break
 		default:
 			throw Error(`Unkown connection type ${connectingPort.name}`)
@@ -358,7 +332,6 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeInfo) {
 	activeTabId = activeInfo.tabId
-	console.log(`Active tab is ${activeTabId}`)
 	if (popupConnection) {
 		getLandmarksForActiveTab()
 	}

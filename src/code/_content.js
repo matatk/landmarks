@@ -19,21 +19,16 @@ let port = null
 // Extension message management
 //
 
-// FIXME remove sendingPort; use port?
-// Act on requests from the background or pop-up scripts
 function messageHandler(message, sendingPort) {
-	console.log(`content script rx'd ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
-			// FIXME should this do lf.find() first? what did it used to do? compare this behaviour to findLandmarksAndUpdateBackgroundScript()
-			// FIXME should this even be supported anymore?
-			// The pop-up is requesting the list of landmarks on the page
+			// A GUI is requesting the list of landmarks on the page
 			handleOutdatedResults()
 			sendingPort.postMessage({ name: 'landmarks', data: lf.filter() })
 			break
 		case 'focus-landmark':
-			// Triggered by clicking on an item in the pop-up, or indirectly
-			// via one of the keyboard shortcuts (if landmarks are present)
+			// Triggered by clicking on an item in a GUI, or indirectly via one
+			// of the keyboard shortcuts (if landmarks are present)
 			handleOutdatedResults()
 			checkFocusElement(
 				() => lf.getLandmarkElementRoleLabel(message.index))
@@ -49,6 +44,7 @@ function messageHandler(message, sendingPort) {
 			checkFocusElement(lf.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
+			// Triggered by keyboard shortcut
 			handleOutdatedResults()
 			const mainElementInfo = lf.getMainElementRoleLabel()
 			if (mainElementInfo) {
@@ -140,6 +136,7 @@ function shouldRefreshLandmarkss(mutations) {
 }
 
 function setUpMutationObserver() {
+	logger.log('Setting up mutation observer')
 	observer = new MutationObserver((mutations) => {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
@@ -147,7 +144,7 @@ function setUpMutationObserver() {
 			ef.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
-					logger.log('SCAN mutation')
+					logger.log('Scan due to mutation')
 					findLandmarksAndUpdateBackgroundScript()
 				}
 			},
@@ -170,34 +167,53 @@ function bootstrap() {
 
 	logger.log('Bootstrapping Landmarks content script')
 
-	// FIXME comment
-	// Rather interesting: having this as a global variable borks it on
-	// Firefox; it seems to try to connect to the background page before
-	// the background page is ready for connections.
+	function disconnectObserver() {
+		observer.disconnect()
+		observer = null
+	}
+
+	// Firefox doesn't guarantee that the background script will load first,
+	// which means that this can fail with a 'receiving end does not exist'
+	// error (<https://bugzilla.mozilla.org/show_bug.cgi?id=1474727>). Chrome
+	// appears to avoid this problem.
+	//
+	// Note: the code is kept the same cross-browser to keep it simpler and
+	//       because it might provide some helpful error-checking.
 
 	function tryToConnectAndSendLandmarks() {
 		connectionAttempts += 1
-		console.log(`Content script connection attempt ${connectionAttempts}`)
+		logger.log(`Connection attempt ${connectionAttempts}`)
 		port = browser.runtime.connect({ name: 'content' })
 
-		port.onMessage.addListener(messageHandler)
-
 		port.onDisconnect.addListener(function(disconnectingPort) {
-			if (connectionAttempts < maxConnectionAttempts) {
-				try {
-					disconnectingPortErrorCheck(disconnectingPort)
-				} catch (error) {
-					console.log('Connection error; trying again...')
+			try {
+				disconnectingPortErrorCheck(disconnectingPort)
+
+				// If the port disconnected normally, then on Chrome-like
+				// browsers this means that the extension was unloaded and the
+				// content script has been orphaned, so we should stop the
+				// mutation observer.
+				logger.log('Disconnecting observer in retired content script')
+				disconnectObserver()
+			} catch (error) {
+				// The port disconnected with an error. This is most likely to
+				// occur on Firefox when the background script has not loaded
+				// and set up its listener yet.
+				if (connectionAttempts < maxConnectionAttempts) {
+					logger.log('Connection failure; retrying')
 					port = null
 					setTimeout(tryToConnectAndSendLandmarks, 100)
+				} else {
+					// Can't think of when this might happen, but if we've
+					// repeatedly tried and failed to connect on Firefox, then
+					// we should stop mutation observing there too.
+					logger.log('Failed to connect; stopping mutation observer')
+					disconnectObserver()
 				}
-			} else {
-				logger.log('Disconnecting observer from retired content script')
-				observer.disconnect()
-				observer = null
 			}
 		})
 
+		port.onMessage.addListener(messageHandler)
 		findLandmarksAndUpdateBackgroundScript()
 	}
 
