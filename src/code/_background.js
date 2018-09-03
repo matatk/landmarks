@@ -1,4 +1,4 @@
-// FIXME when moving to a page that doesn't support content scripts, the devtools doesn't get updated
+// FIXME when moving to a page that doesn't support content scripts, the devtools doesn't get updated -- this seems to be part of the 'WebExtension context not found' error on Firefox stuff
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
