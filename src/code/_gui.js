@@ -73,17 +73,27 @@ function makeLandmarksTree(landmarks, container) {
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
 		const button = makeButtonAlreadyTranslated(
-			landmarkName(landmark),
 			function() {
 				focusLandmark(index)
-			})
+			},
+			landmarkName(landmark))
 		item.appendChild(button)
+
 		if (INTERFACE === 'devtools') {
-			const inspectButton = makeButtonI(function() {
-				console.log(landmark, index)
-			})
+			const inspectButton = makeSymbolButton(
+				function() {
+					const inspectorCall = "inspect(document.querySelector('"
+						+ landmark.selector  // comes from our own code
+						+ "'))"
+					browser.devtools.inspectedWindow.eval(inspectorCall)
+				},
+				'inspectButtonName',
+				'🔍',
+				landmarkName(landmark))
+			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
 		}
+
 		base.appendChild(item)  // add to current base
 
 		// Housekeeping
@@ -114,18 +124,29 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeButton(nameMessage, onClick) {
-	return makeButtonAlreadyTranslated(browser.i18n.getMessage(nameMessage), onClick)
+function makeButton(onClick, nameMessage) {
+	return makeButtonAlreadyTranslated(
+		onClick,
+		browser.i18n.getMessage(nameMessage))
 }
 
-function makeButtonI(onClick) {
-	return makeButtonAlreadyTranslated('i', onClick)  // FIXME translate
+function makeSymbolButton(onClick, nameMessage, symbol, context) {
+	return makeButtonAlreadyTranslated(
+		onClick,
+		browser.i18n.getMessage(nameMessage),
+		symbol,
+		context)
 }
 
-function makeButtonAlreadyTranslated(name, onClick) {
+function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	const button = document.createElement('button')
 	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(name))
+	button.appendChild(document.createTextNode(symbol ? symbol : name))
+	if (symbol) {
+		button.setAttribute('aria-label', name + ' ' + context)
+		button.style.border = 'none'
+		button.style.background = 'none'
+	}
 	button.onclick = onClick
 	return button
 }
@@ -162,19 +183,20 @@ if (INTERFACE === 'sidebar') {
 					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
 
 				const optionsButton = makeButton(
-					'hintSidebarIsNotPrimaryOptions',
 					function() {
 						browser.runtime.openOptionsPage()
-					})
+					},
+					'hintSidebarIsNotPrimaryOptions')
 
-				const dismissButton = makeButton('hintDismiss',
+				const dismissButton = makeButton(
 					function() {
 						browser.storage.sync.set({
 							dismissedSidebarNotAlone: true
 						}, function() {
 							removeNote()
 						})
-					})
+					},
+					'hintDismiss')
 
 				// Contains buttons; allows for them to be flexbox'd
 				const buttons = document.createElement('div')

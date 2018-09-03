@@ -51,6 +51,11 @@
 
 
 
+  "inspectButtonName": {
+    "message": "Inspect"
+  },
+
+
 
   "prefsTitle": {
     "message": "Landmarks Options"

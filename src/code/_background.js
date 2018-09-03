@@ -1,3 +1,4 @@
+// FIXME when moving to a page that doesn't support content scripts, the devtools doesn't get updated
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'

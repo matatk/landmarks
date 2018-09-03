@@ -92,6 +92,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function findLandmarksAndUpdateBackgroundScript() {
+	logger.log('Asking it to find landmarks...')  // TODO seems to happen too much -- possibly due to mutation observer?
 	lf.find()
 	port.postMessage({ name: 'landmarks', data: lf.filter() })
 }

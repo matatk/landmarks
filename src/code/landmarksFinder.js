@@ -144,7 +144,8 @@ export default function LandmarksFinder(win, doc) {
 						'depth': depth,
 						'role': role,
 						'label': label,
-						'element': elementChild
+						'element': elementChild,
+						'selector': createSelector(elementChild)
 					})
 
 					// Was this element selected before we were called (i.e.
@@ -273,6 +274,29 @@ export default function LandmarksFinder(win, doc) {
 		return false
 	}
 
+	function createSelector(element) {
+		const reversePath = []
+		let node = element
+
+		while (node.tagName !== 'BODY') {
+			const tag = node.tagName.toLowerCase()
+			const id = node.id
+			const klass = node.classList.length > 0 ? node.classList[0] : null
+
+			const description = id
+				? '#' + id
+				: klass
+					? tag + '.' + klass
+					: tag
+
+			reversePath.push(description)
+			if (id) break
+			node = node.parentNode
+		}
+
+		return reversePath.reverse().join(' ')
+	}
+
 
 	//
 	// Public API
@@ -289,7 +313,8 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
-			label: landmark.label
+			label: landmark.label,
+			selector: landmark.selector  // TODO update docs if keeping this
 		}))
 	}
 
@@ -297,8 +322,9 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
+	// FIXME update comment if need be
 	// These all return elements and their public-facing info:
-	// { element: HTMLElement, role: <string>, label: <string> }
+	// { element: <HTMLElement>, role: <string>, label: <string> }
 
 	this.getNextLandmarkElementRoleLabel = function() {
 		return updateSelectedIndexAndReturnElementInfo(
