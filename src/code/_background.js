@@ -1,4 +1,4 @@
-// FIXME when moving to a page that doesn't support content scripts, the devtools doesn't get updated -- this seems to be part of the 'WebExtension context not found' error on Firefox stuff
+// FIXME in Chrome, updates to DevTools work until the extension is reloaded or stopped and started.
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
@@ -7,7 +7,7 @@ import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 const contentConnections = {}
 const devtoolsConnections = {}
-let sidebarConnection = null
+let sidebarConnection = null  // FIXME appears in Chrome; need to remove null?
 let popupConnection = null
 let activeTabId = null
 
@@ -26,11 +26,15 @@ function sendLandmarksToGUIs(fromTabId, message) {
 	}
 }
 
+function sendNullLandmarksToGUIs() {
+	sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: null })
+}
+
 function getLandmarksForActiveTab() {
 	if (contentConnections.hasOwnProperty(activeTabId)) {
 		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
 	} else {
-		sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: null })
+		sendNullLandmarksToGUIs()
 	}
 }
 
@@ -301,6 +305,10 @@ function checkBrowserActionState(tabId, url) {
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)
+
+		// We may've moved from a page that allowed content scripts to one that
+		// does not. If the sidebar/DevTools are open, they need to be updated.
+		sendNullLandmarksToGUIs()
 	}
 }
 
@@ -338,6 +346,11 @@ browser.tabs.onActivated.addListener(function(activeInfo) {
 	}
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (sidebarConnection) {
+			getLandmarksForActiveTab()
+		}
+	}
+	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
 			getLandmarksForActiveTab()
 		}
 	}
