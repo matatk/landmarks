@@ -3,7 +3,6 @@ import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import Logger from './logger'
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 const logger = new Logger()
 const lf = new LandmarksFinder(window, document)
@@ -162,63 +161,69 @@ function setUpMutationObserver() {
 }
 
 function bootstrap() {
-	const maxConnectionAttempts = 10
-	let connectionAttempts = 0
-
-	logger.log('Bootstrapping Landmarks content script')
-
-	function disconnectObserver() {
-		observer.disconnect()
-		observer = null
-	}
-
-	// Firefox doesn't guarantee that the background script will load first,
-	// which means that this can fail with a 'receiving end does not exist'
-	// error (<https://bugzilla.mozilla.org/show_bug.cgi?id=1474727>). Chrome
-	// appears to avoid this problem.
-	//
-	// Note: the code is kept the same cross-browser to keep it simpler and
-	//       because it might provide some helpful error-checking.
-
-	function tryToConnectAndSendLandmarks() {
-		connectionAttempts += 1
-		logger.log(`Connection attempt ${connectionAttempts}`)
-		port = browser.runtime.connect({ name: 'content' })
-
-		port.onDisconnect.addListener(function(disconnectingPort) {
-			try {
-				disconnectingPortErrorCheck(disconnectingPort)
-
-				// If the port disconnected normally, then on Chrome-like
-				// browsers this means that the extension was unloaded and the
-				// content script has been orphaned, so we should stop the
-				// mutation observer.
-				logger.log('Disconnecting observer in retired content script')
-				disconnectObserver()
-			} catch (error) {
-				// The port disconnected with an error. This is most likely to
-				// occur on Firefox when the background script has not loaded
-				// and set up its listener yet.
-				if (connectionAttempts < maxConnectionAttempts) {
-					logger.log('Connection failure; retrying')
-					port = null
-					setTimeout(tryToConnectAndSendLandmarks, 100)
-				} else {
-					// Can't think of when this might happen, but if we've
-					// repeatedly tried and failed to connect on Firefox, then
-					// we should stop mutation observing there too.
-					logger.log('Failed to connect; stopping mutation observer')
-					disconnectObserver()
-				}
-			}
-		})
-
-		port.onMessage.addListener(messageHandler)
-		findLandmarksAndUpdateBackgroundScript()
-	}
-
-	tryToConnectAndSendLandmarks()
-	setTimeout(setUpMutationObserver, ph.getPauseTime() + 1)
+	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
+	port = browser.runtime.connect({ name: 'content' })
+	port.onDisconnect.addListener(function() {
+		// If the port disconnected normally, then on Chrome-like browsers this
+		// means the extension was unloaded and the content script has been
+		// orphaned, so we should stop the mutation observer.
+		//
+		// If the port disconnected with an error, it's most likely to occur on
+		// Firefox when the background script has not loaded and set up its
+		// listener yet.  In this case, we would desist and wait for the
+		// background script to tell us we can try connecting to it again.
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
+		//
+		// However, we don't need to check for an error on Firefox, because the
+		// normal onDisconnect event is not received by content scripts when
+		// they're cleaned up, therefore the behaviour is actually the same no
+		// matter the browser on which we're running...
+		logger.log(`Disconnecting ${window.location} observer`)
+		try {
+			observer.disconnect()
+			observer = null
+		} catch (error) {
+			logger.log(`Error whilst attempting to disconnect ${window.location} observer:`, error)
+		}
+	})
+	port.onMessage.addListener(messageHandler)
+	findLandmarksAndUpdateBackgroundScript()  // FIXME try removing
+	setUpMutationObserver()
 }
 
 bootstrap()
+
+if (BROWSER === 'firefox') {
+	// Firefox doesn't re-inject content scripts attatched to pages from which
+	// the user has moved away, but that haven't actually been destroyed yet.
+	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1390715
+	window.addEventListener('pageshow', function(event) {
+		if (event.target !== window.document) return
+		logger.log(`Page ${window.location} shown - re-booting...`)
+		try {
+			observer.disconnect()
+			observer = null
+			port.disconnect()
+			port = null
+		} catch (error) {
+			logger.log('Error whilst attempting to disconnect observer:', error)
+		}
+		bootstrap()
+	})
+
+	// Firefox loads content scripts into existing tabs before the background
+	// script, meaning that we may not have a background script to connect to
+	// with the port. If that's the case, we have to wait for a workaround
+	// message from the background script, to ask us to ry to connect.
+	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
+	browser.runtime.onMessage.addListener(function(message) {
+		switch (message.name) {
+			case 'FirefoxWorkaround':
+				logger.log('Background script loaded and requesting connection.')
+				bootstrap()
+				break
+			default:
+				throw Error(`Unknown message ${message} received.`)
+		}
+	})
+}

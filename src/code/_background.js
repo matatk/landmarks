@@ -61,6 +61,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	// Disconnection management
 
 	function contentDisconnect(disconnectingPort) {
+		console.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
 		disconnectingPortErrorCheck(disconnectingPort)
 		delete contentConnections[disconnectingPort.sender.tab.id]
 	}
@@ -144,6 +145,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 
 	switch (connectingPort.name) {
 		case 'content':
+			console.log(`Content script for tab ${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} connected`)
 			contentConnections[connectingPort.sender.tab.id] = connectingPort
 			connectingPort.onMessage.addListener(contentListener)
 			connectingPort.onDisconnect.addListener(contentDisconnect)
@@ -385,7 +387,31 @@ browser.tabs.query({}, function(tabs) {
 	}
 })
 
-// Don't inject the content script on Firefox
 if (BROWSER !== 'firefox') {
 	contentScriptInjector()
+}
+
+if (BROWSER === 'firefox') {
+	// Firefox loads content scripts into existing tabs before the background
+	// script. That means they'll start before we've run, and fail to connect
+	// here. Therefore we need to send a message to the content scripts to tell
+	// them we're here and listening now.
+	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
+	browser.tabs.query({}, function(tabs) {
+		for (const i in tabs) {
+			const tabId = tabs[i].id
+			const url = tabs[i].url
+
+			if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
+				for (const specialPage of specialPages) {  // TODO DRY
+					if (specialPage.test(url)) return
+				}
+
+				// The page is a page on which Landmarks runs. Let the content
+				// script know that the background page has started up.
+				console.log(`Sending connection request to tab ${tabId}`)
+				browser.tabs.sendMessage(tabId, { name: 'FirefoxWorkaround' })
+			}
+		}
+	})
 }
