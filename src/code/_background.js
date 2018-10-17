@@ -4,6 +4,9 @@ import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
 import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
+import Logger from './logger'
+
+const logger = new Logger()
 
 const contentConnections = {}
 const devtoolsConnections = {}
@@ -61,7 +64,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	// Disconnection management
 
 	function contentDisconnect(disconnectingPort) {
-		console.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
+		logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
 		disconnectingPortErrorCheck(disconnectingPort)
 		delete contentConnections[disconnectingPort.sender.tab.id]
 	}
@@ -78,7 +81,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 
 		switch (message.name) {
 			case 'landmarks':
-				console.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
+				logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
 				sendLandmarksToGUIs(tabId, message)
 				updateBrowserActionBadge(tabId, message.data.length)
 				break
@@ -146,7 +149,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 
 	switch (connectingPort.name) {
 		case 'content':
-			console.log(`Content script for tab ${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} connected`)
+			logger.log(`Content script for tab ${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} connected`)
 			contentConnections[connectingPort.sender.tab.id] = connectingPort
 			connectingPort.onMessage.addListener(contentListener)
 			connectingPort.onDisconnect.addListener(contentDisconnect)
@@ -410,7 +413,7 @@ if (BROWSER === 'firefox') {
 
 				// The page is a page on which Landmarks runs. Let the content
 				// script know that the background page has started up.
-				console.log(`Sending connection request to tab ${tabId}`)
+				logger.log(`Sending connection request to tab ${tabId}`)
 				browser.tabs.sendMessage(tabId, { name: 'FirefoxWorkaround' })
 			}
 		}
