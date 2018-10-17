@@ -78,6 +78,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 
 		switch (message.name) {
 			case 'landmarks':
+				console.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
 				sendLandmarksToGUIs(tabId, message)
 				updateBrowserActionBadge(tabId, message.data.length)
 				break

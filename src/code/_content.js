@@ -135,7 +135,6 @@ function shouldRefreshLandmarkss(mutations) {
 }
 
 function setUpMutationObserver() {
-	logger.log('Setting up mutation observer')
 	observer = new MutationObserver((mutations) => {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
@@ -170,7 +169,7 @@ function bootstrap() {
 		//
 		// If the port disconnected with an error, it's most likely to occur on
 		// Firefox when the background script has not loaded and set up its
-		// listener yet.  In this case, we would desist and wait for the
+		// listener yet. In this case, we would desist and wait for the
 		// background script to tell us we can try connecting to it again.
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
 		//
@@ -178,7 +177,7 @@ function bootstrap() {
 		// normal onDisconnect event is not received by content scripts when
 		// they're cleaned up, therefore the behaviour is actually the same no
 		// matter the browser on which we're running...
-		logger.log(`Disconnecting ${window.location} observer`)
+		logger.log(`Port disconnected from ${window.location}`)
 		try {
 			observer.disconnect()
 			observer = null
@@ -197,7 +196,11 @@ if (BROWSER === 'firefox') {
 	// Firefox doesn't re-inject content scripts attatched to pages from which
 	// the user has moved away, but that haven't actually been destroyed yet.
 	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1390715
-	window.addEventListener('pageshow', function(event) {
+	//
+	// Unfortunately that doesn't work for me; when it doesn't work, the
+	// content script never recieves this event in order to tell it to reload
+	// the script.
+	/* window.addEventListener('pageshow', function(event) {
 		if (event.target !== window.document) return
 		logger.log(`Page ${window.location} shown - re-booting...`)
 		try {
@@ -209,7 +212,7 @@ if (BROWSER === 'firefox') {
 			logger.log('Error whilst attempting to disconnect observer:', error)
 		}
 		bootstrap()
-	})
+	}) */
 
 	// Firefox loads content scripts into existing tabs before the background
 	// script, meaning that we may not have a background script to connect to
@@ -219,7 +222,7 @@ if (BROWSER === 'firefox') {
 	browser.runtime.onMessage.addListener(function(message) {
 		switch (message.name) {
 			case 'FirefoxWorkaround':
-				logger.log('Background script loaded and requesting connection.')
+				logger.log(`Background script requesting connection from ${window.location.href}`)
 				bootstrap()
 				break
 			default:
