@@ -3,7 +3,8 @@
     {
       "depth": 0,
       "role": "region",
-      "label": "All About Apples"
+      "label": "All About Apples",
+      "selector": "section"
     }
   ]
 }

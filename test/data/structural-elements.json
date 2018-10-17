@@ -1,9 +1,9 @@
 {
   "expected": [
-    { "depth": 0, "role": "banner", "label": null },
-    { "depth": 0, "role": "complementary", "label": null },
-    { "depth": 0, "role": "navigation", "label": null },
-    { "depth": 0, "role": "main", "label": null },
-    { "depth": 0, "role": "contentinfo", "label": null }
+    { "depth": 0, "role": "banner", "label": null, "selector": "header" },
+    { "depth": 0, "role": "complementary", "label": null, "selector": "aside" },
+    { "depth": 0, "role": "navigation", "label": null, "selector": "nav" },
+    { "depth": 0, "role": "main", "label": null, "selector": "main" },
+    { "depth": 0, "role": "contentinfo", "label": null, "selector": "footer" }
   ]
 }

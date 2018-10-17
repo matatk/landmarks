@@ -1,7 +1,7 @@
 {
   "expected": [
-    { "depth": 0, "role": "main", "label": null },
-    { "depth": 1, "role": "region", "label": "Sibling One" },
-    { "depth": 1, "role": "region", "label": "Sibling Two" }
+    { "depth": 0, "role": "main", "label": null, "selector": "main" },
+    { "depth": 1, "role": "region", "label": "Sibling One", "selector": "main div:nth-child(1) div" },
+    { "depth": 1, "role": "region", "label": "Sibling Two", "selector": "main div:nth-child(2) div" }
   ]
 }

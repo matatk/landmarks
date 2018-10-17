@@ -3,7 +3,8 @@
     {
       "depth": 0,
       "role": "main",
-      "label": null
+      "label": null,
+      "selector": "main"
     }
   ]
 }

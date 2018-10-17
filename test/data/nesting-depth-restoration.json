@@ -1,9 +1,9 @@
 {
   "expected": [
-    { "depth": 0, "role": "banner", "label": null },
-    { "depth": 0, "role": "main", "label": null },
-    { "depth": 1, "role": "region", "label": "Outer section header" },
-    { "depth": 2, "role": "region", "label": "Inner section header" },
-    { "depth": 0, "role": "contentinfo", "label": null }
+    { "depth": 0, "role": "banner", "label": null, "selector": "header" },
+    { "depth": 0, "role": "main", "label": null, "selector": "main" },
+    { "depth": 1, "role": "region", "label": "Outer section header", "selector": "main section" },
+    { "depth": 2, "role": "region", "label": "Inner section header", "selector": "main section section" },
+    { "depth": 0, "role": "contentinfo", "label": null, "selector": "footer" }
   ]
 }

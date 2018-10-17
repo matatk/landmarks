@@ -3,27 +3,32 @@
     {
       "depth": 0,
       "role": "banner",
-      "label": null
+      "label": null,
+      "selector": "header"
     },
     {
       "depth": 1,
       "role": "navigation",
-      "label": "World of wombats"
+      "label": "World of wombats",
+      "selector": "header nav"
     },
     {
       "depth": 0,
       "role": "main",
-      "label": "Looking after your wombat"
+      "label": "Looking after your wombat",
+      "selector": "main"
     },
     {
       "depth": 1,
       "role": "navigation",
-      "label": "Looking after your wombat Topics"
+      "label": "Looking after your wombat Topics",
+      "selector": "main nav"
     },
     {
       "depth": 0,
       "role": "contentinfo",
-      "label": null
+      "label": null,
+      "selector": "footer"
     }
   ]
 }

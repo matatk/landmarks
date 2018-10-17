@@ -3,7 +3,8 @@
     {
       "depth": 0,
       "role": "region",
-      "label": "Reluctant Region"
+      "label": "Reluctant Region",
+      "selector": "div"
     }
   ]
 }
