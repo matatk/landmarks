@@ -278,23 +278,42 @@ export default function LandmarksFinder(win, doc) {
 		const reversePath = []
 		let node = element
 
-		while (node.tagName !== 'BODY') {
+		while (node.tagName !== 'BODY') {  // FIXME change to HTML
 			const tag = node.tagName.toLowerCase()
 			const id = node.id
 			const klass = node.classList.length > 0 ? node.classList[0] : null
 
-			const description = id
-				? '#' + id
-				: klass
-					? tag + '.' + klass
-					: tag
+			let description
+
+			if (id) {
+				description = '#' + id
+			} else {
+				const siblingElementTagNames =
+					Array.from(node.parentNode.children, x => x.tagName)
+				const uniqueSiblingElementTagNames =
+					[...new Set(siblingElementTagNames)]  // Array API is neater
+
+				if (klass) {
+					description = tag + '.' + klass
+				} else {
+					description = tag
+				}
+
+				if (siblingElementTagNames.length > uniqueSiblingElementTagNames.length) {
+					const siblingNumber =
+						Array.prototype.indexOf.call(
+							node.parentNode.children, node) + 1
+
+					description += ':nth-child(' + siblingNumber + ')'
+				}
+			}
 
 			reversePath.push(description)
 			if (id) break
 			node = node.parentNode
 		}
 
-		return reversePath.reverse().join(' ')
+		return reversePath.reverse().join(' ')  // FIXME change to ' > '
 	}
 
 

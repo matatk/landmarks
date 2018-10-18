@@ -22,7 +22,7 @@
       "depth": 1,
       "role": "navigation",
       "label": "Looking after your wombat Topics",
-      "selector": "main nav"
+      "selector": "main nav:nth-child(2)"
     },
     {
       "depth": 0,
