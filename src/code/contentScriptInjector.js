@@ -21,7 +21,6 @@ if (BROWSER !== 'firefox') {
 					}
 					if (skipThisTab) continue
 
-					console.log(`Injecting content script into tab ${tabs[i].id}`)
 					browser.tabs.executeScript(tabs[i].id, {
 						file: 'content.js'
 					})
