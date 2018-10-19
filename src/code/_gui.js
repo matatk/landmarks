@@ -262,7 +262,21 @@ document.addEventListener('DOMContentLoaded', function() {
 		port = browser.runtime.connect({ name: INTERFACE })
 	}
 
-	port.onDisconnect.addListener(disconnectingPortErrorCheck)
+	port.onDisconnect.addListener(function() {
+		disconnectingPortErrorCheck()
+		if (INTERFACE === 'devtools'
+			&& (BROWSER === 'chrome' || BROWSER === 'opera')) {
+			// DevTools page doesn't get reloaded when the extension does
+			const para = document.createElement('p')
+			const warning = document.createTextNode(
+				browser.i18n.getMessage('devToolsConnectionError'))
+			para.appendChild(warning)
+			document.body.insertBefore(para,
+				document.querySelector('h1').nextSibling)
+			document.body.style.backgroundColor = '#fee'
+			// TODO make this use the note styles; will need some refactoring
+		}
+	})
 
 	port.onMessage.addListener(function(message) {
 		switch (message.name) {

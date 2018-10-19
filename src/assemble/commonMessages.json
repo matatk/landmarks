@@ -51,9 +51,11 @@
 
 
 
+
   "inspectButtonName": {
     "message": "Inspect"
   },
+
 
 
 
@@ -198,5 +200,12 @@
 
   "roleToc": {
     "message": "Table of contents"
+  },
+
+
+
+
+  "devToolsConnectionError": {
+    "message": "This DevTools frame has become disconnected, probably due to reloading the extension. You'll need to reload this frame for it to recieve landmark updates again."
   }
 }

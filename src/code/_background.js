@@ -1,4 +1,3 @@
-// FIXME in Chrome, updates to DevTools work until the extension is reloaded or stopped and started.
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import specialPages from './specialPages'
@@ -70,6 +69,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	}
 
 	function devtoolsDisconnect(tabId) {
+		logger.log(`DevTools page for tab ${tabId} disconnected`)
 		delete devtoolsConnections[tabId]
 	}
 
@@ -93,6 +93,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	function popupAndSidebarListener(message) {  // also gets: sendingPort
 		switch (message.name) {
 			case 'get-landmarks':
+				logger.log('Popup or sidebar requested landmarks')
 				getLandmarksForActiveTab()
 				break
 			case 'focus-landmark':
@@ -106,6 +107,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 	function devtoolsListner(message) {
 		switch (message.name) {
 			case 'init':
+				logger.log(`DevTools page for tab ${message.tabId} connected`)
 				devtoolsConnections[message.tabId] = connectingPort
 				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
 					disconnectingPortErrorCheck(disconnectingPort)
@@ -113,6 +115,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 				})
 				break
 			case 'get-landmarks':
+				logger.log('DevTools requested landmarks')
 				getLandmarksForActiveTab()
 				break
 			case 'focus-landmark':
