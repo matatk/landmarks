@@ -313,7 +313,7 @@ export default function LandmarksFinder(win, doc) {
 			node = node.parentNode
 		}
 
-		return reversePath.reverse().join(' ')  // FIXME change to ' > '
+		return reversePath.reverse().join(' > ')
 	}
 
 

@@ -1,7 +1,7 @@
 {
   "expected": [
-    { "depth": 0, "role": "main", "label": null, "selector": "body main" },
-    { "depth": 1, "role": "region", "label": "Sibling One", "selector": "body main div:nth-child(1) div" },
-    { "depth": 1, "role": "region", "label": "Sibling Two", "selector": "body main div:nth-child(2) div" }
+    { "depth": 0, "role": "main", "label": null, "selector": "body > main" },
+    { "depth": 1, "role": "region", "label": "Sibling One", "selector": "body > main > div:nth-child(1) > div" },
+    { "depth": 1, "role": "region", "label": "Sibling Two", "selector": "body > main > div:nth-child(2) > div" }
   ]
 }

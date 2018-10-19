@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "main",
       "label": "Kate",
-      "selector": "body main"
+      "selector": "body > main"
     }
   ]
 }

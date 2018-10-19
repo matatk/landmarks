@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "complementary",
       "label": "And another thing...",
-      "selector": "body aside"
+      "selector": "body > aside"
     }
   ]
 }
