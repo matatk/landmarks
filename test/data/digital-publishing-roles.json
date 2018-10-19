@@ -1,28 +1,148 @@
 {
   "expected": [
-    { "depth": 0, "role": "doc-part", "label": "Frontmatter", "selector": "body > div:nth-child(3)" },
-    { "depth": 1, "role": "doc-toc", "label": null, "selector": "body > div:nth-child(3) > nav:nth-child(1)" },
-    { "depth": 1, "role": "doc-pagelist", "label": null, "selector": "body > div:nth-child(3) > nav:nth-child(2)" },
-    { "depth": 1, "role": "doc-preface", "label": null, "selector": "body > div:nth-child(3) > div:nth-child(3)" },
-    { "depth": 1, "role": "doc-foreword", "label": null, "selector": "body > div:nth-child(3) > div:nth-child(4)" },
-    { "depth": 1, "role": "doc-acknowledgements", "label": null, "selector": "body > div:nth-child(3) > div:nth-child(5)" },
-    { "depth": 1, "role": "doc-prologue", "label": null, "selector": "body > div:nth-child(3) > div:nth-child(6)" },
-    { "depth": 1, "role": "doc-introduction", "label": null, "selector": "body > div:nth-child(3) > div:nth-child(7)" },
-    { "depth": 0, "role": "doc-part", "label": "Mainmatter", "selector": "body > div:nth-child(4)" },
-    { "depth": 1, "role": "doc-chapter", "label": "Beginnings", "selector": "body > div:nth-child(4) > section:nth-child(1)" },
-    { "depth": 1, "role": "doc-chapter", "label": "Middles", "selector": "body > div:nth-child(4) > section:nth-child(2)" },
-    { "depth": 1, "role": "doc-chapter", "label": "Endings", "selector": "body > div:nth-child(4) > section:nth-child(3)" },
-    { "depth": 1, "role": "doc-conclusion", "label": null, "selector": "body > div:nth-child(4) > section:nth-child(4)" },
-    { "depth": 0, "role": "doc-part", "label": "Backmatter", "selector": "body > div:nth-child(5)" },
-    { "depth": 1, "role": "doc-epilogue", "label": null , "selector": "body > div:nth-child(5) > div:nth-child(1)"},
-    { "depth": 1, "role": "doc-afterword", "label": null , "selector": "body > div:nth-child(5) > div:nth-child(2)"},
-    { "depth": 1, "role": "doc-endnotes", "label": null , "selector": "body > div:nth-child(5) > div:nth-child(3)"},
-    { "depth": 1, "role": "doc-bibliography", "label": "References" , "selector": "body > div:nth-child(5) > div:nth-child(4)"},
-    { "depth": 1, "role": "doc-glossary", "label": null , "selector": "body > div:nth-child(5) > dl:nth-child(5)"},
-    { "depth": 1, "role": "doc-index", "label": null, "selector": "body > div:nth-child(5) > nav:nth-child(6)" },
-    { "depth": 1, "role": "doc-credits", "label": null, "selector": "body > div:nth-child(5) > div:nth-child(7)" },
-    { "depth": 1, "role": "doc-errata", "label": null, "selector": "body > div:nth-child(5) > div:nth-child(8)" },
-    { "depth": 1, "role": "doc-appendix", "label": "Technical specification", "selector": "body > div:nth-child(5) > div:nth-child(9)"},
-    { "depth": 1, "role": "doc-appendix", "label": "Detailed schematics", "selector": "body > div:nth-child(5) > div:nth-child(10)" }
+    {
+      "depth": 0,
+      "role": "doc-part",
+      "label": "Frontmatter",
+      "selector": "body > div:nth-child(3)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-toc",
+      "label": null,
+      "selector": "body > div:nth-child(3) > nav:nth-child(1)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-pagelist",
+      "label": null,
+      "selector": "body > div:nth-child(3) > nav:nth-child(2)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-preface",
+      "label": null,
+      "selector": "body > div:nth-child(3) > div:nth-child(3)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-foreword",
+      "label": null,
+      "selector": "body > div:nth-child(3) > div:nth-child(4)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-acknowledgements",
+      "label": null,
+      "selector": "body > div:nth-child(3) > div:nth-child(5)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-prologue",
+      "label": null,
+      "selector": "body > div:nth-child(3) > div:nth-child(6)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-introduction",
+      "label": null,
+      "selector": "body > div:nth-child(3) > div:nth-child(7)"
+    },
+    {
+      "depth": 0,
+      "role": "doc-part",
+      "label": "Mainmatter",
+      "selector": "body > div:nth-child(4)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-chapter",
+      "label": "Beginnings",
+      "selector": "body > div:nth-child(4) > section:nth-child(1)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-chapter",
+      "label": "Middles",
+      "selector": "body > div:nth-child(4) > section:nth-child(2)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-chapter",
+      "label": "Endings",
+      "selector": "body > div:nth-child(4) > section:nth-child(3)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-conclusion",
+      "label": null,
+      "selector": "body > div:nth-child(4) > section:nth-child(4)"
+    },
+    {
+      "depth": 0,
+      "role": "doc-part",
+      "label": "Backmatter",
+      "selector": "body > div:nth-child(5)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-epilogue",
+      "label": null,
+      "selector": "body > div:nth-child(5) > div:nth-child(1)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-afterword",
+      "label": null,
+      "selector": "body > div:nth-child(5) > div:nth-child(2)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-endnotes",
+      "label": null,
+      "selector": "body > div:nth-child(5) > div:nth-child(3)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-bibliography",
+      "label": "References",
+      "selector": "body > div:nth-child(5) > div:nth-child(4)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-glossary",
+      "label": null,
+      "selector": "body > div:nth-child(5) > dl:nth-child(5)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-index",
+      "label": null,
+      "selector": "body > div:nth-child(5) > nav:nth-child(6)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-credits",
+      "label": null,
+      "selector": "body > div:nth-child(5) > div:nth-child(7)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-errata",
+      "label": null,
+      "selector": "body > div:nth-child(5) > div:nth-child(8)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-appendix",
+      "label": "Technical specification",
+      "selector": "body > div:nth-child(5) > div:nth-child(9)"
+    },
+    {
+      "depth": 1,
+      "role": "doc-appendix",
+      "label": "Detailed schematics",
+      "selector": "body > div:nth-child(5) > div:nth-child(10)"
+    }
   ]
 }
