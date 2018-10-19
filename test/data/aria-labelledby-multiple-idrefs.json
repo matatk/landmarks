@@ -4,31 +4,31 @@
       "depth": 0,
       "role": "banner",
       "label": null,
-      "selector": "header"
+      "selector": "body header"
     },
     {
       "depth": 1,
       "role": "navigation",
       "label": "World of wombats",
-      "selector": "header nav"
+      "selector": "body header nav"
     },
     {
       "depth": 0,
       "role": "main",
       "label": "Looking after your wombat",
-      "selector": "main"
+      "selector": "body main"
     },
     {
       "depth": 1,
       "role": "navigation",
       "label": "Looking after your wombat Topics",
-      "selector": "main nav:nth-child(2)"
+      "selector": "body main nav:nth-child(2)"
     },
     {
       "depth": 0,
       "role": "contentinfo",
       "label": null,
-      "selector": "footer"
+      "selector": "body footer"
     }
   ]
 }

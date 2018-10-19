@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "region",
       "label": "A Good Region",
-      "selector": "div"
+      "selector": "body div"
     }
   ]
 }

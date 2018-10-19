@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "region",
       "label": "Naughty invisible label",
-      "selector": "section"
+      "selector": "body section"
     }
   ]
 }

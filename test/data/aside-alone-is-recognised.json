@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "complementary",
       "label": null,
-      "selector": "aside"
+      "selector": "body aside"
     }
   ]
 }

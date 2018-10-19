@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "form",
       "label": "Contact Us",
-      "selector": "form"
+      "selector": "body form"
     }
   ]
 }

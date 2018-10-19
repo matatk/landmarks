@@ -4,7 +4,7 @@
       "depth": 0,
       "role": "main",
       "label": null,
-      "selector": "main"
+      "selector": "body main"
     }
   ]
 }

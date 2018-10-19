@@ -278,7 +278,7 @@ export default function LandmarksFinder(win, doc) {
 		const reversePath = []
 		let node = element
 
-		while (node.tagName !== 'BODY') {  // FIXME change to HTML
+		while (node.tagName !== 'HTML') {
 			const tag = node.tagName.toLowerCase()
 			const id = node.id
 			const klass = node.classList.length > 0 ? node.classList[0] : null
