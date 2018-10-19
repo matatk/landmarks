@@ -104,6 +104,7 @@ export default function LandmarksFinder(win, doc) {
 			element: currentlySelectedElement,
 			role: landmarks[index].role,
 			label: landmarks[index].label
+			// No need to send the selector this time
 		}
 	}
 
@@ -288,18 +289,24 @@ export default function LandmarksFinder(win, doc) {
 			if (id) {
 				description = '#' + id
 			} else {
+				// If the element tag is not unique amongst its siblings, then
+				// we'll need to include an nth-child bit on the end of the
+				// selector part for this element.
 				const siblingElementTagNames =
 					Array.from(node.parentNode.children, x => x.tagName)
 				const uniqueSiblingElementTagNames =
 					[...new Set(siblingElementTagNames)]  // Array API is neater
 
+				// Include element's class if need be.
+				// TODO this probably isn't needed as we have nth-child.
 				if (klass) {
 					description = tag + '.' + klass
 				} else {
 					description = tag
 				}
 
-				if (siblingElementTagNames.length > uniqueSiblingElementTagNames.length) {
+				if (siblingElementTagNames.length
+					> uniqueSiblingElementTagNames.length) {
 					const siblingNumber =
 						Array.prototype.indexOf.call(
 							node.parentNode.children, node) + 1
@@ -333,7 +340,7 @@ export default function LandmarksFinder(win, doc) {
 			depth: landmark.depth,
 			role: landmark.role,
 			label: landmark.label,
-			selector: landmark.selector  // TODO update docs if keeping this
+			selector: landmark.selector
 		}))
 	}
 
@@ -341,7 +348,6 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	// FIXME update comment if need be
 	// These all return elements and their public-facing info:
 	// { element: <HTMLElement>, role: <string>, label: <string> }
 
