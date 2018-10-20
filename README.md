@@ -216,7 +216,7 @@ Changes
 -   2.4.0 - in development
     -   Show the current keyboard commands on the splash page and allow the user to update them on Chrome and Opera. \[[\#187](https://github.com/matatk/landmarks/pull/187)\]
     -   Offer an optional sidebar instead of the pop-up on Firefox and Opera. \[[\#188](https://github.com/matatk/landmarks/pull/188), [\#199](https://github.com/matatk/landmarks/pull/199)\]
-    -   Provide a Developer Tools panel that allows landmark elements to be inspected in the DOM viewer. This also entailed re-writing the internal communications between parts of Landmarks to use ports instead of one-time messages. \[[\#2xx](https://github.com/matatk/landmarks/pull/2xx)\]
+    -   Provide a Developer Tools panel that allows landmark elements to be inspected in the DOM viewer. This also entailed re-writing the internal communications between parts of Landmarks to use ports instead of one-time messages. \[[\#204](https://github.com/matatk/landmarks/pull/204)\]
 	-   Massive re-organisation of the code to make it easier to manage and accommodate and take advantage of cross-browser differences. \[[\#191](https://github.com/matatk/landmarks/pull/191)\]
 -   2.3.1 - 9th of June 2018
     -   Support multiple labelling elements when `aria-labelledby` is used. \[[\#176](https://github.com/matatk/landmarks/pull/176)\]
