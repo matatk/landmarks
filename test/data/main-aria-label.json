@@ -3,7 +3,8 @@
     {
       "depth": 0,
       "role": "main",
-      "label": "Slartibartfast"
+      "label": "Slartibartfast",
+      "selector": "body > main"
     }
   ]
 }

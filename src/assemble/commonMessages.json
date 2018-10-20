@@ -41,24 +41,19 @@
     "message": "Landmarks on page"
   },
 
-  "errorWord": {
-    "message": "Error"
-  },
-
   "errorNoConnection": {
     "message": "Landmarks cannot run on this page."
-  },
-
-  "errorGettingLandmarksFromContentScript": {
-    "message": "Sorry, there was an error when trying to find landmarks"
   },
 
   "noLandmarksFound": {
     "message": "No landmarks found"
   },
 
-  "tryReloading": {
-    "message": "Try reloading the page"
+
+
+
+  "inspectButtonName": {
+    "message": "Inspect"
   },
 
 
@@ -205,5 +200,12 @@
 
   "roleToc": {
     "message": "Table of contents"
+  },
+
+
+
+
+  "devToolsConnectionError": {
+    "message": "This DevTools frame has become disconnected, probably due to reloading the extension. You'll need to reload this frame for it to recieve landmark updates again."
   }
 }

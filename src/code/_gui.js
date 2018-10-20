@@ -1,8 +1,10 @@
+// FIXME on Firefox when the extension is reloaded when the sidear is open, it breaks.
 import './compatibility'
-import sendToActiveTab from './sendToActiveTab'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
+import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
+let port = null
 
 //
 // Creating a landmarks tree in response to info from content script
@@ -13,39 +15,23 @@ import { defaultInterfaceSettings, dismissalStates } from './defaults'
 // If there are landmarks, then the response will be a list of objects that
 // represent the landmarks.
 //
-//     [ { label: X, role: Y, depth: Z }, { . . . }, . . . ]
+//     [ { label: X, role: Y, depth: Z, selector: @ }, { . . . }, . . . ]
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksResponse(response) {
+function handleLandmarksMessage(data) {
 	const display = document.getElementById('landmarks')
 	removeChildNodes(display)
 
-	// There is no connection from us to the current page; this means we must
-	// be running on a forbidden page.
-	if (response === undefined && browser.runtime.lastError) {
-		addText(display, 'errorNoConnection')
-		return
-	}
-
-	// TODO: Not sure what may cause this condition to occur, given the above.
-	if (browser.runtime.lastError) {
-		addText(display,
-			browser.i18n.getMessage('errorGettingLandmarksFromContentScript')
-		)
-		addReloadButton(display)
-		return
-	}
-
 	// Content script would normally send back an array of landmarks
-	if (Array.isArray(response)) {
-		if (response.length === 0) {
+	if (Array.isArray(data)) {
+		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 		} else {
-			makeLandmarksTree(response, display)
+			makeLandmarksTree(data, display)
 		}
 	} else {
-		addText(display, errorString() + 'content script sent: ' + response)
+		addText(display, browser.i18n.getMessage('errorNoConnection'))
 	}
 }
 
@@ -86,13 +72,28 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		const button = document.createElement('button')
-		button.className = 'browser-style'
-		button.appendChild(document.createTextNode(landmarkName(landmark)))
-		button.addEventListener('click', function() {
-			focusLandmark(index)
-		})
+		const button = makeButtonAlreadyTranslated(
+			function() {
+				focusLandmark(index)
+			},
+			landmarkName(landmark))
 		item.appendChild(button)
+
+		if (INTERFACE === 'devtools') {
+			const inspectButton = makeSymbolButton(
+				function() {
+					const inspectorCall = "inspect(document.querySelector('"
+						+ landmark.selector  // comes from our own code
+						+ "'))"
+					browser.devtools.inspectedWindow.eval(inspectorCall)
+				},
+				'inspectButtonName',
+				'🔍',
+				landmarkName(landmark))
+			inspectButton.title = landmark.selector
+			item.appendChild(inspectButton)
+		}
+
 		base.appendChild(item)  // add to current base
 
 		// Housekeeping
@@ -123,21 +124,31 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeButton(nameMessage, onClick) {
-	const button = document.createElement('button')
-	button.className = 'browser-style'
-	button.appendChild(document.createTextNode(
-		browser.i18n.getMessage(nameMessage)))
-	button.onclick = onClick
-	return button
+function makeButton(onClick, nameMessage) {
+	return makeButtonAlreadyTranslated(
+		onClick,
+		browser.i18n.getMessage(nameMessage))
 }
 
-// Create a button that reloads the current page and add it to an element
-// (Needs to be done this way to avoid CSP violation)
-// TODO will this be needed?
-function addReloadButton(element) {
-	const button = makeButton('tryReloading', reloadActivePage)
-	element.appendChild(button)
+function makeSymbolButton(onClick, nameMessage, symbol, context) {
+	return makeButtonAlreadyTranslated(
+		onClick,
+		browser.i18n.getMessage(nameMessage),
+		symbol,
+		context)
+}
+
+function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
+	const button = document.createElement('button')
+	button.className = 'browser-style'
+	button.appendChild(document.createTextNode(symbol ? symbol : name))
+	if (symbol) {
+		button.setAttribute('aria-label', name + ' ' + context)
+		button.style.border = 'none'
+		button.style.background = 'none'
+	}
+	button.onclick = onClick
+	return button
 }
 
 
@@ -147,36 +158,21 @@ function addReloadButton(element) {
 
 // When a landmark's corresponding button in the UI is clicked, focus it
 function focusLandmark(index) {
-	sendToActiveTab({
-		request: 'focus-landmark',
+	port.postMessage({
+		name: 'focus-landmark',
 		index: index
 	})
 }
 
-// Function to reload the page in the current tab
-function reloadActivePage() {
-	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		browser.tabs.reload(tabs[0].tabId)
-	})
-	window.close()  // TODO not good for sidebar? + as above: when does this happen?
-}
-
-// Return localised "Error: " string
-function errorString() {
-	return browser.i18n.getMessage('errorWord') + ': '
-}
-
-
-//
-// Management
-//
-
-// Send a message to ask for the latest landmarks
-function requestLandmarks() {
-	sendToActiveTab({ request: 'get-landmarks' }, handleLandmarksResponse)
-}
 
 if (INTERFACE === 'sidebar') {
+	//
+	// Sidebar - Live updates and Preferences note
+	//
+
+	// The sidebar can be open even if the user has chosen the pop-up as the
+	// primary GUI for Landmarks. In this case, a note can be created in the
+	// sidebar to explain this to the user.
 	const noteId = 'note'
 
 	function createNote() {  // eslint-disable-line no-inner-declarations
@@ -187,19 +183,20 @@ if (INTERFACE === 'sidebar') {
 					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
 
 				const optionsButton = makeButton(
-					'hintSidebarIsNotPrimaryOptions',
 					function() {
 						browser.runtime.openOptionsPage()
-					})
+					},
+					'hintSidebarIsNotPrimaryOptions')
 
-				const dismissButton = makeButton('hintDismiss',
+				const dismissButton = makeButton(
 					function() {
 						browser.storage.sync.set({
 							dismissedSidebarNotAlone: true
 						}, function() {
 							removeNote()
 						})
-					})
+					},
+					'hintDismiss')
 
 				// Contains buttons; allows for them to be flexbox'd
 				const buttons = document.createElement('div')
@@ -221,26 +218,14 @@ if (INTERFACE === 'sidebar') {
 		if (message) message.remove()
 	}
 
-	// We may be running in a sidebar, in which case listen for requests to update
-	browser.runtime.onMessage.addListener(function(message) {
-		switch (message.request) {
-			case 'update-sidebar':
-			case 'update-badge':  // TODO could happen when pop-up open?
-				requestLandmarks()
-				break
-		}
-	})
-
+	// Should we create the note in the sidebar when it opens?
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 		if (items.interface === 'popup') {
 			createNote()
 		}
 	})
 
-	// The sidebar may be open whilst the user interface setting is changed. This
-	// relies on the fact that the popup can't be open when the user is making
-	// these changes. We don't react to the value of this preference on load for
-	// the same reason -- that would require knowing if we are the sidebar or not.
+	// What about if the sidebar is open and the user changes their preference?
 	browser.storage.onChanged.addListener(function(changes) {
 		if (changes.hasOwnProperty('interface')) {
 			switch (changes.interface.newValue) {
@@ -249,11 +234,16 @@ if (INTERFACE === 'sidebar') {
 				case 'popup': createNote()
 					break
 				default:
-					throw Error(`Unknown interface type "${changes.interface.newValue}`)  // FIXME DRY-ish (at least the error message?)
+					throw Error(`Unknown interface type "${changes.interface.newValue}`)
 			}
 		}
 	})
 }
+
+
+//
+// Management
+//
 
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
@@ -262,5 +252,41 @@ document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
 
-	requestLandmarks()
+	if (INTERFACE === 'devtools') {
+		port = browser.runtime.connect({ name: INTERFACE })
+		port.postMessage({
+			name: 'init',
+			tabId: browser.devtools.inspectedWindow.tabId
+		})
+	} else {
+		port = browser.runtime.connect({ name: INTERFACE })
+	}
+
+	port.onDisconnect.addListener(function() {
+		disconnectingPortErrorCheck()
+		if (INTERFACE === 'devtools'
+			&& (BROWSER === 'chrome' || BROWSER === 'opera')) {
+			// DevTools page doesn't get reloaded when the extension does
+			const para = document.createElement('p')
+			const warning = document.createTextNode(
+				browser.i18n.getMessage('devToolsConnectionError'))
+			para.appendChild(warning)
+			document.body.insertBefore(para,
+				document.querySelector('h1').nextSibling)
+			document.body.style.backgroundColor = '#fee'
+			// TODO make this use the note styles; will need some refactoring
+		}
+	})
+
+	port.onMessage.addListener(function(message) {
+		switch (message.name) {
+			case 'landmarks':
+				handleLandmarksMessage(message.data)
+				break
+			default:
+				throw Error(`Unkown message ${JSON.stringify(message)}`)
+		}
+	})
+
+	port.postMessage({ name: 'get-landmarks' })
 })

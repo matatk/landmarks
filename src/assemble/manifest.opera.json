@@ -13,7 +13,7 @@
 
   "sidebar_action": {
     "default_title": "Landmarks",
-    "default_panel": "panel.html",
+    "default_panel": "sidebarPanel.html",
     "default_icon": {
       "19": "landmarks-19.png",
       "38": "landmarks-38.png"
@@ -26,5 +26,7 @@
 
   "minimum_opera_version": "44",
 
-  "permissions": ["<all_urls>"]
+  "permissions": ["<all_urls>"],
+
+  "devtools_page": "devtools.html"
 }

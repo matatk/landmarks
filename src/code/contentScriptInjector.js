@@ -13,7 +13,7 @@ if (BROWSER !== 'firefox') {
 					// least with unpacked extensions, and performing this
 					// check is cricket anyway.)
 					let skipThisTab = false
-					for (const specialPage of specialPages) {
+					for (const specialPage of specialPages) {  // TODO DRY
 						if (specialPage.test(tabs[i].url)) {
 							skipThisTab = true
 							break

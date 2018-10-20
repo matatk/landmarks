@@ -104,6 +104,7 @@ export default function LandmarksFinder(win, doc) {
 			element: currentlySelectedElement,
 			role: landmarks[index].role,
 			label: landmarks[index].label
+			// No need to send the selector this time
 		}
 	}
 
@@ -144,7 +145,8 @@ export default function LandmarksFinder(win, doc) {
 						'depth': depth,
 						'role': role,
 						'label': label,
-						'element': elementChild
+						'element': elementChild,
+						'selector': createSelector(elementChild)
 					})
 
 					// Was this element selected before we were called (i.e.
@@ -273,6 +275,54 @@ export default function LandmarksFinder(win, doc) {
 		return false
 	}
 
+	function createSelector(element) {
+		const reversePath = []
+		let node = element
+
+		while (node.tagName !== 'HTML') {
+			const tag = node.tagName.toLowerCase()
+			const id = node.id
+			const klass = node.classList.length > 0 ? node.classList[0] : null
+
+			let description
+
+			if (id) {
+				description = '#' + id
+			} else {
+				// If the element tag is not unique amongst its siblings, then
+				// we'll need to include an nth-child bit on the end of the
+				// selector part for this element.
+				const siblingElementTagNames =
+					Array.from(node.parentNode.children, x => x.tagName)
+				const uniqueSiblingElementTagNames =
+					[...new Set(siblingElementTagNames)]  // Array API is neater
+
+				// Include element's class if need be.
+				// TODO this probably isn't needed as we have nth-child.
+				if (klass) {
+					description = tag + '.' + klass
+				} else {
+					description = tag
+				}
+
+				if (siblingElementTagNames.length
+					> uniqueSiblingElementTagNames.length) {
+					const siblingNumber =
+						Array.prototype.indexOf.call(
+							node.parentNode.children, node) + 1
+
+					description += ':nth-child(' + siblingNumber + ')'
+				}
+			}
+
+			reversePath.push(description)
+			if (id) break
+			node = node.parentNode
+		}
+
+		return reversePath.reverse().join(' > ')
+	}
+
 
 	//
 	// Public API
@@ -289,7 +339,8 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
-			label: landmark.label
+			label: landmark.label,
+			selector: landmark.selector
 		}))
 	}
 
@@ -298,7 +349,7 @@ export default function LandmarksFinder(win, doc) {
 	}
 
 	// These all return elements and their public-facing info:
-	// { element: HTMLElement, role: <string>, label: <string> }
+	// { element: <HTMLElement>, role: <string>, label: <string> }
 
 	this.getNextLandmarkElementRoleLabel = function() {
 		return updateSelectedIndexAndReturnElementInfo(

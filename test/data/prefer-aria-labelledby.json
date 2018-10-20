@@ -3,7 +3,8 @@
     {
       "depth": 0,
       "role": "main",
-      "label": "Kate"
+      "label": "Kate",
+      "selector": "body > main"
     }
   ]
 }

@@ -1,8 +1,8 @@
-'use strict'
+import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 // FIXME localise (remember: table headings, button contents, ...)
 // FIXME what to do when content script is re-loaded and disconnected in Blink
 
-const chromeLike = window.chrome ? true : false
+let port
 
 const splashPage = {
 	contains: [
@@ -26,8 +26,8 @@ const chromeKeyboardShortcutsButton = {
 		content: 'Add or change shortcuts',
 		listen: {
 			event: 'click',
-			handler: () => browser.runtime.sendMessage({
-				request: 'splash-open-configure-shortcuts'
+			handler: () => port.postMessage({
+				name: 'splash-open-configure-shortcuts'
 			})
 		}
 	}]
@@ -76,7 +76,7 @@ function addCommandRowAndReportIfMissing(command) {
 
 	if (command.name === '_execute_browser_action') {
 		action = 'Show pop-up'
-	} else if (chromeLike) {
+	} else if (BROWSER === 'chrome' || BROWSER === 'opera') {
 		// Chrome returns the full descriptions
 		action = command.description
 	} else {
@@ -90,7 +90,7 @@ function addCommandRowAndReportIfMissing(command) {
 
 	if (command.shortcut) {
 		// Firefox gives "Alt+Shift+N" but Chrome gives ⌥⇧N
-		if (chromeLike) {
+		if (BROWSER === 'chrome' || BROWSER === 'opera') {
 			shortcutCellElement = { element: 'td', contains: [
 				{ element: 'kbd', content: command.shortcut }
 			]}
@@ -131,8 +131,8 @@ function firefoxShortcutElements(shortcut) {
 }
 
 
-browser.runtime.onMessage.addListener(function(message) {
-	if (message.request !== 'splash-populate-commands') return
+function messageHandler(message) {  // also sendingPort
+	if (message.name !== 'splash-populate-commands') return
 
 	// Chrome allows only four keyboard shortcuts to be specified in the
 	// manifest; Firefox allows many.
@@ -148,7 +148,7 @@ browser.runtime.onMessage.addListener(function(message) {
 	//
 	// What is a bit odd is that, on Chrome, it appears the reversal is not
 	// needed.
-	const commandsInOrder = chromeLike ?
+	const commandsInOrder = (BROWSER === 'chrome' || BROWSER === 'opera') ?
 		message.commands : message.commands.reverse()
 
 	for (const command of commandsInOrder) {
@@ -160,8 +160,9 @@ browser.runtime.onMessage.addListener(function(message) {
 		contains: shortcutTableRows
 	})
 
-	if (chromeLike) splashPage.contains.push(chromeKeyboardShortcutsButton)
-
+	if (BROWSER === 'chrome' || BROWSER === 'opera') {
+		splashPage.contains.push(chromeKeyboardShortcutsButton)
+	}
 
 	// Create new bits
 
@@ -171,7 +172,7 @@ browser.runtime.onMessage.addListener(function(message) {
 
 	parent.insertBefore(
 		makePart(splashPage, splashContainer), heading.nextSibling)
-})
+}
 
 
 function main() {
@@ -204,11 +205,10 @@ function main() {
 	}
 
 	// Kickstart process to get commands and create new HTML
-
-	browser.runtime.sendMessage({
-		request: 'get-commands'
-	})
+	port = browser.runtime.connect({ name: 'splash' })
+	port.onDisconnect.addListener(disconnectingPortErrorCheck)
+	port.onMessage.addListener(messageHandler)
+	port.postMessage({ name: 'get-commands' })
 }
-
 
 main()

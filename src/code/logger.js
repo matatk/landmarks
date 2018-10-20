@@ -1,20 +1,21 @@
+import { defaultDebugSettings } from './defaults'
+
 export default function Logger() {
 	const that = this
+	const messagesReceivedDuringInit = []
 
-	function getDebugInfoOption(callback) {
-		browser.storage.sync.get({
-			debugInfo: false
-		}, function(items) {
-			// We only define the log() function after successfully initing, so
-			// as to trap any errant uses of the logger.
+	this.log = function() {
+		const args = ['Queued message:'].concat(Array.from(arguments))
+		messagesReceivedDuringInit.push(args)
+	}
+
+	function getDebugInfoOption() {
+		browser.storage.sync.get(defaultDebugSettings, function(items) {
 			handleOptionsChange({
 				debugInfo: {
 					newValue: items.debugInfo
 				}
 			})
-			if (callback) {
-				callback()
-			}
 		})
 	}
 
@@ -24,18 +25,26 @@ export default function Logger() {
 			// https://stackoverflow.com/a/32928812/1485308
 			// https://stackoverflow.com/a/28668819/1485308
 			if (changes.debugInfo.newValue === true) {
+				// We may have messages queued from whilst we were waiting for
+				// the browser to retreive the user's preference
+				if (messagesReceivedDuringInit.length > 0) {
+					for (const messageArgs of messagesReceivedDuringInit) {
+						console.log.apply(null, messageArgs)
+					}
+					messagesReceivedDuringInit.length = 0
+				}
 				that.log = console.log.bind(window.console)
 			} else {
+				// We may have messages queued from whilst we were waiting for
+				// the browser to retreive the user's preference
+				if (messagesReceivedDuringInit.length > 0) {
+					messagesReceivedDuringInit.length = 0
+				}
 				that.log = function() {}
 			}
 		}
 	}
 
-	// We may wish to log messages right way, but the call to get the user
-	// setting is asynchronous. Therefore, we need to pass our bootstrapping
-	// code as a callback that is run when the option has been fetched.
-	this.init = function(callback) {
-		getDebugInfoOption(callback)
-		browser.storage.onChanged.addListener(handleOptionsChange)
-	}
+	getDebugInfoOption()
+	browser.storage.onChanged.addListener(handleOptionsChange)
 }

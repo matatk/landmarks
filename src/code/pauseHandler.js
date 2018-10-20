@@ -72,7 +72,7 @@ export default function PauseHandler(logger) {
 			increasePause()
 			logger.log('Scheduling scan in:', pause)
 			setTimeout(() => {
-				logger.log('SCAN as scheduled')
+				logger.log('Scan as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
