@@ -247,8 +247,7 @@ if (INTERFACE === 'sidebar') {
 
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
-// FIXME https://github.com/matatk/landmarks/issues/192
-document.addEventListener('DOMContentLoaded', function() {
+function main() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
 
@@ -289,4 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	})
 
 	port.postMessage({ name: 'get-landmarks' })
-})
+}
+
+main()

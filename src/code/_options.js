@@ -92,6 +92,6 @@ function resetMessages() {
 	}
 }
 
-document.addEventListener('DOMContentLoaded', translateStuff)
-document.addEventListener('DOMContentLoaded', restoreOptions)
-document.addEventListener('DOMContentLoaded', setUpOptionHandlers)
+translateStuff()
+restoreOptions()
+setUpOptionHandlers()
