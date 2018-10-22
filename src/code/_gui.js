@@ -1,4 +1,3 @@
-// FIXME on Firefox when the extension is reloaded when the sidear is open, it breaks.
 import './compatibility'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
