@@ -298,14 +298,14 @@ function copyGuiFiles(browser) {
 
 function mergeMessages(browser) {
 	logStep('Merging messages JSON files')
-	const common = path.join(srcAssembleDir, 'commonMessages.json')
+	const common = path.join(srcAssembleDir, 'messages.common.json')
 	const destinationDir = path.join(pathToBuild(browser), localeSubPath)
 	const destinationFile = path.join(pathToBuild(browser), messagesSubPath)
 
 	fse.ensureDirSync(destinationDir)
 
 	if (browser === 'firefox' || browser === 'opera') {
-		const ui = path.join(srcAssembleDir, 'interfaceMessages.json')
+		const ui = path.join(srcAssembleDir, 'messages.interface.json')
 		const commonJson = require('../' + common)  // TODO check Windows
 		const uiJson = require('../' + ui)          // TODO check Windows
 		const merged = merge(commonJson, uiJson)
