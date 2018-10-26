@@ -65,101 +65,99 @@ function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 // Setting up and handling connections
 //
 
-browser.runtime.onConnect.addListener(function(connectingPort) {
-	// Disconnection management
+// Disconnection management
 
-	function contentDisconnect(disconnectingPort) {
-		logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
-		disconnectingPortErrorCheck(disconnectingPort)
-		delete contentConnections[disconnectingPort.sender.tab.id]
+function contentDisconnect(disconnectingPort) {
+	logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
+	disconnectingPortErrorCheck(disconnectingPort)
+	delete contentConnections[disconnectingPort.sender.tab.id]
+}
+
+function devtoolsDisconnect(tabId) {
+	logger.log(`DevTools page for tab ${tabId} disconnected`)
+	delete devtoolsConnections[tabId]
+}
+
+// Message listeners
+
+function contentListener(message, sendingPort) {
+	const tabId = sendingPort.sender.tab.id
+
+	switch (message.name) {
+		case 'landmarks':
+			logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
+			sendLandmarksToGUIs(tabId, message)
+			updateBrowserActionBadge(tabId, message.data.length)
+			break
+		default:
+			throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
 	}
+}
 
-	const devtoolsDisconnect =
-		(BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera')
-			? function devtoolsDisconnect(tabId) {
-				logger.log(`DevTools page for tab ${tabId} disconnected`)
-				delete devtoolsConnections[tabId]
-			}
-			: null
+function popupAndSidebarListener(message) {  // also gets: sendingPort
+	switch (message.name) {
+		case 'get-landmarks':
+			logger.log('Popup or sidebar requested landmarks')
+			getLandmarksForActiveTab()
+			break
+		case 'focus-landmark':
+			sendToActiveContentScriptIfExists(message)
+			break
+		default:
+			throw Error(`Unknown message ${JSON.stringify(message)} from popup or sidebar`)
+	}
+}
 
-
-	// Message listeners
-
-	function contentListener(message, sendingPort) {
-		const tabId = sendingPort.sender.tab.id
-
+function devtoolsListenerMaker(connectingPort) {
+	// DevTools connections come from the DevTools panel, but the panel is
+	// inspecting a particular web page, which has a different tab ID.
+	return function(message) {
 		switch (message.name) {
-			case 'landmarks':
-				logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
-				sendLandmarksToGUIs(tabId, message)
-				updateBrowserActionBadge(tabId, message.data.length)
+			case 'init':
+				logger.log(`DevTools page for tab ${message.tabId} connected`)
+				devtoolsConnections[message.tabId] = connectingPort
+				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
+					disconnectingPortErrorCheck(disconnectingPort)
+					devtoolsDisconnect(message.tabId)
+				})
 				break
-			default:
-				throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
-		}
-	}
-
-	function popupAndSidebarListener(message) {  // also gets: sendingPort
-		switch (message.name) {
 			case 'get-landmarks':
-				logger.log('Popup or sidebar requested landmarks')
+				logger.log('DevTools requested landmarks')
 				getLandmarksForActiveTab()
 				break
 			case 'focus-landmark':
 				sendToActiveContentScriptIfExists(message)
 				break
 			default:
-				throw Error(`Unknown message ${JSON.stringify(message)} from sidebar or popup`)
+				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
 		}
 	}
+}
 
-	const devtoolsListner =
-		(BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera')
-			? function(message) {
-				switch (message.name) {
-					case 'init':
-						logger.log(`DevTools page for tab ${message.tabId} connected`)
-						devtoolsConnections[message.tabId] = connectingPort
-						connectingPort.onDisconnect.addListener(function(disconnectingPort) {
-							disconnectingPortErrorCheck(disconnectingPort)
-							devtoolsDisconnect(message.tabId)
-						})
-						break
-					case 'get-landmarks':
-						logger.log('DevTools requested landmarks')
-						getLandmarksForActiveTab()
-						break
-					case 'focus-landmark':
-						sendToActiveContentScriptIfExists(message)
-						break
-					default:
-						throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
-				}
-			}
-			: null
-
-	function splashListener(message, sendingPort) {
-		switch (message.name) {
-			case 'get-commands':
-				browser.commands.getAll(function(commands) {
-					sendingPort.postMessage({
-						name: 'splash-populate-commands',
-						commands: commands
-					})
+function splashListener(message, sendingPort) {
+	switch (message.name) {
+		case 'get-commands':
+			browser.commands.getAll(function(commands) {
+				sendingPort.postMessage({
+					name: 'splash-populate-commands',
+					commands: commands
 				})
-				break
-			case 'splash-open-configure-shortcuts':
-				// This should only appear on Chrome/Opera
-				browser.tabs.create({
-					url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands' : 'opera://settings/configureCommands'
-				})
-				break
-			default:
-				throw Error(`Unkown message from splash: ${JSON.stringify(message)}`)
-		}
+			})
+			break
+		case 'splash-open-configure-shortcuts':
+			// This should only appear on Chrome/Opera
+			browser.tabs.create({
+				url: BROWSER === 'chrome'
+					? 'chrome://extensions/configureCommands'
+					: 'opera://settings/configureCommands'
+			})
+			break
+		default:
+			throw Error(`Unknown message from splash: ${JSON.stringify(message)}`)
 	}
+}
 
-
+browser.runtime.onConnect.addListener(function(connectingPort) {
 	// Connection management
 
 	switch (connectingPort.name) {
@@ -171,7 +169,8 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 			break
 		case 'devtools':
 			if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
-				connectingPort.onMessage.addListener(devtoolsListner)
+				connectingPort.onMessage.addListener(
+					devtoolsListenerMaker(connectingPort))
 			}
 			break
 		case 'popup':
