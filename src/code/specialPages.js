@@ -1,28 +1,18 @@
-let specialPages
-
-switch (BROWSER) {
-	case 'firefox':
-		specialPages = Object.freeze([
-			/^https:\/\/addons.mozilla.org/
-		])
-		break
-	case 'chrome':
-		specialPages = Object.freeze([
-			/^https:\/\/chrome.google.com\/webstore/
-		])
-		break
-	case 'opera':
-		specialPages = Object.freeze([
-			/^https:\/\/addons.opera.com/
-		])
-		break
-	case 'edge':
-		specialPages = Object.freeze([
-			/^https:\/\/www.microsoft.com\/*?\/store/
-		])
-		break
-	default:
-		throw Error(`Landmarks: invalid browser ${BROWSER} given.`)
-}
+/* eslint-disable indent */
+const specialPages
+	= BROWSER === 'firefox' ? Object.freeze([
+		/^https:\/\/addons.mozilla.org/
+	])
+	: BROWSER === 'chrome' ? Object.freeze([
+		/^https:\/\/chrome.google.com\/webstore/
+	])
+	: BROWSER === 'opera' ? Object.freeze([
+		/^https:\/\/addons.opera.com/
+	])
+	: BROWSER === 'edge' ? Object.freeze([
+		/^https:\/\/www.microsoft.com\/*?\/store/
+	])
+	: null
+/* eslint-enable indent */
 
 export default specialPages
