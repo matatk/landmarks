@@ -9,7 +9,7 @@ const logger = new Logger()
 
 const contentConnections = {}
 const devtoolsConnections = {}
-let sidebarConnection = null  // FIXME appears in Chrome; need to remove null?
+let sidebarConnection = null
 let popupConnection = null
 let activeTabId = null
 
@@ -19,12 +19,18 @@ let activeTabId = null
 //
 
 function sendLandmarksToGUIs(fromTabId, message) {
-	if (popupConnection) popupConnection.postMessage(message)
-	if (sidebarConnection && fromTabId === activeTabId) {
-		sidebarConnection.postMessage(message)
+	if (popupConnection) {
+		popupConnection.postMessage(message)
 	}
-	if (devtoolsConnections.hasOwnProperty(fromTabId)) {
-		devtoolsConnections[fromTabId].postMessage(message)
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (sidebarConnection && fromTabId === activeTabId) {
+			sidebarConnection.postMessage(message)
+		}
+	}
+	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+		if (devtoolsConnections.hasOwnProperty(fromTabId)) {
+			devtoolsConnections[fromTabId].postMessage(message)
+		}
 	}
 }
 
@@ -68,10 +74,13 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 		delete contentConnections[disconnectingPort.sender.tab.id]
 	}
 
-	function devtoolsDisconnect(tabId) {
-		logger.log(`DevTools page for tab ${tabId} disconnected`)
-		delete devtoolsConnections[tabId]
-	}
+	const devtoolsDisconnect =
+		(BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera')
+			? function devtoolsDisconnect(tabId) {
+				logger.log(`DevTools page for tab ${tabId} disconnected`)
+				delete devtoolsConnections[tabId]
+			}
+			: null
 
 
 	// Message listeners
@@ -104,27 +113,30 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 		}
 	}
 
-	function devtoolsListner(message) {
-		switch (message.name) {
-			case 'init':
-				logger.log(`DevTools page for tab ${message.tabId} connected`)
-				devtoolsConnections[message.tabId] = connectingPort
-				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
-					disconnectingPortErrorCheck(disconnectingPort)
-					devtoolsDisconnect(message.tabId)
-				})
-				break
-			case 'get-landmarks':
-				logger.log('DevTools requested landmarks')
-				getLandmarksForActiveTab()
-				break
-			case 'focus-landmark':
-				sendToActiveContentScriptIfExists(message)
-				break
-			default:
-				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
-		}
-	}
+	const devtoolsListner =
+		(BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera')
+			? function(message) {
+				switch (message.name) {
+					case 'init':
+						logger.log(`DevTools page for tab ${message.tabId} connected`)
+						devtoolsConnections[message.tabId] = connectingPort
+						connectingPort.onDisconnect.addListener(function(disconnectingPort) {
+							disconnectingPortErrorCheck(disconnectingPort)
+							devtoolsDisconnect(message.tabId)
+						})
+						break
+					case 'get-landmarks':
+						logger.log('DevTools requested landmarks')
+						getLandmarksForActiveTab()
+						break
+					case 'focus-landmark':
+						sendToActiveContentScriptIfExists(message)
+						break
+					default:
+						throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
+				}
+			}
+			: null
 
 	function splashListener(message, sendingPort) {
 		switch (message.name) {
@@ -143,7 +155,7 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 				})
 				break
 			default:
-				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
+				throw Error(`Unkown message from splash: ${JSON.stringify(message)}`)
 		}
 	}
 
@@ -158,7 +170,9 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 			connectingPort.onDisconnect.addListener(contentDisconnect)
 			break
 		case 'devtools':
-			connectingPort.onMessage.addListener(devtoolsListner)
+			if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+				connectingPort.onMessage.addListener(devtoolsListner)
+			}
 			break
 		case 'popup':
 			if (popupConnection !== null) {
@@ -171,14 +185,16 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 			})
 			break
 		case 'sidebar':
-			if (sidebarConnection !== null) {
-				throw Error('Existing sidebar connection')
+			if (BROWSER === 'firefox' || BROWSER === 'opera') {
+				if (sidebarConnection !== null) {
+					throw Error('Existing sidebar connection')
+				}
+				sidebarConnection = connectingPort
+				connectingPort.onMessage.addListener(popupAndSidebarListener)
+				connectingPort.onDisconnect.addListener(function() {
+					sidebarConnection = null
+				})
 			}
-			sidebarConnection = connectingPort
-			connectingPort.onMessage.addListener(popupAndSidebarListener)
-			connectingPort.onDisconnect.addListener(function() {
-				sidebarConnection = null
-			})
 			break
 		case 'splash':
 			connectingPort.onMessage.addListener(splashListener)
