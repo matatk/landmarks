@@ -2,11 +2,6 @@ import './compatibility'
 import { defaultSettings, dismissalStates } from './defaults'
 
 const options = [{
-	name: 'interface',
-	element: document.getElementById('landmarks-interface'),
-	property: 'value',
-	change: interfaceExplainer
-},{
 	name: 'borderType',
 	element: document.getElementById('border-type'),
 	property: 'value'
@@ -23,6 +18,15 @@ const options = [{
 	element: document.getElementById('debug-info'),
 	property: 'checked'
 }]
+
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
+	options.push([{
+		name: 'interface',
+		element: document.getElementById('landmarks-interface'),
+		property: 'value',
+		change: interfaceExplainer
+	}])
+}
 
 // Translation
 // http://tumble.jeremyhubert.com/post/7076881720
@@ -72,7 +76,6 @@ function setUpOptionHandlers() {
 	}
 }
 
-// TODO check this doesn't appear on Chrome
 function interfaceExplainer() {
 	const messageName = document
 		.getElementById('landmarks-interface')
@@ -81,7 +84,6 @@ function interfaceExplainer() {
 	explainer.innerText = browser.i18n.getMessage(messageName)
 }
 
-// TODO check this doesn't appear on Chrome
 function resetMessages() {
 	for (const dismissalState in dismissalStates) {
 		browser.storage.sync.set({
