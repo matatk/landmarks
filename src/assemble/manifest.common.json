@@ -29,9 +29,6 @@
   ],
 
   "commands": {
-    "show-all-landmarks": {
-      "description": "__MSG_showAllLandmarksShortcutDescription__"
-    },
     "main-landmark": {
       "suggested_key": {
         "default": "Alt+Shift+M"

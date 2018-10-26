@@ -285,7 +285,6 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'next-landmark':
 		case 'prev-landmark':
 		case 'main-landmark':
-		case 'show-all-landmarks':
 			sendToActiveContentScriptIfExists({ name: command })
 			break
 		default:
