@@ -358,19 +358,17 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeInfo) {
 	activeTabId = activeInfo.tabId
-	if (popupConnection) {
-		getLandmarksForActiveTab()
-	}
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		if (sidebarConnection) {
-			getLandmarksForActiveTab()
-		}
-	}
-	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
-		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
-			getLandmarksForActiveTab()
-		}
-	}
+
+	const get = popupConnection
+		|| ((BROWSER === 'firefox' ||
+			BROWSER === 'opera')
+			&& sidebarConnection)
+		|| ((BROWSER === 'firefox' ||
+			BROWSER === 'chrome' ||
+			BROWSER === 'opera')
+			&& devtoolsConnections.hasOwnProperty(activeTabId))
+
+	if (get) getLandmarksForActiveTab()
 })
 
 
