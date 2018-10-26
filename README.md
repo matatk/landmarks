@@ -243,7 +243,7 @@ Changes
     -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). \[[\#115](https://github.com/matatk/landmarks/pull/115)\]
     -   Use Mozilla's 'addons-linter' to check the built extension. \[[err, also \#111](https://github.com/matatk/landmarks/pull/111)\]
 -   2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
+    -   Landmarks now ignores visually hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
     -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. \[[\#102](https://github.com/matatk/landmarks/pull/102)\]
     -   Correctly restore elements' outlines after they are highlighted. \[[\#94](https://github.com/matatk/landmarks/pull/94)\]
     -   Automatically disable the extension on browsers' extensions store pages. \[[\#97](https://github.com/matatk/landmarks/pull/97)\]
