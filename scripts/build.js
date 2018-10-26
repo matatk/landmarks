@@ -215,7 +215,7 @@ async function flattenCode(browser) {
 					side_effects: true,    // eslint-disable-line camelcase
 					switches: true,
 					unused: true,
-					passes: 2  // stops stray "firefox" string in compatibility
+					passes: 2  // expands env vars, then compresses their code
 				},
 				output: {
 					beautify: true,
