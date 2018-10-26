@@ -1,6 +1,6 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
-import specialPages from './specialPages'
+import isContentScriptablePage from './isContentScriptablePage'
 import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
@@ -319,13 +319,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 })
 
 function checkBrowserActionState(tabId, url) {
-	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
-		for (const specialPage of specialPages) {  // TODO DRY
-			if (specialPage.test(url)) {
-				browser.browserAction.disable(tabId)
-				return
-			}
-		}
+	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)
@@ -424,11 +418,7 @@ if (BROWSER === 'firefox') {
 			const tabId = tabs[i].id
 			const url = tabs[i].url
 
-			if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
-				for (const specialPage of specialPages) {  // TODO DRY
-					if (specialPage.test(url)) return
-				}
-
+			if (isContentScriptablePage(url)) {
 				// The page is a page on which Landmarks runs. Let the content
 				// script know that the background page has started up.
 				logger.log(`Sending connection request to tab ${tabId}`)
