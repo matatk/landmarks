@@ -1,6 +1,6 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
-import specialPages from './specialPages'
+import isContentScriptablePage from './isContentScriptablePage'
 import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
@@ -9,7 +9,7 @@ const logger = new Logger()
 
 const contentConnections = {}
 const devtoolsConnections = {}
-let sidebarConnection = null  // FIXME appears in Chrome; need to remove null?
+let sidebarConnection = null
 let popupConnection = null
 let activeTabId = null
 
@@ -19,12 +19,18 @@ let activeTabId = null
 //
 
 function sendLandmarksToGUIs(fromTabId, message) {
-	if (popupConnection) popupConnection.postMessage(message)
-	if (sidebarConnection && fromTabId === activeTabId) {
-		sidebarConnection.postMessage(message)
+	if (popupConnection) {
+		popupConnection.postMessage(message)
 	}
-	if (devtoolsConnections.hasOwnProperty(fromTabId)) {
-		devtoolsConnections[fromTabId].postMessage(message)
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (sidebarConnection && fromTabId === activeTabId) {
+			sidebarConnection.postMessage(message)
+		}
+	}
+	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+		if (devtoolsConnections.hasOwnProperty(fromTabId)) {
+			devtoolsConnections[fromTabId].postMessage(message)
+		}
 	}
 }
 
@@ -59,52 +65,53 @@ function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 // Setting up and handling connections
 //
 
-browser.runtime.onConnect.addListener(function(connectingPort) {
-	// Disconnection management
+// Disconnection management
 
-	function contentDisconnect(disconnectingPort) {
-		logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
-		disconnectingPortErrorCheck(disconnectingPort)
-		delete contentConnections[disconnectingPort.sender.tab.id]
+function contentDisconnect(disconnectingPort) {
+	logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
+	disconnectingPortErrorCheck(disconnectingPort)
+	delete contentConnections[disconnectingPort.sender.tab.id]
+}
+
+function devtoolsDisconnect(tabId) {
+	logger.log(`DevTools page for tab ${tabId} disconnected`)
+	delete devtoolsConnections[tabId]
+}
+
+// Message listeners
+
+function contentListener(message, sendingPort) {
+	const tabId = sendingPort.sender.tab.id
+
+	switch (message.name) {
+		case 'landmarks':
+			logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
+			sendLandmarksToGUIs(tabId, message)
+			updateBrowserActionBadge(tabId, message.data.length)
+			break
+		default:
+			throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
 	}
+}
 
-	function devtoolsDisconnect(tabId) {
-		logger.log(`DevTools page for tab ${tabId} disconnected`)
-		delete devtoolsConnections[tabId]
+function popupAndSidebarListener(message) {  // also gets: sendingPort
+	switch (message.name) {
+		case 'get-landmarks':
+			logger.log('Popup or sidebar requested landmarks')
+			getLandmarksForActiveTab()
+			break
+		case 'focus-landmark':
+			sendToActiveContentScriptIfExists(message)
+			break
+		default:
+			throw Error(`Unknown message ${JSON.stringify(message)} from popup or sidebar`)
 	}
+}
 
-
-	// Message listeners
-
-	function contentListener(message, sendingPort) {
-		const tabId = sendingPort.sender.tab.id
-
-		switch (message.name) {
-			case 'landmarks':
-				logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
-				sendLandmarksToGUIs(tabId, message)
-				updateBrowserActionBadge(tabId, message.data.length)
-				break
-			default:
-				throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
-		}
-	}
-
-	function popupAndSidebarListener(message) {  // also gets: sendingPort
-		switch (message.name) {
-			case 'get-landmarks':
-				logger.log('Popup or sidebar requested landmarks')
-				getLandmarksForActiveTab()
-				break
-			case 'focus-landmark':
-				sendToActiveContentScriptIfExists(message)
-				break
-			default:
-				throw Error(`Unknown message ${JSON.stringify(message)} from sidebar or popup`)
-		}
-	}
-
-	function devtoolsListner(message) {
+function devtoolsListenerMaker(connectingPort) {
+	// DevTools connections come from the DevTools panel, but the panel is
+	// inspecting a particular web page, which has a different tab ID.
+	return function(message) {
 		switch (message.name) {
 			case 'init':
 				logger.log(`DevTools page for tab ${message.tabId} connected`)
@@ -122,32 +129,35 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 				sendToActiveContentScriptIfExists(message)
 				break
 			default:
-				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
+				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
 		}
 	}
+}
 
-	function splashListener(message, sendingPort) {
-		switch (message.name) {
-			case 'get-commands':
-				browser.commands.getAll(function(commands) {
-					sendingPort.postMessage({
-						name: 'splash-populate-commands',
-						commands: commands
-					})
+function splashListener(message, sendingPort) {
+	switch (message.name) {
+		case 'get-commands':
+			browser.commands.getAll(function(commands) {
+				sendingPort.postMessage({
+					name: 'splash-populate-commands',
+					commands: commands
 				})
-				break
-			case 'splash-open-configure-shortcuts':
-				// This should only appear on Chrome/Opera
-				browser.tabs.create({
-					url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands' : 'opera://settings/configureCommands'
-				})
-				break
-			default:
-				throw Error(`Unkown message from devtools: ${JSON.stringify(message)}`)
-		}
+			})
+			break
+		case 'splash-open-configure-shortcuts':
+			// This should only appear on Chrome/Opera
+			browser.tabs.create({
+				url: BROWSER === 'chrome'
+					? 'chrome://extensions/configureCommands'
+					: 'opera://settings/configureCommands'
+			})
+			break
+		default:
+			throw Error(`Unknown message from splash: ${JSON.stringify(message)}`)
 	}
+}
 
-
+browser.runtime.onConnect.addListener(function(connectingPort) {
 	// Connection management
 
 	switch (connectingPort.name) {
@@ -158,7 +168,10 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 			connectingPort.onDisconnect.addListener(contentDisconnect)
 			break
 		case 'devtools':
-			connectingPort.onMessage.addListener(devtoolsListner)
+			if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+				connectingPort.onMessage.addListener(
+					devtoolsListenerMaker(connectingPort))
+			}
 			break
 		case 'popup':
 			if (popupConnection !== null) {
@@ -171,14 +184,16 @@ browser.runtime.onConnect.addListener(function(connectingPort) {
 			})
 			break
 		case 'sidebar':
-			if (sidebarConnection !== null) {
-				throw Error('Existing sidebar connection')
+			if (BROWSER === 'firefox' || BROWSER === 'opera') {
+				if (sidebarConnection !== null) {
+					throw Error('Existing sidebar connection')
+				}
+				sidebarConnection = connectingPort
+				connectingPort.onMessage.addListener(popupAndSidebarListener)
+				connectingPort.onDisconnect.addListener(function() {
+					sidebarConnection = null
+				})
 			}
-			sidebarConnection = connectingPort
-			connectingPort.onMessage.addListener(popupAndSidebarListener)
-			connectingPort.onDisconnect.addListener(function() {
-				sidebarConnection = null
-			})
 			break
 		case 'splash':
 			connectingPort.onMessage.addListener(splashListener)
@@ -270,7 +285,6 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'next-landmark':
 		case 'prev-landmark':
 		case 'main-landmark':
-		case 'show-all-landmarks':
 			sendToActiveContentScriptIfExists({ name: command })
 			break
 		default:
@@ -304,13 +318,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 })
 
 function checkBrowserActionState(tabId, url) {
-	if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
-		for (const specialPage of specialPages) {  // TODO DRY
-			if (specialPage.test(url)) {
-				browser.browserAction.disable(tabId)
-				return
-			}
-		}
+	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)
@@ -350,19 +358,17 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeInfo) {
 	activeTabId = activeInfo.tabId
-	if (popupConnection) {
-		getLandmarksForActiveTab()
-	}
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		if (sidebarConnection) {
-			getLandmarksForActiveTab()
-		}
-	}
-	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
-		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
-			getLandmarksForActiveTab()
-		}
-	}
+
+	const get = popupConnection
+		|| ((BROWSER === 'firefox' ||
+			BROWSER === 'opera')
+			&& sidebarConnection)
+		|| ((BROWSER === 'firefox' ||
+			BROWSER === 'chrome' ||
+			BROWSER === 'opera')
+			&& devtoolsConnections.hasOwnProperty(activeTabId))
+
+	if (get) getLandmarksForActiveTab()
 })
 
 
@@ -409,11 +415,7 @@ if (BROWSER === 'firefox') {
 			const tabId = tabs[i].id
 			const url = tabs[i].url
 
-			if (/^(https?|file):\/\//.test(url)) {  // TODO DRY
-				for (const specialPage of specialPages) {  // TODO DRY
-					if (specialPage.test(url)) return
-				}
-
+			if (isContentScriptablePage(url)) {
 				// The page is a page on which Landmarks runs. Let the content
 				// script know that the background page has started up.
 				logger.log(`Sending connection request to tab ${tabId}`)

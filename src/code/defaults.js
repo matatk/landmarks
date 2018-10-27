@@ -12,43 +12,27 @@ export const defaultDebugSettings = Object.freeze({
 	debugInfo: false
 })
 
-export const defaultInterfaceSettings = Object.freeze({
-	interface: 'popup'
-})
+export const defaultInterfaceSettings =
+	(BROWSER === 'firefox' || BROWSER === 'opera')
+		? Object.freeze({ interface: 'popup' })
+		: null
 
-let _defaultSettings
-
-switch (BROWSER) {
-	case 'firefox':
-	case 'opera':
-		_defaultSettings = Object.freeze(Object.assign({},
+export const defaultSettings =
+	(BROWSER === 'firefox' || BROWSER === 'opera')
+		? Object.freeze(Object.assign({},
 			defaultBorderSettings,
 			defaultDebugSettings,
 			defaultInterfaceSettings))
-		break
-	case 'chrome':
-	case 'edge':
-		_defaultSettings = Object.freeze(Object.assign({},
+		: Object.freeze(Object.assign({},
 			defaultBorderSettings,
 			defaultDebugSettings))
-		break
-	default:
-		throw Error(`Landmarks: invalid browser ${BROWSER} given.`)
-}
-
-export const defaultSettings = _defaultSettings
 
 
 //
 // Dismissal state of user interface messages
 //
 
-let _dismissalStates
-
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	_dismissalStates = Object.freeze({
-		dismissedSidebarNotAlone: false
-	})
-}
-
-export const dismissalStates = _dismissalStates
+export const dismissalStates =
+	(BROWSER === 'firefox' || BROWSER === 'opera')
+		? Object.freeze({ dismissedSidebarNotAlone: false })
+		: null

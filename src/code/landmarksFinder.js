@@ -9,10 +9,10 @@ export default function LandmarksFinder(win, doc) {
 		'banner',
 		'complementary',
 		'contentinfo',
-		'form',           // should label
+		'form',           // spec says should label; Landmarks ignores if not
 		'main',
 		'navigation',
-		'region',         // must label
+		'region',         // spec says must label; Landmarks ignores if not
 		'search',
 
 		// Digital Publishing ARIA module
@@ -119,7 +119,7 @@ export default function LandmarksFinder(win, doc) {
 
 		element.childNodes.forEach(function(elementChild) {
 			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
-				if (isHidden(elementChild)) return
+				if (isVisuallyHidden(elementChild)) return
 
 				// Support HTML5 elements' native roles
 				let role = getRoleFromTagNameAndContainment(elementChild)
@@ -264,7 +264,7 @@ export default function LandmarksFinder(win, doc) {
 		return true
 	}
 
-	function isHidden(element) {
+	function isVisuallyHidden(element) {
 		const style = win.getComputedStyle(element)
 		if (element.hasAttribute('hidden')
 			|| style.visibility === 'hidden'
