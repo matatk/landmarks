@@ -104,9 +104,9 @@ The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-
 
 1.  Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
-2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can perceive the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute, so that all users can perceive the label. However, if a label is only provided by the non-visual `aria-label` attribute, this extension will recognise it.
 
-    There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form` or `region` landmarks, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
+    The HTML Accessibility API Mapping is clear that both [unlabelled `<form>`](https://www.w3.org/TR/html-aam-1.0/#details-id-42) and [unlabelled `<section>` (`region`)](https://www.w3.org/TR/html-aam-1.0/#details-id-119) elements are *not* to be counted as landmark regions. This extension discounts *any* unlabelled element with a role of `form` or `region` too, which is in line with most assistive technologies, and is intended to reduce noise in landmark navigation.
 
 ### Labelling landmarks
 

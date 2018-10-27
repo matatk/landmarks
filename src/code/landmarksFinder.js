@@ -9,10 +9,10 @@ export default function LandmarksFinder(win, doc) {
 		'banner',
 		'complementary',
 		'contentinfo',
-		'form',           // should label
+		'form',           // spec says should label; Landmarks ignores if not
 		'main',
 		'navigation',
-		'region',         // must label
+		'region',         // spec says must label; Landmarks ignores if not
 		'search',
 
 		// Digital Publishing ARIA module
