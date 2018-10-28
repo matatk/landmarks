@@ -27,7 +27,7 @@ Installation
 
 -   **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
 -   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
--   **Opera:** [Install via Opera add-ons](https://addons.opera.com/en-gb/extensions/details/landmarks/) (Note: may not be the latest version due to review times.)
+-   **Opera:** [Install via Opera add-ons](https://addons.opera.com/en-gb/extensions/details/landmarks/)
 
 **If you need support, please [check the known issues for Landmarks](https://github.com/matatk/landmarks/issues) and, if necessary, file a new issue using the "New Issue" button on that page.**
 
@@ -61,6 +61,12 @@ If landmarks are found on the page, the Landmarks button in the toolbar (which l
 2.  Activate a button in the list to move to that landmark. The landmark will be focused, and a border shown according to your [border preferences](#border-preferences).
 
 3.  To close the pop-up, press <kbd>Escape</kbd>, or click outside of the pop-up.
+
+### Inspecting landmarks in the DOM
+
+A Developer Tools panel called "Landmarks" is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.
+
+This feature is primarily intended for web authors/developers and accessibility testers.
 
 Border Preferences
 ------------------
@@ -97,9 +103,9 @@ The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-
 
 1.  Both `<header>` (`banner`) and `<footer>` (`contentinfo`) elements are not considered landmarks unless they are the page-wide header/footer elements. (As per the [HTML element role mappings](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings).)
 
-2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute (so all users can perceive the label). However, if a label is only provided by the (non-visual) `aria-label` attribute, this extension will recognise it.
+2.  [`form`](https://www.w3.org/TR/wai-aria-1.1/#form) and [`region`](https://www.w3.org/TR/wai-aria-1.1/#region) landmarks are intended to be labelled. Ideally, this should be done with a visual label and an `aria-labelledby` attribute, so that all users can perceive the label. However, if a label is only provided by the non-visual `aria-label` attribute, this extension will recognise it.
 
-    There is ambiguity in the WAI-ARIA specification as to whether they might still be counted as landmarks even if they are unlabelled. Most assistive technologies do not count unlabelled `form` or `region` landmarks, because doing so could add a lot of noise to landmark navigation. Therefore this extension also ignores them.
+    The HTML Accessibility API Mapping is clear that both [unlabelled `<form>`](https://www.w3.org/TR/html-aam-1.0/#details-id-42) and [unlabelled `<section>` (`region`)](https://www.w3.org/TR/html-aam-1.0/#details-id-119) elements are *not* to be counted as landmark regions. This extension discounts *any* unlabelled element with a role of `form` or `region` too, which is in line with most assistive technologies, and is intended to reduce noise in landmark navigation.
 
 ### Labelling landmarks
 
@@ -206,6 +212,13 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.4.0 - 28th of October 2018
+    -   Offer an optional sidebar as well as the toolbar pop-up on Firefox and Opera. \[[\#188](https://github.com/matatk/landmarks/pull/188), [\#199](https://github.com/matatk/landmarks/pull/199)\]
+    -   Provide a Developer Tools panel that allows landmark elements to be inspected in the DOM viewer. This also entailed re-writing the internal communications between parts of Landmarks to use ports instead of one-time messages. \[[\#204](https://github.com/matatk/landmarks/pull/204)\]
+    -   Show the current keyboard shortcuts on the splash page and allow the user to update them on Chrome and Opera. \[[\#187](https://github.com/matatk/landmarks/pull/187)\]
+    -   Fix a bug whereby if an element is removed from the page, its border would remain. Also, update the border if the highlighted element's size or position changes. \[[#210](https://github.com/matatk/landmarks/pull/210)\]
+    -   Massive re-organisation of the code to make it easier to manage and accommodate and take advantage of cross-browser differences. \[[\#191](https://github.com/matatk/landmarks/pull/191)\]
+    -   Several smaller code improvements, including: clean-ups to the generated code; efficiency and documentation improvements and new screengrabs and captions. \[[#207](https://github.com/matatk/landmarks/pull/207), [#209](https://github.com/matatk/landmarks/pull/209), [#211](https://github.com/matatk/landmarks/pull/211)\]
 -   2.3.1 - 9th of June 2018
     -   Support multiple labelling elements when `aria-labelledby` is used. \[[\#176](https://github.com/matatk/landmarks/pull/176)\]
     -   Keep labels legible, and borders neat, when landmark regions are narrow, or full-width/height. Also let pointer events through the border so the user can interact as normal with the page below. \[[\#179](https://github.com/matatk/landmarks/pull/179)\]
@@ -231,7 +244,7 @@ Changes
     -   Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). \[[\#115](https://github.com/matatk/landmarks/pull/115)\]
     -   Use Mozilla's 'addons-linter' to check the built extension. \[[err, also \#111](https://github.com/matatk/landmarks/pull/111)\]
 -   2.0.8 - 18th of September 2017
-    -   Landmarks now ignores hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
+    -   Landmarks now ignores visually hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
     -   Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. \[[\#102](https://github.com/matatk/landmarks/pull/102)\]
     -   Correctly restore elements' outlines after they are highlighted. \[[\#94](https://github.com/matatk/landmarks/pull/94)\]
     -   Automatically disable the extension on browsers' extensions store pages. \[[\#97](https://github.com/matatk/landmarks/pull/97)\]
