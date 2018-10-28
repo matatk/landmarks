@@ -6,7 +6,7 @@ import Logger from './logger'
 
 const logger = new Logger()
 const lf = new LandmarksFinder(window, document)
-const ef = new ElementFocuser()
+const ef = new ElementFocuser(document)
 const ph = new PauseHandler(logger)
 
 const outOfDateTime = 2000
@@ -93,6 +93,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 function findLandmarksAndUpdateBackgroundScript() {
 	lf.find()
 	port.postMessage({ name: 'landmarks', data: lf.filter() })
+	ef.checkFocusedElement()
 }
 
 
@@ -139,7 +140,7 @@ function setUpMutationObserver() {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		ph.run(
-			ef.didJustMakeChanges,
+			ef.didJustMakeChanges,  // ignore mutations if Landmarks caused them
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')
@@ -197,8 +198,8 @@ if (BROWSER === 'firefox') {
 	// the user has moved away, but that haven't actually been destroyed yet.
 	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1390715
 	//
-	// Unfortunately that doesn't work for me; when it doesn't work, the
-	// content script never recieves this event in order to tell it to reload
+	// Unfortunately that doesn't work here; when it doesn't work, the
+	// content script never receives this event in order to tell it to reload
 	// the script.
 	/* window.addEventListener('pageshow', function(event) {
 		if (event.target !== window.document) return
