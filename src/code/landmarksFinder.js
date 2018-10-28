@@ -81,6 +81,7 @@ export default function LandmarksFinder(win, doc) {
 	//   role: (string)          -- the ARIA role
 	//   label: (string or null) -- author-supplied label
 	//   element: (HTML*Element) -- in-memory element
+	//   selector: (string)      -- CSS selector path for this element
 
 
 	//

@@ -2,7 +2,7 @@ import landmarkName from './landmarkName'
 import { defaultBorderSettings } from './defaults'
 import ContrastChecker from './contrastChecker'
 
-export default function ElementFocuser() {
+export default function ElementFocuser(doc) {
 	const contrastChecker = new ContrastChecker()
 
 	const momentaryBorderTime = 2000
@@ -133,6 +133,19 @@ export default function ElementFocuser() {
 		const didChanges = justMadeChanges
 		justMadeChanges = false
 		return didChanges
+	}
+
+	// When the document is changed, the currently-focused element may have
+	// been removed, or at least changed size/position
+	this.checkFocusedElement = function() {
+		if (currentlyFocusedElementInfo) {
+			if (!doc.body.contains(currentlyFocusedElementInfo.element)) {
+				currentlyFocusedElementInfo = null  // can't resize anymore
+				removeBorderOnCurrentlySelectedElement()
+			} else {
+				currentResizeHandler()
+			}
+		}
 	}
 
 
