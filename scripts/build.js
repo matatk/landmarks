@@ -238,14 +238,8 @@ async function flattenCode(browser) {
 	// Run each bundle through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
-		await rollup.rollup(options.input)
-			.then(bundle => {
-				bundle.write(options.output)
-			})
-			.catch(error => {
-				console.error(error)
-				throw Error('there was an error')
-			})
+		const bundle = await rollup.rollup(options.input)
+		await bundle.write(options.output)
 	}
 }
 
@@ -423,32 +417,34 @@ function zipFileName(browser) {
 }
 
 
-async function makeZip(browser) {
+function makeZip(browser) {
 	logStep('Createing ZIP file')
 	const outputFileName = zipFileName(browser)
 	const output = fs.createWriteStream(outputFileName)
 	const archive = archiver('zip')
 
+	output.on('close', function() {
+		ok(archive.pointer() + ' total bytes for ' + outputFileName)
+		if (browser in linters) {
+			linters[browser]()
+		}
+	})
+
+	archive.on('warning', function(err) {
+		error(err)
+	})
+
 	archive.on('error', function(err) {
-		throw err
+		error(err)
 	})
 
 	archive.pipe(output)
-	archive.directory(pathToBuild(browser), '')
-	await archive.finalize().then(() => {
-		ok(archive.pointer() + ' total bytes for ' + outputFileName)
-	})
+	archive.directory(pathToBuild(browser), false)
+	archive.finalize()
 }
 
 
-async function lint(browser) {
-	if (browser in linters) {
-		await linters[browser]()
-	}
-}
-
-
-async function lintFirefox() {
+function lintFirefox() {
 	const linter = require('addons-linter').createInstance({
 		config: {
 			_: [zipFileName('firefox')],
@@ -456,9 +452,7 @@ async function lintFirefox() {
 		}
 	})
 
-	await linter.run().catch((err) => {
-		error(err)
-	})
+	linter.run().catch(err => error(err))
 }
 
 
@@ -481,8 +475,7 @@ async function main() {
 		if (testMode) {
 			renameTestVersion(browser)
 		}
-		await makeZip(browser)
-		await lint(browser)
+		makeZip(browser)
 	}
 }
 
