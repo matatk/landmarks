@@ -1,4 +1,4 @@
-Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks (which may've been provided by its author, or from the use of HTML5 elements), using the keyboard or a pop-up menu.
+Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks, if they've been provided by its author, using the keyboard or a pop-up menu.
 
 * How to use it: http://matatk.agrip.org.uk/landmarks
 
