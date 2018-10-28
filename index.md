@@ -212,6 +212,8 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.4.1 - 28th of October 2018
+    -   Fix a bug with packaging that was causing the DevTools panel script to be left out of the zip file that gets uploaded to the browser add-on sites (oops again ;-)). \[[\#212](https://github.com/matatk/landmarks/pull/212)\]
 -   2.4.0 - 28th of October 2018
     -   Offer an optional sidebar as well as the toolbar pop-up on Firefox and Opera. \[[\#188](https://github.com/matatk/landmarks/pull/188), [\#199](https://github.com/matatk/landmarks/pull/199)\]
     -   Provide a Developer Tools panel that allows landmark elements to be inspected in the DOM viewer. This also entailed re-writing the internal communications between parts of Landmarks to use ports instead of one-time messages. \[[\#204](https://github.com/matatk/landmarks/pull/204)\]
