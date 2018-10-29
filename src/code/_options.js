@@ -20,12 +20,12 @@ const options = [{
 }]
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	options.push([{
+	options.push({
 		name: 'interface',
 		element: document.getElementById('landmarks-interface'),
 		property: 'value',
 		change: interfaceExplainer
-	}])
+	})
 }
 
 // Translation

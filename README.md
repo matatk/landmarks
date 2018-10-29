@@ -213,6 +213,8 @@ This is a fork of the [original landmarks extension](https://github.com/davidtod
 Changes
 -------
 
+-   2.4.2 - 29th of October 2018
+    -   Fix a bug with sidebar option initialisation. \[[\#213](https://github.com/matatk/landmarks/pull/213)\]
 -   2.4.1 - 28th of October 2018
     -   Fix a bug with packaging that was causing the DevTools panel script to be left out of the zip file that gets uploaded to the browser add-on sites (oops again ;-)). \[[\#212](https://github.com/matatk/landmarks/pull/212)\]
 -   2.4.0 - 28th of October 2018
