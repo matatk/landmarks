@@ -18,15 +18,19 @@ let activeTabId = null
 // Message routing
 //
 
-function sendLandmarksToGUIs(fromTabId, message) {
+function sendLandmarksToActiveTabGUIs(fromTabId, message) {
+	if (fromTabId !== activeTabId || activeTabId === null) return
+
 	if (popupConnection) {
 		popupConnection.postMessage(message)
 	}
+
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		if (sidebarConnection && fromTabId === activeTabId) {
+		if (sidebarConnection) {
 			sidebarConnection.postMessage(message)
 		}
 	}
+
 	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 		if (devtoolsConnections.hasOwnProperty(fromTabId)) {
 			devtoolsConnections[fromTabId].postMessage(message)
@@ -34,15 +38,15 @@ function sendLandmarksToGUIs(fromTabId, message) {
 	}
 }
 
-function sendNullLandmarksToGUIs() {
-	sendLandmarksToGUIs(activeTabId, { name: 'landmarks', data: null })
+function sendNullLandmarksToActiveTabGUIs() {
+	sendLandmarksToActiveTabGUIs(activeTabId, { name: 'landmarks', data: null })
 }
 
 function getLandmarksForActiveTab() {
 	if (contentConnections.hasOwnProperty(activeTabId)) {
 		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
 	} else {
-		sendNullLandmarksToGUIs()
+		sendNullLandmarksToActiveTabGUIs()
 	}
 }
 
@@ -85,8 +89,7 @@ function contentListener(message, sendingPort) {
 
 	switch (message.name) {
 		case 'landmarks':
-			logger.log(`Got ${message.data.length} landmarks from ${sendingPort.sender.tab.url}`)
-			sendLandmarksToGUIs(tabId, message)
+			sendLandmarksToActiveTabGUIs(tabId, message)
 			updateBrowserActionBadge(tabId, message.data.length)
 			break
 		default:
@@ -325,7 +328,7 @@ function checkBrowserActionState(tabId, url) {
 
 		// We may've moved from a page that allowed content scripts to one that
 		// does not. If the sidebar/DevTools are open, they need to be updated.
-		sendNullLandmarksToGUIs()
+		sendNullLandmarksToActiveTabGUIs()
 	}
 }
 
