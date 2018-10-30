@@ -214,6 +214,7 @@ Changes
 -------
 
 -   2.4.3 - in development
+    -   Improve the appearance of the DevTools panel on Firefox. \[[\#217](https://github.com/matatk/landmarks/pull/217)\]
     -   Fix a bug whereby landmark updates for background tabs pages would show up in the pop-up if it's open. \[[\#216](https://github.com/matatk/landmarks/pull/216)\]
 -   2.4.2 - 29th of October 2018
     -   Fix a bug with sidebar option initialisation. \[[\#213](https://github.com/matatk/landmarks/pull/213)\]
