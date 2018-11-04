@@ -40,7 +40,7 @@
     "puppeteer": "~1.10",
     "replace-in-file": "~3.4",
     "rimraf": "~2.6",
-    "rollup": "~0.66",
+    "rollup": "~0.67",
     "rollup-plugin-esformatter": "~0.5",
     "rollup-plugin-terser": "~3.0",
     "test": "~0.6"
