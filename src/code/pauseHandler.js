@@ -62,10 +62,7 @@ export default function PauseHandler(logger) {
 	//
 
 	this.run = function(ignoreCheck, guardedTask, scheduledTask) {
-		if (ignoreCheck()) {
-			logger.log('pH: ignoring changes')
-			return
-		}
+		if (ignoreCheck()) return
 
 		const now = Date.now()
 		if (now > lastEvent + pause) {
@@ -73,9 +70,9 @@ export default function PauseHandler(logger) {
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
-			logger.log('pH: scheduling task in:', pause)
+			logger.log('Scheduling task in:', pause)
 			setTimeout(() => {
-				logger.log('pH: running task as scheduled')
+				logger.log('Running task as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
