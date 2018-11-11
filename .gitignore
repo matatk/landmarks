@@ -7,3 +7,4 @@ meta/out-*.png
 landmarks-*.zip
 npm-debug.log
 test/test-code-in-harness-*.js
+trace-*.json
