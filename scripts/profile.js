@@ -3,13 +3,15 @@
 const puppeteer = require('puppeteer')
 
 const sites = Object.freeze({
-	ars: 'https://arstechnica.com',
-	bbc: 'https://www.bbc.co.uk/',
-	bbcnews: 'https://www.bbc.co.uk/news'
+	abootstrap: 'https://angular-ui.github.io/bootstrap/',  // lots of mutations
+	ars: 'https://arstechnica.com',                         // lots of mutations
+	bbc: 'https://www.bbc.co.uk/',                          // neat intervals
+	bbcnews: 'https://www.bbc.co.uk/news',                  // neat intervals
+	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'                                            // neat intervals
 })
 
-const pageSettlingDelay = 4000
-const delayAfterInsertingLandmark = 1000
+const pageSettlingDelay = 4e3
+const delayAfterInsertingLandmark = 1e3
 
 async function insertLandmark(page, repetition) {
 	await page.evaluate((step) => {

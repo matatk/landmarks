@@ -91,6 +91,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function findLandmarksAndUpdateBackgroundScript() {
+	console.timeStamp('findLandmarksAndUpdateBackgroundScript()')
 	lf.find()
 	port.postMessage({ name: 'landmarks', data: lf.filter() })
 	ef.checkFocusedElement()
