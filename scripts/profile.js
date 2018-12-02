@@ -31,7 +31,7 @@ async function insertLandmark(page, repetition) {
 	}, repetition)
 }
 
-function orchestrateBrowser(name, url, loops) {
+function orchestrateBrowser(name, url, landmarks, runs) {
 	puppeteer.launch({
 		headless: false,  // needed to support extensions
 		args: [
@@ -41,34 +41,39 @@ function orchestrateBrowser(name, url, loops) {
 	}).then(async browser => {
 		const page = await browser.newPage()
 
-		await page.tracing.start({
-			path: `trace-${name}-${loops}.json`,
-			screenshots: true
-		})
+		for (let run = 0; run < runs; run++) {
+			console.log(`Run ${run}`)
+			await page.goto(url, { waitUntil: 'domcontentloaded' })
+			await page.bringToFront()
+			await page.tracing.start({
+				path: `trace-${name}-${landmarks}-run${run}.json`,
+				screenshots: true
+			})
 
-		await page.goto(url, { waitUntil: 'domcontentloaded' })
-		await page.bringToFront()
+			console.log('Page loaded; settling...')
+			await page.waitFor(pageSettlingDelay)
 
-		console.log('Page loaded; settling...')
-		await page.waitFor(pageSettlingDelay)
+			console.log('Adding landmarks stage (if applicable)...')
+			for (let repetition = 0; repetition < landmarks; repetition++) {
+				console.log(`Repetition ${repetition}`)
+				await insertLandmark(page, repetition)
+				await page.waitFor(delayAfterInsertingLandmark)
+			}
 
-		console.log('Repetition stage (if applicable)...')
-		for (let repetition = 0; repetition < loops; repetition++) {
-			console.log(`Repetition ${repetition}`)
-			await insertLandmark(page, repetition)
-			await page.waitFor(delayAfterInsertingLandmark)
+			await page.tracing.stop()
+			if (run < runs) console.log()
 		}
 
-		console.log('Stopping...')
-		await page.tracing.stop()
+		console.log('Done; closing browser...')
 		await browser.close()
 	})
 }
 
 function usageAndExit() {
-	console.error('Usage: npm run profile -- <site> <repetitions>')
-	console.error('       <repetitions>: extra number of times to scan')
-	console.error('Valid sites:\n', sites)
+	console.error('Usage: npm run profile -- <site> <landmarks> <runs>')
+	console.error('       <landmarks> to insert, with a pause between each.')
+	console.error('       <runs> number of separate tracing runs to make.')
+	console.error('Valid <sites>:\n', sites)
 	process.exit(42)
 }
 
@@ -82,13 +87,19 @@ function main() {
 		usageAndExit()
 	}
 
-	const loops = Number(process.argv[3])
-	if (isNaN(loops)) {
-		console.error(`Invalid number of repetitions "${process.argv[3]}".`)
+	const landmarks = Number(process.argv[3])
+	if (isNaN(landmarks) || landmarks < 0) {
+		console.error(`Invalid number of landmarks "${process.argv[3]}".`)
 		usageAndExit()
 	}
 
-	orchestrateBrowser(siteName, siteUrl, loops)
+	const runs = Number(process.argv[4])
+	if (isNaN(runs) || runs < 1) {
+		console.error(`Invalid number of runs "${process.argv[4]}".`)
+		usageAndExit()
+	}
+
+	orchestrateBrowser(siteName, siteUrl, landmarks, runs)
 }
 
 main()
