@@ -1,9 +1,10 @@
 'use strict'
 /* global window document */
 const path = require('path')
+const fs = require('fs')
 const puppeteer = require('puppeteer')
 
-const sites = Object.freeze({
+const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	ars: 'https://arstechnica.com',
 	bbc: 'https://www.bbc.co.uk/',
@@ -15,27 +16,16 @@ const pageSettlingDelay = 2e3
 
 
 //
-// Inserting landmarks into a page over time
+// Trace the insertion of landmarks into a page over time
 //
 
-function setUpLandmarkRuns(siteName, siteUrl) {
-	// FIXME DRY
-	const landmarks = Number(process.argv[4])
-	if (isNaN(landmarks) || landmarks < 0) {
-		console.error(`Invalid number of landmarks "${process.argv[4]}".`)
-		usageAndExit()
-	}
-
-	const runs = Number(process.argv[5])
-	if (isNaN(runs) || runs < 1) {
-		console.error(`Invalid number of runs "${process.argv[5]}".`)
-		usageAndExit()
-	}
-
-	doLandmarkInsertionRuns(siteName, siteUrl, landmarks, runs)
+function setUpExtensionTrace(sites) {
+	const landmarks = checkNumber(process.argv[4], 0, 'landmarks')
+	const runs = checkNumber(process.argv[5], 1, 'runs')
+	doLandmarkInsertionRuns(sites, landmarks, runs)
 }
 
-function doLandmarkInsertionRuns(name, url, landmarks, runs) {
+function doLandmarkInsertionRuns(sites, landmarks, runs) {
 	const delayAfterInsertingLandmark = 1e3
 
 	puppeteer.launch({
@@ -45,29 +35,32 @@ function doLandmarkInsertionRuns(name, url, landmarks, runs) {
 			'--load-extension=build/chrome/'
 		]
 	}).then(async browser => {
-		const page = await browser.newPage()
+		for (const site of sites) {
+			console.log(`Tracing on ${urls[site]}...\n`)
+			const page = await browser.newPage()
 
-		for (let run = 0; run < runs; run++) {
-			console.log(`Run ${run}`)
-			await page.goto(url, { waitUntil: 'domcontentloaded' })
-			await page.bringToFront()
-			await page.tracing.start({
-				path: `trace-${name}-${landmarks}-run${run}.json`,
-				screenshots: true
-			})
+			for (let run = 0; run < runs; run++) {
+				console.log(`Run ${run}`)
+				await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
+				await page.bringToFront()
+				await page.tracing.start({
+					path: `trace--${site}--${landmarks}--run${run}.json`,
+					screenshots: true
+				})
+				await settle(page)
 
-			console.log('Page loaded; settling...')
-			await page.waitFor(pageSettlingDelay)
+				console.log('Adding landmarks stage (if applicable)...')
+				for (let repetition = 0; repetition < landmarks; repetition++) {
+					console.log(`Repetition ${repetition}`)
+					await insertLandmark(page, repetition)
+					await page.waitFor(delayAfterInsertingLandmark)
+				}
 
-			console.log('Adding landmarks stage (if applicable)...')
-			for (let repetition = 0; repetition < landmarks; repetition++) {
-				console.log(`Repetition ${repetition}`)
-				await insertLandmark(page, repetition)
-				await page.waitFor(delayAfterInsertingLandmark)
+				await page.tracing.stop()
+				if (run < runs) console.log()
 			}
 
-			await page.tracing.stop()
-			if (run < runs) console.log()
+			await page.close()
 		}
 
 		console.log('Done; closing browser...')
@@ -98,95 +91,129 @@ async function insertLandmark(page, repetition) {
 // Specific landmarksFinder.find() test
 //
 
-function profileSpecific(siteName, siteUrl) {
+function timeLandmarksFinding(sites) {
 	const landmarksFinderPath = path.join('scripts', 'browser-landmarks.js')
+	const loops = checkNumber(process.argv[4], 1, 'repetitions')
+	const results = {}
 
-	// FIXME DRY
-	const loops = Number(process.argv[4])
-	if (isNaN(loops) || loops < 1) {
-		console.error(`Invalid number of repetitions "${process.argv[4]}".`)
-		usageAndExit()
-	}
-
-	console.log(`Runing landmarks loop test on ${siteName}...`)
-	console.log(`URL: ${siteUrl}`)
+	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
-		const page = await browser.newPage()
-		console.log('Loading page...')
-		await page.goto(siteUrl, { waitUntil: 'domcontentloaded' })
-		console.log('Page loaded; settling...')  // TODO DRY?
-		await page.waitFor(pageSettlingDelay)
-		console.log('Injecting script...')
-		await page.addScriptTag({
-			path: landmarksFinderPath
-		})
+		for (const site of sites) {
+			const page = await browser.newPage()
+			console.log()
+			console.log(`Loading ${urls[site]}...`)
+			await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
+			await settle(page)
+			console.log('Injecting script...')
+			await page.addScriptTag({
+				path: landmarksFinderPath
+			})
 
-		page.on('console', msg => console.log(msg.text()))
+			console.log(`Running landmark-finding code ${loops} times...`)
+			const duration = await page.evaluate(scanAndTallyDuration, loops)
 
-		console.log('Running loops...')
-		const duration = await page.evaluate(repetitions => {
-			let totalDuration = 0
-			for (let i = 0; i < repetitions; i++) {
-				console.log(`Loop ${i}`)
-				const lf = new window.LandmarksFinder(window, document)
-				const start = window.performance.now()
-				lf.find()
-				const end = window.performance.now()
-				totalDuration += (end - start)
-			}
-			return totalDuration
-		}, loops)
+			results[site] = duration / loops
+			await page.close()
+		}
 
-		console.log()
-		console.log('Duration:', duration)
-		console.log('Loops:', loops)
-		console.log('Mean:', duration / loops)
 		await browser.close()
-		console.log('Done.')
+		printAndSaveResults(results, loops)
 	})
+}
+
+function scanAndTallyDuration(repetitions) {
+	let totalDuration = 0
+	for (let i = 0; i < repetitions; i++) {
+		const lf = new window.LandmarksFinder(window, document)
+		const start = window.performance.now()
+		lf.find()
+		const end = window.performance.now()
+		totalDuration += (end - start)
+	}
+	return totalDuration
+}
+
+function printAndSaveResults(results, loops) {
+	const rounder = (key, value) =>
+		value.toPrecision ? Number(value.toPrecision(2)) : value
+	console.log()
+	console.log('Done.\nResults (mean time in ms for one landmarks sweep):')
+	const resultsJson = JSON.stringify(results, rounder, 2)
+	console.log(resultsJson)
+	const now = new Date()
+		.toISOString()
+		.replace(/T/, '-')
+		.replace(/:\d\d\..+/, '')
+		.replace(/:/, '')
+	const fileName = `results--${loops}--${now}.json`
+	fs.writeFileSync(fileName, resultsJson)
+	console.log(`${fileName} written to disk.`)
 }
 
 
 //
-// Main gubbins
+// Main and support
 //
+
+function checkText(text, thing) {
+	if (!text) {
+		console.error(`No ${thing} given.`)
+		usageAndExit()
+	}
+	return text
+}
+
+function checkNumber(input, limit, things) {
+	const number = Number(input)
+	if (isNaN(number) || number < limit) {
+		console.error(`Invalid number of ${things} "${input}".`)
+		usageAndExit()
+	}
+	return number
+}
+
+function checkSite(name) {
+	if (!urls.hasOwnProperty(name)) {
+		console.error(`Unkown site "${name}".`)
+		usageAndExit()
+	}
+	return name
+}
+
+async function settle(page) {
+	console.log('Page loaded; settling...')
+	await page.waitFor(pageSettlingDelay)
+}
 
 function usageAndExit() {
 	console.error('Usage: npm run profile -- trace <site> <landmarks> <runs>')
 	console.error('           Runs the built extension on a real site and traces for')
 	console.error('           performance, whilst inserting a number of landmarks.')
+	console.error('               <landmarks> number to insert (there is a pause')
+	console.error('                           between each one).')
+	console.error('               <runs> number of separate tracing runs to make')
+	console.error('                      (recommend setting this to 1 only).')
 	console.error('or:    npm run profile -- time <site> <repetitions>')
 	console.error('           Runs only the code to find landmarks specifically, for')
 	console.error('           the number of times specified.')
-	console.error('Valid <sites>:\n', sites)
+	console.error('Valid <sites>:\n', urls)
+	console.error('"all" can also be specified to run the profile on each site.')
 	process.exit(42)
 }
 
 function main() {
-	const mode = process.argv[2]
-	if (!mode) {
-		console.error('No mode given.')
-		usageAndExit()
-	}
-
-	const siteName = process.argv[3]
-	if (!siteName) {
-		console.error('No site given.')
-		usageAndExit()
-	}
-
-	const siteUrl = sites[siteName]
-	if (!siteUrl) {
-		console.error(`Unkown site "${siteName}".`)
-		usageAndExit()
-	}
+	const mode = checkText(process.argv[2], 'mode')
+	const requestedSite = checkText(process.argv[3], 'site')
+	const pages = requestedSite === 'all'
+		? Object.keys(urls)
+		: [checkSite(requestedSite)]
 
 	switch (mode) {
 		case 'trace':
-			setUpLandmarkRuns(siteName, siteUrl)
+			setUpExtensionTrace(pages)
 			break
 		case 'time':
-			profileSpecific(siteName, siteUrl)
+			timeLandmarksFinding(pages)
 			break
 		default:
 			console.error(`Unknown mode: ${mode}`)

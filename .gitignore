@@ -8,4 +8,5 @@ landmarks-*.zip
 npm-debug.log
 test/test-code-in-harness-*.js
 scripts/browser-landmarks.js
-trace-*.json
+trace--*.json
+results--*.json
