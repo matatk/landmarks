@@ -18,6 +18,7 @@
     "clean:edge": "rimraf build/edge build/edge-test landmarks-*-edge.zip",
     "clean:firefox": "rimraf build/firefox build/firefox-test landmarks-*-firefox.zip",
     "clean:opera": "rimraf build/opera build/opera-test landmarks-*-opera.zip",
+    "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder > scripts/browser-landmarks.js",
     "profile": "node scripts/profile.js",
     "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
