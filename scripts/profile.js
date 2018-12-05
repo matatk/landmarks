@@ -3,11 +3,12 @@
 const path = require('path')
 const fs = require('fs')
 const puppeteer = require('puppeteer')
+const stats = require('stats-lite')
 
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
+	amazon: 'https://www.amazon.co.uk',
 	ars: 'https://arstechnica.com',
-	bbc: 'https://www.bbc.co.uk/',
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
@@ -108,11 +109,12 @@ function timeLandmarksFinding(sites) {
 			await page.addScriptTag({
 				path: landmarksFinderPath
 			})
-
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const duration = await page.evaluate(scanAndTallyDuration, loops)
-
-			results[site] = duration / loops
+			const durations = await page.evaluate(scanAndTallyDurations, loops)
+			results[site] = {
+				mean: stats.mean(durations),
+				standardDeviation: stats.stdev(durations)
+			}
 			await page.close()
 		}
 
@@ -121,16 +123,16 @@ function timeLandmarksFinding(sites) {
 	})
 }
 
-function scanAndTallyDuration(repetitions) {
-	let totalDuration = 0
-	for (let i = 0; i < repetitions; i++) {
-		const lf = new window.LandmarksFinder(window, document)
+function scanAndTallyDurations(times) {
+	const lf = new window.LandmarksFinder(window, document)
+	const durations = []
+	for (let i = 0; i < times; i++) {
 		const start = window.performance.now()
 		lf.find()
 		const end = window.performance.now()
-		totalDuration += (end - start)
+		durations.push(end - start)
 	}
-	return totalDuration
+	return durations
 }
 
 function printAndSaveResults(results, loops) {
@@ -140,12 +142,12 @@ function printAndSaveResults(results, loops) {
 	console.log('Done.\nResults (mean time in ms for one landmarks sweep):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
 	console.log(resultsJson)
-	const now = new Date()
+	const roughlyNow = new Date()
 		.toISOString()
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `results--${loops}--${now}.json`
+	const fileName = `results--${loops}--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
 	console.log(`${fileName} written to disk.`)
 }

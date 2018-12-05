@@ -50,6 +50,7 @@
     "rollup": "~0.67",
     "rollup-plugin-esformatter": "~0.5",
     "rollup-plugin-terser": "~3.0",
+    "stats-lite": "~2.2",
     "test": "~0.6"
   }
 }
