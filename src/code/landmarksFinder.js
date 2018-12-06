@@ -138,7 +138,7 @@ export default function LandmarksFinder(win, doc) {
 
 				// Add the element if it should be considered a landmark
 				if (role && isLandmark(role, label)) {
-					if (parentLandmark && isDescendant(parentLandmark, elementChild)) {
+					if (parentLandmark && parentLandmark.contains(elementChild)) {
 						depth = depth + 1
 					}
 
@@ -216,19 +216,6 @@ export default function LandmarksFinder(win, doc) {
 		}
 
 		return text
-	}
-
-	function isDescendant(ancestor, child) {
-		let node = child.parentNode
-
-		while (node !== null) {
-			if (node === ancestor) {
-				return true
-			}
-			node = node.parentNode
-		}
-
-		return false
 	}
 
 	function getRoleFromTagNameAndContainment(element) {
