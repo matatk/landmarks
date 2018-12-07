@@ -111,7 +111,7 @@ export default function LandmarksFinder(win, doc) {
 
 
 	//
-	// Functions that refer to document or window
+	// Finding landmarks
 	//
 
 	// Recursive function for building list of landmarks from a root element
@@ -185,11 +185,6 @@ export default function LandmarksFinder(win, doc) {
 
 		return label
 	}
-
-
-	//
-	// Functions that do not refer to document or window
-	//
 
 	function isLandmark(role, label) {
 		// Region and form are landmarks only when they have labels
