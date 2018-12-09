@@ -18,7 +18,9 @@
     "clean:edge": "rimraf build/edge build/edge-test landmarks-*-edge.zip",
     "clean:firefox": "rimraf build/firefox build/firefox-test landmarks-*-firefox.zip",
     "clean:opera": "rimraf build/opera build/opera-test landmarks-*-opera.zip",
+    "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder > scripts/browser-landmarks.js",
     "profile": "node scripts/profile.js",
+    "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
     "pretest": "eslint .",
     "test": "npm run test:landmarks && npm run test:contrast",
@@ -26,6 +28,11 @@
     "test:contrast": "node test/test-contrast.js",
     "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
     "test:landmarks": "node test/test-landmarks.js"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build:all"
+    }
   },
   "devDependencies": {
     "addons-linter": "~1.3",
@@ -43,11 +50,7 @@
     "rollup": "~0.67",
     "rollup-plugin-esformatter": "~0.5",
     "rollup-plugin-terser": "~3.0",
+    "stats-lite": "~2.2",
     "test": "~0.6"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build:all"
-    }
   }
 }

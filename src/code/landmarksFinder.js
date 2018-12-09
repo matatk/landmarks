@@ -88,13 +88,11 @@ export default function LandmarksFinder(win, doc) {
 	// Keeping track of landmark navigation
 	//
 
-	let currentlySelectedIndex
-
-	// If we find a <main> or role="main" element...
-	let mainElementIndex
+	let currentlySelectedIndex  // the landmark currently having focus/border
+	let mainElementIndex        // if we find a <main> or role="main" element
 
 	// Keep a reference to the currently-selected element in case the page
-	// changes and the landmarks are updated.
+	// changes and the landmark is still there, but has moved within the list.
 	let currentlySelectedElement
 
 	function updateSelectedIndexAndReturnElementInfo(index) {
@@ -111,64 +109,59 @@ export default function LandmarksFinder(win, doc) {
 
 
 	//
-	// Functions that refer to document or window
+	// Finding landmarks
 	//
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth, parentLandmark) {
-		if (element === undefined) return
+		if (isVisuallyHidden(element)) return
 
-		element.childNodes.forEach(function(elementChild) {
-			if (elementChild.nodeType === win.Node.ELEMENT_NODE) {
-				if (isVisuallyHidden(elementChild)) return
+		// Support HTML5 elements' native roles
+		let role = getRoleFromTagNameAndContainment(element)
 
-				// Support HTML5 elements' native roles
-				let role = getRoleFromTagNameAndContainment(elementChild)
+		// Elements with explicitly-set rolees
+		if (element.getAttribute) {
+			const tempRole = element.getAttribute('role')
+			if (tempRole) {
+				role = tempRole
+			}
+		}
 
-				// Elements with explicitly-set rolees
-				if (elementChild.getAttribute) {
-					const tempRole = elementChild.getAttribute('role')
-					if (tempRole) {
-						role = tempRole
-					}
-				}
+		// The element may or may not have a label
+		const label = getARIAProvidedLabel(element)
 
-				// The element may or may not have a label
-				const label = getARIAProvidedLabel(elementChild)
-
-				// Add the element if it should be considered a landmark
-				if (role && isLandmark(role, label)) {
-					if (parentLandmark && isDescendant(parentLandmark, elementChild)) {
-						depth = depth + 1
-					}
-
-					landmarks.push({
-						'depth': depth,
-						'role': role,
-						'label': label,
-						'element': elementChild,
-						'selector': createSelector(elementChild)
-					})
-
-					// Was this element selected before we were called (i.e.
-					// before the page was dynamically updated)?
-					if (currentlySelectedElement === elementChild) {
-						currentlySelectedIndex = landmarks.length - 1
-					}
-
-					// If this is the first main landmark (there should only
-					// be one), store a reference to it.
-					if (mainElementIndex < 0 && role === 'main') {
-						mainElementIndex = landmarks.length - 1
-					}
-
-					parentLandmark = elementChild
-				}
+		// Add the element if it should be considered a landmark
+		if (role && isLandmark(role, label)) {
+			if (parentLandmark && parentLandmark.contains(element)) {
+				depth = depth + 1
 			}
 
-			// Recursively traverse the tree structure of the child node
+			landmarks.push({
+				'depth': depth,
+				'role': role,
+				'label': label,
+				'element': element,
+				'selector': createSelector(element)
+			})
+
+			// Was this element selected before we were called (i.e.
+			// before the page was dynamically updated)?
+			if (currentlySelectedElement === element) {
+				currentlySelectedIndex = landmarks.length - 1
+			}
+
+			// If this is the first main landmark (there should only
+			// be one), store a reference to it.
+			if (mainElementIndex < 0 && role === 'main') {
+				mainElementIndex = landmarks.length - 1
+			}
+
+			parentLandmark = element
+		}
+
+		for (const elementChild of element.children) {
 			getLandmarks(elementChild, depth, parentLandmark)
-		})
+		}
 	}
 
 	function getARIAProvidedLabel(element) {
@@ -190,18 +183,13 @@ export default function LandmarksFinder(win, doc) {
 		return label
 	}
 
-
-	//
-	// Functions that do not refer to document or window
-	//
-
 	function isLandmark(role, label) {
 		// Region and form are landmarks only when they have labels
 		if (role === 'region' || role === 'form') {
 			return label !== null
 		}
 
-		// Is the role (which may have been explicitly set) a valid landmark type?
+		// Is the role (which may've been explicitly set) a valid landmark type?
 		return regionTypes.includes(role)
 	}
 
@@ -216,19 +204,6 @@ export default function LandmarksFinder(win, doc) {
 		}
 
 		return text
-	}
-
-	function isDescendant(ancestor, child) {
-		let node = child.parentNode
-
-		while (node !== null) {
-			if (node === ancestor) {
-				return true
-			}
-			node = node.parentNode
-		}
-
-		return false
 	}
 
 	function getRoleFromTagNameAndContainment(element) {
@@ -333,7 +308,7 @@ export default function LandmarksFinder(win, doc) {
 		landmarks = []
 		mainElementIndex = -1
 		currentlySelectedIndex = -1
-		getLandmarks(doc.body.parentNode, 0)  // supports role on <body>
+		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 	}
 
 	this.filter = function() {

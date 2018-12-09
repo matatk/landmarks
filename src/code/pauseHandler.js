@@ -46,6 +46,7 @@ export default function PauseHandler(logger) {
 			decreasePause()
 		}
 		logger.log('Decreased pause to:', pause)
+		console.timeStamp(`Decreased pause to: ${pause}`)
 	}
 
 	function stopDecreasingPause() {
@@ -71,6 +72,7 @@ export default function PauseHandler(logger) {
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
 			logger.log('Scheduling task in:', pause)
+			console.timeStamp(`Scheduling task in: ${pause}`)
 			setTimeout(() => {
 				logger.log('Running task as scheduled')
 				scheduledTask()
