@@ -176,7 +176,7 @@ if (INTERFACE === 'sidebar') {
 
 	function createNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
-			if (!items.dismissedSidebarNotAlone) {
+			if (items.dismissedSidebarNotAlone === false) {
 				const para = document.createElement('p')
 				para.appendChild(document.createTextNode(
 					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
@@ -224,8 +224,8 @@ if (INTERFACE === 'sidebar') {
 		}
 	})
 
-	// What about if the sidebar is open and the user changes their preference?
 	browser.storage.onChanged.addListener(function(changes) {
+		// What if the sidebar is open and the user changes their preference?
 		if (changes.hasOwnProperty('interface')) {
 			switch (changes.interface.newValue) {
 				case 'sidebar': removeNote()
@@ -235,6 +235,17 @@ if (INTERFACE === 'sidebar') {
 				default:
 					throw Error(`Unknown interface type "${changes.interface.newValue}`)
 			}
+		}
+
+		// What if the user un-dismisses the message?
+		if (changes.hasOwnProperty('dismissedSidebarNotAlone')) {
+			browser.storage.sync.get('interface', function(items) {
+				if (items.interface === 'popup') {
+					if (changes.dismissedSidebarNotAlone.newValue === false) {
+						createNote()
+					}
+				}
+			})
 		}
 	})
 }

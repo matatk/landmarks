@@ -26,6 +26,30 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		property: 'value',
 		change: interfaceExplainer
 	})
+
+	// eslint-disable-next-line no-inner-declarations
+	function updateDismissMessagesButtonState() {
+		const button = document.getElementById('reset-messages')
+		browser.storage.sync.get(dismissalStates, function(items) {
+			for (const dismissalState in items) {
+				if (items[dismissalState] === true) {
+					button.disabled = false
+					return
+				}
+			}
+			button.disabled = true
+		})
+	}
+
+	updateDismissMessagesButtonState()
+
+	browser.storage.onChanged.addListener(function(changes) {
+		for (const thingChanged in changes) {
+			if (dismissalStates.hasOwnProperty(thingChanged)) {
+				updateDismissMessagesButtonState()
+			}
+		}
+	})
 }
 
 // Translation
@@ -86,11 +110,7 @@ function interfaceExplainer() {
 
 function resetMessages() {
 	for (const dismissalState in dismissalStates) {
-		browser.storage.sync.set({
-			[dismissalState]: false
-		}, function() {
-			alert(browser.i18n.getMessage('prefsResetMessagesDone'))
-		})
+		browser.storage.sync.set({ [dismissalState]: false })
 	}
 }
 
