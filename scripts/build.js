@@ -320,9 +320,9 @@ function checkMessages(browser) {
 
 	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
 	const messages = JSON.parse(fs.readFileSync(translationsFile))
-	const files = glob.sync(path.join('src', '**'), {
+	const files = glob.sync(path.join(pathToBuild(browser), '**'), {
 		nodir: true,
-		ignore: ['**/*Messages.json']
+		ignore: ['**/messages.json']
 	})
 	const messageSummary = {}	// count usages of each message
 
