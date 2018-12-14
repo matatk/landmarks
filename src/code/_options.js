@@ -68,11 +68,14 @@ function setUpOptionHandlers() {
 }
 
 function interfaceExplainer() {
-	const messageName = document
-		.getElementById('landmarks-interface')
+	const messageName = document.getElementById('landmarks-interface')
 		.selectedOptions[0].dataset.explainer
-	const explainer = document.getElementById('interface-explainer')
-	explainer.innerText = browser.i18n.getMessage(messageName)
+	document.getElementById('interface-explainer')
+		.innerText = browser.i18n.getMessage(messageName)
+	setTimeout(function() {
+		document.getElementById('interface-explainer-live')
+			.innerText = browser.i18n.getMessage(messageName)
+	}, 250)
 }
 
 function updateResetDismissedMessagesButtonState() {
