@@ -21,6 +21,14 @@ div.label-first p {
 	padding-left: calc(8px + 3px);  /* Firefox */
 }
 
+div.input-first span {
+	margin-left: 0.5em;
+}
+
 input[type=number] {
 	width: 3em;
+}
+
+button[aria-disabled="true"] {
+	color: gray;
 }

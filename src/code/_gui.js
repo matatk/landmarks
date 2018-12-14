@@ -92,6 +92,9 @@ function makeLandmarksTree(landmarks, container) {
 			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
 		}
+		// Note: Edge doesn't support DevTools, so doesn't use the message
+		//       'inspectButtonName' - but the build process needs this to be
+		//       here for it to pass (hacky, as below, but Edge will change...)
 
 		base.appendChild(item)  // add to current base
 
@@ -273,6 +276,11 @@ function main() {
 
 	port.onDisconnect.addListener(function() {
 		disconnectingPortErrorCheck()
+		// Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
+		//       mentioned here, the build will not pass the unused messages
+		//       check. This is a bit hacky, as Firefox really isn't using it,
+		//       but at least it keeps all the code here, rather than putting
+		//       some separately in the build script.
 		if (INTERFACE === 'devtools'
 			&& (BROWSER === 'chrome' || BROWSER === 'opera')) {
 			// DevTools page doesn't get reloaded when the extension does

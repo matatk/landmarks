@@ -19,39 +19,6 @@ const options = [{
 	property: 'checked'
 }]
 
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	options.push({
-		name: 'interface',
-		element: document.getElementById('landmarks-interface'),
-		property: 'value',
-		change: interfaceExplainer
-	})
-
-	// eslint-disable-next-line no-inner-declarations
-	function updateDismissMessagesButtonState() {
-		const button = document.getElementById('reset-messages')
-		browser.storage.sync.get(dismissalStates, function(items) {
-			for (const dismissalState in items) {
-				if (items[dismissalState] === true) {
-					button.disabled = false
-					return
-				}
-			}
-			button.disabled = true
-		})
-	}
-
-	updateDismissMessagesButtonState()
-
-	browser.storage.onChanged.addListener(function(changes) {
-		for (const thingChanged in changes) {
-			if (dismissalStates.hasOwnProperty(thingChanged)) {
-				updateDismissMessagesButtonState()
-			}
-		}
-	})
-}
-
 // Translation
 // http://tumble.jeremyhubert.com/post/7076881720
 // HT http://stackoverflow.com/questions/25467009/
@@ -108,12 +75,63 @@ function interfaceExplainer() {
 	explainer.innerText = browser.i18n.getMessage(messageName)
 }
 
+function updateResetDismissedMessagesButtonState() {
+	const button = document.getElementById('reset-messages')
+	const feedback = document.getElementById('reset-messages-feedback')
+
+	browser.storage.sync.get(dismissalStates, function(items) {
+		for (const dismissalState in items) {
+			if (items[dismissalState] === true) {
+				button.setAttribute('aria-disabled', false)
+				feedback.innerText = null
+				return
+			}
+		}
+
+		button.setAttribute('aria-disabled', true)
+		if (!feedback.innerText) {
+			feedback.innerText =
+				browser.i18n.getMessage('prefsResetMessagesNone')
+		}
+	})
+}
+
 function resetMessages() {
-	for (const dismissalState in dismissalStates) {
-		browser.storage.sync.set({ [dismissalState]: false })
+	if (this.getAttribute('aria-disabled') === String(false)) {
+		browser.storage.sync.set(dismissalStates)  // default values are false
+		document.getElementById('reset-messages-feedback')
+			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
 	}
 }
 
-translateStuff()
-restoreOptions()
-setUpOptionHandlers()
+function dismissalStateChanged(thingChanged) {
+	return dismissalStates.hasOwnProperty(thingChanged)
+}
+
+function main() {
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		options.push({
+			name: 'interface',
+			element: document.getElementById('landmarks-interface'),
+			property: 'value',
+			change: interfaceExplainer
+		})
+
+		updateResetDismissedMessagesButtonState()
+
+		document.getElementById('reset-messages-feedback')
+			.setAttribute('aria-live', 'polite')
+
+		browser.storage.onChanged.addListener(function(changes) {
+			if (Object.keys(changes).some(dismissalStateChanged)) {
+				updateResetDismissedMessagesButtonState()
+			}
+		})
+	}
+
+	translateStuff()
+	restoreOptions()
+	setUpOptionHandlers()
+}
+
+main()

@@ -315,39 +315,6 @@ function mergeMessages(browser) {
 }
 
 
-function checkMessages(browser) {
-	logStep('Checking for unused messages (except role names)')
-
-	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
-	const messages = JSON.parse(fs.readFileSync(translationsFile))
-	const files = glob.sync(path.join(pathToBuild(browser), '**'), {
-		nodir: true,
-		ignore: ['**/messages.json']
-	})
-	const messageSummary = {}	// count usages of each message
-
-	for (const messageName in messages) {
-		messageSummary[messageName] = 0
-
-		for (const file of files) {
-			messageSummary[messageName] +=
-				(fs.readFileSync(file).toString().match(
-					new RegExp(messageName, 'g')) || []).length
-		}
-
-		if (messageName.startsWith('role')) {
-			// The role names' calls are constructed dynamically (and are
-			// probably OK).
-			messageSummary[messageName] = '(not checked)'
-		}
-	}
-
-	if (Object.values(messageSummary).some((x) => x === 0)) {
-		error('Some messages are unused:', messageSummary)
-	}
-}
-
-
 function mergeManifest(browser) {
 	logStep('Merging manifest.json')
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
@@ -387,6 +354,39 @@ function mergeManifest(browser) {
 	)
 
 	ok(`manifest.json written for ${browser}.`)
+}
+
+
+function checkMessages(browser) {
+	logStep('Checking for unused messages (except role names)')
+
+	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
+	const messages = JSON.parse(fs.readFileSync(translationsFile))
+	const files = glob.sync(path.join(pathToBuild(browser), '**'), {
+		nodir: true,
+		ignore: ['**/messages.json']
+	})
+	const messageSummary = {}	// count usages of each message
+
+	for (const messageName in messages) {
+		messageSummary[messageName] = 0
+
+		for (const file of files) {
+			messageSummary[messageName] +=
+				(fs.readFileSync(file).toString().match(
+					new RegExp(messageName, 'g')) || []).length
+		}
+
+		if (messageName.startsWith('role')) {
+			// The role names' calls are constructed dynamically (and are
+			// probably OK).
+			messageSummary[messageName] = '(not checked)'
+		}
+	}
+
+	if (Object.values(messageSummary).some((x) => x === 0)) {
+		error('Some messages are unused:', messageSummary)
+	}
 }
 
 
@@ -469,8 +469,8 @@ async function main() {
 		copyStaticFiles(browser)
 		copyGuiFiles(browser)
 		mergeMessages(browser)
-		checkMessages(browser)
 		mergeManifest(browser)
+		checkMessages(browser)
 		getPngs(sp, browser)
 		if (testMode) {
 			renameTestVersion(browser)
