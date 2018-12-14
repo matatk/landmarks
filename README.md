@@ -5,7 +5,7 @@ Landmarks
 
 This is a browser extension (for Firefox, Chrome and Opera) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu.
 
-Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
+Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
 The following sections explain how to install and use the extension.
 
@@ -218,6 +218,7 @@ Changes
     -   Fix a bug whereby landmark updates for background tabs pages would show up in the pop-up if it's open. \[[\#216](https://github.com/matatk/landmarks/pull/216)\]
 	-   Improve the profiling script considerably, and use the results to improve performance of landmark finding. \[[\#220](https://github.com/matatk/landmarks/pull/220)\]
     -   Fewer debug-mode log messages; tidy up metadata and improve screengrabs; bump dependencies. \[[\#218](https://github.com/matatk/landmarks/pull/218)\]
+    -   Make the preferences/options UI clearer and more accessible; improve documentation and metadata; improve build robustosity. \[[\#xxx](https://github.com/matatk/landmarks/pull/xxx)\]
 -   2.4.2 - 29th of October 2018
     -   Fix a bug with sidebar option initialisation. \[[\#213](https://github.com/matatk/landmarks/pull/213)\]
 -   2.4.1 - 28th of October 2018
