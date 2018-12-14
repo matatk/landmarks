@@ -36,17 +36,20 @@
 			<input type="number" id="border-font-size">
 		</div>
 
-		<div class="browser-style input-first">
-			<input id="debug-info" type="checkbox">
-			<label for="debug-info" data-message="prefsDebugInfo"></label>
-		</div>
-
 		<!-- ui -->
 		<div class="input-first">
 			<button id="reset-messages" data-message="prefsResetMessages" class="browser-style" aria-describedby="reset-messages-feedback"></button>
 			<span id="reset-messages-feedback"></span>
 		</div>
 		<!-- /ui -->
+
+		<details>
+			<summary data-message="prefsDeveloper"></summary>
+			<div class="browser-style input-first">
+				<input id="debug-info" type="checkbox">
+				<label for="debug-info" data-message="prefsDebugInfo"></label>
+			</div>
+		</details>
 
 		<script src="options.js"></script>
 	</body>

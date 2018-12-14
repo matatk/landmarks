@@ -83,6 +83,10 @@
     "message": "Border label font size (pixels):"
   },
 
+  "prefsDeveloper": {
+    "message": "Developer settings"
+  },
+
   "prefsDebugInfo": {
     "message": "Show debugging info in the console"
   },
