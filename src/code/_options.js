@@ -119,9 +119,6 @@ function main() {
 
 		updateResetDismissedMessagesButtonState()
 
-		document.getElementById('reset-messages-feedback')
-			.setAttribute('aria-live', 'polite')
-
 		browser.storage.onChanged.addListener(function(changes) {
 			if (Object.keys(changes).some(dismissalStateChanged)) {
 				updateResetDismissedMessagesButtonState()
