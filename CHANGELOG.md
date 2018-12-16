@@ -4,13 +4,13 @@ Landmarks ChangeLog
 2.4 series
 ----------
 
-### 2.4.3 - in development
+### 2.4.3 - 16th of December 2018
 
 * Improve the appearance of the DevTools panel on Firefox. \[[\#217](https://github.com/matatk/landmarks/pull/217)\]
 * Fix a bug whereby landmark updates for background tabs pages would show up in the pop-up if it's open. \[[\#216](https://github.com/matatk/landmarks/pull/216)\]
 * Improve the profiling script considerably, and use the results to improve performance of landmark finding. \[[\#220](https://github.com/matatk/landmarks/pull/220)\]
 * Fewer debug-mode log messages; tidy up metadata and improve screengrabs; bump dependencies. \[[\#218](https://github.com/matatk/landmarks/pull/218)\]
-* Make the preferences/options UI clearer and more accessible; improve documentation and metadata; improve build robustosity. \[[\#xxx](https://github.com/matatk/landmarks/pull/xxx)\]
+* Make the preferences/options UI clearer and more accessible; improve documentation and metadata; improve build robustosity. \[[\#228](https://github.com/matatk/landmarks/pull/228)\]
 
 ### 2.4.2 - 29th of October 2018
 
