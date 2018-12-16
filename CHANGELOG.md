@@ -1,0 +1,127 @@
+Landmarks ChangeLog
+===================
+
+2.4 series
+----------
+
+### 2.4.3 - in development
+
+* Improve the appearance of the DevTools panel on Firefox. \[[\#217](https://github.com/matatk/landmarks/pull/217)\]
+* Fix a bug whereby landmark updates for background tabs pages would show up in the pop-up if it's open. \[[\#216](https://github.com/matatk/landmarks/pull/216)\]
+* Improve the profiling script considerably, and use the results to improve performance of landmark finding. \[[\#220](https://github.com/matatk/landmarks/pull/220)\]
+* Fewer debug-mode log messages; tidy up metadata and improve screengrabs; bump dependencies. \[[\#218](https://github.com/matatk/landmarks/pull/218)\]
+* Make the preferences/options UI clearer and more accessible; improve documentation and metadata; improve build robustosity. \[[\#xxx](https://github.com/matatk/landmarks/pull/xxx)\]
+
+### 2.4.2 - 29th of October 2018
+
+* Fix a bug with sidebar option initialisation. \[[\#213](https://github.com/matatk/landmarks/pull/213)\]
+
+### 2.4.1 - 28th of October 2018
+
+* Fix a bug with packaging that was causing the DevTools panel script to be left out of the zip file that gets uploaded to the browser add-on sites (oops again ;-)). \[[\#212](https://github.com/matatk/landmarks/pull/212)\]
+
+### 2.4.0 - 28th of October 2018
+
+* Offer an optional sidebar as well as the toolbar pop-up on Firefox and Opera. \[[\#188](https://github.com/matatk/landmarks/pull/188), [\#199](https://github.com/matatk/landmarks/pull/199)\]
+* Provide a Developer Tools panel that allows landmark elements to be inspected in the DOM viewer. This also entailed re-writing the internal communications between parts of Landmarks to use ports instead of one-time messages. \[[\#204](https://github.com/matatk/landmarks/pull/204)\]
+* Show the current keyboard shortcuts on the splash page and allow the user to update them on Chrome and Opera. \[[\#187](https://github.com/matatk/landmarks/pull/187)\]
+* Fix a bug whereby if an element is removed from the page, its border would remain. Also, update the border if the highlighted element's size or position changes. \[[#210](https://github.com/matatk/landmarks/pull/210)\]
+* Massive re-organisation of the code to make it easier to manage and accommodate and take advantage of cross-browser differences. \[[\#191](https://github.com/matatk/landmarks/pull/191)\]
+* Several smaller code improvements, including: clean-ups to the generated code; efficiency and documentation improvements and new screengrabs and captions. \[[#207](https://github.com/matatk/landmarks/pull/207), [#209](https://github.com/matatk/landmarks/pull/209), [#211](https://github.com/matatk/landmarks/pull/211)\]
+
+2.3 series
+----------
+
+### 2.3.1 - 9th of June 2018
+
+* Support multiple labelling elements when `aria-labelledby` is used. \[[\#176](https://github.com/matatk/landmarks/pull/176)\]
+* Keep labels legible, and borders neat, when landmark regions are narrow, or full-width/height. Also let pointer events through the border so the user can interact as normal with the page below. \[[\#179](https://github.com/matatk/landmarks/pull/179)\]
+* Small refinements to the build process, documentation and error-handling. \[[\#174](https://github.com/matatk/landmarks/pull/174), [\#178](https://github.com/matatk/landmarks/pull/178)\]
+
+### 2.3.0 - 17th of May 2018
+
+* Add landmark labels to the border, which is now drawn more robustly and has customisable colour. \[[\#158](https://github.com/matatk/landmarks/pull/158), [\#162](https://github.com/matatk/landmarks/pull/162)\]
+* Options are saved as they're changed by the user, and borders get updated to reflect settings changes immediately. \[[\#160](https://github.com/matatk/landmarks/pull/160)\]
+* Fix text sometimes overflowing buttons in Firefox. \[[\#163](https://github.com/matatk/landmarks/pull/163)\]
+* Minor tweaks to documentation, build process; library package bumps. \[[\#159](https://github.com/matatk/landmarks/pull/159), [\#161](https://github.com/matatk/landmarks/pull/161), [\#164](https://github.com/matatk/landmarks/pull/164)\]
+
+2.2 series
+----------
+
+### 2.2.0 - 18th of February 2018
+
+* Support [Digital Publishing ARIA module](https://www.w3.org/TR/dpub-aria-1.0/) landmarks, and makes landmark role names friendly and translatable. \[[\#150](https://github.com/matatk/landmarks/pull/150)\]
+* Always scroll to the top of a landmark when moving to it. \[[\#151](https://github.com/matatk/landmarks/pull/151)\]
+* Plumbing work on the build system and other code improvements. \[[\#145](https://github.com/matatk/landmarks/pull/145)\]
+
+2.1 series
+----------
+
+### 2.1.1 - 19th of January 2018
+
+* Improve performance on sites/apps that change rapidly (such as Google Docs) by limiting how quickly Landmarks responds to further changes when they're being made in quick succession. \[[\#139](https://github.com/matatk/landmarks/pull/139)\]
+* Add a keyboard shortcut to show the landmarks pop-up. \[[\#135](https://github.com/matatk/landmarks/pull/135)\]
+* Give the options page a title that shows up for Opera users. \[[\#136](https://github.com/matatk/landmarks/pull/136)\]
+* Behind-the-scenes code and infrastructure improvements for improved quality. \[[\#124](https://github.com/matatk/landmarks/pull/124), [\#128](https://github.com/matatk/landmarks/pull/128), [\#129](https://github.com/matatk/landmarks/pull/129), [\#130](https://github.com/matatk/landmarks/pull/130), [\#142](https://github.com/matatk/landmarks/pull/142), [\#143](https://github.com/matatk/landmarks/pull/143)\]
+
+### 2.1.0 - 6th of November 2017
+
+* Landmarks are now updated when pages change dynamically (not just when the whole page is loaded). This should make the extension much more useful when working with web-apps and pages with pop-ups and slide-out menus, for example. \[[\#111](https://github.com/matatk/landmarks/pull/111)\]
+* Add a keyboard shortcut to skip to the main landmark. \[[also \#111](https://github.com/matatk/landmarks/pull/111)\]
+* Fix a bug whereby sibling landmarks may not be identified as such. \[[\#112](https://github.com/matatk/landmarks/pull/112)\]
+* Adopt more browser-like UI on Firefox (pop-up and options) and Opera (options). \[[\#115](https://github.com/matatk/landmarks/pull/115)\]
+* Use Mozilla's 'addons-linter' to check the built extension. \[[err, also \#111](https://github.com/matatk/landmarks/pull/111)\]
+
+2.0 series
+----------
+
+### 2.0.8 - 18th of September 2017
+
+* Landmarks now ignores visually hidden regions. \[[\#85](https://github.com/matatk/landmarks/pull/85)\]
+* Fix a bug that caused the pop-up to incorrectly report nesting that changes by more than one level between landmarks. \[[\#102](https://github.com/matatk/landmarks/pull/102)\]
+* Correctly restore elements' outlines after they are highlighted. \[[\#94](https://github.com/matatk/landmarks/pull/94)\]
+* Automatically disable the extension on browsers' extensions store pages. \[[\#97](https://github.com/matatk/landmarks/pull/97)\]
+* Start exploring what's needed for Edge support in future. \[[\#99](https://github.com/matatk/landmarks/pull/99)\]
+* Improvements to the SVG to PNG process. \[[\#95](https://github.com/matatk/landmarks/pull/95)\]
+* Other more minor tweaks and fixes.
+* README updates.
+
+### 2.0.7 - 11th of May 2017
+
+* Officially support Opera.
+* Make the landmark highlight more visible.
+* Open a help page when the extension is installed/updated on Firefox (this was already supported on Chrome, and is on Opera).
+* Make use of Firefox's synching of settings across devices.
+* More tests, and numerous other code improvements behind the scenes.
+* Partly works on Edge; still a few things to sort out before it's robust (also, the extensions store is not yet immediately open to submissions from allcomers).
+
+### 2.0.6 - 2nd of February 2017
+
+* Add a test suite to ensure landmarks are identified correctly.
+* Various large internal code-quality improvements.
+
+### 2.0.5 - 5th of December 2016
+
+* No user-facing changes.
+* Fix error in packaging (the new build system was not actually compressing the ZIP file, which different parts of the submission process for Chrome and Firefox didn't like&mdash;oops!)
+* Add more code robustosity checks with ESLint.
+
+### 2.0.4 - 4th of December 2016
+
+* Clean up the appearance of the pop-up.
+* Increase 'momentary' highlight duration to two seconds, from one second.
+* Remove a workaround for a bug in Firefox pop-up sizing that was fixed in Firefox 50.
+* Drop Grunt and switch to just using NPM and scripts for building the extensions.
+* Track builds with Travis CI.
+* Use ESLint and EditorConfig code standards and quality tools.
+
+### 2.0.3 - 23rd of September 2016
+
+* When installed/updated on Chrome, show the web page, with a (hopefully) helpful notice about the install/upgrade.
+* Automatically re-inject the content script on Chrome when the extension is updated (or inject it when the extension is installed), as users would expect it to start working straight away. (Firefox does this itself.)
+* Locale is now en\_GB (instead of en).
+* Switch to using grunt-phantom-rasterize for converting the SVGs to PNGs.
+
+### 2.0.2 - 12th of August 2016
+
+* First WebExtension Release

@@ -9,11 +9,12 @@
 		<!-- ui -->
 		<div class="label-first">
 			<label for="landmarks-interface" data-message="prefsInterface"></label>
-			<select id="landmarks-interface" class="browser-style">
+			<select id="landmarks-interface" aria-describedby="interface-explainer" class="browser-style">
 				<option value="popup" data-explainer="prefsPopupExplanation" data-message="prefsPopup"></option>
 				<option value="sidebar" data-explainer="prefsSidebarExplanation" data-message="prefsSidebar"></option>
 			</select>
 			<p id="interface-explainer"></p>
+			<p id="interface-explainer-live" aria-live="polite" class="visually-hidden"></p>
 		</div>
 		<!-- /ui -->
 
@@ -36,16 +37,20 @@
 			<input type="number" id="border-font-size">
 		</div>
 
-		<div class="browser-style input-first">
-			<input id="debug-info" type="checkbox">
-			<label for="debug-info" data-message="prefsDebugInfo"></label>
-		</div>
-
 		<!-- ui -->
 		<div class="input-first">
-			<button id="reset-messages" data-message="prefsResetMessages" class="browser-style"></button>
+			<button id="reset-messages" data-message="prefsResetMessages" class="browser-style" aria-describedby="reset-messages-feedback"></button>
+			<span aria-live="polite" id="reset-messages-feedback"></span>
 		</div>
 		<!-- /ui -->
+
+		<details>
+			<summary data-message="prefsDeveloper"></summary>
+			<div class="browser-style input-first">
+				<input id="debug-info" type="checkbox">
+				<label for="debug-info" data-message="prefsDebugInfo"></label>
+			</div>
+		</details>
 
 		<script src="options.js"></script>
 	</body>

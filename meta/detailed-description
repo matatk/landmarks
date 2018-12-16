@@ -1,9 +1,0 @@
-Landmarks broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks, if they've been provided by its author, using the keyboard or a pop-up menu.
-
-* How to use it: http://matatk.agrip.org.uk/landmarks
-
-* Issue reporting/support: https://github.com/matatk/landmarks/issues (please check if a problem has already been reported before reporting a new one; thanks).
-
-As this is developed in my own time, I am not able to guarantee timely support, though will be doing what I can to help. I'll be concentrating on fixing bugs, and adding features where this makes sense.
-
-This extension was originally developed by David Todd of IBM. Thanks also to The Paciello Group for donating development time.

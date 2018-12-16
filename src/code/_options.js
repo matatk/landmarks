@@ -19,15 +19,6 @@ const options = [{
 	property: 'checked'
 }]
 
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	options.push({
-		name: 'interface',
-		element: document.getElementById('landmarks-interface'),
-		property: 'value',
-		change: interfaceExplainer
-	})
-}
-
 // Translation
 // http://tumble.jeremyhubert.com/post/7076881720
 // HT http://stackoverflow.com/questions/25467009/
@@ -77,23 +68,70 @@ function setUpOptionHandlers() {
 }
 
 function interfaceExplainer() {
-	const messageName = document
-		.getElementById('landmarks-interface')
+	const messageName = document.getElementById('landmarks-interface')
 		.selectedOptions[0].dataset.explainer
-	const explainer = document.getElementById('interface-explainer')
-	explainer.innerText = browser.i18n.getMessage(messageName)
+	document.getElementById('interface-explainer')
+		.innerText = browser.i18n.getMessage(messageName)
+	setTimeout(function() {
+		document.getElementById('interface-explainer-live')
+			.innerText = browser.i18n.getMessage(messageName)
+	}, 250)
+}
+
+function updateResetDismissedMessagesButtonState() {
+	const button = document.getElementById('reset-messages')
+	const feedback = document.getElementById('reset-messages-feedback')
+
+	browser.storage.sync.get(dismissalStates, function(items) {
+		for (const dismissalState in items) {
+			if (items[dismissalState] === true) {
+				button.setAttribute('aria-disabled', false)
+				feedback.innerText = null
+				return
+			}
+		}
+
+		button.setAttribute('aria-disabled', true)
+		if (!feedback.innerText) {
+			feedback.innerText =
+				browser.i18n.getMessage('prefsResetMessagesNone')
+		}
+	})
 }
 
 function resetMessages() {
-	for (const dismissalState in dismissalStates) {
-		browser.storage.sync.set({
-			[dismissalState]: false
-		}, function() {
-			alert(browser.i18n.getMessage('prefsResetMessagesDone'))
-		})
+	if (this.getAttribute('aria-disabled') === String(false)) {
+		browser.storage.sync.set(dismissalStates)  // default values are false
+		document.getElementById('reset-messages-feedback')
+			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
 	}
 }
 
-translateStuff()
-restoreOptions()
-setUpOptionHandlers()
+function dismissalStateChanged(thingChanged) {
+	return dismissalStates.hasOwnProperty(thingChanged)
+}
+
+function main() {
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		options.push({
+			name: 'interface',
+			element: document.getElementById('landmarks-interface'),
+			property: 'value',
+			change: interfaceExplainer
+		})
+
+		updateResetDismissedMessagesButtonState()
+
+		browser.storage.onChanged.addListener(function(changes) {
+			if (Object.keys(changes).some(dismissalStateChanged)) {
+				updateResetDismissedMessagesButtonState()
+			}
+		})
+	}
+
+	translateStuff()
+	restoreOptions()
+	setUpOptionHandlers()
+}
+
+main()

@@ -92,6 +92,9 @@ function makeLandmarksTree(landmarks, container) {
 			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
 		}
+		// Note: Edge doesn't support DevTools, so doesn't use the message
+		//       'inspectButtonName' - but the build process needs this to be
+		//       here for it to pass (hacky, as below, but Edge will change...)
 
 		base.appendChild(item)  // add to current base
 
@@ -176,7 +179,7 @@ if (INTERFACE === 'sidebar') {
 
 	function createNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
-			if (!items.dismissedSidebarNotAlone) {
+			if (items.dismissedSidebarNotAlone === false) {
 				const para = document.createElement('p')
 				para.appendChild(document.createTextNode(
 					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
@@ -224,8 +227,8 @@ if (INTERFACE === 'sidebar') {
 		}
 	})
 
-	// What about if the sidebar is open and the user changes their preference?
 	browser.storage.onChanged.addListener(function(changes) {
+		// What if the sidebar is open and the user changes their preference?
 		if (changes.hasOwnProperty('interface')) {
 			switch (changes.interface.newValue) {
 				case 'sidebar': removeNote()
@@ -235,6 +238,17 @@ if (INTERFACE === 'sidebar') {
 				default:
 					throw Error(`Unknown interface type "${changes.interface.newValue}`)
 			}
+		}
+
+		// What if the user un-dismisses the message?
+		if (changes.hasOwnProperty('dismissedSidebarNotAlone')) {
+			browser.storage.sync.get('interface', function(items) {
+				if (items.interface === 'popup') {
+					if (changes.dismissedSidebarNotAlone.newValue === false) {
+						createNote()
+					}
+				}
+			})
 		}
 	})
 }
@@ -262,6 +276,11 @@ function main() {
 
 	port.onDisconnect.addListener(function() {
 		disconnectingPortErrorCheck()
+		// Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
+		//       mentioned here, the build will not pass the unused messages
+		//       check. This is a bit hacky, as Firefox really isn't using it,
+		//       but at least it keeps all the code here, rather than putting
+		//       some separately in the build script.
 		if (INTERFACE === 'devtools'
 			&& (BROWSER === 'chrome' || BROWSER === 'opera')) {
 			// DevTools page doesn't get reloaded when the extension does

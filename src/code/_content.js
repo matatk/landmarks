@@ -91,7 +91,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function findLandmarksAndUpdateBackgroundScript() {
-	console.timeStamp('findLandmarksAndUpdateBackgroundScript()')
+	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
 	lf.find()
 	port.postMessage({ name: 'landmarks', data: lf.filter() })
 	ef.checkFocusedElement()
@@ -184,7 +184,7 @@ function bootstrap() {
 			observer.disconnect()
 			observer = null
 		} catch (error) {
-			logger.log(`Error whilst attempting to disconnect ${window.location} observer:`, error)
+			logger.log(`Error whilst attempting to disconnect ${window.location} observer: ${error}`)
 		}
 	})
 	port.onMessage.addListener(messageHandler)
@@ -211,7 +211,7 @@ if (BROWSER === 'firefox') {
 			port.disconnect()
 			port = null
 		} catch (error) {
-			logger.log('Error whilst attempting to disconnect observer:', error)
+			logger.log(`Error whilst attempting to disconnect observer: ${error}`)
 		}
 		bootstrap()
 	}) */
