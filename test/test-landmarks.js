@@ -10,13 +10,13 @@ const expectationsDir = path.join(__dirname, 'landmarks-expectations')
 
 // Tiny helper functions
 const fixturePath = fileName => path.join(fixturesDir, fileName)
-const expectationsPath = fileName => path.join(expectationsDir, fileName)
+const expectationPath = fileName => path.join(expectationsDir, fileName)
 
 function createAllTests() {
 	fs.readdirSync(fixturesDir).forEach(fixtureFile => {
 		const testBaseName = path.basename(fixtureFile, '.html')
 		const expectationFile = testBaseName + '.json'
-		createTest(testBaseName, fixturePath(fixtureFile), expectationsPath(expectationFile))
+		createTest(testBaseName, fixturePath(fixtureFile), expectationPath(expectationFile))
 	})
 }
 

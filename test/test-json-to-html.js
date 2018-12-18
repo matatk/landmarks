@@ -6,17 +6,17 @@ const { JSDOM } = jsdom
 
 const testCodePath = path.join(__dirname, 'test-code-in-harness-json-to-html.js')
 const fixturesDir = path.join(__dirname, 'json-to-html-fixtures')
-const expectationDir = path.join(__dirname, 'json-to-html-expectations')
+const expectationsDir = path.join(__dirname, 'json-to-html-expectations')
 
 // Tiny helper functions
 const fixturePath = fileName => path.join(fixturesDir, fileName)
-const expectationPath = fileName => path.join(expectationDir, fileName)
+const expectationPath = fileName => path.join(expectationsDir, fileName)
 
 function createAllTests() {
 	fs.readdirSync(fixturesDir).forEach(fixtureFile => {
 		const testBaseName = path.basename(fixtureFile, '.json')
-		const expectedFile = testBaseName + '.html'
-		createTest(testBaseName, fixturePath(fixtureFile), expectationPath(expectedFile))
+		const expectationFile = testBaseName + '.html'
+		createTest(testBaseName, fixturePath(fixtureFile), expectationPath(expectationFile))
 	})
 }
 
