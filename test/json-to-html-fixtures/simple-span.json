@@ -1,7 +1,10 @@
 [
-  { "element": "span",
+  {
+    "element": "span",
     "contains": [
-      { "text": "Hello, world! :-)" }
+      {
+        "text": "Hello, world! :-)"
+      }
     ]
   }
 ]

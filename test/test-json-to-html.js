@@ -31,7 +31,8 @@ function createTest(testName, testFixture, testExpectation) {
 		doc.body.appendChild(testContainer)
 
 		const JsonToHtml = require(testCodePath)
-		new JsonToHtml(doc, 'test-container')
+		const jth = new JsonToHtml(doc, 'test-container')
+		jth.makeHtml(fixture)
 		assert.deepEqual(testContainer.innerHTML, expectation, testName)
 	}
 }
