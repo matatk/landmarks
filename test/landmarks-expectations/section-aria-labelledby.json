@@ -1,0 +1,8 @@
+[
+  {
+    "depth": 0,
+    "role": "region",
+    "label": "All About Apples",
+    "selector": "body > section"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "depth": 0,
+    "role": "banner",
+    "label": null,
+    "selector": "body > header"
+  },
+  {
+    "depth": 1,
+    "role": "navigation",
+    "label": null,
+    "selector": "body > header > nav:nth-child(1)"
+  },
+  {
+    "depth": 1,
+    "role": "navigation",
+    "label": null,
+    "selector": "body > header > nav:nth-child(2)"
+  },
+  {
+    "depth": 2,
+    "role": "search",
+    "label": null,
+    "selector": "body > header > nav:nth-child(2) > div"
+  },
+  {
+    "depth": 0,
+    "role": "main",
+    "label": null,
+    "selector": "body > main"
+  },
+  {
+    "depth": 0,
+    "role": "contentinfo",
+    "label": null,
+    "selector": "body > footer"
+  }
+]

@@ -5,32 +5,30 @@ const jsdom = require('jsdom')
 const { JSDOM } = jsdom
 
 const testCodePath = path.join(__dirname, 'test-code-in-harness-landmarks.js')
-const fixturesDir = path.join(__dirname, 'fixtures')
-const dataDir = path.join(__dirname, 'data')
+const fixturesDir = path.join(__dirname, 'landmarks-fixtures')
+const expectationsDir = path.join(__dirname, 'landmarks-expectations')
 
 // Tiny helper functions
 const fixturePath = fileName => path.join(fixturesDir, fileName)
-const dataPath = fileName => path.join(dataDir, fileName)
+const expectationsPath = fileName => path.join(expectationsDir, fileName)
 
 function createAllTests() {
-	const htmlFiles = fs.readdirSync(fixturesDir)
-
-	htmlFiles.forEach(htmlFile => {
-		const testBaseName = path.basename(htmlFile, '.html')
-		const jsonFile = testBaseName + '.json'
-		createTest(testBaseName, fixturePath(htmlFile), dataPath(jsonFile))
+	fs.readdirSync(fixturesDir).forEach(fixtureFile => {
+		const testBaseName = path.basename(fixtureFile, '.html')
+		const expectationFile = testBaseName + '.json'
+		createTest(testBaseName, fixturePath(fixtureFile), expectationsPath(expectationFile))
 	})
 }
 
-function createTest(testName, testFixture, testData) {
+function createTest(testName, testFixture, testExpectations) {
 	exports['test ' + testName] = function(assert) {
 		const fixture = fs.readFileSync(testFixture)
-		const data = require(testData)
+		const expectation = require(testExpectations)
 		const doc = new JSDOM(fixture).window.document
 		const LandmarksFinder = require(testCodePath)
 		const lf = new LandmarksFinder(doc.defaultView, doc)
 		lf.find()
-		assert.deepEqual(lf.filter(), data.expected, testName)
+		assert.deepEqual(lf.filter(), expectation, testName)
 	}
 }
 
