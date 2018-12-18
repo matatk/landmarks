@@ -6,7 +6,7 @@ const testCodePath = path.join(__dirname, 'test-code-in-harness-contrast.js')
 let contrastChecker
 
 exports['test the damage report machine'] = function(assert) {
-	assert.ok(true, 'damage report machine intact')
+	assert.ok(true, 'ContrastChecker damage report machine intact')
 }
 
 exports['test white on black'] = function(assert) {

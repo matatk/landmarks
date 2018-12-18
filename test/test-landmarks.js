@@ -33,7 +33,7 @@ function createTest(testName, testFixture, testExpectations) {
 }
 
 exports['test the damage report machine'] = function(assert) {
-	assert.ok(true, 'damage report machine intact')
+	assert.ok(true, 'LandmarksFinder damage report machine intact')
 }
 
 if (module === require.main) {
