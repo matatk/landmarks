@@ -23,9 +23,12 @@
     "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
     "pretest": "eslint .",
-    "test": "npm run test:landmarks && npm run test:contrast",
+    "test": "npm run test:landmarks && npm run test:contrast && npm run test:json-to-html && npm run test:html-to-json",
     "pretest:contrast": "rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
     "test:contrast": "node test/test-contrast.js",
+    "test:html-to-json": "node test/test-html-to-json.js",
+    "pretest:json-to-html": "rollup src/code/jsonToHtml.js -f cjs > test/test-code-in-harness-json-to-html.js",
+    "test:json-to-html": "node test/test-json-to-html.js",
     "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
     "test:landmarks": "node test/test-landmarks.js"
   },

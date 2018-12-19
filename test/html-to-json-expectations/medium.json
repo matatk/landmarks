@@ -1,0 +1,43 @@
+[
+  {
+    "element": "h1",
+    "contains": [
+      {
+        "text": "This is a heading"
+      }
+    ]
+  },
+  {
+    "element": "p",
+    "contains": [
+      {
+        "text": "Here's some writing about the colour "
+      },
+      {
+        "element": "span",
+        "attributes": {
+          "class": "g"
+        },
+        "contains": [
+          {
+            "text": "green"
+          }
+        ]
+      },
+      {
+        "text": "."
+      }
+    ]
+  },
+  {
+    "element": "a",
+    "attributes": {
+      "href": "#"
+    },
+    "contains": [
+      {
+        "text": "back to top"
+      }
+    ]
+  }
+]

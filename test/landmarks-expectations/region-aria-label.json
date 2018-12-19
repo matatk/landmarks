@@ -1,0 +1,8 @@
+[
+  {
+    "depth": 0,
+    "role": "region",
+    "label": "Reluctant Region",
+    "selector": "body > div"
+  }
+]

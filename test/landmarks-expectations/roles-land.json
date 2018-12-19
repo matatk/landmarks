@@ -1,0 +1,38 @@
+[
+  {
+    "depth": 0,
+    "role": "banner",
+    "label": null,
+    "selector": "#banner"
+  },
+  {
+    "depth": 0,
+    "role": "navigation",
+    "label": null,
+    "selector": "#navigation"
+  },
+  {
+    "depth": 0,
+    "role": "main",
+    "label": null,
+    "selector": "#main"
+  },
+  {
+    "depth": 0,
+    "role": "complementary",
+    "label": null,
+    "selector": "#complementary"
+  },
+  {
+    "depth": 1,
+    "role": "search",
+    "label": null,
+    "selector": "#search"
+  },
+  {
+    "depth": 0,
+    "role": "contentinfo",
+    "label": null,
+    "selector": "#contentinfo"
+  }
+]
