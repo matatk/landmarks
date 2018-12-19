@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 'use strict'
+const fs = require('fs')
+const jsdom = require('jsdom')
+const { JSDOM } = jsdom
 
-function convert(win, htmlRoot, jsonRoot) {
+function domToJson(win, htmlRoot, jsonRoot) {
 	if (!jsonRoot) jsonRoot = []
 	for (let i = 0; i < htmlRoot.childNodes.length; i++) {
 		const node = htmlRoot.childNodes[i]
 		if (node.nodeType === win.Node.ELEMENT_NODE) {
 			const jsonElement = {
 				element: node.tagName.toLowerCase(),
-				contains: convert(win, node, null)
+				contains: domToJson(win, node, null)
 			}
 			if (node.attributes.length > 0) {
 				jsonElement.attributes = {}
@@ -27,22 +30,38 @@ function convert(win, htmlRoot, jsonRoot) {
 	return jsonRoot
 }
 
-if (require.main === module) {
-	// TODO DRY wrt test runner
-	const fs = require('fs')
-	const jsdom = require('jsdom')
-	const { JSDOM } = jsdom
+function convert(html, containerId) {
+	if (typeof html !== 'string') throw Error('HTML code is not a string')
+	if (containerId && typeof containerId !== 'string') {
+		throw Error('IDREF is not a string')
+	}
 
-	const html = fs.readFileSync(process.argv[2], 'utf-8')
-		.replace(/\s*\n\s*/gm, '')
+	const processed = html.replace(/\s*\n\s*/gm, '')
+	const doc = new JSDOM(processed).window.document
 
-	const doc = new JSDOM(html).window.document
-	const res = convert(
+	if (containerId && !doc.getElementById(containerId)) {
+		throw Error(`Element with IDREF "${containerId}" not found.`)
+	}
+
+	const res = domToJson(
 		doc.defaultView,
-		doc.body,
+		containerId ? doc.getElementById(containerId) : doc.body,
 		null)
 
-	console.log(JSON.stringify(res, null, 2))
+	return res
+}
+
+function usageAndExit() {
+	console.error('Usage: html-to-json.js <HTMLFile> [<IDREF>]')
+	console.error('Converts the given <HTMLFile> to JSON and outputs the JSON.')
+	console.error('If <IDREF> is given, start conversion from that element.')
+	process.exit(42)
+}
+
+if (require.main === module) {
+	if (!process.argv[2] || process.argv[2] === '-h') usageAndExit()
+	console.log(JSON.stringify(convert(
+		fs.readFileSync(process.argv[2], 'utf-8'), process.argv[3]), null, 2))
 } else {
 	module.exports = convert
 }

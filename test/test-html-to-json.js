@@ -1,8 +1,6 @@
 'use strict'
 const fs = require('fs')
 const path = require('path')
-const jsdom = require('jsdom')
-const { JSDOM } = jsdom
 
 const testCodePath = path.join(__dirname, '..', 'scripts', 'html-to-json.js')
 const fixturesDir = path.join(__dirname, 'html-to-json-fixtures')
@@ -23,16 +21,9 @@ function createAllTests() {
 function createTest(testName, testFixture, testExpectation) {
 	exports['test ' + testName] = function(assert) {
 		const fixture = fs.readFileSync(testFixture, 'utf-8')
-			.replace(/\s*\n\s*/gm, '')
 		const expectation = require(testExpectation)
-		const doc = new JSDOM(fixture).window.document
-
 		const convert = require(testCodePath)
-		const res = convert(
-			doc.defaultView,
-			doc.getElementById('test-container'),
-			null)
-
+		const res = convert(fixture, 'test-container')
 		assert.deepEqual(res, expectation, testName)
 	}
 }
