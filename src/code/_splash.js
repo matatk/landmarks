@@ -1,4 +1,5 @@
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
+import JsonToHtml from './jsonToHtml'
 // FIXME localise (remember: table headings, button contents, ...)
 // FIXME what to do when content script is re-loaded and disconnected in Blink
 
@@ -89,7 +90,7 @@ function addCommandRowAndReportIfMissing(command) {
 	let shortcutCellElement
 
 	if (command.shortcut) {
-		// Firefox gives "Alt+Shift+N" but Chrome gives ⌥⇧N
+		// Firefox gives 'Alt+Shift+N' but Chrome gives ⌥⇧N
 		if (BROWSER === 'chrome' || BROWSER === 'opera') {
 			shortcutCellElement = { element: 'td', contains: [
 				{ element: 'kbd', content: command.shortcut }
@@ -203,6 +204,19 @@ function main() {
 	while (shortcutKeysHeading.nextSibling.tagName !== 'H3') {  // FIXME H
 		shortcutKeysHeading.nextSibling.remove()
 	}
+
+	// Try out new splash stuff...
+	fetch(browser.extension.getURL('help.json'))
+		.then(function(response) {
+			return response.json()
+		})
+		.then(function(json) {
+			const thingy = document.createElement('DIV')
+			thingy.id = 'thingy'
+			document.body.appendChild(thingy)
+			const jth = new JsonToHtml(document, 'thingy')
+			jth.makeHtml(json)
+		})
 
 	// Kickstart process to get commands and create new HTML
 	port = browser.runtime.connect({ name: 'splash' })

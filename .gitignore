@@ -10,3 +10,4 @@ test/test-code-in-harness-*.js
 scripts/browser-landmarks.js
 trace--*.json
 results--*.json
+src/static/help.json

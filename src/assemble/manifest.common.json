@@ -63,6 +63,8 @@
     "default_popup": "popup.html"
   },
 
+  "web_accessible_resources": [ "help.json" ],
+
   "permissions": [
     "storage",
     "webNavigation",
