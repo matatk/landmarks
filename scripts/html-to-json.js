@@ -28,7 +28,21 @@ function convert(win, htmlRoot, jsonRoot) {
 }
 
 if (require.main === module) {
-	// TODO loaded from commandline
+	// TODO DRY wrt test runner
+	const fs = require('fs')
+	const jsdom = require('jsdom')
+	const { JSDOM } = jsdom
+
+	const html = fs.readFileSync(process.argv[2], 'utf-8')
+		.replace(/\s*\n\s*/gm, '')
+
+	const doc = new JSDOM(html).window.document
+	const res = convert(
+		doc.defaultView,
+		doc.body,
+		null)
+
+	console.log(JSON.stringify(res, null, 2))
 } else {
 	module.exports = convert
 }
