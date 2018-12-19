@@ -22,7 +22,8 @@ function createAllTests() {
 
 function createTest(testName, testFixture, testExpectation) {
 	exports['test ' + testName] = function(assert) {
-		const fixture = fs.readFileSync(testFixture)
+		const fixture = fs.readFileSync(testFixture, 'utf-8')
+			.replace(/\s*\n\s*/gm, '')
 		const expectation = require(testExpectation)
 		const doc = new JSDOM(fixture).window.document
 

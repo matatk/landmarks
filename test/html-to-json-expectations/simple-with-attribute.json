@@ -1,0 +1,13 @@
+[
+  {
+    "element": "p",
+    "contains": [
+      {
+        "text": "Hello"
+      }
+    ],
+    "attributes": {
+      "class": "awesome"
+    }
+  }
+]
