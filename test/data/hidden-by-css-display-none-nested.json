@@ -1,0 +1,10 @@
+{
+  "expected": [
+    {
+      "depth": 0,
+      "role": "main",
+      "label": null,
+      "selector": "body > main"
+    }
+  ]
+}
