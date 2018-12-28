@@ -381,11 +381,7 @@ browser.tabs.onActivated.addListener(function(activeInfo) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
-		// Show website and get it to display an appropriate notice
-		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
-		browser.tabs.create({
-			url: baseUrl + details.reason
-		})
+		browser.tabs.create({ url: 'help.html' })
 	}
 })
 

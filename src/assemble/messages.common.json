@@ -38,7 +38,7 @@
   },
 
   "errorNoConnection": {
-    "message": "Landmarks cannot run on this page."
+    "message": "Landmarks is not allowed to run on this page."
   },
 
   "noLandmarksFound": {

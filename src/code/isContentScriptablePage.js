@@ -11,5 +11,11 @@ export default function isContentScriptablePage(url) {
 	if (/^(https?|file):\/\//.test(url) && !specialPages.test(url)) {
 		return true
 	}
+	if (BROWSER === 'firefox') {
+		const helpPageUrl = browser.runtime.getURL('help.html')
+		if (url === helpPageUrl) {
+			return true
+		}
+	}
 	return false
 }

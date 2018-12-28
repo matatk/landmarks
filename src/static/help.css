@@ -1,0 +1,45 @@
+:root {
+	--hla: #155799;
+	--hlb: #159957;
+	--words: #606c71;
+}
+
+body {
+	margin: 0;
+	font-family: Verdana, sans-serif;
+	color: var(--words);
+	line-height: 1.5em;
+}
+
+header {
+	background-image: linear-gradient(120deg, var(--hla), var(--hlb));
+	padding: 2em;
+	margin: 0;
+	color: white;
+}
+
+main { padding-top: 1em; }
+
+details {
+	padding: 1em;
+	margin: 0;
+}
+
+summary > :first-child { display: inline; }
+
+footer { padding: 1em; }
+
+footer a { color: var(--words); }
+
+@media screen and (min-width: 60em) {
+	main {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+
+	details {
+		margin: 0;
+		width: 47%;
+	}
+}
