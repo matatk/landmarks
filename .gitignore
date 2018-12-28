@@ -1,7 +1,9 @@
 .DS_Store
 *.swp
-node_modules
-build
+node_modules/
+build/
 landmarks-*-*.zip
-_site
-test
+_site/
+test/
+meta/
+scripts/
