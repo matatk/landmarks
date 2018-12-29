@@ -4,11 +4,37 @@
 		<meta charset="UTF-8">
 		<title>Landmarks</title>
 		<link rel="stylesheet" href="landmarks.css">
+		<style>
+/* TODO: Remove after 2.4.x is no longer in use */
+.notice {
+	margin-top: 1.5em;
+	display: inline-block;
+	max-width: 80%;
+	color: rgba(255, 255, 255, 0.7);
+	background-color: rgba(255, 255, 255, 0.08);
+	border-color: rgba(255, 255, 255, 0.2);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 0.3rem;
+	padding: 0.75rem 1rem; }
+  .notice a {
+	  color: white;
+	  text-decoration: underline; }
+		</style>
 	</head>
 	<body>
 		<header>
 			<h1>Landmarks</h1>
 			<p>Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu</p>
+			<!-- TODO: Remove after 2.4.x is no longer in use -->
+			<div id="install-notice" hidden>
+				<p>Thanks for installing the Landmarks extension. Instructions for <a href="https://github.com/matatk/landmarks/blob/master/README.md#navigating-landmarks">navigating landmarks</a> and changing settings can be found in the <a href="https://github.com/matatk/landmarks/blob/master/README.md">README</a>.</p>
+				<p><strong>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</strong></p>
+			</div>
+			<div id="update-notice" hidden>
+				<p>The Landmarks extension was updated; information on what's changed can be found <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">in the change log</a>.</p>
+				<p><strong>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</strong></p>
+			</div>
 		</header>
 		<main>
 		<section class="abstract">
@@ -65,5 +91,19 @@
 			<p><a href="https://github.com/matatk/landmarks">Landmarks</a> is maintained by <a href="https://github.com/matatk">matatk</a>.</p>
 			<p>This page is hosted on <a href="https://pages.github.com">GitHub Pages</a>. Gradient design is from the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a>.</p>
 		</footer>
+		<script>
+// TODO: Remove after 2.4.x is no longer in use
+const fragment = window.location.hash.substr(1);  // includes the bang
+const id_part = fragment.substr(1);  // doesn't include the bang
+switch (fragment) {
+	case "!install":
+	case "!update":
+		const element = document.getElementById(id_part + "-notice");
+		element.removeAttribute('hidden');
+		element.classList.add('notice');
+	default:
+		//
+}
+		</script>
 	</body>
 </html>
