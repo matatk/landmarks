@@ -2,7 +2,6 @@
 *.swp
 node_modules
 build
-_site
 meta/out-*.png
 landmarks-*.zip
 npm-debug.log
