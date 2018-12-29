@@ -1,7 +1,0 @@
-exclude:
- - Gemfile
- - Gemfile.lock
- - node_modules
- - build
- - landmarks-*-*.zip
- - update-readme-from-master.sh
