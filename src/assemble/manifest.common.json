@@ -23,8 +23,7 @@
     },
     {
       "matches": ["http://matatk.agrip.org.uk/landmarks/"],
-      "js": ["splash.js"],
-      "css": ["splash.css"]
+      "js": ["addHelpLinkToHomePage.js"]
     }
   ],
 

@@ -33,7 +33,6 @@ const chromeKeyboardShortcutsButton = {
 	}]
 }
 
-
 function makePart(structure, root) {
 	let newPart
 
@@ -68,7 +67,6 @@ function makePart(structure, root) {
 
 	return root
 }
-
 
 function addCommandRowAndReportIfMissing(command) {
 	// Work out the command's friendly name
@@ -114,7 +112,6 @@ function addCommandRowAndReportIfMissing(command) {
 	})
 }
 
-
 function firefoxShortcutElements(shortcut) {
 	const shortcutElements = []
 	const shortcutParts = shortcut.split(/(\+)/)
@@ -129,7 +126,6 @@ function firefoxShortcutElements(shortcut) {
 
 	return shortcutElements
 }
-
 
 function messageHandler(message) {  // also sendingPort
 	if (message.name !== 'splash-populate-commands') return
@@ -164,47 +160,11 @@ function messageHandler(message) {  // also sendingPort
 		splashPage.contains.push(chromeKeyboardShortcutsButton)
 	}
 
-	// Create new bits
-
-	const heading = document.getElementById('via-shortcut-key')
-	const parent = heading.parentNode
-	const splashContainer = document.createElement('div')
-
-	parent.insertBefore(
-		makePart(splashPage, splashContainer), heading.nextSibling)
+	document.getElementById('keyboard-shortcuts').appendChild(
+		makePart(splashPage, document.createElement('div')))
 }
 
-
 function main() {
-	// Check for various README elements and escape if things aren't as expected
-
-	const installationTocEntry = document.getElementsByTagName('li')[0]
-	if (!installationTocEntry
-		|| installationTocEntry.textContent !== 'Installation') return
-
-	const installationHeading = document.getElementById('installation')
-	if (!installationHeading) return
-
-	const shortcutKeysHeading = document.getElementById('via-shortcut-key')
-	if (!shortcutKeysHeading) return
-
-	// Remove installation section
-
-	installationTocEntry.remove()
-
-	while (installationHeading.nextSibling.tagName !== 'H2') {  // FIXME H
-		installationHeading.nextSibling.remove()
-	}
-
-	installationHeading.remove()
-
-	// Remove static keyboard shortcuts section content
-
-	while (shortcutKeysHeading.nextSibling.tagName !== 'H3') {  // FIXME H
-		shortcutKeysHeading.nextSibling.remove()
-	}
-
-	// Kickstart process to get commands and create new HTML
 	port = browser.runtime.connect({ name: 'splash' })
 	port.onDisconnect.addListener(disconnectingPortErrorCheck)
 	port.onMessage.addListener(messageHandler)

@@ -31,6 +31,12 @@ footer { padding: 1em; }
 
 footer a { color: var(--words); }
 
+td.error {
+	background-color: #d00;
+	color: white;
+	font-weight: bold;
+}
+
 @media screen and (min-width: 60em) {
 	main {
 		display: flex;
