@@ -52,8 +52,6 @@ section.feature:nth-child(even) h2 { color: var(--hla); }
 
 img {
 	max-width: 100%;
-	margin-top: auto;
-	margin-bottom: auto;
 	filter: drop-shadow(0.5em 0.5em 0.5em #999);
 }
 
@@ -75,7 +73,7 @@ footer a { color: var(--words); }
 	section.install ul li {
 		display: flex;
 		flex-direction: column;
-		justify-content: space-between;
+		justify-content: center;
 	}
 
 	section.feature > :first-child { flex: 0 1 40%; }
