@@ -152,7 +152,7 @@ function splashListener(message, sendingPort) {
 				// This should only appear on Chrome/Opera
 				url: BROWSER === 'chrome'
 					? 'chrome://extensions/configureCommands'
-					: 'opera://settings/configureCommands'
+					: 'opera://settings/keyboardShortcuts'
 			})
 			break
 		case 'splash-open-help':

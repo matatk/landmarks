@@ -24,7 +24,7 @@
     "chrome_style": true
   },
 
-  "minimum_opera_version": "44",
+  "minimum_opera_version": "57",
 
   "permissions": ["<all_urls>"],
 
