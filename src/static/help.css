@@ -55,7 +55,12 @@ td.error {
 	font-weight: bold;
 }
 
-button { font-size: inherit; }
+a.config {
+	display: inline-block;
+	border-radius: 1em;
+	border: 2px solid var(--words);
+	padding: 1em;
+}
 
 footer { padding: 1em; }
 

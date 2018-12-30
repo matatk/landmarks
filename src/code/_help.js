@@ -20,9 +20,11 @@ const shortcutTableRows = [
 	}
 ]
 
-const chromeKeyboardShortcutsButton = {
+const chromeKeyboardShortcutsLink = {
 	element: 'p', contains: [{
-		element: 'button',
+		element: 'a',
+		class: 'config',
+		href: '#',
 		content: 'Add or change shortcuts',
 		listen: {
 			event: 'click',
@@ -44,6 +46,9 @@ function makePart(structure, root) {
 				break
 			case 'class':
 				newPart.classList.add(structure[key])
+				break
+			case 'href':
+				newPart.href = structure[key]
 				break
 			case 'text':
 				root.appendChild(document.createTextNode(structure[key]))
@@ -157,7 +162,7 @@ function messageHandler(message) {  // also sendingPort
 	})
 
 	if (BROWSER === 'chrome' || BROWSER === 'opera') {
-		splashPage.contains.push(chromeKeyboardShortcutsButton)
+		splashPage.contains.push(chromeKeyboardShortcutsLink)
 	}
 
 	document.getElementById('keyboard-shortcuts').appendChild(
