@@ -169,6 +169,10 @@ function main() {
 	port.onDisconnect.addListener(disconnectingPortErrorCheck)
 	port.onMessage.addListener(messageHandler)
 	port.postMessage({ name: 'get-commands' })
+
+	const manifest = browser.runtime.getManifest()
+	const version = manifest.version
+	document.getElementById('version').innerText = version
 }
 
 main()
