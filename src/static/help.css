@@ -27,9 +27,26 @@ details {
 
 summary > :first-child { display: inline; }
 
-footer { padding: 1em; }
+table {
+	margin-top: 0.5em;
+	border-collapse: collapse;
+}
 
-footer a { color: var(--words); }
+tr:nth-child(odd) { background-color: #efefef; }
+
+tr:first-child {
+	background-color: var(--hla);
+	color: white;
+}
+
+th, td { padding: 0.5em; }
+
+th {
+	padding-left: 2em;
+	padding-right: 2em;
+}
+
+td:last-child { text-align: center; }
 
 td.error {
 	background-color: #d00;
@@ -37,15 +54,20 @@ td.error {
 	font-weight: bold;
 }
 
+button { font-size: inherit; }
+
+footer { padding: 1em; }
+
+footer a { color: var(--words); }
+
 @media screen and (min-width: 60em) {
 	main {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
+		column-count: 2;
+		column-fill: balance;
 	}
 
 	details {
-		margin: 0;
-		width: 47%;
+		break-inside: avoid;
+		page-break-inside: avoid;  /* for Firefox */
 	}
 }
