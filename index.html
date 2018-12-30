@@ -3,13 +3,14 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Landmarks</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="landmarks.css">
 		<style>
-/* TODO: Remove after 2.4.x is no longer in use */
+/* TODO: Remove when <2.5.0 is no longer in use */
 .notice {
 	margin-top: 1.5em;
 	display: inline-block;
-	max-width: 80%;
+	max-width: 65em;
 	color: rgba(255, 255, 255, 0.7);
 	background-color: rgba(255, 255, 255, 0.08);
 	border-color: rgba(255, 255, 255, 0.2);
@@ -26,7 +27,7 @@
 		<header>
 			<h1>Landmarks</h1>
 			<p>Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu</p>
-			<!-- TODO: Remove after 2.4.x is no longer in use -->
+			<!-- TODO: Remove when <2.5.0 is no longer in use -->
 			<div id="install-notice" hidden>
 				<p>Thanks for installing the Landmarks extension. Instructions for <a href="https://github.com/matatk/landmarks/blob/master/README.md#navigating-landmarks">navigating landmarks</a> and changing settings can be found in the <a href="https://github.com/matatk/landmarks/blob/master/README.md#landmarks">README</a>.</p>
 				<p><strong>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</strong></p>
@@ -92,7 +93,7 @@
 			<p>This page is hosted on <a href="https://pages.github.com">GitHub Pages</a>. Gradient design is from the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a>.</p>
 		</footer>
 		<script>
-// TODO: Remove after 2.4.x is no longer in use
+// TODO: Remove when <2.5.0 is no longer in use
 const fragment = window.location.hash.substr(1);  // includes the bang
 const id_part = fragment.substr(1);  // doesn't include the bang
 switch (fragment) {
