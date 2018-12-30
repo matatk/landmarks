@@ -10,29 +10,75 @@
 			<h1>Landmarks Help</h1>
 		</header>
 		<main>
-		<details>
+		<details open>
 			<summary><h2>What's New?</h2></summary>
-			<p>Hello.</p>
+			<p>FIXME TODO</p>
 		</details>
-		<details>
+		<details open>
 			<summary><h2>Keyboard shortcuts</h2></summary>
 			<p>Hello.</p>
 		</details>
-		<details>
+		<details open>
 			<summary><h2>Navigation</h2></summary>
-			<p>Hello.</p>
+			<h3 id="via-shortcut-key">Via Shortcut Key</h3>
+			<p>You can use shortcut keys to navigate between landmarks. By default, the keys are:</p>
+			<ul>
+				<li><strong>Next landmark:</strong> <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd></li>
+				<li><strong>Previous landmark:</strong> <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></li>
+				<li><strong>Main landmark:</strong> <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></li>
+				<li><strong>Open the landmarks pop-up:</strong> <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.</li>
+			</ul>
+			<p>(On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)</p>
+			<p>Landmarks will be focused, and a border shown according to your <a href="#border-preferences">border preferences</a>.</p>
+			<p>You can change the keyboard shortcuts in the following browsers.</p>
+			<ul>
+				<li><strong>Chrome:</strong> More ⋮ → Settings → Extensions [on the left-hand side] → Keyboard shortcuts [at the bottom of the page]</li>
+				<li><strong>Opera:</strong> Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts</li>
+			</ul>
+			<h3 id="via-toolbar-pop-up">Via Toolbar Pop-up</h3>
+			<p>If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an “L”) will be badged with the number of landmarks found.</p>
+			<ol>
+				<li>
+					<p>Activate the Landmarks toolbar button. A pop-up will appear. If landmarks are present on the page, they will be shown in a nested list, reflecting the structure of the landmarks on the page.</p>
+				</li>
+				<li>
+					<p>Activate a button in the list to move to that landmark. The landmark will be focused, and a border shown according to your <a href="#border-preferences">border preferences</a>.</p>
+				</li>
+				<li>
+					<p>To close the pop-up, press <kbd>Escape</kbd>, or click outside of the pop-up.</p>
+				</li>
+			</ol>
+			<h3 id="inspecting-landmarks-in-the-dom">Inspecting landmarks in the DOM</h3>
+			<p>A Developer Tools panel called “Landmarks” is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.</p> <p>This feature is primarily intended for web authors/developers and accessibility testers.</p>
 		</details>
-		<details>
-			<summary><h2>Preferences</h2></summary>
-			<p>Hello.</p>
+		<details open>
+			<summary><h2 id="border-preferences">Preferences</h2></summary>
+			<p>A border will be drawn around the landmarks as you navigate them. The border contains a label that displays the landmark’s type and name (if one was provided by the author of the page). You can customise various aspects of this in the extension’s preferences/options page. The available settings are:</p>
+			<ul>
+				<li><strong>If the border should be displayed, and for how long.</strong>
+					<ul>
+						<li><strong>Momentary (default):</strong> the border remains visible for a short time, then disappears.</li>
+						<li><strong>Persistent:</strong> the border remains visible at all times.</li>
+						<li><strong>None:</strong> no border is drawn.</li>
+					</ul>
+				</li>
+				<li><strong>The border’s colour.</strong></li>
+				<li><strong>The font size used in the landmark label.</strong></li>
+			</ul>
+			<p>You can get to the extension’s settings as follows.</p>
+			<ul>
+				<li><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Preferences [under Landmarks, then scroll down]</li>
+				<li><strong>Chrome/Opera:</strong> Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options</li>
+			</ul>
 		</details>
-		<details>
+		<details open>
 			<summary><h2>Info for web authors and developers</h2></summary>
-			<p>Hello.</p>
+			<p>You can learn about <a href="https://github.com/matatk/landmarks#information-for-web-authors-designers-and-developers">why landmarks rock, and how easy they are to use on your site</a> in the README on GitHub.</p>
+			<p>You can learn about <a href="https://github.com/matatk/landmarks#this-extensions-support-for-landmarks">this extension's support for the landmarks standards</a> in the README on GitHub.</p>
 		</details>
-		<details>
+		<details open>
 			<summary><h2>Landmarks extension development info</h2></summary>
-			<p>Hello.</p>
+			<p>Check out the <a href="https://github.com/matatk/landmarks#development">Development</a> section of the README on GitHub.</p>
 		</details>
 		</main>
 		<footer>
