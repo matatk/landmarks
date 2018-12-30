@@ -160,6 +160,9 @@ function splashListener(message, sendingPort) {
 				url: browser.runtime.getURL('help.html')
 			})
 			break
+		case 'splash-open-settings':
+			browser.runtime.openOptionsPage()
+			break
 		default:
 			throw Error(`Unknown message from splash: ${JSON.stringify(message)}`)
 	}

@@ -60,6 +60,7 @@ a.config {
 	border-radius: 1em;
 	border: 2px solid var(--words);
 	padding: 1em;
+	color: var(--words);
 }
 
 footer { padding: 1em; }

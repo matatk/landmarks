@@ -35,6 +35,22 @@ const chromeKeyboardShortcutsLink = {
 	}]
 }
 
+const settingsLink = {
+	element: 'a',
+	class: 'config',
+	href: '#',
+	content: 'Change preferences (opens in new tab)',
+	listen: {
+		event: 'click',
+		handler: (event) => {
+			port.postMessage({
+				name: 'splash-open-settings'
+			})
+			event.preventDefault()  // until it opens in the same tab
+		}
+	}
+}
+
 function makePart(structure, root) {
 	let newPart
 
@@ -174,6 +190,13 @@ function main() {
 	port.onDisconnect.addListener(disconnectingPortErrorCheck)
 	port.onMessage.addListener(messageHandler)
 	port.postMessage({ name: 'get-commands' })
+
+	if (BROWSER === 'chrome' || BROWSER === 'opera') {
+		makePart(chromeKeyboardShortcutsLink,
+			document.getElementById('shortcuts-link-container'))
+	}
+
+	makePart(settingsLink, document.getElementById('settings-link-container'))
 
 	const manifest = browser.runtime.getManifest()
 	const version = manifest.version
