@@ -148,7 +148,7 @@ function splashListener(message, sendingPort) {
 			})
 			break
 		case 'splash-open-configure-shortcuts':
-			browser.tabs.create({
+			browser.tabs.update({
 				// This should only appear on Chrome/Opera
 				url: BROWSER === 'chrome'
 					? 'chrome://extensions/configureCommands'
@@ -156,7 +156,7 @@ function splashListener(message, sendingPort) {
 			})
 			break
 		case 'splash-open-help':
-			browser.tabs.create({
+			browser.tabs.update({
 				url: browser.runtime.getURL('help.html')
 			})
 			break
