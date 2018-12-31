@@ -19,6 +19,11 @@ header {
 	color: white;
 }
 
+header a {
+	color: white;
+	font-weight: bold;
+}
+
 main { padding-top: 1em; }
 
 details {

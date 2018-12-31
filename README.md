@@ -28,8 +28,6 @@ Use the [installation links on the home page](http://matatk.agrip.org.uk/landmar
 * How to navigate using the sidebar (where supported).
 * Border preferences, for landmark highlights and labels whilst navigating.
 
-**If you need support, please [check the known issues for Landmarks](https://github.com/matatk/landmarks/issues) and, if necessary, file a new issue using the "New Issue" button on that page.**
-
 The rest of this file documents information peripheral to the day-to-day use of the extension, that may be of help and interest to web authors/designers/developers, accessibility testers and extension developers.
 
 This Extension's Support for Landmarks
