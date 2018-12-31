@@ -177,12 +177,15 @@ function messageHandler(message) {  // also sendingPort
 		contains: shortcutTableRows
 	})
 
-	if (BROWSER === 'chrome' || BROWSER === 'opera') {
-		splashPage.contains.push(chromeKeyboardShortcutsLink)
-	}
+	makePart(splashPage, document.getElementById('keyboard-shortcuts'))
+}
 
-	document.getElementById('keyboard-shortcuts').appendChild(
-		makePart(splashPage, document.createElement('div')))
+function makePartInContainers(container, template) {
+	const shortcutLinkContainers = document
+		.querySelectorAll(`[data-container="${container}"`)
+	for (const element of shortcutLinkContainers) {
+		makePart(template, element)
+	}
 }
 
 function main() {
@@ -192,11 +195,10 @@ function main() {
 	port.postMessage({ name: 'get-commands' })
 
 	if (BROWSER === 'chrome' || BROWSER === 'opera') {
-		makePart(chromeKeyboardShortcutsLink,
-			document.getElementById('shortcuts-link-container'))
+		makePartInContainers('shortcuts', chromeKeyboardShortcutsLink)
 	}
 
-	makePart(settingsLink, document.getElementById('settings-link-container'))
+	makePartInContainers('settings', settingsLink)
 
 	const manifest = browser.runtime.getManifest()
 	const version = manifest.version

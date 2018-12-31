@@ -15,21 +15,20 @@
 			<p>New in version <span id="version"></span>&hellip;</p>
 			<p><mark>FIXME TODO</mark></p>
 		</details>
-		<details id="keyboard-shortcuts" open>
-			<summary><h2>Keyboard shortcuts</h2></summary>
-		</details>
 		<details open>
-			<summary><h2>Navigation</h2></summary>
-			<h3>Shortcut Keys</h3>
-			<p>You can use shortcut keys to navigate between landmarks, as detailed above. When you do, landmarks will be focused, and a border shown according to your <a href="#border-preferences">border preferences</a>.</p>
-			<p id="shortcuts-link-container"></p>
+			<summary><h2>Keyboard Navigation</h2></summary>
+			<p>You can use shortcut keys to navigate between landmarks, as detailed below. When you do, landmarks will be focused, and a border shown according to your <a href="#border-preferences">border preferences</a>.</p>
+			<div id="keyboard-shortcuts"></div>
+			<p data-container="shortcuts"></p>
 			<p>You can also change the keyboard shortcuts in the following browsers.</p>
 			<ul>
 				<li><strong>Chrome:</strong> More ⋮ → Settings → Extensions [on the left-hand side] → Keyboard shortcuts [at the bottom of the page]</li>
 				<li><strong>Opera:</strong> Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts</li>
 			</ul>
-			<h3>Toolbar Pop-up</h3>
-			<p>If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an “L”) will be badged with the number of landmarks found.</p>
+		</details>
+		<details open>
+			<summary><h2>Toolbar Pop-up</h2></summary>
+			<p>If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an "L") will be badged with the number of landmarks found. You can use the pop-up as follows.</p>
 			<ol>
 				<li>
 					<p>Activate the Landmarks toolbar button. A pop-up will appear. If landmarks are present on the page, they will be shown in a nested list, reflecting the structure of the landmarks on the page.</p>
@@ -41,8 +40,16 @@
 					<p>To close the pop-up, press <kbd>Escape</kbd>, or click outside of the pop-up.</p>
 				</li>
 			</ol>
-			<h3>Inspecting landmarks in the DOM</h3>
-			<p>A Developer Tools panel called “Landmarks” is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.</p> <p>This feature is primarily intended for web authors/developers and accessibility testers.</p>
+		</details>
+		<details open>
+			<summary><h2>Sidebar</h2></summary>
+			<p>On Firefox and Opera, you can also explore landmarks on the page by way of a sidebar. You can choose in the preferences whether you'd like to use both the toolbar pop-up and sidebar, or just the sidebar.</p>
+			<p data-container="settings"></p>
+			<p>You can also get to the extension’s settings as follows.</p>
+			<ul>
+				<li><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Preferences [under Landmarks, then scroll down]</li>
+				<li><strong>Chrome/Opera:</strong> Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options</li>
+			</ul>
 		</details>
 		<details open>
 			<summary><h2 id="border-preferences">Preferences</h2></summary>
@@ -58,7 +65,7 @@
 				<li><strong>The border’s colour.</strong></li>
 				<li><strong>The font size used in the landmark label.</strong></li>
 			</ul>
-			<p id="settings-link-container"></p>
+			<p data-container="settings"></p>
 			<p>You can also get to the extension’s settings as follows.</p>
 			<ul>
 				<li><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Preferences [under Landmarks, then scroll down]</li>
@@ -69,6 +76,10 @@
 			<summary><h2>Info for web authors and developers</h2></summary>
 			<p>You can learn about <a href="https://github.com/matatk/landmarks#information-for-web-authors-designers-and-developers">why landmarks rock, and how easy they are to use on your site</a> in the README on GitHub.</p>
 			<p>You can learn about <a href="https://github.com/matatk/landmarks#this-extensions-support-for-landmarks">this extension's support for the landmarks standards</a> in the README on GitHub.</p>
+		</details>
+		<details open>
+			<summary><h2>Inspecting landmarks in the DOM</h2></summary>
+			<p>A Developer Tools panel called “Landmarks” is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.</p> <p>This feature is primarily intended for web authors/developers and accessibility testers.</p>
 		</details>
 		<details open>
 			<summary><h2>Landmarks extension development info</h2></summary>

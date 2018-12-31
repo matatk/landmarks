@@ -58,7 +58,7 @@ td.error {
 a.config {
 	display: inline-block;
 	border-radius: 1em;
-	border: 2px solid var(--words);
+	border: 1px solid var(--words);
 	padding: 1em;
 	color: var(--words);
 }

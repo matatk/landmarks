@@ -33,9 +33,15 @@ h1 {
 }
 
 /* ui */
+:root {
+	--light: #e4fbf0;
+	--vivid: #159957;
+}
+
 #note {
-	background-color: #fee;
-	border: 1px solid red;
+	background-color: var(--light);
+	border: 1px solid var(--vivid);
+	border-radius: 1em;
 }
 
 #note p {
@@ -50,8 +56,9 @@ h1 {
 
 #note button {
 	flex-grow: 1;
-	border-color: red;
-	background-color: #fee;
+	border-color: var(--vivid);
+	background-color: var(--light);
+	border-radius: 1em;
 	text-align: center;
 }
 /* /ui */
