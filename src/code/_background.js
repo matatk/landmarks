@@ -389,7 +389,7 @@ browser.tabs.onActivated.addListener(function(activeInfo) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
-		browser.tabs.create({ url: 'help.html' })
+		browser.tabs.create({ url: `help.html#!${details.reason}` })
 	}
 })
 

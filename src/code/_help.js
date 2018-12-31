@@ -4,6 +4,28 @@ import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 let port
 
+const openingsInstall = {
+	'section-new': false,
+	'section-keyboard-navigation': true,
+	'section-pop-up': true,
+	'section-sidebar': true,
+	'section-border-preferences': true,
+	'section-author-info': true,
+	'section-devtools': true,
+	'section-development': true
+}
+
+const openingsUpdate = {
+	'section-new': true,
+	'section-keyboard-navigation': true,
+	'section-pop-up': false,
+	'section-sidebar': false,
+	'section-border-preferences': false,
+	'section-author-info': false,
+	'section-devtools': false,
+	'section-development': false
+}
+
 const splashPage = {
 	contains: [
 		// more stuff is added later
@@ -177,14 +199,21 @@ function messageHandler(message) {  // also sendingPort
 		contains: shortcutTableRows
 	})
 
-	makePart(splashPage, document.getElementById('keyboard-shortcuts'))
+	makePart(splashPage, document.getElementById('insert-keyboard-shortcuts'))
 }
 
 function makePartInContainers(container, template) {
 	const shortcutLinkContainers = document
-		.querySelectorAll(`[data-container="${container}"`)
+		.querySelectorAll(`[data-link-container="${container}"`)
 	for (const element of shortcutLinkContainers) {
 		makePart(template, element)
+	}
+}
+
+function openings(states) {
+	for (const id in states) {
+		const element = document.getElementById(id)
+		element.open = states[id]
 	}
 }
 
@@ -203,6 +232,18 @@ function main() {
 	const manifest = browser.runtime.getManifest()
 	const version = manifest.version
 	document.getElementById('version').innerText = version
+
+	const fragment = window.location.hash.substr(2)
+	switch(fragment) {
+		case 'install':
+			openings(openingsInstall)
+			break
+		case 'update':
+			openings(openingsUpdate)
+			break
+		default:
+			//
+	}
 }
 
 main()
