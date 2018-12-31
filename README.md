@@ -7,83 +7,30 @@ This is a browser extension (for Firefox, Chrome and Opera) that enables navigat
 
 Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
-The following sections explain how to install and use the extension.
-
 If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)&mdash;in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
 Table of Contents
 -----------------
 
--   [Installation](#installation)
--   [Navigating Landmarks](#navigating-landmarks)
--   [Border Preferences](#border-preferences)
+-   [Installation and usage](#installation-and-usage)
 -   [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
 -   [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
 -   [Development](#development)
 -   [Acknowledgements](#acknowledgements)
 
-Installation
-------------
+Installation and usage
+----------------------
 
--   **Firefox:** [Install via Mozilla Add-ons](https://addons.mozilla.org/addon/landmarks/)
--   **Chrome:** [Install via the Chrome Web Store](https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp)
--   **Opera:** [Install via Opera add-ons](https://addons.opera.com/en-gb/extensions/details/landmarks/)
+Use the [installation links on the home page](http://matatk.agrip.org.uk/landmarks/) to install the extension. When it's installed, you will find documentation on topics such as:
+
+* How to navigate by shortcut key, and how to change the shortcut keys.
+* How to navigate using the toolbar pop-up.
+* How to navigate using the sidebar (where supported).
+* Border preferences, for landmark highlights and labels whilst navigating.
 
 **If you need support, please [check the known issues for Landmarks](https://github.com/matatk/landmarks/issues) and, if necessary, file a new issue using the "New Issue" button on that page.**
 
-Navigating Landmarks
---------------------
-
-### Via Shortcut Key
-
-You can use shortcut keys to navigate between landmarks. By default, the keys are:
-
--   **Next landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
--   **Previous landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
--   **Main landmark:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>
--   **Open the landmarks pop-up:** <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, then use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between buttons, <kbd>Space</kbd> or <kbd>Enter</kbd> to move focus to a landmark and <kbd>Escape</kbd> to close the pop-up.
-
-(On a Mac, use the <kbd>Option</kbd> key, which is equivalent to <kbd>Alt</kbd>.)
-
-Landmarks will be focused, and a border shown according to your [border preferences](#border-preferences).
-
-You can change the keyboard shortcuts in the following browsers.
-
--   **Chrome:** More ⋮ → Settings → Extensions \[on the left-hand side\] → Keyboard shortcuts \[at the bottom of the page\]
--   **Opera:** Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts
-
-### Via Toolbar Pop-up
-
-If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an "L") will be badged with the number of landmarks found.
-
-1.  Activate the Landmarks toolbar button. A pop-up will appear. If landmarks are present on the page, they will be shown in a nested list, reflecting the structure of the landmarks on the page.
-
-2.  Activate a button in the list to move to that landmark. The landmark will be focused, and a border shown according to your [border preferences](#border-preferences).
-
-3.  To close the pop-up, press <kbd>Escape</kbd>, or click outside of the pop-up.
-
-### Inspecting landmarks in the DOM
-
-A Developer Tools panel called "Landmarks" is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.
-
-This feature is primarily intended for web authors/developers and accessibility testers.
-
-Border Preferences
-------------------
-
-A border will be drawn around the landmarks as you navigate them. The border contains a label that displays the landmark's type and name (if one was provided by the author of the page). You can customise various aspects of this in the extension's preferences/options page. The available settings are:
-
--   **If the border should be displayed, and for how long.**
-    -   **Momentary (default):** the border remains visible for a short time, then disappears.
-    -   **Persistent:** the border remains visible at all times.
-    -   **None:** no border is drawn.
--   **The border's colour.**
--   **The font size used in the landmark label.**
-
-You can get to the extension's settings as follows.
-
--   **Firefox:** Menu ☰ → Add-ons → Extensions \[on left-hand side, if not already activated\] → Preferences \[under Landmarks, then scroll down\]
--   **Chrome/Opera:** Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options
+The rest of this file documents information peripheral to the day-to-day use of the extension, that may be of help and interest to web authors/designers/developers, accessibility testers and extension developers.
 
 This Extension's Support for Landmarks
 --------------------------------------
