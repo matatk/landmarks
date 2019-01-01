@@ -24,11 +24,17 @@ header a {
 	font-weight: bold;
 }
 
-main { padding-top: 1em; }
+main { padding-top: 2em; }
 
 details {
 	padding: 1em;
-	margin: 0;
+	margin: 2em;
+	margin-top: 0;
+	border-bottom: 1px solid var(--words);
+}
+
+details:not(:first-child) {
+	margin-top: 2em;
 }
 
 summary > :first-child { display: inline; }
@@ -68,14 +74,15 @@ a.config {
 	color: var(--words);
 }
 
-footer { padding: 1em; }
+footer { padding: 2em; }
 
 footer a { color: var(--words); }
 
-@media screen and (min-width: 60em) {
+@media screen and (min-width: 80em) {
 	main {
 		column-count: 2;
 		column-fill: balance;
+		column-gap: 0;
 	}
 
 	details {

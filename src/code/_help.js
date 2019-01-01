@@ -4,28 +4,6 @@ import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 let port
 
-const openingsInstall = {
-	'section-new': false,
-	'section-keyboard-navigation': true,
-	'section-pop-up': true,
-	'section-sidebar': true,
-	'section-border-preferences': true,
-	'section-author-info': true,
-	'section-devtools': true,
-	'section-development': true
-}
-
-const openingsUpdate = {
-	'section-new': true,
-	'section-keyboard-navigation': true,
-	'section-pop-up': false,
-	'section-sidebar': false,
-	'section-border-preferences': false,
-	'section-author-info': false,
-	'section-devtools': false,
-	'section-development': false
-}
-
 const splashPage = {
 	contains: [
 		// more stuff is added later
@@ -210,13 +188,6 @@ function makePartInContainers(container, template) {
 	}
 }
 
-function openings(states) {
-	for (const id in states) {
-		const element = document.getElementById(id)
-		element.open = states[id]
-	}
-}
-
 function main() {
 	port = browser.runtime.connect({ name: 'splash' })
 	port.onDisconnect.addListener(disconnectingPortErrorCheck)
@@ -234,15 +205,12 @@ function main() {
 	document.getElementById('version').innerText = version
 
 	const fragment = window.location.hash.substr(2)
-	switch(fragment) {
-		case 'install':
-			openings(openingsInstall)
-			break
-		case 'update':
-			openings(openingsUpdate)
-			break
-		default:
-			//
+	if (fragment === 'update') {
+		document.getElementById('section-new').open = true
+	}
+
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		document.getElementById('section-sidebar').open = true
 	}
 }
 
