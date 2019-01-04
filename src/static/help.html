@@ -12,6 +12,21 @@
 			<p>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</p>
 		</header>
 		<main>
+		<details class="call-to-action" id="actions-install" open>
+			<summary><h2>Thanks for installing Landmarks</h2></summary>
+			<p>You may want to learn how to <a href="#section-keyboard-navigation">navigate via keyboard</a> and set up keyboard shortcuts.</p>
+		</details>
+		<details class="call-to-action" id="actions-update" open>
+			<summary><h2>Landmarks was updated</h2></summary>
+			<ul>
+				<li>
+					<p>Check out <a href="#section-new">what's new</a>.</p>
+				</li>
+				<li>
+					<p>Learn how to <a href="#section-keyboard-navigation">navigate via keyboard</a> and set up keyboard shortcuts.</p>
+				</li>
+			</ul>
+		</details>
 		<details id="section-new">
 			<summary><h2>What's new?</h2></summary>
 			<p>New in version <span id="version"></span>&hellip;</p>
@@ -25,11 +40,11 @@
 			</ul>
 			<p>For more details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">change log</a>.</p>
 		</details>
-		<details open>
+		<details id="section-keyboard-navigation" open>
 			<summary><h2>Keyboard navigation</h2></summary>
 			<p>You can use shortcut keys to navigate between landmarks, as detailed below. When you do, landmarks will be focused, and a border shown according to your <a href="#section-border-preferences">border preferences</a>.</p>
-			<div id="insert-keyboard-shortcuts"></div>
-			<p data-container="shortcuts"></p>
+			<div id="keyboard-shortcuts-table"></div>
+			<p data-link="shortcuts"></p>
 			<p>You can also change the keyboard shortcuts in the following browsers.</p>
 			<ul>
 				<li>
@@ -58,7 +73,7 @@
 		<details id="section-sidebar">
 			<summary><h2>Sidebar</h2></summary>
 			<p>On Firefox and Opera, you can also explore landmarks on the page by way of a sidebar. You can choose in the preferences whether you'd like to use both the toolbar pop-up and sidebar, or just the sidebar.</p>
-			<p data-link-container="settings"></p>
+			<p data-link="settings"></p>
 			<!-- Note: the following is almost identical in the Border Preferences section below. -->
 			<p>You can also get to the extension’s settings as follows.</p>
 			<ul>
@@ -70,7 +85,7 @@
 				</li>
 			</ul>
 		</details>
-		<details open>
+		<details id="section-border-preferences" open>
 			<summary><h2>Border preferences</h2></summary>
 			<p>A border will be drawn around the landmarks as you navigate them. The border contains a label that displays the landmark’s type and name (if one was provided by the author of the page). You can customise various aspects of this in the extension’s preferences/options page. The available settings are:</p>
 			<ul>
@@ -95,7 +110,7 @@
 					<p><strong>The font size used in the landmark label.</strong></p>
 				</li>
 			</ul>
-			<p data-link-container="settings"></p>
+			<p data-link="settings"></p>
 			<!-- Note: the following is almost identical in the Sidebar section above. -->
 			<p>You can also get to the extension’s settings as follows.</p>
 			<ul>

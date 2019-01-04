@@ -1,15 +1,8 @@
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
-// FIXME localise (remember: table headings, button contents, ...)
-// FIXME what to do when content script is re-loaded and disconnected in Blink
 
 let port
 
-const splashPage = {
-	contains: [
-		// more stuff is added later
-	]
-}
-
+// FIXME global
 const shortcutTableRows = [
 	{
 		element: 'tr',
@@ -20,7 +13,8 @@ const shortcutTableRows = [
 	}
 ]
 
-const chromeKeyboardShortcutsLink = {
+// FIXME global
+const keyboardShortcutsLink = {
 	element: 'p', contains: [{
 		element: 'a',
 		class: 'config',
@@ -35,6 +29,7 @@ const chromeKeyboardShortcutsLink = {
 	}]
 }
 
+// FIXME global
 const settingsLink = {
 	element: 'a',
 	class: 'config',
@@ -51,34 +46,34 @@ const settingsLink = {
 	}
 }
 
-function makePart(structure, root) {
-	let newPart
+function makeHTML(structure, root) {
+	let newElement
 
 	for (const key in structure) {
 		switch (key) {
 			case 'element':
-				newPart = document.createElement(structure[key])
-				root.appendChild(newPart)
+				newElement = document.createElement(structure[key])
+				root.appendChild(newElement)
 				break
 			case 'class':
-				newPart.classList.add(structure[key])
+				newElement.classList.add(structure[key])
 				break
 			case 'href':
-				newPart.href = structure[key]
+				newElement.href = structure[key]
 				break
 			case 'text':
 				root.appendChild(document.createTextNode(structure[key]))
 				break
 			case 'content':
-				newPart.appendChild(document.createTextNode(structure[key]))
+				newElement.appendChild(document.createTextNode(structure[key]))
 				break
 			case 'listen':
-				newPart.addEventListener(
+				newElement.addEventListener(
 					structure[key].event, structure[key].handler)
 				break
 			case 'contains':
 				for (const contained of structure[key]) {
-					makePart(contained, newPart ? newPart : root)
+					makeHTML(contained, newElement ? newElement : root)
 				}
 				break
 			default:
@@ -172,19 +167,54 @@ function messageHandler(message) {  // also sendingPort
 		addCommandRowAndReportIfMissing(command)
 	}
 
-	splashPage.contains.push({
-		element: 'table',
-		contains: shortcutTableRows
-	})
-
-	makePart(splashPage, document.getElementById('insert-keyboard-shortcuts'))
+	makeHTML({ element: 'table', contains: shortcutTableRows },
+		document.getElementById('keyboard-shortcuts-table'))
 }
 
-function makePartInContainers(container, template) {
-	const shortcutLinkContainers = document
-		.querySelectorAll(`[data-link-container="${container}"`)
-	for (const element of shortcutLinkContainers) {
-		makePart(template, element)
+function makeConfigLinks(type, template) {
+	for (const element of document.querySelectorAll(`[data-link="${type}"`)) {
+		makeHTML(template, element)
+	}
+}
+
+function makeSettingsAndShortcutsLinks() {
+	if (BROWSER === 'chrome' || BROWSER === 'opera') {
+		makeConfigLinks('shortcuts', keyboardShortcutsLink)
+	}
+
+	makeConfigLinks('settings', settingsLink)
+}
+
+function includeVersionNumber() {
+	const manifest = browser.runtime.getManifest()
+	const version = manifest.version
+	document.getElementById('version').innerText = version
+}
+
+function reflectInstallOrUpdate() {
+	const fragment = window.location.hash.substr(2)
+	switch (fragment) {
+		case 'install':
+			document.getElementById('actions-update').remove()
+			break
+		case 'update':
+			document.getElementById('actions-install').remove()
+			document.getElementById('section-new').open = true
+			break
+		default:
+			// User opened the help page during normal use
+			document.getElementById('actions-install').remove()
+			document.getElementById('actions-update').remove()
+	}
+}
+
+function allowLinksToOpenSections() {
+	for (const link of document.querySelectorAll('a[href]')) {
+		if (link.getAttribute('href').startsWith('#')) {
+			link.onclick = function() {
+				document.querySelector(this.getAttribute('href')).open = true
+			}
+		}
 	}
 }
 
@@ -194,24 +224,14 @@ function main() {
 	port.onMessage.addListener(messageHandler)
 	port.postMessage({ name: 'get-commands' })
 
-	if (BROWSER === 'chrome' || BROWSER === 'opera') {
-		makePartInContainers('shortcuts', chromeKeyboardShortcutsLink)
-	}
-
-	makePartInContainers('settings', settingsLink)
-
-	const manifest = browser.runtime.getManifest()
-	const version = manifest.version
-	document.getElementById('version').innerText = version
-
-	const fragment = window.location.hash.substr(2)
-	if (fragment === 'update') {
-		document.getElementById('section-new').open = true
-	}
-
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		document.getElementById('section-sidebar').open = true
 	}
+
+	makeSettingsAndShortcutsLinks()
+	includeVersionNumber()
+	reflectInstallOrUpdate()
+	allowLinksToOpenSections()
 }
 
 main()

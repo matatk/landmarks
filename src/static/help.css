@@ -33,6 +33,11 @@ details {
 	border-bottom: 1px solid var(--words);
 }
 
+details.call-to-action {
+	border: none;
+	background-color: #eee;
+}
+
 details:not(:first-child) {
 	margin-top: 2em;
 }
