@@ -38,7 +38,7 @@
   },
 
   "errorNoConnection": {
-    "message": "Landmarks cannot run on this page."
+    "message": "Landmarks is not allowed to run on this page."
   },
 
   "noLandmarksFound": {
@@ -84,11 +84,15 @@
   },
 
   "prefsDeveloper": {
-    "message": "Developer settings"
+    "message": "Debugging"
   },
 
   "prefsDebugInfo": {
     "message": "Show debugging info in the console"
+  },
+
+  "prefsResetAll": {
+    "message": "Reset everything to defaults"
   },
 
 

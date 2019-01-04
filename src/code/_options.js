@@ -65,6 +65,8 @@ function setUpOptionHandlers() {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		document.getElementById('reset-messages').onclick = resetMessages
 	}
+
+	document.getElementById('reset-all').onclick = resetAll
 }
 
 function interfaceExplainer() {
@@ -109,6 +111,11 @@ function resetMessages() {
 
 function dismissalStateChanged(thingChanged) {
 	return dismissalStates.hasOwnProperty(thingChanged)
+}
+
+function resetAll() {
+	browser.storage.sync.clear()
+	window.location.reload()
 }
 
 function main() {

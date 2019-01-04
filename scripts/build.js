@@ -154,8 +154,8 @@ async function flattenCode(browser) {
 		input: path.join(srcCodeDir, '_options.js'),
 		output: path.join(pathToBuild(browser), 'options.js')
 	}, {
-		input: path.join(srcCodeDir, '_splash.js'),
-		output: path.join(pathToBuild(browser), 'splash.js')
+		input: path.join(srcCodeDir, '_help.js'),
+		output: path.join(pathToBuild(browser), 'help.js')
 	}, {
 		input: path.join(srcCodeDir, '_gui.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),

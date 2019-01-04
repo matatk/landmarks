@@ -148,12 +148,20 @@ function splashListener(message, sendingPort) {
 			})
 			break
 		case 'splash-open-configure-shortcuts':
-			// This should only appear on Chrome/Opera
-			browser.tabs.create({
+			browser.tabs.update({
+				// This should only appear on Chrome/Opera
 				url: BROWSER === 'chrome'
 					? 'chrome://extensions/configureCommands'
-					: 'opera://settings/configureCommands'
+					: 'opera://settings/keyboardShortcuts'
 			})
+			break
+		case 'splash-open-help':
+			browser.tabs.update({
+				url: browser.runtime.getURL('help.html')
+			})
+			break
+		case 'splash-open-settings':
+			browser.runtime.openOptionsPage()
 			break
 		default:
 			throw Error(`Unknown message from splash: ${JSON.stringify(message)}`)
@@ -381,11 +389,7 @@ browser.tabs.onActivated.addListener(function(activeInfo) {
 
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install' || details.reason === 'update') {
-		// Show website and get it to display an appropriate notice
-		const baseUrl = 'http://matatk.agrip.org.uk/landmarks/#!'
-		browser.tabs.create({
-			url: baseUrl + details.reason
-		})
+		browser.tabs.create({ url: `help.html#!${details.reason}` })
 	}
 })
 

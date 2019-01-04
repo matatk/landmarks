@@ -1,0 +1,97 @@
+:root {
+	--hla: #155799;
+	--hlb: #159957;
+	--words: #606c71;
+}
+
+body {
+	margin: 0;
+	font-family: Verdana, sans-serif;
+	color: var(--words);
+	font-size: 1em;  /* if not given, text is small in Chrome-like browsers */
+	line-height: 1.5em;
+}
+
+header {
+	background-image: linear-gradient(120deg, var(--hla), var(--hlb));
+	padding: 2em;
+	margin: 0;
+	color: white;
+}
+
+header a {
+	color: white;
+	font-weight: bold;
+}
+
+main { padding-top: 2em; }
+
+details {
+	padding: 1em;
+	margin: 2em;
+	margin-top: 0;
+	border-bottom: 1px solid var(--words);
+}
+
+details.call-to-action {
+	border: none;
+	background-color: #eee;
+}
+
+details:not(:first-child) {
+	margin-top: 2em;
+}
+
+summary > :first-child { display: inline; }
+
+table {
+	margin-top: 0.5em;
+	border-collapse: collapse;
+}
+
+tr:nth-child(odd) { background-color: #efefef; }
+
+tr:first-child {
+	background-color: var(--hla);
+	color: white;
+}
+
+th, td { padding: 0.5em; }
+
+th {
+	padding-left: 2em;
+	padding-right: 2em;
+}
+
+td:last-child { text-align: center; }
+
+td.error {
+	background-color: #d00;
+	color: white;
+	font-weight: bold;
+}
+
+a.config {
+	display: inline-block;
+	border-radius: 1em;
+	border: 1px solid var(--words);
+	padding: 1em;
+	color: var(--words);
+}
+
+footer { padding: 2em; }
+
+footer a { color: var(--words); }
+
+@media screen and (min-width: 80em) {
+	main {
+		column-count: 2;
+		column-fill: balance;
+		column-gap: 0;
+	}
+
+	details {
+		break-inside: avoid;
+		page-break-inside: avoid;  /* for Firefox */
+	}
+}
