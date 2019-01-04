@@ -5,7 +5,7 @@
   "scripts": {
     "pre_build": "npm test",
     "_build": "node scripts/build.js",
-    "_changelog": "replace-in-file --isRegex true '/^# Landmarks ChangeLog\\n/' '' CHANGELOG.md && conventional-changelog -i CHANGELOG.md -u --same-file -p angular && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks ChangeLog\n\n' CHANGELOG.md",
+    "_changelog": "replace-in-file --isRegex true '/^# Landmarks ChangeLog\\n/' '' CHANGELOG.md && conventional-changelog --infile CHANGELOG.md --same-file -p angular --config scripts/conventional-changelog-writer-opts.js && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks ChangeLog\n\n' CHANGELOG.md",
     "build:all": "npm run clean:all && npm run _build -- all",
     "build:all:quick": "node scripts/build.js all",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
@@ -44,6 +44,7 @@
     "deepmerge": "~3.0",
     "eslint": "~5.10",
     "fs-extra": "~7.0",
+    "github-url-from-git": "~1.5",
     "husky": "~1.2",
     "jsdom": "~13.1",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
