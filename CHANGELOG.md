@@ -1,6 +1,3 @@
-Landmarks ChangeLog
-===================
-
 2.4 series
 ----------
 

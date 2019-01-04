@@ -5,6 +5,7 @@
   "scripts": {
     "pre_build": "npm test",
     "_build": "node scripts/build.js",
+    "_changelog": "replace-in-file --isRegex true '/^# Landmarks ChangeLog\\n/' '' CHANGELOG.md && conventional-changelog -i CHANGELOG.md -u --same-file -p angular && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks ChangeLog\n\n' CHANGELOG.md",
     "build:all": "npm run clean:all && npm run _build -- all",
     "build:all:quick": "node scripts/build.js all",
     "build:chrome": "npm run clean:chrome && npm run _build -- chrome",
@@ -27,7 +28,8 @@
     "pretest:contrast": "rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
     "test:contrast": "node test/test-contrast.js",
     "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
-    "test:landmarks": "node test/test-landmarks.js"
+    "test:landmarks": "node test/test-landmarks.js",
+    "version": "npm run _changelog && git add CHANGELOG.md"
   },
   "husky": {
     "hooks": {
@@ -38,6 +40,7 @@
     "addons-linter": "~1.5",
     "archiver": "~3.0",
     "chalk": "~2.4",
+    "conventional-changelog-cli": "~2.0",
     "deepmerge": "~3.0",
     "eslint": "~5.10",
     "fs-extra": "~7.0",
