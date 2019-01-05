@@ -44,7 +44,6 @@
     "deepmerge": "~3.0",
     "eslint": "~5.10",
     "fs-extra": "~7.0",
-    "github-url-from-git": "~1.5",
     "husky": "~1.2",
     "jsdom": "~13.1",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",

@@ -1,31 +1,9 @@
 'use strict'
 // The aim of this is to use the Angular preset, but print out more types of commit message; thanks https://github.com/conventional-changelog/conventional-changelog/issues/317#issuecomment-390104826 :-)
 // This file started off as https://github.com/conventional-changelog/conventional-changelog-angular/blob/master/index.js which doesn't have a licence, so is assumed to be in the public domain.
-// TODO this seems to depend on the github-url-from-git package, but the current ngular preset doesn't; need to simplify if possible. The output differs a bit between this and angular in terms of which links are made into explicit links, so that may well be the crux of it.
-const path = require('path')
-let pkgJson = {}
-const gufg = require('github-url-from-git')
-try {
-	pkgJson = require(path.resolve(
-		process.cwd(),
-		'./package.json'
-	))
-} catch (err) {
-	console.error('no root package.json found')
-}
-
-function issueUrl() {
-	if (pkgJson.repository && pkgJson.repository.url && ~pkgJson.repository.url.indexOf('github.com')) {  // eslint-disable-line no-bitwise
-		const gitUrl = gufg(pkgJson.repository.url)
-
-		if (gitUrl) {
-			return gitUrl + '/issues/'
-		}
-	}
-}
 
 const writerOpts = {
-	transform: function(commit) {
+	transform: function(commit, context) {
 		const issues = []
 
 		commit.notes.forEach(function(note) {
@@ -65,7 +43,7 @@ const writerOpts = {
 		}
 
 		if (typeof commit.subject === 'string') {
-			const url = issueUrl()
+			const url = [context.host, context.owner, context.repository, 'issues/'].join('/')
 			if (url) {
 				// GitHub issue URLs.
 				commit.subject = commit.subject.replace(/#([0-9]+)/g, function(_, issue) {
