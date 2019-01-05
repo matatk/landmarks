@@ -13,9 +13,9 @@ const writerOpts = {
 		if (commit.type === 'feat') {
 			commit.type = 'Features'
 		} else if (commit.type === 'fix') {
-			commit.type = 'Bug Fixes'
+			commit.type = 'Bug fixes'
 		} else if (commit.type === 'perf') {
-			commit.type = 'Performance Improvements'
+			commit.type = 'Performance improvements'
 		} else if (commit.type === 'revert') {
 			commit.type = 'Reverts'
 		} else if (commit.type === 'docs') {
@@ -23,7 +23,7 @@ const writerOpts = {
 		} else if (commit.type === 'style') {
 			commit.type = 'Styles'
 		} else if (commit.type === 'refactor') {
-			commit.type = 'Code Refactoring'
+			commit.type = 'Code refactoring'
 		} else if (commit.type === 'test') {
 			commit.type = 'Tests'
 		} else if (commit.type === 'chore') {
@@ -31,7 +31,7 @@ const writerOpts = {
 		} else if (commit.type === 'build') {
 			commit.type = 'Build system'
 		} else if (commit.type === null) {
-			return
+			return  // commit message doesn't conform to the standard
 		}
 
 		if (commit.scope === '*') {
