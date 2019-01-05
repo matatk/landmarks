@@ -4,7 +4,7 @@ const fs = require('fs')
 const fse = require('fs-extra')
 const chalk = require('chalk')
 const merge = require('deepmerge')
-const archiver = require('archiver')
+const archiver = require('archiver-promise')
 const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
 const glob = require('glob')
@@ -417,34 +417,19 @@ function zipFileName(browser) {
 }
 
 
-function makeZip(browser) {
+async function makeZip(browser) {
 	logStep('Createing ZIP file')
 	const outputFileName = zipFileName(browser)
-	const output = fs.createWriteStream(outputFileName)
-	const archive = archiver('zip')
+	const archive = archiver(outputFileName)
 
-	output.on('close', function() {
-		ok(archive.pointer() + ' total bytes for ' + outputFileName)
-		if (browser in linters) {
-			linters[browser]()
-		}
-	})
-
-	archive.on('warning', function(err) {
-		error(err)
-	})
-
-	archive.on('error', function(err) {
-		error(err)
-	})
-
-	archive.pipe(output)
 	archive.directory(pathToBuild(browser), false)
-	archive.finalize()
+	await archive.finalize().then(function() {
+		ok(archive.pointer() + ' total bytes for ' + outputFileName)
+	})
 }
 
 
-function lintFirefox() {
+async function lintFirefox() {
 	const linter = require('addons-linter').createInstance({
 		config: {
 			_: [zipFileName('firefox')],
@@ -452,7 +437,7 @@ function lintFirefox() {
 		}
 	})
 
-	linter.run().catch(err => error(err))
+	await linter.run().catch(err => error(err))
 }
 
 
@@ -475,7 +460,10 @@ async function main() {
 		if (testMode) {
 			renameTestVersion(browser)
 		}
-		makeZip(browser)
+		await makeZip(browser)
+		if (browser in linters) {
+			await linters[browser]()
+		}
 	}
 }
 
