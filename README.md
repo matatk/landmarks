@@ -28,7 +28,7 @@ Use the [installation links on the home page](http://matatk.agrip.org.uk/landmar
 * How to navigate using the sidebar (where supported).
 * Border preferences, for landmark highlights and labels whilst navigating.
 
-The rest of this file documents information peripheral to the day-to-day use of the extension, that may be of help and interest to web authors/designers/developers, accessibility testers and extension developers.
+The rest of this file provides information that may be of help and interest to web authors, designers and developers, accessibility testers and browser extension developers.
 
 This Extension's Support for Landmarks
 --------------------------------------
@@ -99,9 +99,9 @@ Please bear in mind the following when implementing landmarks...
 
     **Rule of thumb:** Use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
 
--   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
+-   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one landmark of the same type on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
 
-    **Rule of thumb:** If you've more than one type of landmark, then be sure to label them, so their purpose is clear.
+    **Rule of thumb:** If you've more than one landmark of the same type, then be sure to label them, so their purpose is clear.
 
 Development
 -----------
