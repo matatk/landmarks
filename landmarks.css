@@ -60,6 +60,11 @@ img:nth-of-type(2) { padding-top: 2em; }
 section.install a { color: var(--words); }
 footer a { color: var(--words); }
 
+section.further-info {
+	margin-top: 2em;
+	background-color: #eee;
+}
+
 @media screen and (min-width: 45em) {
 	header { padding: 5vw; }
 
@@ -81,6 +86,11 @@ footer a { color: var(--words); }
 
 	section.feature:nth-child(odd) { flex-direction: row; }
 	section.feature:nth-child(even) { flex-direction: row-reverse; }
+
+	section.further-info {
+		padding-left: 15%;
+		padding-right: 15%;
+	}
 }
 
 @media screen and (min-width: 65em) {
