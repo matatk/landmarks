@@ -247,6 +247,7 @@ async function flattenCode(browser) {
 function copyStaticFiles(browser) {
 	logStep('Copying static files')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
+	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
 
 	if (browser === 'chrome' || browser === 'edge') {
 		doReplace(
