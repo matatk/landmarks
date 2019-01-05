@@ -210,7 +210,8 @@ function reflectInstallOrUpdate() {
 
 function allowLinksToOpenSections() {
 	for (const link of document.querySelectorAll('a[href]')) {
-		if (link.getAttribute('href').startsWith('#')) {
+		const href = link.getAttribute('href')
+		if (href.length > 1 && href.startsWith('#')) {
 			link.onclick = function() {
 				document.querySelector(this.getAttribute('href')).open = true
 			}
