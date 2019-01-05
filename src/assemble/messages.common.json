@@ -26,6 +26,10 @@
     "message": "Move to and highlight the main landmark"
   },
 
+  "toggleAllShortcutDescription": {
+    "message": "Toggle the display of all landmarks on the page"
+  },
+
   "noMainLandmarkFound": {
     "message": "No main landmark found"
   },
