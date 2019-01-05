@@ -9,12 +9,12 @@ Landmark regions broadly signpost the areas of a page (e.g. navigation, search,
 
 If you're a web author/developer, check out the information below on [why landmarks rock, and how easy they are to put into your site](#information-for-web-authors-designers-and-developers)&mdash;in fact, if you're using HTML 5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as discussed below.
 
-Table of Contents
+Table of contents
 -----------------
 
 -   [Installation and usage](#installation-and-usage)
--   [This Extension's Support for Landmarks](#this-extensions-support-for-landmarks)
--   [Information for Web Authors, Designers and Developers](#information-for-web-authors-designers-and-developers)
+-   [This extension's support for landmarks](#this-extensions-support-for-landmarks)
+-   [Information for web authors, designers and developers](#information-for-web-authors-designers-and-developers)
 -   [Development](#development)
 -   [Acknowledgements](#acknowledgements)
 
@@ -28,9 +28,9 @@ Use the [installation links on the home page](http://matatk.agrip.org.uk/landmar
 * How to navigate using the sidebar (where supported).
 * Border preferences, for landmark highlights and labels whilst navigating.
 
-The rest of this file documents information peripheral to the day-to-day use of the extension, that may be of help and interest to web authors/designers/developers, accessibility testers and extension developers.
+The rest of this file provides information that may be of help and interest to web authors, designers and developers, accessibility testers and browser extension developers.
 
-This Extension's Support for Landmarks
+This extension's support for landmarks
 --------------------------------------
 
 The extension supports [WAI-ARIA landmark roles](https://www.w3.org/TR/wai-aria-1.1/#landmark_roles), both as supplied via the `role` attribute and as [implicit landmarks via HTML 5 elements](https://www.w3.org/TR/html-aam-1.0/#html-element-role-mappings). All landmark roles are supported, with some caveats, as per the relevant specifications, which are described below.
@@ -58,7 +58,7 @@ If a landmark label is present (via the `aria-labelledby` or `aria-label` attrib
 
 If an `aria-labelledby` attribute references multiple elements, all of those elements' text content will be joined to form the label for the landmark. However, it's not recommended that you label landmark regions with more than one element (usually referring to a single HTML heading element is sufficient). Using more than one labelling element could be a sign that your landmark structure is too complicated. [Referencing multiple labelling elements is more suited for labelling `<input>` elements with information from multiple sources.](https://www.w3.org/WAI/GL/wiki/Using_aria-labelledby_to_concatenate_a_label_from_several_text_nodes#Example_1:_A_time-out_input_field_with_concatenated_label)
 
-### Digital Publishing ARIA Landmarks
+### Digital publishing ARIA landmarks
 
 The following additional landmark roles defined in the [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/) are also supported.
 
@@ -82,7 +82,7 @@ The following additional landmark roles defined in the [Digital Publishing WAI-A
 -    `doc-prologue`
 -    `doc-toc` (is a landmark via `navigation`)
 
-Information for Web Authors, Designers and Developers
+Information for web authors, designers and developers
 -----------------------------------------------------
 
 As described at start of this document, landmarks can really help various people get a quick overview of your site, and navigate it much more effectively. This can save them *a lot* of time, so please consider implementing landmarks on your site; here is some information to help you do so...
@@ -99,9 +99,9 @@ Please bear in mind the following when implementing landmarks...
 
     **Rule of thumb:** Use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.
 
--   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one of a landmark on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
+-   If you're using HTML 5 elements such as `<header>`, `<nav>`, `<main>` and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there's more than one landmark of the same type on a page, such as a separate site-wide and page-local `<nav>`). The W3C documentation has all the details, but essentially you would use either the `aria-labelledby` or `aria-label` attribute.
 
-    **Rule of thumb:** If you've more than one type of landmark, then be sure to label them, so their purpose is clear.
+    **Rule of thumb:** If you've more than one landmark of the same type, then be sure to label them, so their purpose is clear.
 
 Development
 -----------
@@ -142,7 +142,7 @@ Some further info on the test/build process:
 
 -   The `build:chrome:test` script is provided for making an alpha/beta/test build for Chrome, which is the same as a normal build, but the extension is retitled to "Landmarks (test version)". A separate extension listing is required for publishing test versions in the Chrome Web Store. For Firefox Add-ons, a version number such as "2.1.0beta1" can be used and the built package can be uploaded to the extension's beta channel.
 
-### Test Pages
+### Test pages
 
 The following pages are incorporated into the automated test suite, but you can also visit them in-browser to try out the extension's UI.
 
