@@ -3,6 +3,7 @@
 	--hlb: #159957;
 	--words: #606c71;
 	--warn: #d00;
+	--lightWarn: #fee;
 }
 
 body {
@@ -46,21 +47,17 @@ details:not(:first-child) {
 
 summary > :first-child { display: inline; }
 
+.error, [data-warning] > a {
+	color: var(--warn);
+}
+
 [data-warning] {
 	display: none;  /* overidden by script if need be */
 	border: 1px solid var(--warn);
-	background-color: #fee;
+	background-color: var(--lightWarn);
 	color: var(--warn);
 	padding: 1em;
 	border-radius: 1em;
-}
-
-[data-warning] > a {
-	color: var(--warn);
-}
-
-summary.error {
-	color: var(--warn);
 }
 
 table {
@@ -84,9 +81,8 @@ th, td {
 td:last-child { text-align: center; }
 
 td.error {
-	background-color: var(--warn);
-	color: white;
-	font-weight: bold;
+	background-color: var(--lightWarn);
+	border: 1px solid var(--warn);
 }
 
 a.config {
