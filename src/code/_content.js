@@ -53,6 +53,10 @@ function messageHandler(message, sendingPort) {
 			}
 			break
 		}
+		case 'toggle-all-landmarks':
+			// Triggered by keyboard shortcut
+			alert('toggle all landmarks')
+			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script

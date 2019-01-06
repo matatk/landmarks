@@ -14,32 +14,30 @@ const shortcutTableRows = [
 ]
 
 const keyboardShortcutsLink = {
-	element: 'p', contains: [{
-		element: 'a',
-		class: 'config',
-		tabindex: 0,
-		content: 'Add or change shortcuts',
-		listen: [{
-			event: 'click',
-			handler: () => port.postMessage({
-				name: 'splash-open-configure-shortcuts'
-			})
-		}, {
-			event: 'keydown',
-			handler: (event) => {
-				if (event.key === 'Enter') {
-					port.postMessage({
-						name: 'splash-open-configure-shortcuts'
-					})
-				}
+	element: 'a',
+	class: 'configAction',
+	tabindex: 0,
+	content: 'Add or change shortcuts',
+	listen: [{
+		event: 'click',
+		handler: () => port.postMessage({
+			name: 'splash-open-configure-shortcuts'
+		})
+	}, {
+		event: 'keydown',
+		handler: (event) => {
+			if (event.key === 'Enter') {
+				port.postMessage({
+					name: 'splash-open-configure-shortcuts'
+				})
 			}
-		}]
+		}
 	}]
 }
 
 const settingsLink = {
 	element: 'a',
-	class: 'config',
+	class: 'configAction',
 	tabindex: 0,
 	content: 'Change preferences (opens in new tab)',
 	listen: [{
@@ -131,7 +129,7 @@ function addCommandRowAndReportIfMissing(command) {
 			}
 		}
 	} else {
-		shortcutCellElement = { element: 'td', class: 'error', contains: [
+		shortcutCellElement = { element: 'td', class: 'errorItem', contains: [
 			{ text: 'Not set up' }
 		]}
 		shortcutNotSet = true
@@ -189,12 +187,17 @@ function messageHandler(message) {  // also sendingPort
 		document.getElementById('keyboard-shortcuts-table'))
 
 	if (shortcutNotSet) {
-		// TODO does this appear on Firefox?
 		document.querySelector('#section-keyboard-navigation summary')
-			.classList.add('error')
+			.classList.add('errorItem')
+
+		document.querySelector('[data-link="shortcuts"] a')
+			.classList.add('errorAction')
+
 		for (const warning of document.querySelectorAll('[data-warning]')) {
 			warning.style.display = 'block'
 		}
+
+		document.getElementById('symbol').style.display = 'inline'
 	}
 }
 
@@ -251,8 +254,8 @@ function main() {
 	port.onMessage.addListener(messageHandler)
 	port.postMessage({ name: 'get-commands' })
 
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		document.getElementById('section-sidebar').open = true
+	if (BROWSER !== 'firefox' && BROWSER !== 'opera') {
+		document.getElementById('section-sidebar').open = false
 	}
 
 	makeSettingsAndShortcutsLinks()

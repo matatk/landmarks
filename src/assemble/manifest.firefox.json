@@ -39,7 +39,7 @@
   "commands": {
     "toggle-all-landmarks": {
       "suggested_key": {
-        "default": "Alt+Shift+A"
+        "default": "Alt+Shift+S"
       }
     }
   }
