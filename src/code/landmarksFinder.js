@@ -346,4 +346,14 @@ export default function LandmarksFinder(win, doc) {
 		return mainElementIndex < 0 ?
 			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
 	}
+
+	// This returns a list of elements and their public-facing info:
+
+	this.allElementsRolesLabels = function() {
+		return landmarks.map(landmark => ({
+			element: landmark.element,
+			role: landmark.role,
+			label: landmark.label
+		}))
+	}
 }

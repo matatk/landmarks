@@ -55,7 +55,8 @@ function messageHandler(message, sendingPort) {
 		}
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
-			alert('toggle all landmarks')
+			handleOutdatedResults()
+			ef.addBorderToElements(lf.allElementsRolesLabels())
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -99,6 +100,7 @@ function findLandmarksAndUpdateBackgroundScript() {
 	lf.find()
 	port.postMessage({ name: 'landmarks', data: lf.filter() })
 	ef.checkFocusedElement()
+	// TODO check here if we need to add/remove toggled all landmark borders
 }
 
 
