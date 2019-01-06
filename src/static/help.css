@@ -2,6 +2,7 @@
 	--hla: #155799;
 	--hlb: #159957;
 	--words: #606c71;
+	--warn: #d00;
 }
 
 body {
@@ -35,6 +36,7 @@ details {
 
 details.call-to-action {
 	border: none;
+	border-radius: 1em;
 	background-color: #eee;
 }
 
@@ -43,6 +45,23 @@ details:not(:first-child) {
 }
 
 summary > :first-child { display: inline; }
+
+[data-warning] {
+	display: none;  /* overidden by script if need be */
+	border: 1px solid var(--warn);
+	background-color: #fee;
+	color: var(--warn);
+	padding: 1em;
+	border-radius: 1em;
+}
+
+[data-warning] > a {
+	color: var(--warn);
+}
+
+summary.error {
+	color: var(--warn);
+}
 
 table {
 	margin-top: 0.5em;
@@ -65,7 +84,7 @@ th, td {
 td:last-child { text-align: center; }
 
 td.error {
-	background-color: #d00;
+	background-color: var(--warn);
 	color: white;
 	font-weight: bold;
 }

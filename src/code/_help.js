@@ -1,6 +1,7 @@
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 let port
+let shortcutNotSet = false
 
 // FIXME global
 const shortcutTableRows = [
@@ -117,6 +118,7 @@ function addCommandRowAndReportIfMissing(command) {
 		shortcutCellElement = { element: 'td', class: 'error', contains: [
 			{ text: 'Not set up' }
 		]}
+		shortcutNotSet = true
 	}
 
 	shortcutTableRows.push({
@@ -169,6 +171,15 @@ function messageHandler(message) {  // also sendingPort
 
 	makeHTML({ element: 'table', contains: shortcutTableRows },
 		document.getElementById('keyboard-shortcuts-table'))
+
+	if (shortcutNotSet) {
+		// TODO does this appear on Firefox?
+		document.querySelector('#section-keyboard-navigation summary')
+			.classList.add('error')
+		for (const warning of document.querySelectorAll('[data-warning]')) {
+			warning.style.display = 'block'
+		}
+	}
 }
 
 function makeConfigLinks(type, template) {
