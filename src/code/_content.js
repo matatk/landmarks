@@ -64,7 +64,7 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			elementFocuser.addBorderToElements(
+			borderManager.addBorderToElements(
 				landmarksFinder.allElementsRolesLabels())
 			break
 		case 'trigger-refresh':
@@ -157,7 +157,7 @@ function setUpMutationObserver() {
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
 			// Ignore mutations if Landmarks caused them
-			elementFocuser.didJustMakeChanges,
+			borderManager.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')

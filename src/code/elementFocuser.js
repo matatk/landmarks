@@ -85,15 +85,9 @@ export default function ElementFocuser(doc, borderManager) {
 
 	// This needs to be a separate (and public) declaration because external
 	// stuff calls it, but the options-handling code can't access 'this'.
+	// FIXME: is that correct? Could use 'that'?
 	this.removeBorderOnCurrentlySelectedElement
 		= removeBorderOnCurrentlySelectedElement
-
-	// FIXME (re)move
-	// Did we just make changes to a border? If so, report this, so that the
-	// mutation observer can ignore it.
-	this.didJustMakeChanges = function() {
-		return borderManager.didJustMakeChanges()
-	}
 
 	// When the document is changed, the currently-focused element may have
 	// been removed, or at least changed size/position
@@ -103,14 +97,8 @@ export default function ElementFocuser(doc, borderManager) {
 				removeBorderOnCurrentlySelectedElement()
 				currentlyFocusedElementInfo = null  // can't resize anymore
 			} else {
-				borderManager.runReszieHandlers()
+				borderManager.runResizeHandlers()
 			}
-		}
-	}
-
-	this.addBorderToElements = function(elementInfoList) {
-		for (const elementInfo of elementInfoList) {
-			borderManager.addBorder(elementInfo)
 		}
 	}
 

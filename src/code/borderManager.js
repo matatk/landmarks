@@ -30,7 +30,7 @@ export default function BorderManager(win, doc, contrastChecker) {
 
 	// Take a local copy of relevant options at the start (this means that
 	// 'gets' of options don't need to be done asynchronously in the rest of
-	// the code).  This also computes the initial label font colour (as it
+	// the code). This also computes the initial label font colour (as it
 	// depends on the border colour, which forms the label's background).
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		borderColour = items['borderColour']
@@ -59,11 +59,11 @@ export default function BorderManager(win, doc, contrastChecker) {
 	// Public API
 	//
 
-	// Add the landmark border and label for an element Takes an element info
+	// Add the landmark border and label for an element. Takes an element info
 	// object, as returned by the various LandmarksFinder functions.
 	//
 	// { element: HTMLElement, role: <string>, label: <string> }
-	this.addBorder = function(elementInfo) {
+	function addBorder(elementInfo) {
 		if (!borderedElements.has(elementInfo.element)) {  // FIXME pers - togg
 			drawBorderAndLabel(
 				elementInfo.element,
@@ -73,15 +73,23 @@ export default function BorderManager(win, doc, contrastChecker) {
 				borderFontSize)
 		}
 	}
+	this.addBorder = addBorder  // FIXME needed? Could use 'that'?
+
+	// Add the landmark border and label for several elements. Takes an array
+	// of element info objects, as detailed above.
+	this.addBorderToElements = function(elementInfoList) {
+		for (const elementInfo of elementInfoList) {
+			addBorder(elementInfo)
+		}
+	}
 
 	// Attempt to remove border from an element.
-	function removeBorderOn(element) {
+	this.removeBorderOn = function(element) {
 		if (borderedElements.has(element)) {
 			deleteBorderAndLabelDivs(element)
 			borderedElements.delete(element)
 		}
 	}
-	this.removeBorderOn = removeBorderOn
 
 	// Did we just make changes to a border? If so, report this, so that the
 	// mutation observer can ignore it.
@@ -92,7 +100,7 @@ export default function BorderManager(win, doc, contrastChecker) {
 	}
 
 	// In case it's detected that an element may've moved due to mutations
-	this.runReszieHandlers = function() {
+	this.runResizeHandlers = function() {
 		resizeHandler()
 	}
 
