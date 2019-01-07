@@ -3,11 +3,15 @@ import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import Logger from './logger'
+import BorderManager from './borderManager'
+import ContrastChecker from './contrastChecker'
 
 const logger = new Logger()
-const lf = new LandmarksFinder(window, document)
-const ef = new ElementFocuser(document)
-const ph = new PauseHandler(logger)
+const landmarksFinder = new LandmarksFinder(window, document)
+const contrastChecker = new ContrastChecker()
+const borderManager = new BorderManager(window, document, contrastChecker)
+const elementFocuser = new ElementFocuser(document, borderManager)
+const pauseHandler = new PauseHandler(logger)
 
 const outOfDateTime = 2000
 let observer = null
@@ -23,31 +27,35 @@ function messageHandler(message, sendingPort) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
 			handleOutdatedResults()
-			sendingPort.postMessage({ name: 'landmarks', data: lf.filter() })
+			sendingPort.postMessage({
+				name: 'landmarks',
+				data: landmarksFinder.filter()
+			})
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			handleOutdatedResults()
-			checkFocusElement(
-				() => lf.getLandmarkElementRoleLabel(message.index))
+			checkFocusElement(() =>
+				landmarksFinder.getLandmarkElementRoleLabel(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getNextLandmarkElementRoleLabel)
+			checkFocusElement(landmarksFinder.getNextLandmarkElementRoleLabel)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			checkFocusElement(lf.getPreviousLandmarkElementRoleLabel)
+			checkFocusElement(
+				landmarksFinder.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			const mainElementInfo = lf.getMainElementRoleLabel()
+			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
 			if (mainElementInfo) {
-				ef.focusElement(mainElementInfo)
+				elementFocuser.focusElement(mainElementInfo)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
 			}
@@ -56,7 +64,8 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			ef.addBorderToElements(lf.allElementsRolesLabels())
+			elementFocuser.addBorderToElements(
+				landmarksFinder.allElementsRolesLabels())
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -66,7 +75,7 @@ function messageHandler(message, sendingPort) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			logger.log('Landmarks: refresh triggered')
-			ef.removeBorderOnCurrentlySelectedElement()
+			elementFocuser.removeBorderOnCurrentlySelectedElement()
 			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
@@ -75,19 +84,19 @@ function messageHandler(message, sendingPort) {
 }
 
 function handleOutdatedResults() {
-	if (ph.getPauseTime() > outOfDateTime) {
-		logger.log(`Landmarks may be out of date (pause: ${ph.getPauseTime()}); scanning now...`)
+	if (pauseHandler.getPauseTime() > outOfDateTime) {
+		logger.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
 		findLandmarksAndUpdateBackgroundScript()
 	}
 }
 
 function checkFocusElement(callbackReturningElementInfo) {
-	if (lf.getNumberOfLandmarks() === 0) {
+	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
 		return
 	}
 
-	ef.focusElement(callbackReturningElementInfo())
+	elementFocuser.focusElement(callbackReturningElementInfo())
 }
 
 
@@ -97,9 +106,9 @@ function checkFocusElement(callbackReturningElementInfo) {
 
 function findLandmarksAndUpdateBackgroundScript() {
 	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
-	lf.find()
-	port.postMessage({ name: 'landmarks', data: lf.filter() })
-	ef.checkFocusedElement()
+	landmarksFinder.find()
+	port.postMessage({ name: 'landmarks', data: landmarksFinder.filter() })
+	elementFocuser.checkFocusedElement()
 	// TODO check here if we need to add/remove toggled all landmark borders
 }
 
@@ -146,8 +155,9 @@ function setUpMutationObserver() {
 	observer = new MutationObserver((mutations) => {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
-		ph.run(
-			ef.didJustMakeChanges,  // ignore mutations if Landmarks caused them
+		pauseHandler.run(
+			// Ignore mutations if Landmarks caused them
+			elementFocuser.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')

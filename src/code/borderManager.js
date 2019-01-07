@@ -1,10 +1,7 @@
 import landmarkName from './landmarkName'
-import ContrastChecker from './contrastChecker'
 import { defaultBorderSettings } from './defaults'
 
-// FIXME document and window -> doc and win
-export default function BorderManager() {
-	const contrastChecker = new ContrastChecker()
+export default function BorderManager(win, doc, contrastChecker) {
 	const borderWidthPx = 4
 
 	const borderedElements = new Map()
@@ -24,7 +21,7 @@ export default function BorderManager() {
 		}
 	}
 
-	window.addEventListener('resize', resizeHandler)
+	win.addEventListener('resize', resizeHandler)
 
 
 	//
@@ -109,9 +106,9 @@ export default function BorderManager() {
 	function drawBorderAndLabel(element, label, colour, fontColour, fontSize) {
 		const zIndex = 10000000
 
-		const labelContent = document.createTextNode(label)
+		const labelContent = doc.createTextNode(label)
 
-		const borderDiv = document.createElement('div')
+		const borderDiv = doc.createElement('div')
 		borderDiv.style.border = borderWidthPx + 'px solid ' + colour
 		borderDiv.style.boxSizing = 'border-box'
 		borderDiv.style.margin = '0'
@@ -121,7 +118,7 @@ export default function BorderManager() {
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
 
-		const labelDiv = document.createElement('div')
+		const labelDiv = doc.createElement('div')
 		labelDiv.style.backgroundColor = colour
 		labelDiv.style.border = 'none'
 		labelDiv.style.boxSizing = 'border-box'
@@ -141,8 +138,8 @@ export default function BorderManager() {
 
 		labelDiv.appendChild(labelContent)
 
-		document.body.appendChild(borderDiv)
-		document.body.appendChild(labelDiv)
+		doc.body.appendChild(borderDiv)
+		doc.body.appendChild(labelDiv)
 		justMadeChanges = true  // seems to be covered by sizeBorderAndLabel()
 		sizeBorderAndLabel(element, borderDiv, labelDiv)
 
@@ -154,10 +151,10 @@ export default function BorderManager() {
 	// element
 	function sizeBorderAndLabel(element, border, label) {
 		const elementBounds = element.getBoundingClientRect()
-		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
-		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
-		const elementRightEdgeStyle = document.documentElement.clientWidth -
-			(window.scrollX + elementBounds.right) + 'px'
+		const elementTopEdgeStyle = win.scrollY + elementBounds.top + 'px'
+		const elementLeftEdgeStyle = win.scrollX + elementBounds.left + 'px'
+		const elementRightEdgeStyle = doc.documentElement.clientWidth -
+			(win.scrollX + elementBounds.right) + 'px'
 
 		border.style.left = elementLeftEdgeStyle
 		border.style.top = elementTopEdgeStyle

@@ -1,8 +1,6 @@
 import { defaultBorderSettings } from './defaults'
-import BorderManager from './borderManager'
 
-export default function ElementFocuser(doc) {
-	const borderManager = new BorderManager(doc)
+export default function ElementFocuser(doc, borderManager) {
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
