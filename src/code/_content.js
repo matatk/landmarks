@@ -6,7 +6,7 @@ import Logger from './logger'
 import BorderManager from './borderManager'
 import ContrastChecker from './contrastChecker'
 
-const logger = new Logger()
+const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderManager = new BorderManager(window, document, contrastChecker)

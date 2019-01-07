@@ -1,6 +1,6 @@
 import { defaultDebugSettings } from './defaults'
 
-export default function Logger() {
+export default function Logger(win) {
 	const that = this
 	const messagesReceivedDuringInit = []  // whilst retrieving user preference
 
@@ -21,8 +21,8 @@ export default function Logger() {
 			// Ensure the correct line number is reported
 			// https://stackoverflow.com/a/32928812/1485308
 			// https://stackoverflow.com/a/28668819/1485308
-			that.log = console.log.bind(window.console)
-			that.timeStamp = console.timeStamp.bind(window.console)
+			that.log = console.log.bind(win.console)
+			that.timeStamp = console.timeStamp.bind(win.console)
 		} else {
 			if (messagesReceivedDuringInit.length > 0) {
 				messagesReceivedDuringInit.length = 0
