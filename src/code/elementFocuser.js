@@ -40,7 +40,7 @@ export default function ElementFocuser(doc, borderManager) {
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	this.focusElement = function(elementInfo) {
-		removeBorderOnCurrentlySelectedElement()
+		this.removeBorderOnCurrentlySelectedElement()
 
 		// Ensure that the element is focusable
 		const originalTabindex = elementInfo.element.getAttribute('tabindex')
@@ -62,7 +62,7 @@ export default function ElementFocuser(doc, borderManager) {
 				}
 
 				borderRemovalTimer = setTimeout(
-					removeBorderOnCurrentlySelectedElement,
+					this.removeBorderOnCurrentlySelectedElement,
 					momentaryBorderTime)
 			}
 		}
@@ -77,24 +77,18 @@ export default function ElementFocuser(doc, borderManager) {
 		currentlyFocusedElementInfo = elementInfo
 	}
 
-	function removeBorderOnCurrentlySelectedElement() {
+	this.removeBorderOnCurrentlySelectedElement = function() {
 		if (currentlyFocusedElementInfo) {
 			borderManager.removeBorderOn(currentlyFocusedElementInfo.element)
 		}
 	}
-
-	// This needs to be a separate (and public) declaration because external
-	// stuff calls it, but the options-handling code can't access 'this'.
-	// FIXME: is that correct? Could use 'that'?
-	this.removeBorderOnCurrentlySelectedElement
-		= removeBorderOnCurrentlySelectedElement
 
 	// When the document is changed, the currently-focused element may have
 	// been removed, or at least changed size/position
 	this.checkFocusedElement = function() {
 		if (currentlyFocusedElementInfo) {
 			if (!doc.body.contains(currentlyFocusedElementInfo.element)) {
-				removeBorderOnCurrentlySelectedElement()
+				this.removeBorderOnCurrentlySelectedElement()
 				currentlyFocusedElementInfo = null  // can't resize anymore
 			} else {
 				borderManager.runResizeHandlers()
@@ -114,7 +108,7 @@ export default function ElementFocuser(doc, borderManager) {
 				borderManager.addBorder(currentlyFocusedElementInfo)
 			}
 		} else {
-			removeBorderOnCurrentlySelectedElement()
+			this.removeBorderOnCurrentlySelectedElement()
 		}
 	}
 }
