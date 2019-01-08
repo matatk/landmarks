@@ -63,7 +63,7 @@ export default function BorderManager(win, doc, contrastChecker) {
 	// object, as returned by the various LandmarksFinder functions.
 	//
 	// { element: HTMLElement, role: <string>, label: <string> }
-	function addBorder(elementInfo) {
+	this.addBorder = function(elementInfo) {
 		if (!borderedElements.has(elementInfo.element)) {  // FIXME pers - togg
 			drawBorderAndLabel(
 				elementInfo.element,
@@ -73,13 +73,12 @@ export default function BorderManager(win, doc, contrastChecker) {
 				borderFontSize)
 		}
 	}
-	this.addBorder = addBorder  // FIXME needed? Could use 'that'?
 
 	// Add the landmark border and label for several elements. Takes an array
 	// of element info objects, as detailed above.
 	this.addBorderToElements = function(elementInfoList) {
 		for (const elementInfo of elementInfoList) {
-			addBorder(elementInfo)
+			this.addBorder(elementInfo)
 		}
 	}
 
