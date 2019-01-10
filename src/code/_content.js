@@ -16,6 +16,7 @@ const pauseHandler = new PauseHandler(logger)
 const outOfDateTime = 2000
 let observer = null
 let port = null
+let showingAllBorders = false
 
 
 //
@@ -55,7 +56,7 @@ function messageHandler(message, sendingPort) {
 			handleOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
 			if (mainElementInfo) {
-				elementFocuser.focusElement(mainElementInfo)
+				elementFocuser.focusElement(mainElementInfo, !showingAllBorders)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
 			}
@@ -64,8 +65,15 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			borderDrawer.addBorderToElements(
-				landmarksFinder.allElementsRolesLabels())
+			if (!showingAllBorders) {
+				elementFocuser.clearRemovalTimer()
+				borderDrawer.addBorderToElements(
+					landmarksFinder.allElementsRolesLabels())
+				showingAllBorders = true
+			} else {
+				borderDrawer.removeAllBorders()
+				showingAllBorders = false
+			}
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -96,7 +104,8 @@ function checkFocusElement(callbackReturningElementInfo) {
 		return
 	}
 
-	elementFocuser.focusElement(callbackReturningElementInfo())
+	elementFocuser.focusElement(
+		callbackReturningElementInfo(), !showingAllBorders)
 }
 
 
@@ -113,7 +122,9 @@ function findLandmarksAndUpdateBackgroundScript() {
 	})
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
-	// TODO check here if we need to add/remove toggled all landmark borders
+	if (showingAllBorders) {
+		borderDrawer.addBorderToElements(landmarksFinder.allElementsRolesLabels)
+	}
 }
 
 

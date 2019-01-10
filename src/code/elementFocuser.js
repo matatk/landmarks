@@ -39,8 +39,8 @@ export default function ElementFocuser(doc, borderDrawer) {
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	this.focusElement = function(elementInfo) {
-		this.removeBorderOnCurrentlySelectedElement()
+	this.focusElement = function(elementInfo, drawBorder = true) {
+		if (drawBorder) this.removeBorderOnCurrentlySelectedElement()
 
 		// Ensure that the element is focusable
 		const originalTabindex = elementInfo.element.getAttribute('tabindex')
@@ -53,13 +53,11 @@ export default function ElementFocuser(doc, borderDrawer) {
 
 		// Add the border and set a borderRemovalTimer to remove it (if
 		// required by user settings)
-		if (borderType !== 'none') {
+		if (drawBorder && borderType !== 'none') {
 			borderDrawer.addBorder(elementInfo)
 
 			if (borderType === 'momentary') {
-				if (borderRemovalTimer) {
-					clearTimeout(borderRemovalTimer)
-				}
+				this.clearRemovalTimer()
 
 				borderRemovalTimer = setTimeout(
 					this.removeBorderOnCurrentlySelectedElement,  // TODO dblchk
@@ -94,6 +92,14 @@ export default function ElementFocuser(doc, borderDrawer) {
 				this.removeBorderOnCurrentlySelectedElement()  // TODO dblchk
 				currentlyFocusedElementInfo = null  // can't resize anymore
 			}
+		}
+	}
+
+	// If the border is scheduled to be removed, and the user toggles all
+	// borders on, then the border should not be removed anymore.
+	this.clearRemovalTimer = function() {
+		if (borderRemovalTimer) {
+			clearTimeout(borderRemovalTimer)
 		}
 	}
 

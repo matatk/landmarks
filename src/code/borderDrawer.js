@@ -63,12 +63,13 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	// object, as returned by the various LandmarksFinder functions.
 	//
 	// { element: HTMLElement, role: <string>, label: <string> }
+	//
+	// Note: we assume that if an element already exists and we try to add it
+	//       again (as may happen if the page changes whilst we're displaying
+	//       all elements, and try to add any new ones) that the existing
+	//       elements' labels won't have changed.
 	this.addBorder = function(elementInfo) {
-		// FIXME if page was changed and new elements are added and we want to
-		// just add those, the best way woudl be if this could cope with that.
-		// Do we assume that the label of an element wouldn't change after a
-		// page mutation? If so then the next line is fine.
-		if (!borderedElements.has(elementInfo.element)) {  // FIXME pers - togg
+		if (!borderedElements.has(elementInfo.element)) {
 			drawBorderAndLabel(
 				elementInfo.element,
 				landmarkName(elementInfo),
@@ -86,9 +87,15 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		}
 	}
 
-	// Attempt to remove border from an element.
 	this.removeBorderOn = function(element) {
 		if (borderedElements.has(element)) {
+			deleteBorderAndLabelDivs(element)
+			borderedElements.delete(element)
+		}
+	}
+
+	this.removeAllBorders = function() {
+		for (const element of borderedElements.keys()) {
 			deleteBorderAndLabelDivs(element)
 			borderedElements.delete(element)
 		}
@@ -104,7 +111,6 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 	// In case it's detected that an element may've moved due to mutations
 	// FIXME should this handle elements being removed due to mutations?
-	// FIXME what about elements being added (no, that seems beyond scope)?
 	this.refreshBorders = function() {
 		resizeHandler()
 	}
