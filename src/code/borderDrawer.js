@@ -1,7 +1,7 @@
 import landmarkName from './landmarkName'
 import { defaultBorderSettings } from './defaults'
 
-export default function BorderManager(win, doc, contrastChecker) {
+export default function BorderDrawer(win, doc, contrastChecker) {
 	const borderWidthPx = 4
 
 	const borderedElements = new Map()

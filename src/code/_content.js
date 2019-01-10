@@ -3,14 +3,14 @@ import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import Logger from './logger'
-import BorderManager from './borderManager'
+import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 
 const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
-const borderManager = new BorderManager(window, document, contrastChecker)
-const elementFocuser = new ElementFocuser(document, borderManager)
+const borderDrawer = new BorderDrawer(window, document, contrastChecker)
+const elementFocuser = new ElementFocuser(document, borderDrawer)
 const pauseHandler = new PauseHandler(logger)
 
 const outOfDateTime = 2000
@@ -64,7 +64,7 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			borderManager.addBorderToElements(
+			borderDrawer.addBorderToElements(
 				landmarksFinder.allElementsRolesLabels())
 			break
 		case 'trigger-refresh':
@@ -157,7 +157,7 @@ function setUpMutationObserver() {
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
 			// Ignore mutations if Landmarks caused them
-			borderManager.didJustMakeChanges,
+			borderDrawer.didJustMakeChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')

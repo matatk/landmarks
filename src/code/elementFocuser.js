@@ -1,6 +1,6 @@
 import { defaultBorderSettings } from './defaults'
 
-export default function ElementFocuser(doc, borderManager) {
+export default function ElementFocuser(doc, borderDrawer) {
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
@@ -54,7 +54,7 @@ export default function ElementFocuser(doc, borderManager) {
 		// Add the border and set a borderRemovalTimer to remove it (if
 		// required by user settings)
 		if (borderType !== 'none') {
-			borderManager.addBorder(elementInfo)
+			borderDrawer.addBorder(elementInfo)
 
 			if (borderType === 'momentary') {
 				if (borderRemovalTimer) {
@@ -79,7 +79,7 @@ export default function ElementFocuser(doc, borderManager) {
 
 	this.removeBorderOnCurrentlySelectedElement = function() {
 		if (currentlyFocusedElementInfo) {
-			borderManager.removeBorderOn(currentlyFocusedElementInfo.element)
+			borderDrawer.removeBorderOn(currentlyFocusedElementInfo.element)
 		}
 	}
 
@@ -91,7 +91,7 @@ export default function ElementFocuser(doc, borderManager) {
 				this.removeBorderOnCurrentlySelectedElement()
 				currentlyFocusedElementInfo = null  // can't resize anymore
 			} else {
-				borderManager.runResizeHandlers()
+				borderDrawer.runResizeHandlers()
 			}
 		}
 	}
@@ -105,7 +105,7 @@ export default function ElementFocuser(doc, borderManager) {
 	function borderTypeChange() {
 		if (borderType === 'persistent') {
 			if (currentlyFocusedElementInfo) {
-				borderManager.addBorder(currentlyFocusedElementInfo)
+				borderDrawer.addBorder(currentlyFocusedElementInfo)
 			}
 		} else {
 			this.removeBorderOnCurrentlySelectedElement()
