@@ -64,6 +64,10 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	//
 	// { element: HTMLElement, role: <string>, label: <string> }
 	this.addBorder = function(elementInfo) {
+		// FIXME if page was changed and new elements are added and we want to
+		// just add those, the best way woudl be if this could cope with that.
+		// Do we assume that the label of an element wouldn't change after a
+		// page mutation? If so then the next line is fine.
 		if (!borderedElements.has(elementInfo.element)) {  // FIXME pers - togg
 			drawBorderAndLabel(
 				elementInfo.element,
