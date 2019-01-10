@@ -1,11 +1,11 @@
 import { defaultBorderSettings } from './defaults'
 
 export default function ElementFocuser(doc, borderDrawer) {
-	const that = this  // for preference-handling code
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
-	let currentlyFocusedElementInfo = null
+	let currentElementInfo = null
+	let currentElementBorderDrawn = null
 	let borderRemovalTimer = null
 
 
@@ -41,7 +41,7 @@ export default function ElementFocuser(doc, borderDrawer) {
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	this.focusElement = function(elementInfo, drawBorder = true) {
-		if (drawBorder) this.removeBorderOnCurrentlySelectedElement()
+		if (drawBorder) this.clear()
 
 		// Ensure that the element is focusable
 		const originalTabindex = elementInfo.element.getAttribute('tabindex')
@@ -58,10 +58,11 @@ export default function ElementFocuser(doc, borderDrawer) {
 			borderDrawer.addBorder(elementInfo)
 
 			if (borderType === 'momentary') {
-				this.clearRemovalTimer()
+				this.clearBorderRemovalTimer()
 
 				borderRemovalTimer = setTimeout(
-					this.removeBorderOnCurrentlySelectedElement,  // TODO dblchk
+					// Only remove border; keep elementInfo in case prefs change
+					borderDrawer.removeBorderOn(currentElementInfo.element),
 					momentaryBorderTime)
 			}
 		}
@@ -73,12 +74,13 @@ export default function ElementFocuser(doc, borderDrawer) {
 			elementInfo.element.setAttribute('tabindex', '0')
 		}
 
-		currentlyFocusedElementInfo = elementInfo
+		currentElementInfo = elementInfo
+		currentElementBorderDrawn = drawBorder
 	}
 
-	this.removeBorderOnCurrentlySelectedElement = function() {
-		if (currentlyFocusedElementInfo) {
-			borderDrawer.removeBorderOn(currentlyFocusedElementInfo.element)
+	this.clear = function() {
+		if (currentElementInfo) {
+			clearCurrentElementBorderAndTimer()
 		}
 	}
 
@@ -88,17 +90,16 @@ export default function ElementFocuser(doc, borderDrawer) {
 	//       this object is mainly concerned with just the current one, but
 	//       after a mutation, any borders that are drawn should be refreshed.
 	this.refreshFocusedElement = function() {
-		if (currentlyFocusedElementInfo) {
-			if (!doc.body.contains(currentlyFocusedElementInfo.element)) {
-				this.removeBorderOnCurrentlySelectedElement()  // TODO dblchk
-				currentlyFocusedElementInfo = null  // can't resize anymore
+		if (currentElementInfo) {
+			if (!doc.body.contains(currentElementInfo.element)) {
+				clearCurrentElementBorderAndTimer()
 			}
 		}
 	}
 
 	// If the border is scheduled to be removed, and the user toggles all
 	// borders on, then the border should not be removed anymore.
-	this.clearRemovalTimer = function() {
+	this.clearBorderRemovalTimer = function() {
 		if (borderRemovalTimer) {
 			clearTimeout(borderRemovalTimer)
 		}
@@ -109,14 +110,22 @@ export default function ElementFocuser(doc, borderDrawer) {
 	// Private API
 	//
 
+	// Used internally when we know we have a currently selected element
+	function clearCurrentElementBorderAndTimer() {
+		this.clearBorderRemovalTimer()
+		borderDrawer.removeBorderOn(currentElementInfo.element)
+		currentElementInfo = null
+		currentElementBorderDrawn = null
+	}
+
 	// Should a border be added/removed?
 	function borderTypeChange() {
 		if (borderType === 'persistent') {
-			if (currentlyFocusedElementInfo) {
-				borderDrawer.addBorder(currentlyFocusedElementInfo)
+			if (currentElementInfo) {
+				borderDrawer.addBorder(currentElementInfo)
 			}
-		} else {
-			that.removeBorderOnCurrentlySelectedElement()
+		} else if (currentElementBorderDrawn) {
+			borderDrawer.removeBorderOn(currentElementInfo.element)
 		}
 	}
 }

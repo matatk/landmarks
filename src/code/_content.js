@@ -66,7 +66,7 @@ function messageHandler(message, sendingPort) {
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
 			if (!showingAllBorders) {
-				elementFocuser.clearRemovalTimer()
+				elementFocuser.clearBorderRemovalTimer()
 				borderDrawer.addBorderToElements(
 					landmarksFinder.allElementsRolesLabels())
 				showingAllBorders = true
@@ -83,7 +83,7 @@ function messageHandler(message, sendingPort) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			logger.log('Landmarks: refresh triggered')
-			elementFocuser.removeBorderOnCurrentlySelectedElement()
+			elementFocuser.clear()
 			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
