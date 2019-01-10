@@ -92,7 +92,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 	// Did we just make changes to a border? If so, report this, so that the
 	// mutation observer can ignore it.
-	this.didJustMakeChanges = function() {
+	this.hasMadeDOMChanges = function() {
 		const didChanges = justMadeChanges
 		justMadeChanges = false
 		return didChanges

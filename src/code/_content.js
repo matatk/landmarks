@@ -157,7 +157,7 @@ function setUpMutationObserver() {
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
 			// Ignore mutations if Landmarks caused them
-			borderDrawer.didJustMakeChanges,
+			borderDrawer.hasMadeDOMChanges,
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')
