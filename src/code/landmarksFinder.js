@@ -311,7 +311,11 @@ export default function LandmarksFinder(win, doc) {
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 	}
 
-	this.filter = function() {
+	this.getNumberOfLandmarks = function() {
+		return landmarks.length
+	}
+
+	this.allDepthsRolesLabelsSelectors = function() {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
@@ -320,8 +324,12 @@ export default function LandmarksFinder(win, doc) {
 		}))
 	}
 
-	this.getNumberOfLandmarks = function() {
-		return landmarks.length
+	this.allElementsRolesLabels = function() {
+		return landmarks.map(landmark => ({
+			element: landmark.element,
+			role: landmark.role,
+			label: landmark.label
+		}))
 	}
 
 	// These all return elements and their public-facing info:
@@ -345,15 +353,5 @@ export default function LandmarksFinder(win, doc) {
 	this.getMainElementRoleLabel = function() {
 		return mainElementIndex < 0 ?
 			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
-	}
-
-	// This returns a list of elements and their public-facing info:
-
-	this.allElementsRolesLabels = function() {
-		return landmarks.map(landmark => ({
-			element: landmark.element,
-			role: landmark.role,
-			label: landmark.label
-		}))
 	}
 }

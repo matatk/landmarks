@@ -29,7 +29,7 @@ function messageHandler(message, sendingPort) {
 			handleOutdatedResults()
 			sendingPort.postMessage({
 				name: 'landmarks',
-				data: landmarksFinder.filter()
+				data: landmarksFinder.allDepthsRolesLabelsSelectors()
 			})
 			break
 		case 'focus-landmark':
@@ -107,7 +107,10 @@ function checkFocusElement(callbackReturningElementInfo) {
 function findLandmarksAndUpdateBackgroundScript() {
 	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
 	landmarksFinder.find()
-	port.postMessage({ name: 'landmarks', data: landmarksFinder.filter() })
+	port.postMessage({
+		name: 'landmarks',
+		data: landmarksFinder.allDepthsRolesLabelsSelectors()
+	})
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	// TODO check here if we need to add/remove toggled all landmark borders
