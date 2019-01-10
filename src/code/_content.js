@@ -108,7 +108,8 @@ function findLandmarksAndUpdateBackgroundScript() {
 	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
 	landmarksFinder.find()
 	port.postMessage({ name: 'landmarks', data: landmarksFinder.filter() })
-	elementFocuser.checkFocusedElement()
+	elementFocuser.updateFocusedElement()
+	borderDrawer.updateBorders()
 	// TODO check here if we need to add/remove toggled all landmark borders
 }
 

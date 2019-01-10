@@ -62,7 +62,7 @@ export default function ElementFocuser(doc, borderDrawer) {
 				}
 
 				borderRemovalTimer = setTimeout(
-					this.removeBorderOnCurrentlySelectedElement,
+					this.removeBorderOnCurrentlySelectedElement,  // TODO dblchk
 					momentaryBorderTime)
 			}
 		}
@@ -84,14 +84,15 @@ export default function ElementFocuser(doc, borderDrawer) {
 	}
 
 	// When the document is changed, the currently-focused element may have
-	// been removed, or at least changed size/position
-	this.checkFocusedElement = function() {
+	// been removed, or at least changed size/position.
+	// Note: this doesn't call the border drawer to refresh all borders, as
+	//       this object is mainly concerned with just the current one, but
+	//       after a mutation, any borders that are drawn should be refreshed.
+	this.updateFocusedElement = function() {
 		if (currentlyFocusedElementInfo) {
 			if (!doc.body.contains(currentlyFocusedElementInfo.element)) {
-				this.removeBorderOnCurrentlySelectedElement()
+				this.removeBorderOnCurrentlySelectedElement()  // TODO dblchk
 				currentlyFocusedElementInfo = null  // can't resize anymore
-			} else {
-				borderDrawer.runResizeHandlers()
 			}
 		}
 	}

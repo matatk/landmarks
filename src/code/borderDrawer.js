@@ -8,7 +8,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	let borderColour = defaultBorderSettings.borderColour      // cached locally
 	let borderFontSize = defaultBorderSettings.borderFontSize  // cached locally
 	let labelFontColour = null  // computed based on border colour
-	let justMadeChanges = false
+	let madeDOMChanges = false
 
 
 	//
@@ -93,13 +93,15 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	// Did we just make changes to a border? If so, report this, so that the
 	// mutation observer can ignore it.
 	this.hasMadeDOMChanges = function() {
-		const didChanges = justMadeChanges
-		justMadeChanges = false
+		const didChanges = madeDOMChanges
+		madeDOMChanges = false
 		return didChanges
 	}
 
 	// In case it's detected that an element may've moved due to mutations
-	this.runResizeHandlers = function() {
+	// FIXME should this handle elements being removed due to mutations?
+	// FIXME what about elements being added (no, that seems beyond scope)?
+	this.updateBorders = function() {
 		resizeHandler()
 	}
 
@@ -147,7 +149,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 		doc.body.appendChild(borderDiv)
 		doc.body.appendChild(labelDiv)
-		justMadeChanges = true  // seems to be covered by sizeBorderAndLabel()
+		madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
 		sizeBorderAndLabel(element, borderDiv, labelDiv)
 
 		borderedElements.set(element, { border: borderDiv, label: labelDiv })
@@ -186,7 +188,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 			label.style.left = elementLeftEdgeStyle
 		}
 
-		justMadeChanges = true  // seems to be in the right place
+		madeDOMChanges = true  // seems to be in the right place
 	}
 
 	// Remove known-existing DOM nodes for the border and label
@@ -196,7 +198,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		const related = borderedElements.get(element)
 		related.border.remove()
 		related.label.remove()
-		justMadeChanges = true
+		madeDOMChanges = true
 	}
 
 	// Work out if the label font colour should be black or white
