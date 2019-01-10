@@ -1,6 +1,7 @@
 import { defaultBorderSettings } from './defaults'
 
 export default function ElementFocuser(doc, borderDrawer) {
+	const that = this  // for preference-handling code
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
@@ -115,7 +116,7 @@ export default function ElementFocuser(doc, borderDrawer) {
 				borderDrawer.addBorder(currentlyFocusedElementInfo)
 			}
 		} else {
-			this.removeBorderOnCurrentlySelectedElement()
+			that.removeBorderOnCurrentlySelectedElement()
 		}
 	}
 }
