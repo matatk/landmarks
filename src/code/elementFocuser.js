@@ -88,7 +88,7 @@ export default function ElementFocuser(doc, borderDrawer) {
 	// Note: this doesn't call the border drawer to refresh all borders, as
 	//       this object is mainly concerned with just the current one, but
 	//       after a mutation, any borders that are drawn should be refreshed.
-	this.updateFocusedElement = function() {
+	this.refreshFocusedElement = function() {
 		if (currentlyFocusedElementInfo) {
 			if (!doc.body.contains(currentlyFocusedElementInfo.element)) {
 				this.removeBorderOnCurrentlySelectedElement()  // TODO dblchk

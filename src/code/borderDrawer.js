@@ -101,7 +101,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	// In case it's detected that an element may've moved due to mutations
 	// FIXME should this handle elements being removed due to mutations?
 	// FIXME what about elements being added (no, that seems beyond scope)?
-	this.updateBorders = function() {
+	this.refreshBorders = function() {
 		resizeHandler()
 	}
 
