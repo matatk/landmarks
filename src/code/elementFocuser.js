@@ -4,8 +4,9 @@ export default function ElementFocuser(doc, borderDrawer) {
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
+	let managingBorders = true  // draw and remove borders by default
+
 	let currentElementInfo = null
-	let currentElementBorderDrawn = null
 	let borderRemovalTimer = null
 
 
@@ -40,8 +41,8 @@ export default function ElementFocuser(doc, borderDrawer) {
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	this.focusElement = function(elementInfo, drawBorder = true) {
-		if (drawBorder) this.clear()
+	this.focusElement = function(elementInfo) {
+		if (managingBorders) this.clear()
 
 		// Ensure that the element is focusable
 		const originalTabindex = elementInfo.element.getAttribute('tabindex')
@@ -52,18 +53,15 @@ export default function ElementFocuser(doc, borderDrawer) {
 		elementInfo.element.scrollIntoView()  // always go to the top of it
 		elementInfo.element.focus()
 
-		// Add the border and set a borderRemovalTimer to remove it (if
-		// required by user settings)
-		if (drawBorder && borderType !== 'none') {
+		// Add the border and set a timer to remove it (if required by user)
+		if (managingBorders && borderType !== 'none') {
 			borderDrawer.addBorder(elementInfo)
 
 			if (borderType === 'momentary') {
-				this.clearBorderRemovalTimer()
-
-				borderRemovalTimer = setTimeout(
-					// Only remove border; keep elementInfo in case prefs change
-					borderDrawer.removeBorderOn(currentElementInfo.element),
-					momentaryBorderTime)
+				clearTimeout(borderRemovalTimer)
+				borderRemovalTimer = setTimeout(function() {
+					borderDrawer.removeBorderOn(currentElementInfo.element)
+				}, momentaryBorderTime)
 			}
 		}
 
@@ -75,12 +73,27 @@ export default function ElementFocuser(doc, borderDrawer) {
 		}
 
 		currentElementInfo = elementInfo
-		currentElementBorderDrawn = drawBorder
+	}
+
+	// By default, this object will ask for borders to be drawn and removed
+	// according to user preferences (and reflect changes in preferences). If
+	// it shouldn't (i.e. because all borders are being shown, and managed by
+	// other code) then this can be turned off - though it will still manage
+	// element focusing.
+	this.manageBorders = function(canManageBorders) {
+		managingBorders = canManageBorders
+		if (!canManageBorders) {
+			clearTimeout(borderRemovalTimer)
+		}
+	}
+
+	this.isManagingBorders = function() {
+		return managingBorders
 	}
 
 	this.clear = function() {
 		if (currentElementInfo) {
-			clearCurrentElementBorderAndTimer()
+			resetEverything()
 		}
 	}
 
@@ -92,16 +105,8 @@ export default function ElementFocuser(doc, borderDrawer) {
 	this.refreshFocusedElement = function() {
 		if (currentElementInfo) {
 			if (!doc.body.contains(currentElementInfo.element)) {
-				clearCurrentElementBorderAndTimer()
+				resetEverything()
 			}
-		}
-	}
-
-	// If the border is scheduled to be removed, and the user toggles all
-	// borders on, then the border should not be removed anymore.
-	this.clearBorderRemovalTimer = function() {
-		if (borderRemovalTimer) {
-			clearTimeout(borderRemovalTimer)
 		}
 	}
 
@@ -111,21 +116,20 @@ export default function ElementFocuser(doc, borderDrawer) {
 	//
 
 	// Used internally when we know we have a currently selected element
-	function clearCurrentElementBorderAndTimer() {
-		this.clearBorderRemovalTimer()
+	function resetEverything() {
+		clearTimeout(borderRemovalTimer)
 		borderDrawer.removeBorderOn(currentElementInfo.element)
 		currentElementInfo = null
-		currentElementBorderDrawn = null
 	}
 
 	// Should a border be added/removed?
 	function borderTypeChange() {
-		if (borderType === 'persistent') {
-			if (currentElementInfo) {
+		if (currentElementInfo && managingBorders) {
+			if (borderType === 'persistent') {
 				borderDrawer.addBorder(currentElementInfo)
+			} else {
+				borderDrawer.removeBorderOn(currentElementInfo.element)
 			}
-		} else if (currentElementBorderDrawn) {
-			borderDrawer.removeBorderOn(currentElementInfo.element)
 		}
 	}
 }

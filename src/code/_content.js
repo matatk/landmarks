@@ -16,7 +16,6 @@ const pauseHandler = new PauseHandler(logger)
 const outOfDateTime = 2000
 let observer = null
 let port = null
-let showingAllBorders = false
 
 
 //
@@ -56,7 +55,7 @@ function messageHandler(message, sendingPort) {
 			handleOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
 			if (mainElementInfo) {
-				elementFocuser.focusElement(mainElementInfo, !showingAllBorders)
+				elementFocuser.focusElement(mainElementInfo)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
 			}
@@ -65,14 +64,13 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			if (!showingAllBorders) {
-				elementFocuser.clearBorderRemovalTimer()
+			if (elementFocuser.isManagingBorders()) {
+				elementFocuser.manageBorders(false)
 				borderDrawer.addBorderToElements(
 					landmarksFinder.allElementsRolesLabels())
-				showingAllBorders = true
 			} else {
 				borderDrawer.removeAllBorders()
-				showingAllBorders = false
+				elementFocuser.manageBorders(true)
 			}
 			break
 		case 'trigger-refresh':
@@ -104,8 +102,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 		return
 	}
 
-	elementFocuser.focusElement(
-		callbackReturningElementInfo(), !showingAllBorders)
+	elementFocuser.focusElement(callbackReturningElementInfo())
 }
 
 
@@ -122,7 +119,7 @@ function findLandmarksAndUpdateBackgroundScript() {
 	})
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
-	if (showingAllBorders) {
+	if (!elementFocuser.isManagingBorders()) {
 		borderDrawer.addBorderToElements(landmarksFinder.allElementsRolesLabels)
 	}
 }
