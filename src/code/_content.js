@@ -82,6 +82,7 @@ function messageHandler(message, sendingPort) {
 			// landmarks again when asked.
 			logger.log('Landmarks: refresh triggered')
 			elementFocuser.clear()
+			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
