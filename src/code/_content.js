@@ -64,13 +64,15 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			if (elementFocuser.isManagingBorders()) {
-				elementFocuser.manageBorders(false)
-				borderDrawer.addBorderToElements(
-					landmarksFinder.allElementsRolesLabels())
-			} else {
-				borderDrawer.removeAllBorders()
-				elementFocuser.manageBorders(true)
+			if (thereMustBeLandmarks()) {
+				if (elementFocuser.isManagingBorders()) {
+					elementFocuser.manageBorders(false)
+					borderDrawer.addBorderToElements(
+						landmarksFinder.allElementsRolesLabels())
+				} else {
+					borderDrawer.removeAllBorders()
+					elementFocuser.manageBorders(true)
+				}
 			}
 			// eslint-disable-next-line no-fallthrough
 		case 'get-toggle-state':
@@ -100,13 +102,18 @@ function handleOutdatedResults() {
 	}
 }
 
-function checkFocusElement(callbackReturningElementInfo) {
+function thereMustBeLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
-		return
+		return false
 	}
+	return true
+}
 
-	elementFocuser.focusElement(callbackReturningElementInfo())
+function checkFocusElement(callbackReturningElementInfo) {
+	if(thereMustBeLandmarks()) {
+		elementFocuser.focusElement(callbackReturningElementInfo())
+	}
 }
 
 function sendToggleState(sender) {
