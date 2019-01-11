@@ -30,7 +30,10 @@ function createTest(testName, testFixture, testData) {
 		const LandmarksFinder = require(testCodePath)
 		const lf = new LandmarksFinder(doc.defaultView, doc)
 		lf.find()
-		assert.deepEqual(lf.filter(), data.expected, testName)
+		assert.deepEqual(
+			lf.allDepthsRolesLabelsSelectors(),
+			data.expected,
+			testName)
 	}
 }
 

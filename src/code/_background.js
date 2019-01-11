@@ -5,7 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 
-const logger = new Logger()
+const logger = new Logger(window)
 
 const contentConnections = {}
 const devtoolsConnections = {}
@@ -296,6 +296,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'next-landmark':
 		case 'prev-landmark':
 		case 'main-landmark':
+		case 'toggle-all-landmarks':
 			sendToActiveContentScriptIfExists({ name: command })
 			break
 		default:

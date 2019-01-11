@@ -1,8 +1,8 @@
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 
 let port
+let shortcutNotSet = false
 
-// FIXME global
 const shortcutTableRows = [
 	{
 		element: 'tr',
@@ -13,37 +13,50 @@ const shortcutTableRows = [
 	}
 ]
 
-// FIXME global
 const keyboardShortcutsLink = {
-	element: 'p', contains: [{
-		element: 'a',
-		class: 'config',
-		href: '#',
-		content: 'Add or change shortcuts',
-		listen: {
-			event: 'click',
-			handler: () => port.postMessage({
-				name: 'splash-open-configure-shortcuts'
-			})
+	element: 'a',
+	class: 'configAction',
+	tabindex: 0,
+	content: 'Add or change shortcuts',
+	listen: [{
+		event: 'click',
+		handler: () => port.postMessage({
+			name: 'splash-open-configure-shortcuts'
+		})
+	}, {
+		event: 'keydown',
+		handler: (event) => {
+			if (event.key === 'Enter') {
+				port.postMessage({
+					name: 'splash-open-configure-shortcuts'
+				})
+			}
 		}
 	}]
 }
 
-// FIXME global
 const settingsLink = {
 	element: 'a',
-	class: 'config',
-	href: '#',
+	class: 'configAction',
+	tabindex: 0,
 	content: 'Change preferences (opens in new tab)',
-	listen: {
+	listen: [{
 		event: 'click',
-		handler: (event) => {
+		handler: () => {
 			port.postMessage({
 				name: 'splash-open-settings'
 			})
-			event.preventDefault()  // until it opens in the same tab
 		}
-	}
+	}, {
+		event: 'keydown',
+		handler: (event) => {
+			if (event.key === 'Enter') {
+				port.postMessage({
+					name: 'splash-open-configure-shortcuts'
+				})
+			}
+		}
+	}]
 }
 
 function makeHTML(structure, root) {
@@ -58,8 +71,8 @@ function makeHTML(structure, root) {
 			case 'class':
 				newElement.classList.add(structure[key])
 				break
-			case 'href':
-				newElement.href = structure[key]
+			case 'tabindex':
+				newElement.setAttribute('tabindex', String(structure[key]))
 				break
 			case 'text':
 				root.appendChild(document.createTextNode(structure[key]))
@@ -68,8 +81,10 @@ function makeHTML(structure, root) {
 				newElement.appendChild(document.createTextNode(structure[key]))
 				break
 			case 'listen':
-				newElement.addEventListener(
-					structure[key].event, structure[key].handler)
+				for (const eventHandler of structure[key]) {
+					newElement.addEventListener(
+						eventHandler.event, eventHandler.handler)
+				}
 				break
 			case 'contains':
 				for (const contained of structure[key]) {
@@ -114,9 +129,10 @@ function addCommandRowAndReportIfMissing(command) {
 			}
 		}
 	} else {
-		shortcutCellElement = { element: 'td', class: 'error', contains: [
+		shortcutCellElement = { element: 'td', class: 'errorItem', contains: [
 			{ text: 'Not set up' }
 		]}
+		shortcutNotSet = true
 	}
 
 	shortcutTableRows.push({
@@ -169,6 +185,20 @@ function messageHandler(message) {  // also sendingPort
 
 	makeHTML({ element: 'table', contains: shortcutTableRows },
 		document.getElementById('keyboard-shortcuts-table'))
+
+	if (shortcutNotSet) {
+		document.querySelector('#section-keyboard-navigation summary')
+			.classList.add('errorItem')
+
+		document.querySelector('[data-link="shortcuts"] a')
+			.classList.add('errorAction')
+
+		for (const warning of document.querySelectorAll('[data-warning]')) {
+			warning.style.display = 'block'
+		}
+
+		document.getElementById('symbol').style.display = 'inline'
+	}
 }
 
 function makeConfigLinks(type, template) {
@@ -224,8 +254,8 @@ function main() {
 	port.onMessage.addListener(messageHandler)
 	port.postMessage({ name: 'get-commands' })
 
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		document.getElementById('section-sidebar').open = true
+	if (BROWSER !== 'firefox' && BROWSER !== 'opera') {
+		document.getElementById('section-sidebar').open = false
 	}
 
 	makeSettingsAndShortcutsLinks()

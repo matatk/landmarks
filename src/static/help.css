@@ -2,6 +2,9 @@
 	--hla: #155799;
 	--hlb: #159957;
 	--words: #606c71;
+	--warn: #d00;
+	--lightWarn: #fee;
+	--lightNeutral: #efefef;
 }
 
 body {
@@ -35,6 +38,7 @@ details {
 
 details.call-to-action {
 	border: none;
+	border-radius: 1em;
 	background-color: #eee;
 }
 
@@ -44,40 +48,59 @@ details:not(:first-child) {
 
 summary > :first-child { display: inline; }
 
+svg {
+	height: 0.75em;
+	width: auto;
+}
+
+path { fill: var(--warn); }
+
+#symbol { display: none; }
+
+.configAction, .errorAction, [data-warning] {
+	border-radius: 1em;
+	padding: 1em;
+	display: inline-block;
+}
+
+.configAction {
+	border: 1px solid var(--words);
+	color: var(--words);
+	background-color: var(--lightNeutral);
+}
+
+.errorAction, [data-warning] {
+	border: 1px solid var(--warn);
+	background-color: var(--lightWarn);
+}
+
+[data-warning], [data-warning] > a, .errorAction, .errorItem {
+	color: var(--warn);
+}
+
+[data-warning] {
+	display: none;  /* overidden by script if need be */
+}
+
 table {
 	margin-top: 0.5em;
 	border-collapse: collapse;
 }
 
-tr:nth-child(odd) { background-color: #efefef; }
+tr:nth-child(odd) { background-color: var(--lightNeutral); }
 
 tr:first-child {
 	background-color: var(--hla);
 	color: white;
 }
 
-th, td { padding: 0.5em; }
-
-th {
+th, td {
+	padding: 0.5em;
 	padding-left: 2em;
 	padding-right: 2em;
 }
 
 td:last-child { text-align: center; }
-
-td.error {
-	background-color: #d00;
-	color: white;
-	font-weight: bold;
-}
-
-a.config {
-	display: inline-block;
-	border-radius: 1em;
-	border: 1px solid var(--words);
-	padding: 1em;
-	color: var(--words);
-}
 
 footer { padding: 2em; }
 

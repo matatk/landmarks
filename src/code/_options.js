@@ -66,7 +66,7 @@ function setUpOptionHandlers() {
 		document.getElementById('reset-messages').onclick = resetMessages
 	}
 
-	document.getElementById('reset-all').onclick = resetAll
+	document.getElementById('reset-to-defaults').onclick = resetToDefaults
 }
 
 function interfaceExplainer() {
@@ -113,9 +113,12 @@ function dismissalStateChanged(thingChanged) {
 	return dismissalStates.hasOwnProperty(thingChanged)
 }
 
-function resetAll() {
-	browser.storage.sync.clear()
-	window.location.reload()
+function resetToDefaults() {
+	browser.storage.sync.set(defaultSettings, function() {
+		window.location.reload()
+	})
+	// Note: Can't use use .clear() as that removes everything, which would
+	//       cause problems for currently-visible borders.
 }
 
 function main() {

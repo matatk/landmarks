@@ -229,7 +229,8 @@ if (INTERFACE === 'sidebar') {
 
 	browser.storage.onChanged.addListener(function(changes) {
 		// What if the sidebar is open and the user changes their preference?
-		if (changes.hasOwnProperty('interface')) {
+		if (changes.hasOwnProperty('interface')
+			&& changes.interface.newValue !== changes.interface.oldValue) {
 			switch (changes.interface.newValue) {
 				case 'sidebar': removeNote()
 					break

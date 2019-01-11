@@ -34,5 +34,13 @@
     }
   },
 
-  "devtools_page": "devtools.html"
+  "devtools_page": "devtools.html",
+
+  "commands": {
+    "toggle-all-landmarks": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      }
+    }
+  }
 }
