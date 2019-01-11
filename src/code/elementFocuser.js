@@ -36,7 +36,7 @@ export default function ElementFocuser(doc, borderDrawer) {
 	// Set focus on the selected landmark element. It takes an element info
 	// object, as returned by the various LandmarksFinder functions.
 	//
-	// { element: HTMLElement, role: <string>, label: <string> }
+	// { element: <HTMLElement>, role: <string>, label: <string> }
 	//
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI

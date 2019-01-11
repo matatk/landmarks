@@ -66,7 +66,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	// Add the landmark border and label for an element. Takes an element info
 	// object, as returned by the various LandmarksFinder functions.
 	//
-	// { element: HTMLElement, role: <string>, label: <string> }
+	// { element: <HTMLElement>, role: <string>, label: <string> }
 	//
 	// Note: we assume that if an element already exists and we try to add it
 	//       again (as may happen if the page changes whilst we're displaying
