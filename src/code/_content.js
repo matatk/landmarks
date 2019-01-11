@@ -120,7 +120,8 @@ function findLandmarksAndUpdateBackgroundScript() {
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
-		borderDrawer.addBorderToElements(landmarksFinder.allElementsRolesLabels)
+		borderDrawer.addBorderToElements(
+			landmarksFinder.allElementsRolesLabels())
 	}
 }
 

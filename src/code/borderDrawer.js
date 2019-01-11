@@ -17,7 +17,11 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 	function resizeHandler() {
 		for (const [element, related] of borderedElements) {
-			sizeBorderAndLabel(element, related.border, related.label)
+			if (doc.body.contains(element)) {
+				sizeBorderAndLabel(element, related.border, related.label)
+			} else {
+				removeBorderAndDelete(element)
+			}
 		}
 	}
 
@@ -89,15 +93,13 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 	this.removeBorderOn = function(element) {
 		if (borderedElements.has(element)) {
-			deleteBorderAndLabelDivs(element)
-			borderedElements.delete(element)
+			removeBorderAndDelete(element)
 		}
 	}
 
 	this.removeAllBorders = function() {
 		for (const element of borderedElements.keys()) {
-			deleteBorderAndLabelDivs(element)
-			borderedElements.delete(element)
+			removeBorderAndDelete(element)
 		}
 	}
 
@@ -110,7 +112,6 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	}
 
 	// In case it's detected that an element may've moved due to mutations
-	// FIXME should this handle elements being removed due to mutations?
 	this.refreshBorders = function() {
 		resizeHandler()
 	}
@@ -201,10 +202,16 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		madeDOMChanges = true  // seems to be in the right place
 	}
 
+	function removeBorderAndDelete(element) {
+		removeBorderAndLabelFor(element)
+		borderedElements.delete(element)
+	}
+
 	// Remove known-existing DOM nodes for the border and label
 	// Note: does not remove the record of the element, so as to avoid an
 	//       infinite loop when redrawing borders.
-	function deleteBorderAndLabelDivs(element) {
+	//       TODO fix this with .keys()?
+	function removeBorderAndLabelFor(element) {
 		const related = borderedElements.get(element)
 		related.border.remove()
 		related.label.remove()
@@ -222,7 +229,7 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 	function redrawBordersAndLabels() {
 		for (const [element, related] of borderedElements) {
 			const labelText = related.label.innerText
-			deleteBorderAndLabelDivs(element)
+			removeBorderAndLabelFor(element)
 			drawBorderAndLabel(
 				element,
 				labelText,
