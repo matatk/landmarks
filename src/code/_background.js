@@ -5,7 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 
-const logger = new Logger()
+const logger = new Logger(window)
 
 const contentConnections = {}
 const devtoolsConnections = {}
