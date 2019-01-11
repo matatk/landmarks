@@ -18,7 +18,7 @@ let activeTabId = null
 // Message routing
 //
 
-function sendLandmarksToActiveTabGUIs(fromTabId, message) {
+function sendToActiveTabGUIs(fromTabId, message) {
 	if (fromTabId !== activeTabId || activeTabId === null) return
 
 	if (popupConnection) {
@@ -39,7 +39,7 @@ function sendLandmarksToActiveTabGUIs(fromTabId, message) {
 }
 
 function sendNullLandmarksToActiveTabGUIs() {
-	sendLandmarksToActiveTabGUIs(activeTabId, { name: 'landmarks', data: null })
+	sendToActiveTabGUIs(activeTabId, { name: 'landmarks', data: null })
 }
 
 function getLandmarksForActiveTab() {
@@ -89,14 +89,17 @@ function contentListener(message, sendingPort) {
 
 	switch (message.name) {
 		case 'landmarks':
-			sendLandmarksToActiveTabGUIs(tabId, message)
 			updateBrowserActionBadge(tabId, message.data.length)
+			// eslint-disable-next-line no-fallthrough
+		case 'toggle-state':
+			sendToActiveTabGUIs(tabId, message)
 			break
 		default:
 			throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
 	}
 }
 
+// TODO DRY with devToolsListener
 function popupAndSidebarListener(message) {  // also gets: sendingPort
 	switch (message.name) {
 		case 'get-landmarks':
@@ -104,6 +107,8 @@ function popupAndSidebarListener(message) {  // also gets: sendingPort
 			getLandmarksForActiveTab()
 			break
 		case 'focus-landmark':
+		case 'get-toggle-state':
+		case 'toggle-all-landmarks':
 			sendToActiveContentScriptIfExists(message)
 			break
 		default:
@@ -111,6 +116,7 @@ function popupAndSidebarListener(message) {  // also gets: sendingPort
 	}
 }
 
+// TODO DRY with popupAndSideBarListener
 function devtoolsListenerMaker(connectingPort) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
@@ -129,6 +135,8 @@ function devtoolsListenerMaker(connectingPort) {
 				getLandmarksForActiveTab()
 				break
 			case 'focus-landmark':
+			case 'get-toggle-state':
+			case 'toggle-all-landmarks':
 				sendToActiveContentScriptIfExists(message)
 				break
 			default:

@@ -72,6 +72,9 @@ function messageHandler(message, sendingPort) {
 				borderDrawer.removeAllBorders()
 				elementFocuser.manageBorders(true)
 			}
+			// eslint-disable-next-line no-fallthrough
+		case 'get-toggle-state':
+			sendToggleState(sendingPort)
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -104,6 +107,13 @@ function checkFocusElement(callbackReturningElementInfo) {
 	}
 
 	elementFocuser.focusElement(callbackReturningElementInfo())
+}
+
+function sendToggleState(sender) {
+	sender.postMessage({
+		name: 'toggle-state',
+		data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
+	})
 }
 
 

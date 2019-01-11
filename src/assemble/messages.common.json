@@ -41,6 +41,10 @@
     "message": "Landmarks on page"
   },
 
+  "popupShowAllLandmarks": {
+    "message": "Show all landmarks"
+  },
+
   "errorNoConnection": {
     "message": "Landmarks is not allowed to run on this page."
   },

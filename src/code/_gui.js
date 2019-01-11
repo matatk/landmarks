@@ -167,6 +167,29 @@ function focusLandmark(index) {
 }
 
 
+//
+// Toggling all landmarks
+//
+
+function handleToggleStateMessage(state) {
+	const box = document.getElementById('show-all')
+	switch(state) {
+		case 'selected':
+			box.checked = false
+			break
+		case 'all':
+			box.checked = true
+			break
+		default:
+			throw Error(`Unknown state ${state} given.`)
+	}
+}
+
+function flipToggle() {
+	port.postMessage({ name: 'toggle-all-landmarks' })
+}
+
+
 if (INTERFACE === 'sidebar') {
 	//
 	// Sidebar - Live updates and Preferences note
@@ -265,6 +288,9 @@ function main() {
 	document.getElementById('heading').innerText =
 		browser.i18n.getMessage('popupHeading')
 
+	document.getElementById('show-all-label').appendChild(document
+		.createTextNode(browser.i18n.getMessage('popupShowAllLandmarks')))
+
 	if (INTERFACE === 'devtools') {
 		port = browser.runtime.connect({ name: INTERFACE })
 		port.postMessage({
@@ -301,12 +327,18 @@ function main() {
 			case 'landmarks':
 				handleLandmarksMessage(message.data)
 				break
+			case 'toggle-state':
+				handleToggleStateMessage(message.data)
+				break
 			default:
 				throw Error(`Unkown message ${JSON.stringify(message)}`)
 		}
 	})
 
 	port.postMessage({ name: 'get-landmarks' })
+	port.postMessage({ name: 'get-toggle-state' })
+
+	document.getElementById('show-all').addEventListener('change', flipToggle)
 }
 
 main()
