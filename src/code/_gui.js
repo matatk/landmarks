@@ -26,8 +26,10 @@ function handleLandmarksMessage(data) {
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
+			document.getElementById('show-all-label').setAttribute('hidden', '')
 		} else {
 			makeLandmarksTree(data, display)
+			document.getElementById('show-all-label').removeAttribute('hidden')
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('errorNoConnection'))
