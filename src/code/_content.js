@@ -76,7 +76,10 @@ function messageHandler(message, sendingPort) {
 			}
 			// eslint-disable-next-line no-fallthrough
 		case 'get-toggle-state':
-			sendToggleState(sendingPort)
+			sendingPort.postMessage({
+				name: 'toggle-state',
+				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
+			})
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -114,13 +117,6 @@ function checkFocusElement(callbackReturningElementInfo) {
 	if(thereMustBeLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
-}
-
-function sendToggleState(sender) {
-	sender.postMessage({
-		name: 'toggle-state',
-		data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
-	})
 }
 
 
@@ -210,6 +206,7 @@ function setUpMutationObserver() {
 
 function bootstrap() {
 	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
+
 	port = browser.runtime.connect({ name: 'content' })
 	port.onDisconnect.addListener(function() {
 		// If the port disconnected normally, then on Chrome-like browsers this
@@ -235,7 +232,10 @@ function bootstrap() {
 		}
 	})
 	port.onMessage.addListener(messageHandler)
-	findLandmarksAndUpdateBackgroundScript()  // FIXME try removing
+
+	// At the start, the ElementFocuser is always managing borders
+	port.postMessage({ name: 'toggle-state', data: 'selected' })
+	findLandmarksAndUpdateBackgroundScript()  // TODO try removing
 	setUpMutationObserver()
 }
 
