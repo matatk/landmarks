@@ -33,6 +33,7 @@ function handleLandmarksMessage(data) {
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('errorNoConnection'))
+		document.getElementById('show-all-label').setAttribute('hidden', '')
 	}
 }
 
