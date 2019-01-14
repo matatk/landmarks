@@ -1,3 +1,23 @@
+:root {
+	--spacing: 0.25em;
+}
+
+body {
+	padding: calc(var(--spacing) * 2);
+	font-family: sans-serif;
+}
+
+h1 {
+	font-size: 1em;
+	padding: var(--spacing);
+	margin: 0;
+}
+
+p {
+	margin: 0;
+	padding: var(--spacing);
+}
+
 ul {
 	margin: 0;
 	padding: 0;
@@ -12,7 +32,7 @@ li {
 }
 
 button {
-	margin: 0.25em;
+	margin: var(--spacing);
 	height: auto;         /* stops Firefox causing overflows on Windows
 	                         https://github.com/matatk/landmarks/issues/149 */
 	padding-left: 0.5em;  /* These are needed due to the above */
@@ -21,19 +41,8 @@ button {
 	padding-bottom: 0.25em;
 }
 
-body {
-	padding: 0.5em;
-	font-family: sans-serif;
-}
-
-h1 {
-	font-size: 1em;
-	padding: 0.25em;
-	margin: 0;
-}
-
 label {
-	margin-top: 0.5em;
+	margin-top: calc(var(--spacing) * 2);
 }
 
 /* ui */
@@ -43,14 +52,15 @@ label {
 }
 
 #note {
+	margin-bottom: calc(var(--spacing) * 2);
 	background-color: var(--light);
 	border: 1px solid var(--vivid);
 	border-radius: 1em;
 }
 
 #note p {
-	padding-left: 0.5em;
-	padding-right: 0.5em;
+	padding: 0.5em;
+	padding-top: 0.75em;
 }
 
 #note div {

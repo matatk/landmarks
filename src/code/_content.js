@@ -57,7 +57,7 @@ function messageHandler(message, sendingPort) {
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
 			} else {
-				alert(browser.i18n.getMessage('noMainLandmarkFound') + '.')
+				alert(browser.i18n.getMessage('noMainLandmarkFound'))
 			}
 			break
 		}
@@ -107,7 +107,7 @@ function handleOutdatedResults() {
 
 function thereMustBeLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
-		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
+		alert(browser.i18n.getMessage('noLandmarksFound'))
 		return false
 	}
 	return true
