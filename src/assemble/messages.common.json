@@ -30,10 +30,6 @@
     "message": "Toggle the display of all landmarks on the page"
   },
 
-  "noMainLandmarkFound": {
-    "message": "No main landmark found"
-  },
-
 
 
 
@@ -50,7 +46,11 @@
   },
 
   "noLandmarksFound": {
-    "message": "No landmarks found"
+    "message": "No landmarks found."
+  },
+
+  "noMainLandmarkFound": {
+    "message": "No main landmark found."
   },
 
 
