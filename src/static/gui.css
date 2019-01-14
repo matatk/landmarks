@@ -32,6 +32,10 @@ h1 {
 	margin: 0;
 }
 
+label {
+	margin-top: 0.5em;
+}
+
 /* ui */
 :root {
 	--light: #e4fbf0;

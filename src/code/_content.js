@@ -64,14 +64,22 @@ function messageHandler(message, sendingPort) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			handleOutdatedResults()
-			if (elementFocuser.isManagingBorders()) {
-				elementFocuser.manageBorders(false)
-				borderDrawer.addBorderToElements(
-					landmarksFinder.allElementsRolesLabels())
-			} else {
-				borderDrawer.removeAllBorders()
-				elementFocuser.manageBorders(true)
+			if (thereMustBeLandmarks()) {
+				if (elementFocuser.isManagingBorders()) {
+					elementFocuser.manageBorders(false)
+					borderDrawer.addBorderToElements(
+						landmarksFinder.allElementsRolesLabels())
+				} else {
+					borderDrawer.removeAllBorders()
+					elementFocuser.manageBorders(true)
+				}
 			}
+			// eslint-disable-next-line no-fallthrough
+		case 'get-toggle-state':
+			sendingPort.postMessage({
+				name: 'toggle-state',
+				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
+			})
 			break
 		case 'trigger-refresh':
 			// On sites that use single-page style techniques to transition
@@ -97,13 +105,18 @@ function handleOutdatedResults() {
 	}
 }
 
-function checkFocusElement(callbackReturningElementInfo) {
+function thereMustBeLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound') + '.')
-		return
+		return false
 	}
+	return true
+}
 
-	elementFocuser.focusElement(callbackReturningElementInfo())
+function checkFocusElement(callbackReturningElementInfo) {
+	if(thereMustBeLandmarks()) {
+		elementFocuser.focusElement(callbackReturningElementInfo())
+	}
 }
 
 
@@ -193,6 +206,7 @@ function setUpMutationObserver() {
 
 function bootstrap() {
 	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
+
 	port = browser.runtime.connect({ name: 'content' })
 	port.onDisconnect.addListener(function() {
 		// If the port disconnected normally, then on Chrome-like browsers this
@@ -218,7 +232,10 @@ function bootstrap() {
 		}
 	})
 	port.onMessage.addListener(messageHandler)
-	findLandmarksAndUpdateBackgroundScript()  // FIXME try removing
+
+	// At the start, the ElementFocuser is always managing borders
+	port.postMessage({ name: 'toggle-state', data: 'selected' })
+	findLandmarksAndUpdateBackgroundScript()  // TODO try removing
 	setUpMutationObserver()
 }
 
