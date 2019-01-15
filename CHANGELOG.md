@@ -1,3 +1,28 @@
+# Landmarks ChangeLog
+
+## [2.5.0](https://github.com/matatk/landmarks/compare/2.4.3...2.5.0) (2019-01-14)
+
+### Bug fixes
+
+* **build:** Remove spurious .eslintrc.json from build and zip ([#242](https://github.com/matatk/landmarks/issues/242)) ([586bf90](https://github.com/matatk/landmarks/commit/586bf90))
+* **UI:** Message consistency, visual text spacing, visual note spacing ([#247](https://github.com/matatk/landmarks/issues/247)) ([8c308af](https://github.com/matatk/landmarks/commit/8c308af))
+
+### Build system
+
+* Adopt conventional changelog and npm version scripts ([#239](https://github.com/matatk/landmarks/issues/239)) ([f5e0b39](https://github.com/matatk/landmarks/commit/f5e0b39))
+* Make the whole build process synchronous ([#241](https://github.com/matatk/landmarks/issues/241)) ([1c81099](https://github.com/matatk/landmarks/commit/1c81099))
+
+### Documentation
+
+* **Help:** Describe new features; heading case consistency ([#248](https://github.com/matatk/landmarks/issues/248)) ([85c9659](https://github.com/matatk/landmarks/commit/85c9659))
+* **README:** Fix typo; clarity and style improvements ([#240](https://github.com/matatk/landmarks/issues/240)) ([9968507](https://github.com/matatk/landmarks/commit/9968507)), closes [#232](https://github.com/matatk/landmarks/issues/232)
+
+### Features
+
+* Enhanced help documentation, bundled with the extension ([#237](https://github.com/matatk/landmarks/issues/237)) ([a8be495](https://github.com/matatk/landmarks/commit/a8be495))
+* **toggle:** Show all landmarks keyboard shortcut ([#245](https://github.com/matatk/landmarks/issues/245)) ([10691ee](https://github.com/matatk/landmarks/commit/10691ee)), closes [#165](https://github.com/matatk/landmarks/issues/165)
+* **toggle:** Show all landmarks UI ([#246](https://github.com/matatk/landmarks/issues/246)) ([0803ed7](https://github.com/matatk/landmarks/commit/0803ed7)), closes [#120](https://github.com/matatk/landmarks/issues/120)
+
 2.4 series
 ----------
 
