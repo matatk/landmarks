@@ -2,31 +2,30 @@
 	--spacing: 0.25em;
 }
 
+* {
+	box-sizing: border-box;  /* TODO: needed? */
+}
+
 body {
 	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
 	min-width: 12em;       /* for Chrome-like browsers */
 	font-family: sans-serif;
-	background-color: #eee;
 	display: flex;
 	flex-direction: column;
 }
 
 #container {
-	outline: 1px solid purple;
 	padding: calc(var(--spacing) * 2);
-	background-color: #eef;
 	flex-grow: 1;
 }
 
 h1 {
-	outline: 1px solid purple;
 	font-size: 1em;
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 4);
 }
 
 p, #show-all {
-	outline: 1px solid purple;
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 4);
 }
@@ -36,7 +35,6 @@ p, #show-all {
 }
 
 ul {
-	outline: 1px solid purple;
 	margin: 0;
 	padding: 0;
 }
@@ -61,13 +59,11 @@ button {
 }
 
 #bottom {
-	outline: 1px solid purple;
 	display: flex;
 }
 
 #bottom button {
 	font-size: inherit;
-	outline: 1px solid gray;
 	margin: 0;
 	flex-grow: 1;
 	text-align: center;
