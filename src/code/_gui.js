@@ -238,8 +238,8 @@ if (INTERFACE === 'sidebar') {
 				note.appendChild(para)
 				note.appendChild(buttons)
 
-				const container = document.getElementById('container')
-				container.insertBefore(note, container.firstChild)
+				const content = document.getElementById('content')
+				content.insertBefore(note, content.firstChild)
 			}
 		})
 	}
@@ -288,11 +288,24 @@ if (INTERFACE === 'sidebar') {
 // Management
 //
 
+function makeEventHandlers(linkName) {
+	const link = document.getElementById(linkName)
+	const core = () => {
+		port.postMessage({ name: `open-${linkName}` })
+		if (INTERFACE === 'popup') window.close()
+	}
+
+	link.addEventListener('click', core)
+	link.addEventListener('keydown', function(event) {
+		if (event.key === 'Enter') core()
+	})
+}
+
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 function main() {
 	if (INTERFACE === 'devtools') {
-		document.getElementById('bottom').remove()
+		document.getElementById('links').remove()
 
 		port = browser.runtime.connect({ name: INTERFACE })
 		port.postMessage({
@@ -300,18 +313,8 @@ function main() {
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
 	} else {
-		// eslint-disable-next-line no-inner-declarations
-		function makeEventHandler(type) {
-			document.getElementById(type).onclick = function() {
-				port.postMessage({ name: `open-${type}` })
-				if (INTERFACE === 'popup') {
-					window.close()
-				}
-			}
-		}
-
-		makeEventHandler('help')
-		makeEventHandler('settings')
+		makeEventHandlers('help')
+		makeEventHandlers('settings')
 
 		port = browser.runtime.connect({ name: INTERFACE })
 	}

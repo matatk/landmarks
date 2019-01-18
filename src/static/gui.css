@@ -6,13 +6,10 @@ body {
 	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
 	min-width: 12em;       /* for Chrome-like browsers */
 	font-family: sans-serif;
-	display: flex;
-	flex-direction: column;
 }
 
-#container {
+#content {
 	padding: calc(var(--spacing) * 2);
-	flex-grow: 1;
 }
 
 h1 {
@@ -55,13 +52,24 @@ button {
 	padding-bottom: 0.25em;
 }
 
-#bottom {
+#links {
 	display: flex;
 }
 
-#bottom button {
-	font-size: inherit;
+#links a {
+	display: block;
 	margin: 0;
+	background-color: #eee;
+	border: 1px solid gray;
 	flex-grow: 1;
 	text-align: center;
+
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
+}
+
+#links a:focus, #links a:hover {
+	border: 2px solid blue;
 }
