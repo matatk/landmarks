@@ -100,6 +100,7 @@ function contentListener(message, sendingPort) {
 }
 
 // TODO DRY with devToolsListener
+// TODO DRY with splashListener
 function popupAndSidebarListener(message) {  // also gets: sendingPort
 	switch (message.name) {
 		case 'get-landmarks':
@@ -111,12 +112,21 @@ function popupAndSidebarListener(message) {  // also gets: sendingPort
 		case 'toggle-all-landmarks':
 			sendToActiveContentScriptIfExists(message)
 			break
+		case 'open-help':
+			browser.tabs.update({
+				url: browser.runtime.getURL('help.html')
+			})
+			break
+		case 'open-settings':
+			browser.runtime.openOptionsPage()
+			break
 		default:
 			throw Error(`Unknown message ${JSON.stringify(message)} from popup or sidebar`)
 	}
 }
 
 // TODO DRY with popupAndSideBarListener
+// TODO DRY with splashListener
 function devtoolsListenerMaker(connectingPort) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
@@ -139,23 +149,33 @@ function devtoolsListenerMaker(connectingPort) {
 			case 'toggle-all-landmarks':
 				sendToActiveContentScriptIfExists(message)
 				break
+			case 'open-help':
+				browser.tabs.update({
+					url: browser.runtime.getURL('help.html')
+				})
+				break
+			case 'open-settings':
+				browser.runtime.openOptionsPage()
+				break
 			default:
 				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
 		}
 	}
 }
 
+// TODO DRY with popupAndSideBarListener
+// TODO DRY with devToolsListener
 function splashListener(message, sendingPort) {
 	switch (message.name) {
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
 				sendingPort.postMessage({
-					name: 'splash-populate-commands',
+					name: 'populate-commands',
 					commands: commands
 				})
 			})
 			break
-		case 'splash-open-configure-shortcuts':
+		case 'open-configure-shortcuts':
 			browser.tabs.update({
 				// This should only appear on Chrome/Opera
 				url: BROWSER === 'chrome'
@@ -163,12 +183,12 @@ function splashListener(message, sendingPort) {
 					: 'opera://settings/keyboardShortcuts'
 			})
 			break
-		case 'splash-open-help':
+		case 'open-help':
 			browser.tabs.update({
 				url: browser.runtime.getURL('help.html')
 			})
 			break
-		case 'splash-open-settings':
+		case 'open-settings':
 			browser.runtime.openOptionsPage()
 			break
 		default:

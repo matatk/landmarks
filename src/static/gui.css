@@ -3,19 +3,29 @@
 }
 
 body {
-	padding: calc(var(--spacing) * 2);
+	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
+	min-width: 12em;       /* for Chrome-like browsers */
 	font-family: sans-serif;
+}
+
+#content {
+	padding: calc(var(--spacing) * 2);
 }
 
 h1 {
 	font-size: 1em;
-	padding: var(--spacing);
 	margin: 0;
+	margin-bottom: calc(var(--spacing) * 4);
 }
 
-p {
+p, #show-all-label {
 	margin: 0;
-	padding: var(--spacing);
+	margin-bottom: calc(var(--spacing) * 2);
+}
+
+#show-all-label {
+	display: block;
+	margin-top: calc(var(--spacing) * 2);
 }
 
 ul {
@@ -32,47 +42,34 @@ li {
 }
 
 button {
-	margin: var(--spacing);
+	margin: 0;
+	margin-bottom: var(--spacing);
 	height: auto;         /* stops Firefox causing overflows on Windows
-	                         https://github.com/matatk/landmarks/issues/149 */
+	https://github.com/matatk/landmarks/issues/149 */
 	padding-left: 0.5em;  /* These are needed due to the above */
 	padding-right: 0.5em;
 	padding-top: 0.25em;
 	padding-bottom: 0.25em;
 }
 
-label {
-	margin-top: calc(var(--spacing) * 2);
-}
-
-/* ui */
-:root {
-	--light: #e4fbf0;
-	--vivid: #159957;
-}
-
-#note {
-	margin-bottom: calc(var(--spacing) * 2);
-	background-color: var(--light);
-	border: 1px solid var(--vivid);
-	border-radius: 1em;
-}
-
-#note p {
-	padding: 0.5em;
-	padding-top: 0.75em;
-}
-
-#note div {
+#links {
 	display: flex;
-	flex-direction: column;
 }
 
-#note button {
+#links a {
+	display: block;
+	margin: 0;
+	background-color: #eee;
+	border: 1px solid gray;
 	flex-grow: 1;
-	border-color: var(--vivid);
-	background-color: var(--light);
-	border-radius: 1em;
 	text-align: center;
+
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
 }
-/* /ui */
+
+#links a:focus, #links a:hover {
+	border: 1px solid blue;
+}

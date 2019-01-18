@@ -1,0 +1,42 @@
+:root {
+	--light: #e4fbf0;
+	--vivid: #159957;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+#content {
+	flex-grow: 1;
+}
+
+#note {
+	margin-bottom: calc(var(--spacing) * 4);
+	background-color: var(--light);
+	border: 1px solid var(--vivid);
+	border-radius: 1em;
+}
+
+#note p {
+	margin: calc(var(--spacing) * 3);
+}
+
+#note div {
+	margin: calc(var(--spacing) * 3);
+	display: flex;
+	flex-direction: column;
+}
+
+#note button {
+	border-color: var(--vivid);
+	background-color: var(--light);
+	border-radius: 1em;
+	text-align: center;
+}

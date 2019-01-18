@@ -21,14 +21,14 @@ const keyboardShortcutsLink = {
 	listen: [{
 		event: 'click',
 		handler: () => port.postMessage({
-			name: 'splash-open-configure-shortcuts'
+			name: 'open-configure-shortcuts'
 		})
 	}, {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
 				port.postMessage({
-					name: 'splash-open-configure-shortcuts'
+					name: 'open-configure-shortcuts'
 				})
 			}
 		}
@@ -44,7 +44,7 @@ const settingsLink = {
 		event: 'click',
 		handler: () => {
 			port.postMessage({
-				name: 'splash-open-settings'
+				name: 'open-settings'
 			})
 		}
 	}, {
@@ -52,7 +52,7 @@ const settingsLink = {
 		handler: (event) => {
 			if (event.key === 'Enter') {
 				port.postMessage({
-					name: 'splash-open-configure-shortcuts'
+					name: 'open-configure-shortcuts'
 				})
 			}
 		}
@@ -160,7 +160,7 @@ function firefoxShortcutElements(shortcut) {
 }
 
 function messageHandler(message) {  // also sendingPort
-	if (message.name !== 'splash-populate-commands') return
+	if (message.name !== 'populate-commands') return
 
 	// Chrome allows only four keyboard shortcuts to be specified in the
 	// manifest; Firefox allows many.

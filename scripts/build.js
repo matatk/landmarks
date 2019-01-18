@@ -244,22 +244,23 @@ async function flattenCode(browser) {
 }
 
 
+function removeUIstuff(htmlFile) {
+	doReplace(
+		htmlFile,
+		/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
+		'',
+		'Removed UI stuff')
+}
+
+
 function copyStaticFiles(browser) {
 	logStep('Copying static files')
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
 
 	if (browser === 'chrome' || browser === 'edge') {
-		doReplace(
-			path.join(pathToBuild(browser), '*.html'),
-			/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
-			'',
-			'Removed UI options')
-		doReplace(
-			path.join(pathToBuild(browser), '*.css'),
-			/\/\* ui \*\/[\s\S]*?\/\* \/ui \*\/\s*/g,
-			'',
-			'Removed UI styles')
+		removeUIstuff(path.join(pathToBuild(browser), 'options.html'))
+		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
 }
 
@@ -267,26 +268,30 @@ function copyStaticFiles(browser) {
 function copyGuiFiles(browser) {
 	logStep('Copying root GUI HTML to create the popup and other bits')
 
-	function copyOneGuiFile(destination) {
-		fs.copyFileSync(
-			path.join(srcAssembleDir, 'gui.html'),
-			path.join(pathToBuild(browser), `${destination}.html`))
+	function copyOneGuiFile(destination, doRemoveUIstuff) {
+		const destHtml = path.join(pathToBuild(browser), `${destination}.html`)
+
+		fs.copyFileSync(path.join(srcAssembleDir, 'gui.html'), destHtml)
 
 		doReplace(
-			path.join(pathToBuild(browser), `${destination}.html`),
+			destHtml,
 			'GUIJS',
 			`${destination}.js`,
 			`Included ${destination} code`)
+
+		if (doRemoveUIstuff) {
+			removeUIstuff(destHtml)
+		}
 	}
 
-	copyOneGuiFile('popup')
+	copyOneGuiFile('popup', true)
 
 	if (browser === 'firefox' || browser === 'opera') {
-		copyOneGuiFile('sidebarPanel')
+		copyOneGuiFile('sidebarPanel', false)
 	}
 
 	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
-		copyOneGuiFile('devtoolsPanel')
+		copyOneGuiFile('devtoolsPanel', true)
 	}
 }
 

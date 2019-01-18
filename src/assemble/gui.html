@@ -4,14 +4,22 @@
 		<meta charset="UTF-8">
 		<title></title>
 		<link rel="stylesheet" href="gui.css">
+		<!-- ui -->
+		<link rel="stylesheet" href="sidebar.css">
+		<!-- /ui -->
 	</head>
 	<body>
-		<h1 id="heading"></h1>
-		<div id="landmarks"></div>
-		<label id="show-all-label">
-			<input type="checkbox" id="show-all">
-		</label>
-
+		<div id="content">
+			<h1 data-message="popupHeading"></h1>
+			<div id="landmarks"></div>
+			<label id="show-all-label" data-message="popupShowAllLandmarks">
+				<input type="checkbox" id="show-all">
+			</label>
+		</div>
+		<div id="links">
+			<a tabindex="0" id="help" data-message="popupHelpButton"></a>
+			<a tabindex="0" id="settings" data-message="popupPreferencesButton"></a>
+		</div>
 		<script src="GUIJS"></script>
 	</body>
 </html>

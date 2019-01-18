@@ -1,4 +1,5 @@
 import './compatibility'
+import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
@@ -20,20 +21,21 @@ let port = null
 // an error, let the user know.
 function handleLandmarksMessage(data) {
 	const display = document.getElementById('landmarks')
+	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
 
 	// Content script would normally send back an array of landmarks
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
-			document.getElementById('show-all-label').setAttribute('hidden', '')
+			showAllContainer.style.display = 'none'
 		} else {
 			makeLandmarksTree(data, display)
-			document.getElementById('show-all-label').removeAttribute('hidden')
+			showAllContainer.style.display = null
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('errorNoConnection'))
-		document.getElementById('show-all-label').setAttribute('hidden', '')
+		showAllContainer.style.display = 'none'
 	}
 }
 
@@ -236,7 +238,8 @@ if (INTERFACE === 'sidebar') {
 				note.appendChild(para)
 				note.appendChild(buttons)
 
-				document.body.insertBefore(note, document.body.firstChild)
+				const content = document.getElementById('content')
+				content.insertBefore(note, content.firstChild)
 			}
 		})
 	}
@@ -285,24 +288,38 @@ if (INTERFACE === 'sidebar') {
 // Management
 //
 
+function makeEventHandlers(linkName) {
+	const link = document.getElementById(linkName)
+	const core = () => {
+		port.postMessage({ name: `open-${linkName}` })
+		if (INTERFACE === 'popup') window.close()
+	}
+
+	link.addEventListener('click', core)
+	link.addEventListener('keydown', function(event) {
+		if (event.key === 'Enter') core()
+	})
+}
+
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 function main() {
-	document.getElementById('heading').innerText =
-		browser.i18n.getMessage('popupHeading')
-
-	document.getElementById('show-all-label').appendChild(document
-		.createTextNode(browser.i18n.getMessage('popupShowAllLandmarks')))
-
 	if (INTERFACE === 'devtools') {
+		document.getElementById('links').remove()
+
 		port = browser.runtime.connect({ name: INTERFACE })
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
 	} else {
+		makeEventHandlers('help')
+		makeEventHandlers('settings')
+
 		port = browser.runtime.connect({ name: INTERFACE })
 	}
+
+	translate()
 
 	port.onDisconnect.addListener(function() {
 		disconnectingPortErrorCheck()

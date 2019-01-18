@@ -1,4 +1,5 @@
 import './compatibility'
+import translate from './translate'
 import { defaultSettings, dismissalStates } from './defaults'
 
 const options = [{
@@ -18,18 +19,6 @@ const options = [{
 	element: document.getElementById('debug-info'),
 	property: 'checked'
 }]
-
-// Translation
-// http://tumble.jeremyhubert.com/post/7076881720
-// HT http://stackoverflow.com/questions/25467009/
-function translateStuff() {
-	const objects = document.getElementsByTagName('*')
-	for(const object of objects) {
-		if (object.dataset && object.dataset.message) {
-			object.innerText = browser.i18n.getMessage(object.dataset.message)
-		}
-	}
-}
 
 function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
@@ -139,7 +128,7 @@ function main() {
 		})
 	}
 
-	translateStuff()
+	translate()
 	restoreOptions()
 	setUpOptionHandlers()
 }
