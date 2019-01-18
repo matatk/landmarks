@@ -291,17 +291,32 @@ if (INTERFACE === 'sidebar') {
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 function main() {
-	translate()
-
 	if (INTERFACE === 'devtools') {
+		document.getElementById('bottom').remove()
+
 		port = browser.runtime.connect({ name: INTERFACE })
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
 	} else {
+		// eslint-disable-next-line no-inner-declarations
+		function makeEventHandler(type) {
+			document.getElementById(type).onclick = function() {
+				port.postMessage({ name: `open-${type}` })
+				if (INTERFACE === 'popup') {
+					window.close()
+				}
+			}
+		}
+
+		makeEventHandler('help')
+		makeEventHandler('settings')
+
 		port = browser.runtime.connect({ name: INTERFACE })
 	}
+
+	translate()
 
 	port.onDisconnect.addListener(function() {
 		disconnectingPortErrorCheck()
@@ -341,20 +356,6 @@ function main() {
 	port.postMessage({ name: 'get-toggle-state' })
 
 	document.getElementById('show-all').addEventListener('change', flipToggle)
-
-	document.getElementById('help').onclick = function() {
-		port.postMessage({ name: 'open-help' })
-		if (INTERFACE === 'popup') {
-			window.close()
-		}
-	}
-
-	document.getElementById('settings').onclick = function() {
-		port.postMessage({ name: 'open-settings' })
-		if (INTERFACE === 'popup') {
-			window.close()
-		}
-	}
 }
 
 main()
