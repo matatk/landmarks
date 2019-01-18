@@ -149,14 +149,14 @@ function devtoolsListenerMaker(connectingPort) {
 			case 'toggle-all-landmarks':
 				sendToActiveContentScriptIfExists(message)
 				break
-		case 'open-help':
-			browser.tabs.update({
-				url: browser.runtime.getURL('help.html')
-			})
-			break
-		case 'open-settings':
-			browser.runtime.openOptionsPage()
-			break
+			case 'open-help':
+				browser.tabs.update({
+					url: browser.runtime.getURL('help.html')
+				})
+				break
+			case 'open-settings':
+				browser.runtime.openOptionsPage()
+				break
 			default:
 				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
 		}
