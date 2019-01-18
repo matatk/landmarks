@@ -2,10 +2,6 @@
 	--spacing: 0.25em;
 }
 
-* {
-	box-sizing: border-box;  /* TODO: needed? */
-}
-
 body {
 	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
 	min-width: 12em;       /* for Chrome-like browsers */
@@ -25,12 +21,13 @@ h1 {
 	margin-bottom: calc(var(--spacing) * 4);
 }
 
-p, #show-all-container {
+p, #show-all-label {
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 2);
 }
 
-#show-all-container {
+#show-all-label {
+	display: block;
 	margin-top: calc(var(--spacing) * 2);
 }
 

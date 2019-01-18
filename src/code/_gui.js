@@ -20,21 +20,21 @@ let port = null
 // an error, let the user know.
 function handleLandmarksMessage(data) {
 	const display = document.getElementById('landmarks')
-	const showAllContainer = document.getElementById('show-all-container')
+	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
 
 	// Content script would normally send back an array of landmarks
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
-			showAllContainer.setAttribute('hidden', '')
+			showAllContainer.style.display = 'none'
 		} else {
 			makeLandmarksTree(data, display)
-			showAllContainer.removeAttribute('hidden')
+			showAllContainer.style.display = null
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('errorNoConnection'))
-		showAllContainer.setAttribute('hidden', '')
+		showAllContainer.style.display = 'none'
 	}
 }
 
