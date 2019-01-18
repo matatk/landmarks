@@ -3,22 +3,40 @@
 }
 
 body {
-	padding: calc(var(--spacing) * 2);
+	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
+	min-width: 12em;       /* for Chrome-like browsers */
 	font-family: sans-serif;
+	background-color: #eee;
+	display: flex;
+	flex-direction: column;
+}
+
+#container {
+	outline: 1px solid purple;
+	padding: calc(var(--spacing) * 2);
+	background-color: #eef;
+	flex-grow: 1;
 }
 
 h1 {
+	outline: 1px solid purple;
 	font-size: 1em;
-	padding: var(--spacing);
 	margin: 0;
+	margin-bottom: calc(var(--spacing) * 4);
 }
 
-p {
+p, #show-all {
+	outline: 1px solid purple;
 	margin: 0;
-	padding: var(--spacing);
+	margin-bottom: calc(var(--spacing) * 4);
+}
+
+#show-all {
+	margin-top: calc(var(--spacing) * 4);
 }
 
 ul {
+	outline: 1px solid purple;
 	margin: 0;
 	padding: 0;
 }
@@ -32,47 +50,25 @@ li {
 }
 
 button {
-	margin: var(--spacing);
+	margin: 0;
+	margin-bottom: var(--spacing);
 	height: auto;         /* stops Firefox causing overflows on Windows
-	                         https://github.com/matatk/landmarks/issues/149 */
+	https://github.com/matatk/landmarks/issues/149 */
 	padding-left: 0.5em;  /* These are needed due to the above */
 	padding-right: 0.5em;
 	padding-top: 0.25em;
 	padding-bottom: 0.25em;
 }
 
-label {
-	margin-top: calc(var(--spacing) * 2);
-}
-
-/* ui */
-:root {
-	--light: #e4fbf0;
-	--vivid: #159957;
-}
-
-#note {
-	margin-bottom: calc(var(--spacing) * 2);
-	background-color: var(--light);
-	border: 1px solid var(--vivid);
-	border-radius: 1em;
-}
-
-#note p {
-	padding: 0.5em;
-	padding-top: 0.75em;
-}
-
-#note div {
+#bottom {
+	outline: 1px solid purple;
 	display: flex;
-	flex-direction: column;
 }
 
-#note button {
+#bottom button {
+	font-size: inherit;
+	outline: 1px solid gray;
+	margin: 0;
 	flex-grow: 1;
-	border-color: var(--vivid);
-	background-color: var(--light);
-	border-radius: 1em;
 	text-align: center;
 }
-/* /ui */

@@ -26,14 +26,14 @@ function handleLandmarksMessage(data) {
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
-			document.getElementById('show-all-label').setAttribute('hidden', '')
+			document.getElementById('show-all').setAttribute('hidden', '')
 		} else {
 			makeLandmarksTree(data, display)
-			document.getElementById('show-all-label').removeAttribute('hidden')
+			document.getElementById('show-all').removeAttribute('hidden')
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('errorNoConnection'))
-		document.getElementById('show-all-label').setAttribute('hidden', '')
+		document.getElementById('show-all').setAttribute('hidden', '')
 	}
 }
 
@@ -236,7 +236,8 @@ if (INTERFACE === 'sidebar') {
 				note.appendChild(para)
 				note.appendChild(buttons)
 
-				document.body.insertBefore(note, document.body.firstChild)
+				const container = document.getElementById('container')
+				container.insertBefore(note, container.firstChild)
 			}
 		})
 	}
