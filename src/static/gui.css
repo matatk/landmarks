@@ -25,12 +25,12 @@ h1 {
 	margin-bottom: calc(var(--spacing) * 4);
 }
 
-p, #show-all {
+p, #show-all-container {
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 2);
 }
 
-#show-all {
+#show-all-container {
 	margin-top: calc(var(--spacing) * 2);
 }
 
