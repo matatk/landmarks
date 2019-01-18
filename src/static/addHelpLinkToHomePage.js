@@ -13,7 +13,7 @@ link.href = '#'
 link.onclick = function() {
 	const port = browser.runtime.connect({ name: 'splash' })
 	port.postMessage({
-		name: 'splash-open-help'
+		name: 'open-help'
 	})
 	port.disconnect()
 }

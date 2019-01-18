@@ -344,6 +344,20 @@ function main() {
 	port.postMessage({ name: 'get-toggle-state' })
 
 	document.getElementById('show-all').addEventListener('change', flipToggle)
+
+	document.getElementById('help').onclick = function() {
+		port.postMessage({ name: 'open-help' })
+		if (INTERFACE === 'popup') {
+			window.close()
+		}
+	}
+
+	document.getElementById('settings').onclick = function() {
+		port.postMessage({ name: 'open-settings' })
+		if (INTERFACE === 'popup') {
+			window.close()
+		}
+	}
 }
 
 main()
