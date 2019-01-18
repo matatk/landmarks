@@ -71,5 +71,5 @@ button {
 }
 
 #links a:focus, #links a:hover {
-	border: 2px solid blue;
+	border: 1px solid blue;
 }
