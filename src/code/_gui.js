@@ -1,4 +1,5 @@
 import './compatibility'
+import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
@@ -290,11 +291,7 @@ if (INTERFACE === 'sidebar') {
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 function main() {
-	document.getElementById('heading').innerText =
-		browser.i18n.getMessage('popupHeading')
-
-	document.getElementById('show-all-label').appendChild(document
-		.createTextNode(browser.i18n.getMessage('popupShowAllLandmarks')))
+	translate()
 
 	if (INTERFACE === 'devtools') {
 		port = browser.runtime.connect({ name: INTERFACE })

@@ -53,18 +53,19 @@
     "message": "No main landmark found."
   },
 
+  "popupHelpButton": {
+    "message": "Help"
+  },
 
-
-
-  "inspectButtonName": {
-    "message": "Inspect"
+  "popupPreferencesButton": {
+    "message": "Preferences"
   },
 
 
 
 
   "prefsTitle": {
-    "message": "Landmarks Options"
+    "message": "Landmarks preferences"
   },
 
   "prefsBorderType": {
@@ -216,6 +217,10 @@
 
 
 
+
+  "inspectButtonName": {
+    "message": "Inspect"
+  },
 
   "devToolsConnectionError": {
     "message": "This DevTools frame has become disconnected, probably due to reloading the extension. You'll need to reload this frame for it to recieve landmark updates again."
