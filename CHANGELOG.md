@@ -1,5 +1,21 @@
 # Landmarks ChangeLog
 
+## [2.5.1](https://github.com/matatk/landmarks/compare/2.5.0...2.5.1) (2019-01-19)
+
+### Bug fixes
+
+* **UI:** Add help and preferences links to GUIs ([#253](https://github.com/matatk/landmarks/issues/253)) ([da628f9](https://github.com/matatk/landmarks/commit/da628f9)), closes [#250](https://github.com/matatk/landmarks/issues/250)
+* **UI:** Clarify and clean up styles ([#254](https://github.com/matatk/landmarks/issues/254)) ([61109fa](https://github.com/matatk/landmarks/commit/61109fa))
+* Change "show all landmarks" key to avoid Firefox clash ([#256](https://github.com/matatk/landmarks/issues/256)) ([8d73dbd](https://github.com/matatk/landmarks/commit/8d73dbd)), closes [#251](https://github.com/matatk/landmarks/issues/251)
+
+### Build system
+
+* Mozilla Add-ons build information script ([#255](https://github.com/matatk/landmarks/issues/255)) ([34501b7](https://github.com/matatk/landmarks/commit/34501b7)), closes [#252](https://github.com/matatk/landmarks/issues/252)
+
+### Documentation
+
+* **Help:** Update with changes for version 2.5.1 ([#257](https://github.com/matatk/landmarks/issues/257)) ([300109a](https://github.com/matatk/landmarks/commit/300109a))
+
 ## [2.5.0](https://github.com/matatk/landmarks/compare/2.4.3...2.5.0) (2019-01-14)
 
 ### Bug fixes
