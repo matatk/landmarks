@@ -1,0 +1,21 @@
+Changes in this release: https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#CHANGELOG_ANCHOR
+
+Thanks for your review :-).
+
+Landmarks uses a build process. There's no obfuscation or minification, but Rollup is used to turn ES6 modules into combined script files, and a tool is used to convert an SVG logo into several PNG files. Build information follows.
+
+The attached source is from the VERSION_NUMBER tag: <https://github.com/matatk/landmarks/releases/tag/VERSION_NUMBER>
+
+Required software for the build:
+
+* git - needed to fetch my "one-svg-to-many-sized-pngs" node package from GitHub.
+* Node and npm.
+
+To build for Firefox specifically:
+
+1. npm install
+2. npm run build:firefox
+
+You'll find the extension in the build/firefox/ directory.
+
+Please note: the build process has only been extensively tested on macOS. It runs on Windows and should be fine there and on Linux, but if you have any problems and are able to check on macOS, please do.
