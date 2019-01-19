@@ -63,6 +63,11 @@ path { fill: var(--warn); }
 	display: inline-block;
 }
 
+a.configAction, a.errorAction {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 .configAction {
 	border: 1px solid var(--words);
 	color: var(--words);

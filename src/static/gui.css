@@ -53,23 +53,30 @@ button {
 }
 
 #links {
+	border-top: 1px solid gray;
 	display: flex;
 }
 
 #links a {
+	box-sizing: border-box;
 	display: block;
+	height: calc(10 * var(--spacing));
+	line-height: calc((10 * var(--spacing)) + var(--spacing));
+	overflow: hidden;
+	padding: 0;
 	margin: 0;
-	background-color: #eee;
-	border: 1px solid gray;
 	flex-grow: 1;
 	text-align: center;
-
-	padding-left: 0.5em;
-	padding-right: 0.5em;
-	padding-top: 0.25em;
-	padding-bottom: 0.25em;
 }
 
+#links a:first-child { border-color: #155799; }
+#links a:first-child:hover { color: #155799; }
+
+#links a:last-child { border-color: #159957; }
+#links a:last-child:hover { color: #159957; }
+
 #links a:focus, #links a:hover {
-	border: 1px solid blue;
+	cursor: pointer;
+	border-bottom-style: solid;
+	border-bottom-width: var(--spacing);
 }
