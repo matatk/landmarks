@@ -70,10 +70,10 @@ button {
 }
 
 #links a:first-child { border-color: #155799; }
-#links a:first-child:hover { color: #155799; }
+#links a:first-child:focus, #links a:first-child:hover { color: #155799; }
 
 #links a:last-child { border-color: #159957; }
-#links a:last-child:hover { color: #159957; }
+#links a:last-child:focus, #links a:last-child:hover { color: #159957; }
 
 #links a:focus, #links a:hover {
 	cursor: pointer;

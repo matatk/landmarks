@@ -254,6 +254,7 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	// Have to do this in a really hacky way at the moment due to
 	// https://bugzilla.mozilla.org/show_bug.cgi?id=1438465
 	// https://bugzilla.mozilla.org/show_bug.cgi?id=1398833
+	// TODO: Check for when these may be fixed upstream.
 	//
 	// Also Opera doesn't have open().
 
