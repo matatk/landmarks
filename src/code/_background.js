@@ -382,7 +382,8 @@ function checkBrowserActionState(tabId, url) {
 //
 // TODO: In some circumstances (most GitHub transitions, this fires two times on
 //       Firefox and three times on Chrome. For YouTube, some transitions only
-//       cause this to fire once. Need to investigate this more...
+//       cause this to fire once. Could it be to do with
+//       <https://developer.chrome.com/extensions/background_pages#filters>?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (contentConnections.hasOwnProperty(activeTabId)) {  // could be special page
