@@ -306,14 +306,14 @@ function mergeMessages(browser) {
 
 	if (browser === 'firefox' || browser === 'opera') {
 		const ui = path.join(srcAssembleDir, 'messages.interface.json')
-		const commonJson = require('../' + common)  // TODO check Windows
-		const uiJson = require('../' + ui)          // TODO check Windows
+		const commonJson = require(path.join('..', common))
+		const uiJson = require(path.join('..', ui))
 		const merged = merge(commonJson, uiJson)
 		fs.writeFileSync(destinationFile, JSON.stringify(merged, null, 2))
 	} else {
 		// Instead of just copying the common file, write it in the same way as
 		// the merged one, so that diffs between builds are minimal.
-		const commonJson = require('../' + common)
+		const commonJson = require(path.join('..', common))
 		fs.writeFileSync(destinationFile, JSON.stringify(commonJson, null, 2))
 	}
 
