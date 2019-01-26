@@ -1,5 +1,20 @@
 # Landmarks ChangeLog
 
+## [2.5.2](https://github.com/matatk/landmarks/compare/2.5.1...2.5.2) (2019-01-26)
+
+### Bug fixes
+
+* **UI:** Add missing focus styles to GUI links ([#260](https://github.com/matatk/landmarks/issues/260)) ([93e19e8](https://github.com/matatk/landmarks/commit/93e19e8))
+* **UI:** Make pop-up/sidebar links into buttons that open new tabs ([#263](https://github.com/matatk/landmarks/issues/263)) ([071e944](https://github.com/matatk/landmarks/commit/071e944)), closes [#262](https://github.com/matatk/landmarks/issues/262)
+
+### Build system
+
+* Use path.join() more ([#264](https://github.com/matatk/landmarks/issues/264)) ([00b8708](https://github.com/matatk/landmarks/commit/00b8708))
+
+### Documentation
+
+* **Help:** Update with changes for version 2.5.2 ([#266](https://github.com/matatk/landmarks/issues/266)) ([7c5c2e4](https://github.com/matatk/landmarks/commit/7c5c2e4))
+
 ## [2.5.1](https://github.com/matatk/landmarks/compare/2.5.0...2.5.1) (2019-01-19)
 
 ### Bug fixes
