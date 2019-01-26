@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "scripts": {
     "pre_build": "npm test",
