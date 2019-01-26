@@ -53,30 +53,16 @@ button {
 }
 
 #links {
-	border-top: 1px solid gray;
 	display: flex;
+	margin-left: var(--spacing);
+	margin-right: 0;
 }
 
-#links a {
+#links button {
 	box-sizing: border-box;
 	display: block;
-	height: calc(10 * var(--spacing));
-	line-height: calc((10 * var(--spacing)) + var(--spacing));
-	overflow: hidden;
-	padding: 0;
-	margin: 0;
 	flex-grow: 1;
 	text-align: center;
-}
-
-#links a:first-child { border-color: #155799; }
-#links a:first-child:focus, #links a:first-child:hover { color: #155799; }
-
-#links a:last-child { border-color: #159957; }
-#links a:last-child:focus, #links a:last-child:hover { color: #159957; }
-
-#links a:focus, #links a:hover {
-	cursor: pointer;
-	border-bottom-style: solid;
-	border-bottom-width: var(--spacing);
+	margin-left: 0;
+	margin-right: var(--spacing);
 }

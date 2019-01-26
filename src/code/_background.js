@@ -113,8 +113,9 @@ function popupAndSidebarListener(message) {  // also gets: sendingPort
 			sendToActiveContentScriptIfExists(message)
 			break
 		case 'open-help':
-			browser.tabs.update({
-				url: browser.runtime.getURL('help.html')
+			browser.tabs.create({  // Note: not the same as splash behaviour
+				url: browser.runtime.getURL('help.html'),
+				openerTabId: activeTabId
 			})
 			break
 		case 'open-settings':
@@ -148,14 +149,6 @@ function devtoolsListenerMaker(connectingPort) {
 			case 'get-toggle-state':
 			case 'toggle-all-landmarks':
 				sendToActiveContentScriptIfExists(message)
-				break
-			case 'open-help':
-				browser.tabs.update({
-					url: browser.runtime.getURL('help.html')
-				})
-				break
-			case 'open-settings':
-				browser.runtime.openOptionsPage()
 				break
 			default:
 				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
