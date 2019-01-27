@@ -40,16 +40,14 @@ const settingsLink = {
 	listen: [{
 		event: 'click',
 		handler: () => {
-			browser.runtime.sendMessage({
-				name: 'open-settings'
-			})
+			browser.runtime.sendMessage({ name: 'open-settings' })
 		}
 	}, {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
 				browser.runtime.sendMessage({
-					name: 'open-configure-shortcuts'
+					name: 'open-configure-shortcuts'  // FIXME
 				})
 			}
 		}
@@ -156,7 +154,7 @@ function firefoxShortcutElements(shortcut) {
 	return shortcutElements
 }
 
-function messageHandler(message) {  // also sendingPort
+function messageHandler(message) {  // also sender, sendResponse
 	if (message.name !== 'populate-commands') return
 
 	// Chrome allows only four keyboard shortcuts to be specified in the

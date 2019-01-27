@@ -4,7 +4,7 @@ import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import sendToActiveTab from './sendToActiveTab'
-import senderId from './senderId'
+import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
 
 let port = null  // DevTools-only - TODO does this get tree-shaken?
 
@@ -308,16 +308,24 @@ function makeEventHandlers(linkName) {
 function messageHandler(message, sender) {
 	switch (message.name) {
 		case 'landmarks':
-			handleLandmarksMessage(message.data)
+			if (INTERFACE !== 'devtools') {
+				browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+					if (sender.tab.id === tabs[0].id) {
+						handleLandmarksMessage(message.data)
+					}
+				})
+			} else {
+				handleLandmarksMessage(message.data)
+			}
 			break
 		case 'toggle-state':
 			handleToggleStateMessage(message.data)
 			break
-		// Messages we don't handle here
+			// Messages we don't handle here
 		case 'toggle-all-landmarks':
 			break
 		default:
-			throw Error(`Unexpected message ${JSON.stringify(message)} from ${senderId(sender)}`)
+			throw unexpectedMessageFromSenderError(message, sender)
 	}
 }
 

@@ -5,7 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 import sendToActiveTab from './sendToActiveTab'
-import senderId from './senderId'
+import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
 
 const logger = new Logger(window)
 const devtoolsConnections = {}
@@ -15,11 +15,6 @@ const devtoolsConnections = {}
 // Message routing - TODO re-organise sections
 //
 
-// FIXME needs work!
-function sendNullLandmarksToActiveTabGUIs() {
-	sendToActiveTab({ name: 'landmarks', data: null })
-}
-
 function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 	browser.browserAction.setBadgeText({
 		text: numberOfLandmarks <= 0 ? '' : String(numberOfLandmarks),
@@ -28,52 +23,54 @@ function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 }
 
 
-//
-// Setting up and handling DevTools connections
-//
+if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+	//
+	// Setting up and handling DevTools connections
+	//
 
-function devtoolsDisconnect(tabId) {
-	logger.log(`DevTools page for tab ${tabId} disconnected`)
-	delete devtoolsConnections[tabId]
-}
+	// eslint-disable-next-line no-inner-declarations
+	function devtoolsDisconnect(tabId) {
+		logger.log(`DevTools page for tab ${tabId} disconnected`)
+		delete devtoolsConnections[tabId]
+	}
 
-function devtoolsListenerMaker(connectingPort) {
-	// DevTools connections come from the DevTools panel, but the panel is
-	// inspecting a particular web page, which has a different tab ID.
-	return function(message) {
-		switch (message.name) {
-			case 'init':
-				logger.log(`DevTools page for tab ${message.tabId} connected`)
-				devtoolsConnections[message.tabId] = connectingPort
-				connectingPort.onDisconnect.addListener(disconnectingPort => {
-					disconnectingPortErrorCheck(disconnectingPort)
-					devtoolsDisconnect(message.tabId)
-				})
-				break
-			case 'get-landmarks':
-			case 'focus-landmark':
-			case 'get-toggle-state':
-			case 'toggle-all-landmarks':
-				sendToActiveTab(message)
-				break
-			default:
-				throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
+	// eslint-disable-next-line no-inner-declarations
+	function devtoolsListenerMaker(connectingPort) {
+		// DevTools connections come from the DevTools panel, but the panel is
+		// inspecting a particular web page, which has a different tab ID.
+		return function(message) {
+			switch (message.name) {
+				case 'init':
+					logger.log(`DevTools page for tab ${message.tabId} connected`)
+					devtoolsConnections[message.tabId] = connectingPort
+					connectingPort.onDisconnect.addListener(function(disconnectingPort) {
+						disconnectingPortErrorCheck(disconnectingPort)  // TODO needed?
+						devtoolsDisconnect(message.tabId)
+					})
+					break
+				case 'get-landmarks':
+				case 'focus-landmark':
+				case 'get-toggle-state':
+				case 'toggle-all-landmarks':
+					sendToActiveTab(message)
+					break
+				default:
+					throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
+			}
 		}
 	}
-}
 
-browser.runtime.onConnect.addListener(function(connectingPort) {
-	switch (connectingPort.name) {
-		case 'devtools':
-			if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
+	browser.runtime.onConnect.addListener(function(connectingPort) {
+		switch (connectingPort.name) {
+			case 'devtools':
 				connectingPort.onMessage.addListener(
 					devtoolsListenerMaker(connectingPort))
-			}
-			break
-		default:
-			throw Error(`Unkown connection type ${connectingPort.name}`)
-	}
-})
+				break
+			default:
+				throw Error(`Unkown connection type ${connectingPort.name}`)
+		}
+	})
+}
 
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
@@ -199,7 +196,7 @@ function checkBrowserActionState(tabId, url) {
 
 		// We may've moved from a page that allowed content scripts to one that
 		// does not. If the sidebar/DevTools are open, they need to be updated.
-		sendNullLandmarksToActiveTabGUIs()
+		browser.runtime.sendMessage({ name: 'landmarks', data: null })
 	}
 }
 
@@ -267,22 +264,22 @@ if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 // Message handling
 //
 
-function sendToDevToolsIfActive(message) {
-	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
+	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 		const activeTabId = tabs[0].id
 		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
+			if (sendingTabId && sendingTabId !== activeTabId) return
 			devtoolsConnections[activeTabId].postMessage(message)
 		}
 	})
 }
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-	const tabId = senderId(sender)
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			updateBrowserActionBadge(tabId, message.data.length)
-			sendToDevToolsIfActive(message)
+			updateBrowserActionBadge(sender.tab.id, message.data.length)
+			sendToDevToolsIfOpenAndActive(message, sender.tab.id)
 			break
 		// Splash
 		case 'get-commands':
@@ -311,12 +308,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			break
 		// Messages DevTools panel needs to know
 		case 'toggle-state':
-			sendToDevToolsIfActive(message)
+			sendToDevToolsIfOpenAndActive(message, null)
 			break
 		// Messages we don't handle here
 		case 'toggle-all-landmarks':
 			break
 		default:
-			throw Error(`Unexpected message ${JSON.stringify(message)} from ${tabId}`)
+			throw unexpectedMessageFromSenderError(message, sender)
 	}
 })

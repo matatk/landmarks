@@ -5,7 +5,7 @@ import PauseHandler from './pauseHandler'
 import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
-import senderId from './senderId'
+import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
 
 const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
@@ -27,10 +27,7 @@ function messageHandler(message, sender) {  // also sendResponse
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
 			handleOutdatedResults()
-			browser.runtime.sendMessage({
-				name: 'landmarks',
-				data: landmarksFinder.allDepthsRolesLabelsSelectors()
-			})
+			sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in a GUI, or indirectly via one
@@ -94,7 +91,7 @@ function messageHandler(message, sender) {  // also sendResponse
 			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
-			throw Error(`Unexpected message ${JSON.stringify(message)} from ${senderId(sender)}`)
+			throw unexpectedMessageFromSenderError(message, sender)
 	}
 }
 
@@ -114,7 +111,7 @@ function thereMustBeLandmarks() {
 }
 
 function checkFocusElement(callbackReturningElementInfo) {
-	if(thereMustBeLandmarks()) {
+	if (thereMustBeLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
 }
@@ -124,14 +121,19 @@ function checkFocusElement(callbackReturningElementInfo) {
 // Actually finding landmarks
 //
 
-function findLandmarksAndUpdateBackgroundScript() {
-	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
-	landmarksFinder.find()
-	// This may throw an unimportant error, but not one we can catch
+function sendLandmarks() {
+	// This may throw an error, e.g. if the background script hasn't loaded yet
+	// on Firefox, but it's not one we can catch.
 	browser.runtime.sendMessage({
 		name: 'landmarks',
 		data: landmarksFinder.allDepthsRolesLabelsSelectors()
 	})
+}
+
+function findLandmarksAndUpdateBackgroundScript() {
+	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
+	landmarksFinder.find()
+	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
