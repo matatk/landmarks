@@ -4,57 +4,22 @@ import isContentScriptablePage from './isContentScriptablePage'
 import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
+import sendToActiveTab from './sendToActiveTab'
 
 const logger = new Logger(window)
-
-const contentConnections = {}
 const devtoolsConnections = {}
-let sidebarConnection = null
-let popupConnection = null
-let activeTabId = null
 
 
 //
 // Message routing
 //
 
-function sendToActiveTabGUIs(fromTabId, message) {
-	if (fromTabId !== activeTabId || activeTabId === null) return
-
-	if (popupConnection) {
-		popupConnection.postMessage(message)
-	}
-
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		if (sidebarConnection) {
-			sidebarConnection.postMessage(message)
-		}
-	}
-
-	if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
-		if (devtoolsConnections.hasOwnProperty(fromTabId)) {
-			devtoolsConnections[fromTabId].postMessage(message)
-		}
-	}
+function getLandmarksForActiveTab() {
+	sendToActiveTab({ name: 'get-landmarks' } )
 }
 
 function sendNullLandmarksToActiveTabGUIs() {
-	sendToActiveTabGUIs(activeTabId, { name: 'landmarks', data: null })
-}
-
-function getLandmarksForActiveTab() {
-	if (contentConnections.hasOwnProperty(activeTabId)) {
-		contentConnections[activeTabId].postMessage({ name: 'get-landmarks' } )
-	} else {
-		sendNullLandmarksToActiveTabGUIs()
-	}
-}
-
-function sendToActiveContentScriptIfExists(message) {
-	// The check is needed when a keyboard command is used
-	if (contentConnections.hasOwnProperty(activeTabId)) {
-		contentConnections[activeTabId].postMessage(message)
-	}
+	sendToActiveTab({ name: 'landmarks', data: null })
 }
 
 function updateBrowserActionBadge(tabId, numberOfLandmarks) {
@@ -66,68 +31,15 @@ function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 
 
 //
-// Setting up and handling connections
+// Setting up and handling DevTools connections
 //
-
-// Disconnection management
-
-function contentDisconnect(disconnectingPort) {
-	logger.log(`Content script for tab ${disconnectingPort.sender.tab.id} disconnected`)
-	disconnectingPortErrorCheck(disconnectingPort)
-	delete contentConnections[disconnectingPort.sender.tab.id]
-}
 
 function devtoolsDisconnect(tabId) {
 	logger.log(`DevTools page for tab ${tabId} disconnected`)
 	delete devtoolsConnections[tabId]
 }
 
-// Message listeners
-
-function contentListener(message, sendingPort) {
-	const tabId = sendingPort.sender.tab.id
-
-	switch (message.name) {
-		case 'landmarks':
-			updateBrowserActionBadge(tabId, message.data.length)
-			// eslint-disable-next-line no-fallthrough
-		case 'toggle-state':
-			sendToActiveTabGUIs(tabId, message)
-			break
-		default:
-			throw Error(`Unknown message ${JSON.stringify(message)} from content script in ${sendingPort.sender.tab.id}`)
-	}
-}
-
-// TODO DRY with devToolsListener
-// TODO DRY with splashListener
-function popupAndSidebarListener(message) {  // also gets: sendingPort
-	switch (message.name) {
-		case 'get-landmarks':
-			logger.log('Popup or sidebar requested landmarks')
-			getLandmarksForActiveTab()
-			break
-		case 'focus-landmark':
-		case 'get-toggle-state':
-		case 'toggle-all-landmarks':
-			sendToActiveContentScriptIfExists(message)
-			break
-		case 'open-help':
-			browser.tabs.create({  // Note: not the same as splash behaviour
-				url: browser.runtime.getURL('help.html'),
-				openerTabId: activeTabId
-			})
-			break
-		case 'open-settings':
-			browser.runtime.openOptionsPage()
-			break
-		default:
-			throw Error(`Unknown message ${JSON.stringify(message)} from popup or sidebar`)
-	}
-}
-
-// TODO DRY with popupAndSideBarListener
-// TODO DRY with splashListener
+// TODO DRY message-handling with the main one at the bottom?
 function devtoolsListenerMaker(connectingPort) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
@@ -136,7 +48,7 @@ function devtoolsListenerMaker(connectingPort) {
 			case 'init':
 				logger.log(`DevTools page for tab ${message.tabId} connected`)
 				devtoolsConnections[message.tabId] = connectingPort
-				connectingPort.onDisconnect.addListener(function(disconnectingPort) {
+				connectingPort.onDisconnect.addListener(disconnectingPort => {
 					disconnectingPortErrorCheck(disconnectingPort)
 					devtoolsDisconnect(message.tabId)
 				})
@@ -148,87 +60,21 @@ function devtoolsListenerMaker(connectingPort) {
 			case 'focus-landmark':
 			case 'get-toggle-state':
 			case 'toggle-all-landmarks':
-				sendToActiveContentScriptIfExists(message)
+				sendToActiveTab(message)
 				break
 			default:
-				throw Error(`Unknown message from DevTools: ${JSON.stringify(message)}`)
+				throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
 		}
 	}
 }
 
-// TODO DRY with popupAndSideBarListener
-// TODO DRY with devToolsListener
-function splashListener(message, sendingPort) {
-	switch (message.name) {
-		case 'get-commands':
-			browser.commands.getAll(function(commands) {
-				sendingPort.postMessage({
-					name: 'populate-commands',
-					commands: commands
-				})
-			})
-			break
-		case 'open-configure-shortcuts':
-			browser.tabs.update({
-				// This should only appear on Chrome/Opera
-				url: BROWSER === 'chrome'
-					? 'chrome://extensions/configureCommands'
-					: 'opera://settings/keyboardShortcuts'
-			})
-			break
-		case 'open-help':
-			browser.tabs.update({
-				url: browser.runtime.getURL('help.html')
-			})
-			break
-		case 'open-settings':
-			browser.runtime.openOptionsPage()
-			break
-		default:
-			throw Error(`Unknown message from splash: ${JSON.stringify(message)}`)
-	}
-}
-
 browser.runtime.onConnect.addListener(function(connectingPort) {
-	// Connection management
-
 	switch (connectingPort.name) {
-		case 'content':
-			logger.log(`Content script for tab ${connectingPort.sender.tab.id} ${connectingPort.sender.tab.url} connected`)
-			contentConnections[connectingPort.sender.tab.id] = connectingPort
-			connectingPort.onMessage.addListener(contentListener)
-			connectingPort.onDisconnect.addListener(contentDisconnect)
-			break
 		case 'devtools':
 			if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				connectingPort.onMessage.addListener(
 					devtoolsListenerMaker(connectingPort))
 			}
-			break
-		case 'popup':
-			if (popupConnection !== null) {
-				throw Error('Existing pop-up connection')
-			}
-			popupConnection = connectingPort
-			connectingPort.onMessage.addListener(popupAndSidebarListener)
-			connectingPort.onDisconnect.addListener(function() {
-				popupConnection = null
-			})
-			break
-		case 'sidebar':
-			if (BROWSER === 'firefox' || BROWSER === 'opera') {
-				if (sidebarConnection !== null) {
-					throw Error('Existing sidebar connection')
-				}
-				sidebarConnection = connectingPort
-				connectingPort.onMessage.addListener(popupAndSidebarListener)
-				connectingPort.onDisconnect.addListener(function() {
-					sidebarConnection = null
-				})
-			}
-			break
-		case 'splash':
-			connectingPort.onMessage.addListener(splashListener)
 			break
 		default:
 			throw Error(`Unkown connection type ${connectingPort.name}`)
@@ -319,10 +165,10 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
-			sendToActiveContentScriptIfExists({ name: command })
+			sendToActiveTab({ name: command })
 			break
 		default:
-			throw Error(`Unknown command ${JSON.stringify(command)}`)
+			throw Error(`Unexpected command ${JSON.stringify(command)}`)
 	}
 })
 
@@ -380,30 +226,17 @@ function checkBrowserActionState(tabId, url) {
 //       only sends a short message to the content script, I've removed the
 //       'same URL' filtering.
 //
-// TODO: In some circumstances (most GitHub transitions, this fires two times on
-//       Firefox and three times on Chrome. For YouTube, some transitions only
-//       cause this to fire once. Could it be to do with
+// TODO: In some circumstances (most GitHub transitions, this fires two times
+//       on Firefox and three times on Chrome. For YouTube, some transitions
+//       only cause this to fire once. Could it be to do with
 //       <https://developer.chrome.com/extensions/background_pages#filters>?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
-	if (contentConnections.hasOwnProperty(activeTabId)) {  // could be special page
-		contentConnections[activeTabId].postMessage({ name: 'trigger-refresh' })
-	}
+	sendToActiveTab({ name: 'trigger-refresh' })
 })
 
-browser.tabs.onActivated.addListener(function(activeInfo) {
-	activeTabId = activeInfo.tabId
-
-	const get = popupConnection
-		|| ((BROWSER === 'firefox' ||
-			BROWSER === 'opera')
-			&& sidebarConnection)
-		|| ((BROWSER === 'firefox' ||
-			BROWSER === 'chrome' ||
-			BROWSER === 'opera')
-			&& devtoolsConnections.hasOwnProperty(activeTabId))
-
-	if (get) getLandmarksForActiveTab()
+browser.tabs.onActivated.addListener(function() {  // activeTabInfo
+	getLandmarksForActiveTab()
 })
 
 
@@ -431,27 +264,71 @@ browser.tabs.query({}, function(tabs) {
 	}
 })
 
-if (BROWSER !== 'firefox') {
+if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 	contentScriptInjector()
 }
 
-if (BROWSER === 'firefox') {
-	// Firefox loads content scripts into existing tabs before the background
-	// script. That means they'll start before we've run, and fail to connect
-	// here. Therefore we need to send a message to the content scripts to tell
-	// them we're here and listening now.
-	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
-	browser.tabs.query({}, function(tabs) {
-		for (const i in tabs) {
-			const tabId = tabs[i].id
-			const url = tabs[i].url
 
-			if (isContentScriptablePage(url)) {
-				// The page is a page on which Landmarks runs. Let the content
-				// script know that the background page has started up.
-				logger.log(`Sending connection request to tab ${tabId}`)
-				browser.tabs.sendMessage(tabId, { name: 'FirefoxWorkaround' })
-			}
+//
+// Message handling
+//
+
+function sendToDevToolsIfActive(message) {
+	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+		const activeTabId = tabs[0].id
+		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
+			devtoolsConnections[activeTabId].postMessage(message)
 		}
 	})
 }
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	// TODO DRY with content
+	const tabId = sender.tab
+		? sender.tab.id
+		: sender.url
+			? sender.url.slice(sender.url.lastIndexOf('/') + 1)
+			: '<unknown>'
+
+	switch (message.name) {
+		// Content
+		case 'landmarks':
+			updateBrowserActionBadge(tabId, message.data.length)
+			sendToDevToolsIfActive(message)
+			break
+		// Splash
+		case 'get-commands':
+			browser.commands.getAll(function(commands) {
+				sendResponse({
+					name: 'populate-commands',
+					commands: commands
+				})
+			})
+			break
+		case 'open-configure-shortcuts':
+			browser.tabs.update({
+				// This should only appear on Chrome/Opera
+				url: BROWSER === 'chrome'
+					? 'chrome://extensions/configureCommands'
+					: 'opera://settings/keyboardShortcuts'
+			})
+			break
+		case 'open-help':
+			browser.tabs.update({
+				url: browser.runtime.getURL('help.html')
+			})
+			break
+		case 'open-settings':
+			browser.runtime.openOptionsPage()
+			break
+		// Messages DevTools panel needs to know
+		case 'toggle-state':
+			sendToDevToolsIfActive(message)
+			break
+		// Messages we don't handle here
+		case 'toggle-all-landmarks':
+			break
+		default:
+			throw Error(`Unexpected message ${JSON.stringify(message)} from ${tabId}`)
+	}
+})

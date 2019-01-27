@@ -1,6 +1,3 @@
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
-
-let port
 let shortcutNotSet = false
 
 const shortcutTableRows = [
@@ -20,14 +17,14 @@ const keyboardShortcutsLink = {
 	content: 'Add or change shortcuts',
 	listen: [{
 		event: 'click',
-		handler: () => port.postMessage({
+		handler: () => browser.runtime.sendMessage({
 			name: 'open-configure-shortcuts'
 		})
 	}, {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
-				port.postMessage({
+				browser.runtime.sendMessage({
 					name: 'open-configure-shortcuts'
 				})
 			}
@@ -43,7 +40,7 @@ const settingsLink = {
 	listen: [{
 		event: 'click',
 		handler: () => {
-			port.postMessage({
+			browser.runtime.sendMessage({
 				name: 'open-settings'
 			})
 		}
@@ -51,7 +48,7 @@ const settingsLink = {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
-				port.postMessage({
+				browser.runtime.sendMessage({
 					name: 'open-configure-shortcuts'
 				})
 			}
@@ -249,10 +246,8 @@ function allowLinksToOpenSections() {
 }
 
 function main() {
-	port = browser.runtime.connect({ name: 'splash' })
-	port.onDisconnect.addListener(disconnectingPortErrorCheck)
-	port.onMessage.addListener(messageHandler)
-	port.postMessage({ name: 'get-commands' })
+	browser.runtime.onMessage.addListener(messageHandler)
+	browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER !== 'firefox' && BROWSER !== 'opera') {
 		document.getElementById('section-sidebar').open = false
