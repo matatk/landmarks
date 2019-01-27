@@ -5,6 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 import sendToActiveTab from './sendToActiveTab'
+import senderId from './senderId'
 
 const logger = new Logger(window)
 const devtoolsConnections = {}
@@ -276,13 +277,7 @@ function sendToDevToolsIfActive(message) {
 }
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-	// TODO DRY with content
-	const tabId = sender.tab
-		? sender.tab.id
-		: sender.url
-			? sender.url.slice(sender.url.lastIndexOf('/') + 1)
-			: '<unknown>'
-
+	const tabId = senderId(sender)
 	switch (message.name) {
 		// Content
 		case 'landmarks':

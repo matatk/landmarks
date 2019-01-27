@@ -5,6 +5,7 @@ import PauseHandler from './pauseHandler'
 import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
+import senderId from './senderId'
 
 const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
@@ -22,13 +23,6 @@ let observer = null
 //
 
 function messageHandler(message, sender) {  // also sendResponse
-	// TODO DRY with background
-	const tabId = sender.tab
-		? sender.tab.id
-		: sender.url
-			? sender.url.slice(sender.url.lastIndexOf('/') + 1)
-			: '<unknown>'
-
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -100,7 +94,7 @@ function messageHandler(message, sender) {  // also sendResponse
 			findLandmarksAndUpdateBackgroundScript()
 			break
 		default:
-			throw Error(`Unexpected message ${JSON.stringify(message)} from ${JSON.stringify(tabId)}`)
+			throw Error(`Unexpected message ${JSON.stringify(message)} from ${senderId(sender)}`)
 	}
 }
 
