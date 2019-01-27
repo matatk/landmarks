@@ -11,13 +11,10 @@ const devtoolsConnections = {}
 
 
 //
-// Message routing
+// Message routing - TODO re-organise sections
 //
 
-function getLandmarksForActiveTab() {
-	sendToActiveTab({ name: 'get-landmarks' } )
-}
-
+// FIXME needs work!
 function sendNullLandmarksToActiveTabGUIs() {
 	sendToActiveTab({ name: 'landmarks', data: null })
 }
@@ -39,7 +36,6 @@ function devtoolsDisconnect(tabId) {
 	delete devtoolsConnections[tabId]
 }
 
-// TODO DRY message-handling with the main one at the bottom?
 function devtoolsListenerMaker(connectingPort) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
@@ -54,9 +50,6 @@ function devtoolsListenerMaker(connectingPort) {
 				})
 				break
 			case 'get-landmarks':
-				logger.log('DevTools requested landmarks')
-				getLandmarksForActiveTab()
-				break
 			case 'focus-landmark':
 			case 'get-toggle-state':
 			case 'toggle-all-landmarks':
@@ -236,7 +229,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 })
 
 browser.tabs.onActivated.addListener(function() {  // activeTabInfo
-	getLandmarksForActiveTab()
+	sendToActiveTab({ name: 'get-landmarks' } )
 })
 
 
