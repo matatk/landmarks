@@ -196,7 +196,9 @@ function checkBrowserActionState(tabId, url) {
 
 		// We may've moved from a page that allowed content scripts to one that
 		// does not. If the sidebar/DevTools are open, they need to be updated.
+		// FIXME doesn't work properly
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
+		sendToDevToolsIfOpenAndActive({ name: 'landmarks', data: null })
 	}
 }
 
@@ -228,6 +230,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function() {  // activeTabInfo
 	sendToActiveTab({ name: 'get-landmarks' } )
+	sendToActiveTab({ name: 'get-toggle-state' } )  // FIXME needed?
 })
 
 
@@ -265,6 +268,7 @@ if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 //
 
 function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
+	// TODO DRY?
 	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 		const activeTabId = tabs[0].id
 		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
@@ -307,7 +311,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			browser.runtime.openOptionsPage()
 			break
 		// Messages DevTools panel needs to know
-		case 'toggle-state':
+		case 'toggle-state-is':
 			sendToDevToolsIfOpenAndActive(message, null)
 			break
 		// Messages we don't handle here

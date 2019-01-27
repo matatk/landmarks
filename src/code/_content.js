@@ -73,7 +73,7 @@ function messageHandler(message, sender) {  // also sendResponse
 			// eslint-disable-next-line no-fallthrough
 		case 'get-toggle-state':
 			browser.runtime.sendMessage({
-				name: 'toggle-state',
+				name: 'toggle-state-is',
 				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
 			})
 			break
@@ -91,6 +91,9 @@ function messageHandler(message, sender) {  // also sendResponse
 			break
 		// This shouldn't happen
 		case 'landmarks':
+			// FIXME
+			break
+		case 'toggle-state-is':
 			// FIXME
 			break
 		default:
@@ -217,7 +220,7 @@ function bootstrap() {
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	// At the start, the ElementFocuser is always managing borders
-	browser.runtime.sendMessage({ name: 'toggle-state', data: 'selected' })
+	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
 	findLandmarksAndUpdateExtension()  // TODO try removing
 	setUpMutationObserver()
 }

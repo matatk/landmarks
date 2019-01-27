@@ -166,6 +166,7 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 //
 
 // When a landmark's corresponding button in the UI is clicked, focus it
+// TODO DRY with fliptoggle?
 function focusLandmark(index) {
 	const message = { name: 'focus-landmark', index: index }
 	if (INTERFACE !== 'devtools') {
@@ -194,8 +195,14 @@ function handleToggleStateMessage(state) {
 	}
 }
 
+// TODO DRY with focuslandmark?
 function flipToggle() {
-	browser.runtime.sendMessage( { name: 'toggle-all-landmarks' })
+	const message = { name: 'toggle-all-landmarks' }
+	if (INTERFACE !== 'devtools') {
+		sendToActiveTab(message)
+	} else {
+		port.postMessage(message)
+	}
 }
 
 
@@ -306,26 +313,39 @@ function makeEventHandlers(linkName) {
 }
 
 function messageHandler(message, sender) {
-	switch (message.name) {
-		case 'landmarks':
-			if (INTERFACE !== 'devtools') {
-				browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-					if (sender.tab.id === tabs[0].id) {
+	if (INTERFACE !== 'devtools') {
+		browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+			const activeTabId = tabs[0].id
+			if (!sender.tab || sender.tab.id === activeTabId) {
+				switch (message.name) {
+					case 'landmarks':
 						handleLandmarksMessage(message.data)
-					}
-				})
-			} else {
-				handleLandmarksMessage(message.data)
+						break
+					case 'toggle-state-is':
+						handleToggleStateMessage(message.data)
+						break
+					// Messages we don't handle here
+					case 'toggle-all-landmarks':
+						break
+					default:
+						throw unexpectedMessageFromSenderError(message, sender)
+				}
 			}
-			break
-		case 'toggle-state':
-			handleToggleStateMessage(message.data)
-			break
-		// Messages we don't handle here
-		case 'toggle-all-landmarks':
-			break
-		default:
-			throw unexpectedMessageFromSenderError(message, sender)
+		})
+	} else {
+		switch (message.name) {
+			case 'landmarks':
+				handleLandmarksMessage(message.data)
+				break
+			case 'toggle-state-is':
+				handleToggleStateMessage(message.data)
+				break
+			// Messages we don't handle here
+			case 'toggle-all-landmarks':
+				break
+			default:
+				throw unexpectedMessageFromSenderError(message, sender)
+		}
 	}
 }
 
