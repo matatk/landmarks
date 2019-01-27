@@ -321,7 +321,7 @@ function messageHandler(message, sender) {
 		case 'toggle-state':
 			handleToggleStateMessage(message.data)
 			break
-			// Messages we don't handle here
+		// Messages we don't handle here
 		case 'toggle-all-landmarks':
 			break
 		default:

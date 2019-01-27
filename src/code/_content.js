@@ -26,30 +26,29 @@ function messageHandler(message, sender) {  // also sendResponse
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			handleOutdatedResults()
-			sendLandmarks()
+			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(() =>
 				landmarksFinder.getLandmarkElementRoleLabel(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(landmarksFinder.getNextLandmarkElementRoleLabel)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(
 				landmarksFinder.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
@@ -60,7 +59,7 @@ function messageHandler(message, sender) {  // also sendResponse
 		}
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			if (thereMustBeLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
@@ -88,18 +87,24 @@ function messageHandler(message, sender) {  // also sendResponse
 			logger.log('Landmarks: refresh triggered')
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
-			findLandmarksAndUpdateBackgroundScript()
+			findLandmarksAndUpdateExtension()
+			break
+		// This shouldn't happen
+		case 'landmarks':
+			// FIXME
 			break
 		default:
 			throw unexpectedMessageFromSenderError(message, sender)
 	}
 }
 
-function handleOutdatedResults() {
+function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
 		logger.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
-		findLandmarksAndUpdateBackgroundScript()
+		findLandmarksAndUpdateExtension()
+		return true
 	}
+	return false
 }
 
 function thereMustBeLandmarks() {
@@ -130,8 +135,8 @@ function sendLandmarks() {
 	})
 }
 
-function findLandmarksAndUpdateBackgroundScript() {
-	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
+function findLandmarksAndUpdateExtension() {
+	logger.timeStamp('findLandmarksAndUpdateExtension()')
 	landmarksFinder.find()
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
@@ -191,10 +196,10 @@ function setUpMutationObserver() {
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')
-					findLandmarksAndUpdateBackgroundScript()
+					findLandmarksAndUpdateExtension()
 				}
 			},
-			findLandmarksAndUpdateBackgroundScript)
+			findLandmarksAndUpdateExtension)
 	})
 
 	observer.observe(document, {
@@ -213,7 +218,7 @@ function bootstrap() {
 
 	// At the start, the ElementFocuser is always managing borders
 	browser.runtime.sendMessage({ name: 'toggle-state', data: 'selected' })
-	findLandmarksAndUpdateBackgroundScript()  // TODO try removing
+	findLandmarksAndUpdateExtension()  // TODO try removing
 	setUpMutationObserver()
 }
 
