@@ -277,7 +277,7 @@ function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
 	})
 }
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
 		// Note: Background can send this to GUIs, but it wouldn't be picked
@@ -289,7 +289,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		// Splash
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
-				sendResponse({
+				sendToActiveTab({
 					name: 'populate-commands',
 					commands: commands
 				})

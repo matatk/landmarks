@@ -89,6 +89,9 @@ function messageHandler(message, sender) {  // also sendResponse
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
 			break
+		// Splash (handled elsewhere)
+		case 'populate-commands':
+			break
 		// This shouldn't happen
 		case 'landmarks':
 			// FIXME
