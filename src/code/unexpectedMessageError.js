@@ -1,6 +1,6 @@
 import senderId from './senderId'
 
-export default function unexpectedMessageFromSenderError(message, sender) {
+export default function unexpectedMessageError(message, sender) {
 	const limit = 100
 	let strMessage = JSON.stringify(message)
 	if (strMessage.length > limit) {

@@ -4,9 +4,10 @@ import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import sendToActiveTab from './sendToActiveTab'
-import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
+import unexpectedMessageError from './unexpectedMessageError'
 
 let port = null  // DevTools-only - TODO does this get tree-shaken?
+
 
 //
 // Creating a landmarks tree in response to info from content script
@@ -113,10 +114,16 @@ function makeLandmarksTree(landmarks, container) {
 	container.appendChild(root)
 }
 
-
-//
-// DOM manipulation utilities
-//
+// When a landmark's corresponding button in the UI is clicked, focus it
+// TODO DRY with flipToggle?
+function focusLandmark(index) {
+	const message = { name: 'focus-landmark', index: index }
+	if (INTERFACE !== 'devtools') {
+		sendToActiveTab(message)  // TODO does the import get tree-shaken?
+	} else {
+		port.postMessage(message)
+	}
+}
 
 // Remove all nodes contained within a node
 function removeChildNodes(element) {
@@ -162,22 +169,6 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 
 
 //
-// General utilities
-//
-
-// When a landmark's corresponding button in the UI is clicked, focus it
-// TODO DRY with fliptoggle?
-function focusLandmark(index) {
-	const message = { name: 'focus-landmark', index: index }
-	if (INTERFACE !== 'devtools') {
-		sendToActiveTab(message)  // TODO does the import get tree-shaken?
-	} else {
-		port.postMessage(message)
-	}
-}
-
-
-//
 // Toggling all landmarks
 //
 
@@ -195,11 +186,11 @@ function handleToggleStateMessage(state) {
 	}
 }
 
-// TODO DRY with focuslandmark?
+// TODO DRY with focusLandmark?
 function flipToggle() {
 	const message = { name: 'toggle-all-landmarks' }
 	if (INTERFACE !== 'devtools') {
-		sendToActiveTab(message)
+		sendToActiveTab(message)  // TODO does the import get tree-shaken?
 	} else {
 		port.postMessage(message)
 	}
@@ -313,27 +304,23 @@ function makeEventHandlers(linkName) {
 }
 
 function messageHandler(message, sender) {
+	// If this GUI is not the DevTools panel, then we should check that the
+	// message relates to the active tab first. If it is the DevTools panel,
+	// that check has already been done by the background script, so just
+	// process the message.
 	if (INTERFACE !== 'devtools') {
-		browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 			const activeTabId = tabs[0].id
 			if (!sender.tab || sender.tab.id === activeTabId) {
-				switch (message.name) {
-					case 'landmarks':
-						handleLandmarksMessage(message.data)
-						break
-					case 'toggle-state-is':
-						handleToggleStateMessage(message.data)
-						break
-					// Messages we don't handle here
-					case 'toggle-all-landmarks':
-						break
-					default:
-						throw unexpectedMessageFromSenderError(message, sender)
-				}
+				messageHandlerCore(message.name)
 			}
 		})
 	} else {
-		switch (message.name) {
+		messageHandlerCore(message.name)
+	}
+
+	function messageHandlerCore(messageName) {
+		switch (messageName) {
 			case 'landmarks':
 				handleLandmarksMessage(message.data)
 				break
@@ -344,7 +331,7 @@ function messageHandler(message, sender) {
 			case 'toggle-all-landmarks':
 				break
 			default:
-				throw unexpectedMessageFromSenderError(message, sender)
+				throw unexpectedMessageError(message, sender)
 		}
 	}
 }
@@ -355,9 +342,9 @@ function messageHandler(message, sender) {
 // TODO: the below comment shouldn't be needed?
 // Note: Firefox and Edge don't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
-//       This is a bit hacky, as Firefox really isn't using it, but at least it
-//       keeps all the code here, rather than putting some separately in the
-//       build script.
+//       This is a bit hacky, as these browsers really aren't using it, but at
+//       least it keeps all the code here, rather than putting some separately
+//       in the build script.
 function main() {
 	if (INTERFACE === 'devtools') {
 		document.getElementById('links').remove()
@@ -369,7 +356,7 @@ function main() {
 		})
 
 		port.onDisconnect.addListener(function() {
-			disconnectingPortErrorCheck()
+			disconnectingPortErrorCheck()  // TODO needed?
 			if (BROWSER === 'chrome' || BROWSER === 'opera') {
 				// DevTools page doesn't get reloaded when the extension does
 				const para = document.createElement('p')

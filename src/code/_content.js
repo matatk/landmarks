@@ -5,7 +5,7 @@ import PauseHandler from './pauseHandler'
 import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
-import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
+import unexpectedMessageError from './unexpectedMessageError'
 
 const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
@@ -97,7 +97,7 @@ function messageHandler(message, sender) {  // also sendResponse
 			// FIXME
 			break
 		default:
-			throw unexpectedMessageFromSenderError(message, sender)
+			throw unexpectedMessageError(message, sender)
 	}
 }
 

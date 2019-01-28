@@ -5,7 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 import sendToActiveTab from './sendToActiveTab'
-import unexpectedMessageFromSenderError from './unexpectedMessageFromSenderError'
+import unexpectedMessageError from './unexpectedMessageError'
 
 const logger = new Logger(window)
 const devtoolsConnections = {}
@@ -229,8 +229,8 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 })
 
 browser.tabs.onActivated.addListener(function() {  // activeTabInfo
-	sendToActiveTab({ name: 'get-landmarks' } )
-	sendToActiveTab({ name: 'get-toggle-state' } )  // FIXME needed?
+	sendToActiveTab({ name: 'get-landmarks' })
+	sendToActiveTab({ name: 'get-toggle-state' })
 })
 
 
@@ -318,6 +318,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		case 'toggle-all-landmarks':
 			break
 		default:
-			throw unexpectedMessageFromSenderError(message, sender)
+			throw unexpectedMessageError(message, sender)
 	}
 })
