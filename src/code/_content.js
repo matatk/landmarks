@@ -130,12 +130,27 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function sendLandmarks() {
-	// This may throw an error, e.g. if the background script hasn't loaded yet
-	// on Firefox, but it's not one we can catch.
-	browser.runtime.sendMessage({
-		name: 'landmarks',
-		data: landmarksFinder.allDepthsRolesLabelsSelectors()
-	})
+	function sendLandmarksCore() {
+		browser.runtime.sendMessage({
+			name: 'landmarks',
+			data: landmarksFinder.allDepthsRolesLabelsSelectors()
+		})
+	}
+
+	if (BROWSER === 'firefox' ) {
+		// This may throw an error, e.g. if the background script hasn't loaded
+		// yet on Firefox, but it's not one we can catch.
+		sendLandmarksCore()
+	} else if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+		try {
+			sendLandmarksCore()
+		} catch (error) {
+			console.log('Looks like content script was orphanned')
+			observer.disconnect()
+		}
+	} else {
+		throw Error(`Unexpected browser ${BROWSER} in build`)
+	}
 }
 
 function findLandmarksAndUpdateExtension() {

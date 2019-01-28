@@ -2,7 +2,6 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import isContentScriptablePage from './isContentScriptablePage'
 import { defaultInterfaceSettings } from './defaults'
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import Logger from './logger'
 import sendToActiveTab from './sendToActiveTab'
 import unexpectedMessageError from './unexpectedMessageError'
@@ -43,8 +42,7 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'init':
 					logger.log(`DevTools page for tab ${message.tabId} connected`)
 					devtoolsConnections[message.tabId] = connectingPort
-					connectingPort.onDisconnect.addListener(function(disconnectingPort) {
-						disconnectingPortErrorCheck(disconnectingPort)  // TODO needed?
+					connectingPort.onDisconnect.addListener(function() {
 						devtoolsDisconnect(message.tabId)
 					})
 					break
@@ -197,6 +195,7 @@ function checkBrowserActionState(tabId, url) {
 		// We may've moved from a page that allowed content scripts to one that
 		// does not. If the sidebar/DevTools are open, they need to be updated.
 		// FIXME doesn't work properly
+		console.log('sending null landmarks')
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		sendToDevToolsIfOpenAndActive({ name: 'landmarks', data: null })
 	}
@@ -281,6 +280,8 @@ function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	switch (message.name) {
 		// Content
+		// Note: Background can send this to GUIs, but it wouldn't be picked
+		//       up here.
 		case 'landmarks':
 			updateBrowserActionBadge(sender.tab.id, message.data.length)
 			sendToDevToolsIfOpenAndActive(message, sender.tab.id)

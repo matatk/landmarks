@@ -2,7 +2,6 @@ import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
 import sendToActiveTab from './sendToActiveTab'
 import unexpectedMessageError from './unexpectedMessageError'
 
@@ -30,14 +29,17 @@ function handleLandmarksMessage(data) {
 	// Content script would normally send back an array of landmarks
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
+			console.log('received 0 landmarks')
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 			showAllContainer.style.display = 'none'
 		} else {
+			console.log('received >0 landmarks')
 			makeLandmarksTree(data, display)
 			showAllContainer.style.display = null
 		}
 	} else {
-		addText(display, browser.i18n.getMessage('errorNoConnection'))
+		console.log('received non-array landmarks')
+		addText(display, browser.i18n.getMessage('errorNoConnection'))  // FIXME rename
 		showAllContainer.style.display = 'none'
 	}
 }
@@ -350,27 +352,31 @@ function main() {
 		document.getElementById('links').remove()
 
 		port = browser.runtime.connect({ name: INTERFACE })
+
+		if (BROWSER === 'chrome' || BROWSER === 'opera') {
+			// DevTools page doesn't get reloaded when the extension does
+			port.onDisconnect.addListener(function() {
+				// TODO use styles presently in help.css (currently hardcoded)
+				const para = document.createElement('p')
+				para.style.margin = '1em'
+				para.style.padding = '1em'
+				para.style.border = '1px solid #d00'
+				para.style.borderRadius = '1em'
+				const strong = document.createElement('strong')
+				strong.style.color = '#d00'
+				strong.appendChild(document.createTextNode(
+					browser.i18n.getMessage('devToolsConnectionError')))
+				para.appendChild(strong)
+				document.body.insertBefore(para, document.body.firstChild)
+				document.body.style.backgroundColor = '#fee'
+			})
+		}
+
+		port.onMessage.addListener(messageHandler)
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
-
-		port.onDisconnect.addListener(function() {
-			disconnectingPortErrorCheck()  // TODO needed?
-			if (BROWSER === 'chrome' || BROWSER === 'opera') {
-				// DevTools page doesn't get reloaded when the extension does
-				const para = document.createElement('p')
-				const warning = document.createTextNode(
-					browser.i18n.getMessage('devToolsConnectionError'))
-				para.appendChild(warning)
-				document.body.insertBefore(para,
-					document.querySelector('h1').nextSibling)
-				document.body.style.backgroundColor = '#fee'
-				// TODO make this use the note styles
-			}
-		})
-
-		port.onMessage.addListener(messageHandler)
 		port.postMessage({ name: 'get-landmarks' })
 		port.postMessage({ name: 'get-toggle-state' })
 	} else {
