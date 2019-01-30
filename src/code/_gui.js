@@ -39,7 +39,7 @@ function handleLandmarksMessage(data) {
 		}
 	} else {
 		console.log('received non-array landmarks')
-		addText(display, browser.i18n.getMessage('errorNoConnection'))  // FIXME rename
+		addText(display, browser.i18n.getMessage('forbiddenPage'))
 		showAllContainer.style.display = 'none'
 	}
 }

@@ -191,13 +191,6 @@ function checkBrowserActionState(tabId, url) {
 		browser.browserAction.enable(tabId)
 	} else {
 		browser.browserAction.disable(tabId)
-
-		// We may've moved from a page that allowed content scripts to one that
-		// does not. If the sidebar/DevTools are open, they need to be updated.
-		// FIXME doesn't work properly
-		console.log('sending null landmarks')
-		browser.runtime.sendMessage({ name: 'landmarks', data: null })
-		sendToDevToolsIfOpenAndActive({ name: 'landmarks', data: null })
 	}
 }
 
@@ -224,12 +217,21 @@ function checkBrowserActionState(tabId, url) {
 //       <https://developer.chrome.com/extensions/background_pages#filters>?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
-	sendToActiveTab({ name: 'trigger-refresh' })
+	if (isContentScriptablePage(details.url)) {
+		sendToActiveTab({ name: 'trigger-refresh' })
+	}
 })
 
-browser.tabs.onActivated.addListener(function() {  // activeTabInfo
-	sendToActiveTab({ name: 'get-landmarks' })
-	sendToActiveTab({ name: 'get-toggle-state' })
+browser.tabs.onActivated.addListener(function(activeTabInfo) {
+	browser.tabs.get(activeTabInfo.tabId, function(activeTab) {
+		if (isContentScriptablePage(activeTab.url)) {
+			sendToActiveTab({ name: 'get-landmarks' })
+			sendToActiveTab({ name: 'get-toggle-state' })
+		} else {
+			browser.runtime.sendMessage({ name: 'landmarks', data: null })
+			sendToDevToolsIfOpenAndActive({ name: 'landmarks', data: null })
+		}
+	})
 })
 
 
