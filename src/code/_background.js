@@ -11,13 +11,28 @@ const devtoolsConnections = {}
 
 
 //
-// Message routing - TODO re-organise sections
+// Utilities
 //
 
 function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 	browser.browserAction.setBadgeText({
 		text: numberOfLandmarks <= 0 ? '' : String(numberOfLandmarks),
 		tabId: tabId
+	})
+}
+
+// TODO DRY?
+function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
+	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+		const activeTabId = tabs[0].id
+		browser.tabs.get(activeTabId, function(activeTab) {
+			if (isContentScriptablePage(activeTab.url)) {
+				if (devtoolsConnections.hasOwnProperty(activeTabId)) {
+					if (sendingTabId && sendingTabId !== activeTabId) return
+					devtoolsConnections[activeTabId].postMessage(message)
+				}
+			}
+		})
 	})
 }
 
@@ -50,7 +65,7 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'focus-landmark':
 				case 'get-toggle-state':
 				case 'toggle-all-landmarks':
-					sendToActiveTab(message)
+					sendToActiveTab(message)  // FIXME only if content scriptable
 					break
 				default:
 					throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
@@ -222,6 +237,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
+// TODO DRY?
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(activeTab) {
 		if (isContentScriptablePage(activeTab.url)) {
@@ -267,17 +283,6 @@ if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 //
 // Message handling
 //
-
-function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
-	// TODO DRY?
-	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-		const activeTabId = tabs[0].id
-		if (devtoolsConnections.hasOwnProperty(activeTabId)) {
-			if (sendingTabId && sendingTabId !== activeTabId) return
-			devtoolsConnections[activeTabId].postMessage(message)
-		}
-	})
-}
 
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
