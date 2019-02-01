@@ -35,40 +35,27 @@ function sendToDevToolsForTab(tabId, message) {
 	}
 }
 
-function withActiveTabId(task) {
+function doWithActiveTabIdUrl(stuff) {
 	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		const activeTabId = tabs[0].id
-		task(activeTabId)
-	})
-}
-
-function doStuffIfScriptable(tabId, stuff, otherStuff = null) {
-	browser.tabs.get(tabId, function(tab) {
-		if (isContentScriptablePage(tab.url)) {
-			stuff()
-		} else if (otherStuff) {
-			otherStuff()
-		}
+		stuff(tabs[0].id, tabs[0].url)
 	})
 }
 
 function sendToDevToolsIfActiveScriptableAndOpen(sendingTabId, message) {
 	// If the message came from a GUI, we will've set sendingTabId to null
-	withActiveTabId(function(activeTabId) {
+	doWithActiveTabIdUrl(function(activeTabId, activeTabUrl) {
 		if (!sendingTabId || (sendingTabId === activeTabId)) {
-			doStuffIfScriptable(activeTabId, function() {
+			if (isContentScriptablePage(activeTabUrl)) {
 				sendToDevToolsForTab(activeTabId, message)
-			}, null)
-		}
+			}
+		}  // TODO check if else ever happens
 	})
 }
 
-function doStuffIfScriptableOrSendNullLandmarksToGUIs(activeTabId, stuff) {
-	doStuffIfScriptable(activeTabId, stuff, function() {
-		const nullLandmarksMessage = { name: 'landmarks', data: null }
-		browser.runtime.sendMessage(nullLandmarksMessage)
-		sendToDevToolsForTab(activeTabId, nullLandmarksMessage)
-	})
+function sendNullLandmarksToGUIs(activeTabId) {
+	const nullLandmarksMessage = { name: 'landmarks', data: null }
+	browser.runtime.sendMessage(nullLandmarksMessage)
+	sendToDevToolsForTab(activeTabId, nullLandmarksMessage)
 }
 
 
@@ -100,10 +87,13 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'get-toggle-state':
 				case 'focus-landmark':
 				case 'toggle-all-landmarks':
-					withActiveTabId(function(id) {
-						doStuffIfScriptableOrSendNullLandmarksToGUIs(id, () =>
-							browser.tabs.sendMessage(id, message)
-						)
+					doWithActiveTabIdUrl(function(activeTabId, activeTabUrl) {
+						if (isContentScriptablePage(activeTabUrl)) {
+							browser.tabs.sendMessage(activeTabId, message)
+						} else {
+							sendNullLandmarksToGUIs(activeTabId)
+							// TODO only send to DevTools?
+						}
 					})
 					break
 				default:
@@ -270,11 +260,18 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
+// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes back
+//       as "about:blank" which makes Landmarks think it can't run on that
+//       page, and sends the null landmarks message, which appears briefly
+//       before the content script sends back the actual landmarks.
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
-	const activeTabId = activeTabInfo.tabId
-	doStuffIfScriptableOrSendNullLandmarksToGUIs(activeTabId, function() {
-		browser.tabs.sendMessage(activeTabId, { name: 'get-landmarks' })
-		browser.tabs.sendMessage(activeTabId, { name: 'get-toggle-state' })
+	browser.tabs.get(activeTabInfo.tabId, function(tab) {
+		if (isContentScriptablePage(tab.url)) {
+			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
+			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
+		} else {
+			sendNullLandmarksToGUIs(tab.id)
+		}
 	})
 })
 
