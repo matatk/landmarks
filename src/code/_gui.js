@@ -29,16 +29,13 @@ function handleLandmarksMessage(data) {
 	// Content script would normally send back an array of landmarks
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
-			console.log('received 0 landmarks')
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 			showAllContainer.style.display = 'none'
 		} else {
-			console.log('received >0 landmarks')
 			makeLandmarksTree(data, display)
 			showAllContainer.style.display = null
 		}
 	} else {
-		console.log('received non-array landmarks')
 		addText(display, browser.i18n.getMessage('forbiddenPage'))
 		showAllContainer.style.display = 'none'
 	}

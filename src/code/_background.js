@@ -14,6 +14,14 @@ const devtoolsConnections = {}
 // Utilities
 //
 
+function checkBrowserActionState(tabId, url) {
+	if (isContentScriptablePage(url)) {
+		browser.browserAction.enable(tabId)
+	} else {
+		browser.browserAction.disable(tabId)
+	}
+}
+
 function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 	browser.browserAction.setBadgeText({
 		text: numberOfLandmarks <= 0 ? '' : String(numberOfLandmarks),
@@ -21,18 +29,45 @@ function updateBrowserActionBadge(tabId, numberOfLandmarks) {
 	})
 }
 
-// TODO DRY?
-function sendToDevToolsIfOpenAndActive(message, sendingTabId) {
-	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+function sendToDevToolsForTab(tabId, message) {
+	if (devtoolsConnections.hasOwnProperty(tabId)) {
+		devtoolsConnections[tabId].postMessage(message)
+	}
+}
+
+function withActiveTabId(task) {
+	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 		const activeTabId = tabs[0].id
-		browser.tabs.get(activeTabId, function(activeTab) {
-			if (isContentScriptablePage(activeTab.url)) {
-				if (devtoolsConnections.hasOwnProperty(activeTabId)) {
-					if (sendingTabId && sendingTabId !== activeTabId) return
-					devtoolsConnections[activeTabId].postMessage(message)
-				}
-			}
-		})
+		task(activeTabId)
+	})
+}
+
+function doStuffIfScriptable(tabId, stuff, otherStuff = null) {
+	browser.tabs.get(tabId, function(tab) {
+		if (isContentScriptablePage(tab.url)) {
+			stuff()
+		} else if (otherStuff) {
+			otherStuff()
+		}
+	})
+}
+
+function sendToDevToolsIfActiveScriptableAndOpen(sendingTabId, message) {
+	// If the message came from a GUI, we will've set sendingTabId to null
+	withActiveTabId(function(activeTabId) {
+		if (!sendingTabId || (sendingTabId === activeTabId)) {
+			doStuffIfScriptable(activeTabId, function() {
+				sendToDevToolsForTab(activeTabId, message)
+			}, null)
+		}
+	})
+}
+
+function doStuffIfScriptableOrSendNullLandmarksToGUIs(activeTabId, stuff) {
+	doStuffIfScriptable(activeTabId, stuff, function() {
+		const nullLandmarksMessage = { name: 'landmarks', data: null }
+		browser.runtime.sendMessage(nullLandmarksMessage)
+		sendToDevToolsForTab(activeTabId, nullLandmarksMessage)
 	})
 }
 
@@ -62,10 +97,14 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 					})
 					break
 				case 'get-landmarks':
-				case 'focus-landmark':
 				case 'get-toggle-state':
+				case 'focus-landmark':
 				case 'toggle-all-landmarks':
-					sendToActiveTab(message)  // FIXME only if content scriptable
+					withActiveTabId(function(id) {
+						doStuffIfScriptableOrSendNullLandmarksToGUIs(id, () =>
+							browser.tabs.sendMessage(id, message)
+						)
+					})
 					break
 				default:
 					throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
@@ -201,14 +240,6 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 	checkBrowserActionState(details.tabId, details.url)
 })
 
-function checkBrowserActionState(tabId, url) {
-	if (isContentScriptablePage(url)) {
-		browser.browserAction.enable(tabId)
-	} else {
-		browser.browserAction.disable(tabId)
-	}
-}
-
 // If the page uses 'single-page app' techniques to load in new components --
 // as YouTube and GitHub do -- then the landmarks can change. We assume that if
 // the structure of the page is changing so much that it is effectively a new
@@ -237,16 +268,11 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
-// TODO DRY?
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
-	browser.tabs.get(activeTabInfo.tabId, function(activeTab) {
-		if (isContentScriptablePage(activeTab.url)) {
-			sendToActiveTab({ name: 'get-landmarks' })
-			sendToActiveTab({ name: 'get-toggle-state' })
-		} else {
-			browser.runtime.sendMessage({ name: 'landmarks', data: null })
-			sendToDevToolsIfOpenAndActive({ name: 'landmarks', data: null })
-		}
+	const activeTabId = activeTabInfo.tabId
+	doStuffIfScriptableOrSendNullLandmarksToGUIs(activeTabId, function() {
+		browser.tabs.sendMessage(activeTabId, { name: 'get-landmarks' })
+		browser.tabs.sendMessage(activeTabId, { name: 'get-toggle-state' })
 	})
 })
 
@@ -291,7 +317,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		//       up here.
 		case 'landmarks':
 			updateBrowserActionBadge(sender.tab.id, message.data.length)
-			sendToDevToolsIfOpenAndActive(message, sender.tab.id)
+			sendToDevToolsIfActiveScriptableAndOpen(sender.tab.id, message)
 			break
 		// Splash
 		case 'get-commands':
@@ -320,7 +346,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		// Messages DevTools panel needs to know
 		case 'toggle-state-is':
-			sendToDevToolsIfOpenAndActive(message, null)
+			sendToDevToolsIfActiveScriptableAndOpen(null, message)
 			break
 		// Messages we don't handle here
 		case 'toggle-all-landmarks':

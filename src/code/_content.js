@@ -141,6 +141,7 @@ function sendLandmarks() {
 	}
 
 	if (BROWSER === 'firefox' ) {
+		// FIXME use Simon Lydell's technique with ports instead
 		// This may throw an error, e.g. if the background script hasn't loaded
 		// yet on Firefox, but it's not one we can catch.
 		sendLandmarksCore()
