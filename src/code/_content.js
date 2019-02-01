@@ -133,28 +133,10 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function sendLandmarks() {
-	function sendLandmarksCore() {
-		browser.runtime.sendMessage({
-			name: 'landmarks',
-			data: landmarksFinder.allDepthsRolesLabelsSelectors()
-		})
-	}
-
-	if (BROWSER === 'firefox' ) {
-		// FIXME use Simon Lydell's technique with ports instead
-		// This may throw an error, e.g. if the background script hasn't loaded
-		// yet on Firefox, but it's not one we can catch.
-		sendLandmarksCore()
-	} else if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
-		try {
-			sendLandmarksCore()
-		} catch (error) {
-			console.log('Looks like content script was orphanned')
-			observer.disconnect()
-		}
-	} else {
-		throw Error(`Unexpected browser ${BROWSER} in build`)
-	}
+	browser.runtime.sendMessage({
+		name: 'landmarks',
+		data: landmarksFinder.allDepthsRolesLabelsSelectors()
+	})
 }
 
 function findLandmarksAndUpdateExtension() {
@@ -242,6 +224,14 @@ function bootstrap() {
 	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
 	findLandmarksAndUpdateExtension()  // TODO try removing
 	setUpMutationObserver()
+
+	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+		browser.runtime.connect({ name: 'disconnect-checker' })
+			.onDisconnect.addListener(function() {
+				logger.log('Content script disconnected.')
+				observer.disconnect()
+			})
+	}
 }
 
 bootstrap()

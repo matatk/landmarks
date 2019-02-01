@@ -118,6 +118,8 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				connectingPort.onMessage.addListener(
 					devtoolsListenerMaker(connectingPort))
 				break
+			case 'disconnect-checker':  // Used on Chrome, Opera and Edge
+				break
 			default:
 				throw Error(`Unkown connection type ${connectingPort.name}`)
 		}
