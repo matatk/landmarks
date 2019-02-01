@@ -54,12 +54,6 @@ function sendToDevToolsIfActiveScriptableAndOpen(sendingTabId, message) {
 	})
 }
 
-function sendNullLandmarksToGUIs(activeTabId) {
-	const nullLandmarksMessage = { name: 'landmarks', data: null }
-	browser.runtime.sendMessage(nullLandmarksMessage)
-	sendToDevToolsForTab(activeTabId, nullLandmarksMessage)
-}
-
 
 if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 	//
@@ -93,8 +87,8 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 						if (isContentScriptablePage(activeTabUrl)) {
 							browser.tabs.sendMessage(activeTabId, message)
 						} else {
-							sendNullLandmarksToGUIs(activeTabId)
-							// TODO only send to DevTools?
+							sendToDevToolsForTab(activeTabId,
+								{ name: 'landmarks', data: null })
 						}
 					})
 					break
@@ -272,7 +266,8 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
 			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
 		} else {
-			sendNullLandmarksToGUIs(tab.id)
+			browser.runtime.sendMessage({ name: 'landmarks', data: null })
+			sendToDevToolsForTab(tab.id, { name: 'landmarks', data: null })
 		}
 	})
 })
