@@ -1,6 +1,6 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
-import isContentScriptablePage from './isContentScriptablePage'
+import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
 import Logger from './logger'
 import sendToActiveTab from './sendToActiveTab'
