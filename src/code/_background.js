@@ -37,7 +37,9 @@ function sendToDevToolsForTab(tabId, message) {
 
 function doWithActiveTabIdUrl(stuff) {
 	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		stuff(tabs[0].id, tabs[0].url)
+		if (tabs.length === 1) {  // Chrome seems prone to returning zero tabs
+			stuff(tabs[0].id, tabs[0].url)
+		}
 	})
 }
 

@@ -5,9 +5,8 @@ const contentScriptInjector = BROWSER === 'firefox' ? null : function() {
 	browser.tabs.query({}, function(tabs) {
 		for (const i in tabs) {
 			if (isContentScriptablePage(tabs[i].url)) {
-				browser.tabs.executeScript(tabs[i].id, {
-					file: 'content.js'
-				})
+				browser.tabs.executeScript(tabs[i].id, { file: 'content.js' },
+					() => browser.runtime.lastError)
 			}
 		}
 	})
