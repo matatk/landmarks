@@ -50,7 +50,7 @@ function sendToDevToolsIfActiveScriptableAndOpen(sendingTabId, message) {
 			if (isContentScriptablePage(activeTabUrl)) {
 				sendToDevToolsForTab(activeTabId, message)
 			}
-		}  // TODO check if else ever happens
+		}
 	})
 }
 
