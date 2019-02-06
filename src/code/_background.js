@@ -21,6 +21,16 @@ function checkBrowserActionState(tabId, url) {
 	}
 }
 
+function updateGUIs(tabId, url) {
+	if (isContentScriptablePage(url)) {
+		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
+		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
+	} else {
+		browser.runtime.sendMessage({ name: 'landmarks', data: null })
+		sendToDevToolsForTab(tabId, { name: 'landmarks', data: null })
+	}
+}
+
 function sendToDevToolsForTab(tabId, message) {
 	if (devtoolsConnections.hasOwnProperty(tabId)) {
 		devtoolsConnections[tabId].postMessage(message)
@@ -207,6 +217,7 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
 	checkBrowserActionState(details.tabId, details.url)
+	updateGUIs(details.tabId, details.url)
 })
 
 // If the page uses 'single-page app' techniques to load in new components --
@@ -240,13 +251,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		if (isContentScriptablePage(tab.url)) {
-			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
-			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
-		} else {
-			browser.runtime.sendMessage({ name: 'landmarks', data: null })
-			sendToDevToolsForTab(tab.id, { name: 'landmarks', data: null })
-		}
+		updateGUIs(tab.id, tab.url)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
