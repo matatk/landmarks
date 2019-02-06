@@ -2,8 +2,8 @@ import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
-import sendToActiveTab from './sendToActiveTab'
 import unexpectedMessageError from './unexpectedMessageError'
+import { isContentScriptablePage } from './isContent'
 
 let port = null  // DevTools-only - TODO does this get tree-shaken?
 
@@ -80,7 +80,7 @@ function makeLandmarksTree(landmarks, container) {
 		const item = document.createElement('li')
 		const button = makeButtonAlreadyTranslated(
 			function() {
-				focusLandmark(index)
+				send({ name: 'focus-landmark', index: index })
 			},
 			landmarkName(landmark))
 		item.appendChild(button)
@@ -111,17 +111,6 @@ function makeLandmarksTree(landmarks, container) {
 	})
 
 	container.appendChild(root)
-}
-
-// When a landmark's corresponding button in the UI is clicked, focus it
-// TODO DRY with flipToggle?
-function focusLandmark(index) {
-	const message = { name: 'focus-landmark', index: index }
-	if (INTERFACE !== 'devtools') {
-		sendToActiveTab(message)  // TODO does the import get tree-shaken?
-	} else {
-		port.postMessage(message)
-	}
 }
 
 // Remove all nodes contained within a node
@@ -164,35 +153,6 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	}
 	button.onclick = onClick
 	return button
-}
-
-
-//
-// Toggling all landmarks
-//
-
-function handleToggleStateMessage(state) {
-	const box = document.getElementById('show-all')
-	switch(state) {
-		case 'selected':
-			box.checked = false
-			break
-		case 'all':
-			box.checked = true
-			break
-		default:
-			throw Error(`Unexpected toggle state ${state} given.`)
-	}
-}
-
-// TODO DRY with focusLandmark?
-function flipToggle() {
-	const message = { name: 'toggle-all-landmarks' }
-	if (INTERFACE !== 'devtools') {
-		sendToActiveTab(message)  // TODO does the import get tree-shaken?
-	} else {
-		port.postMessage(message)
-	}
 }
 
 
@@ -302,6 +262,20 @@ function makeEventHandlers(linkName) {
 	})
 }
 
+// TODO this leaves an anonymous code block in the devtools script
+function send(message) {
+	if (INTERFACE === 'devtools') {
+		const messageWithTabId = Object.assign({}, message, {
+			from: browser.devtools.inspectedWindow.tabId
+		})
+		port.postMessage(messageWithTabId)
+	} else {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			browser.tabs.sendMessage(tabs[0].id, message)
+		})
+	}
+}
+
 function messageHandler(message, sender) {
 	// If this GUI is not the DevTools panel, then we should check that the
 	// message relates to the active tab first. If it is the DevTools panel,
@@ -335,6 +309,20 @@ function messageHandler(message, sender) {
 	}
 }
 
+function handleToggleStateMessage(state) {
+	const box = document.getElementById('show-all')
+	switch(state) {
+		case 'selected':
+			box.checked = false
+			break
+		case 'all':
+			box.checked = true
+			break
+		default:
+			throw Error(`Unexpected toggle state ${state} given.`)
+	}
+}
+
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 //
@@ -349,7 +337,6 @@ function main() {
 		document.getElementById('links').remove()
 
 		port = browser.runtime.connect({ name: INTERFACE })
-
 		if (BROWSER === 'chrome' || BROWSER === 'opera') {
 			// DevTools page doesn't get reloaded when the extension does
 			port.onDisconnect.addListener(function() {
@@ -374,18 +361,34 @@ function main() {
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
-		port.postMessage({ name: 'get-landmarks' })
-		port.postMessage({ name: 'get-toggle-state' })
+
+		// The checking for if the page is scriptable is done at the other end
+		send({ name: 'get-landmarks' })
+		send({ name: 'get-toggle-state' })
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')
+
 		browser.runtime.onMessage.addListener(messageHandler)
-		sendToActiveTab({ name: 'get-landmarks' })
-		sendToActiveTab({ name: 'get-toggle-state' })
+
+		// Most GUIs can check that they are running on a content-scriptable
+		// page (DevTools doesn't have access to browser.tabs)
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			browser.tabs.get(tabs[0].id, function(tab) {
+				if (!isContentScriptablePage(tab.url)) {
+					handleLandmarksMessage(null)
+					return
+				}
+				browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
+				browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
+			})
+		})
 	}
 
+	document.getElementById('show-all').addEventListener('change', function() {
+		send({ name: 'toggle-all-landmarks' })
+	})
 	translate()
-	document.getElementById('show-all').addEventListener('change', flipToggle)
 }
 
 main()

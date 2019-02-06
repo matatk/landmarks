@@ -3,7 +3,6 @@ import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
 import Logger from './logger'
-import sendToActiveTab from './sendToActiveTab'
 import unexpectedMessageError from './unexpectedMessageError'
 
 const logger = new Logger(window)
@@ -22,36 +21,10 @@ function checkBrowserActionState(tabId, url) {
 	}
 }
 
-function updateBrowserActionBadge(tabId, numberOfLandmarks) {
-	browser.browserAction.setBadgeText({
-		text: numberOfLandmarks <= 0 ? '' : String(numberOfLandmarks),
-		tabId: tabId
-	})
-}
-
 function sendToDevToolsForTab(tabId, message) {
 	if (devtoolsConnections.hasOwnProperty(tabId)) {
 		devtoolsConnections[tabId].postMessage(message)
 	}
-}
-
-function doWithActiveTabIdUrl(stuff) {
-	browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		if (tabs.length === 1) {  // Chrome seems prone to returning zero tabs
-			stuff(tabs[0].id, tabs[0].url)
-		}
-	})
-}
-
-function sendToDevToolsIfActiveScriptableAndOpen(sendingTabId, message) {
-	// If the message came from a GUI, we will've set sendingTabId to null
-	doWithActiveTabIdUrl(function(activeTabId, activeTabUrl) {
-		if (!sendingTabId || (sendingTabId === activeTabId)) {
-			if (isContentScriptablePage(activeTabUrl)) {
-				sendToDevToolsForTab(activeTabId, message)
-			}
-		}
-	})
 }
 
 
@@ -83,12 +56,16 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'get-toggle-state':
 				case 'focus-landmark':
 				case 'toggle-all-landmarks':
-					doWithActiveTabIdUrl(function(activeTabId, activeTabUrl) {
-						if (isContentScriptablePage(activeTabUrl)) {
-							browser.tabs.sendMessage(activeTabId, message)
+					// The DevTools panel can't check if it's on a scriptable
+					// page, so we do that here. Other GUIs check themselves.
+					browser.tabs.get(message.from, function(tab) {
+						if (isContentScriptablePage(tab.url)) {
+							browser.tabs.sendMessage(tab.id, message)
 						} else {
-							sendToDevToolsForTab(activeTabId,
-								{ name: 'landmarks', data: null })
+							connectingPort.postMessage({
+								name: 'landmarks',
+								data: null
+							})
 						}
 					})
 					break
@@ -196,7 +173,11 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
-			sendToActiveTab({ name: command })
+			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+				if (isContentScriptablePage(tabs[0].url)) {
+					browser.tabs.sendMessage(tabs[0].id, { name: command })
+				}
+			})
 			break
 		default:
 			throw Error(`Unexpected command ${JSON.stringify(command)}`)
@@ -249,17 +230,14 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       on Firefox and three times on Chrome. For YouTube, some transitions
 //       only cause this to fire once. Could it be to do with
 //       <https://developer.chrome.com/extensions/background_pages#filters>?
+//       Or could it be because we're not checking if the state *was* updated?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
-		sendToActiveTab({ name: 'trigger-refresh' })
+		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
 })
 
-// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes back
-//       as "about:blank" which makes Landmarks think it can't run on that
-//       page, and sends the null landmarks message, which appears briefly
-//       before the content script sends back the actual landmarks.
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
 		if (isContentScriptablePage(tab.url)) {
@@ -270,6 +248,10 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 			sendToDevToolsForTab(tab.id, { name: 'landmarks', data: null })
 		}
 	})
+	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
+	//       back as "about:blank" which makes Landmarks think it can't run on
+	//       that page, and sends the null landmarks message, which appears
+	//       briefly before the content script sends back the actual landmarks.
 })
 
 
@@ -312,13 +294,17 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		// Note: Background can send this to GUIs, but it wouldn't be picked
 		//       up here.
 		case 'landmarks':
-			updateBrowserActionBadge(sender.tab.id, message.data.length)
-			sendToDevToolsIfActiveScriptableAndOpen(sender.tab.id, message)
+			browser.browserAction.setBadgeText({
+				text: message.data.length <= 0
+					? '' : String(message.data.length),
+				tabId: sender.tab.id
+			})
+			sendToDevToolsForTab(sender.tab.id, message)
 			break
 		// Splash
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
-				sendToActiveTab({
+				browser.tabs.sendMessage(sender.tab.id, {
 					name: 'populate-commands',
 					commands: commands
 				})
@@ -342,7 +328,9 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		// Messages DevTools panel needs to know
 		case 'toggle-state-is':
-			sendToDevToolsIfActiveScriptableAndOpen(null, message)
+			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+				sendToDevToolsForTab(tabs[0].id, message)
+			})
 			break
 		// Messages we don't handle here
 		case 'toggle-all-landmarks':
