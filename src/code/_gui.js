@@ -276,38 +276,21 @@ function send(message) {
 	}
 }
 
-function messageHandler(message, sender) {
-	// If this GUI is not the DevTools panel, then we should check that the
-	// message relates to the active tab first. If it is the DevTools panel,
-	// that check has already been done by the background script, so just
-	// process the message.
-	if (INTERFACE !== 'devtools') {
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			const activeTabId = tabs[0].id
-			if (!sender.tab || sender.tab.id === activeTabId) {
-				messageHandlerCore(message.name)
-			}
-		})
-	} else {
-		messageHandlerCore(message.name)
-	}
-
-	function messageHandlerCore(messageName) {
-		switch (messageName) {
-			case 'landmarks':
-				handleLandmarksMessage(message.data)
-				break
-			case 'toggle-state-is':
-				handleToggleStateMessage(message.data)
-				break
-			// Messages we don't handle here
-			case 'toggle-all-landmarks':
-				break
-			case 'get-commands':
-				break
-			default:
-				throw unexpectedMessageError(message, sender)
-		}
+function messageHandlerCore(message, sender) {
+	switch (message.name) {
+		case 'landmarks':
+			handleLandmarksMessage(message.data)
+			break
+		case 'toggle-state-is':
+			handleToggleStateMessage(message.data)
+			break
+		// Messages we don't handle here
+		case 'toggle-all-landmarks':
+			break
+		case 'get-commands':
+			break
+		default:
+			throw unexpectedMessageError(message, sender)
 	}
 }
 
@@ -358,23 +341,33 @@ function main() {
 			})
 		}
 
-		port.onMessage.addListener(messageHandler)
+		browser.runtime.onMessage.addListener(messageHandlerCore)
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
 
-		// The checking for if the page is scriptable is done at the other end
+		// The checking for if the page is scriptable is done at the other end.
 		send({ name: 'get-landmarks' })
 		send({ name: 'get-toggle-state' })
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')
 
-		browser.runtime.onMessage.addListener(messageHandler)
+		// The message could be coming from any content script or other GUI, so
+		// it needs to be filtered. (The background script filters out messages
+		// for the DevTools panel.)
+		port.onMessage.addListener(function(message, sender) {
+			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+				const activeTabId = tabs[0].id
+				if (!sender.tab || sender.tab.id === activeTabId) {
+					messageHandlerCore(message, sender)
+				}
+			})
+		})
 
 		// Most GUIs can check that they are running on a content-scriptable
-		// page (DevTools doesn't have access to browser.tabs)
+		// page (DevTools doesn't have access to browser.tabs).
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 			browser.tabs.get(tabs[0].id, function(tab) {
 				if (!isContentScriptablePage(tab.url)) {
@@ -390,6 +383,7 @@ function main() {
 	document.getElementById('show-all').addEventListener('change', function() {
 		send({ name: 'toggle-all-landmarks' })
 	})
+
 	translate()
 }
 
