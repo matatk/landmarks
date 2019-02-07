@@ -5,7 +5,6 @@ import PauseHandler from './pauseHandler'
 import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
-import unexpectedMessageError from './unexpectedMessageError'
 
 const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
@@ -22,7 +21,7 @@ let observer = null
 // Extension message management
 //
 
-function messageHandler(message, sender) {  // also sendResponse
+function messageHandler(message) {
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -88,17 +87,6 @@ function messageHandler(message, sender) {  // also sendResponse
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
-			break
-		// Splash (handled elsewhere)
-		case 'populate-commands':
-			break
-		// TODO Not sure why we are receiving messages from other tabs
-		case 'landmarks':
-			break
-		case 'toggle-state-is':
-			break
-		default:
-			throw unexpectedMessageError(message, sender)
 	}
 }
 

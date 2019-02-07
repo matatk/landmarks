@@ -2,7 +2,6 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
-import unexpectedMessageError from './unexpectedMessageError'
 
 const devtoolsConnections = {}
 
@@ -69,9 +68,6 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 							})
 						}
 					})
-					break
-				default:
-					throw Error(`Unexpected message from DevTools: ${JSON.stringify(message)}`)
 			}
 		}
 	}
@@ -179,9 +175,6 @@ browser.commands.onCommand.addListener(function(command) {
 					browser.tabs.sendMessage(tabs[0].id, { name: command })
 				}
 			})
-			break
-		default:
-			throw Error(`Unexpected command ${JSON.stringify(command)}`)
 	}
 })
 
@@ -327,11 +320,5 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
-			break
-		// Messages we don't handle here
-		case 'toggle-all-landmarks':
-			break
-		default:
-			throw unexpectedMessageError(message, sender)
 	}
 })

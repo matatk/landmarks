@@ -2,7 +2,6 @@ import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
-import unexpectedMessageError from './unexpectedMessageError'
 import { isContentScriptablePage } from './isContent'
 
 let port = null  // DevTools-only - TODO does this get tree-shaken?
@@ -276,21 +275,11 @@ function send(message) {
 	}
 }
 
-function messageHandlerCore(message, sender) {
-	switch (message.name) {
-		case 'landmarks':
-			handleLandmarksMessage(message.data)
-			break
-		case 'toggle-state-is':
-			handleToggleStateMessage(message.data)
-			break
-		// Messages we don't handle here
-		case 'toggle-all-landmarks':
-			break
-		case 'get-commands':
-			break
-		default:
-			throw unexpectedMessageError(message, sender)
+function messageHandlerCore(message) {
+	if (message.name === 'landmarks') {
+		handleLandmarksMessage(message.data)
+	} else if (message.name === 'toggle-state-is') {
+		handleToggleStateMessage(message.data)
 	}
 }
 
