@@ -303,6 +303,8 @@ function messageHandler(message, sender) {
 			// Messages we don't handle here
 			case 'toggle-all-landmarks':
 				break
+			case 'get-commands':
+				break
 			default:
 				throw unexpectedMessageError(message, sender)
 		}

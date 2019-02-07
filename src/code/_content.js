@@ -92,12 +92,10 @@ function messageHandler(message, sender) {  // also sendResponse
 		// Splash (handled elsewhere)
 		case 'populate-commands':
 			break
-		// This shouldn't happen
+		// TODO Not sure why we are receiving messages from other tabs
 		case 'landmarks':
-			// FIXME
 			break
 		case 'toggle-state-is':
-			// FIXME
 			break
 		default:
 			throw unexpectedMessageError(message, sender)
