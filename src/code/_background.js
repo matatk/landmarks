@@ -2,10 +2,8 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
-import Logger from './logger'
 import unexpectedMessageError from './unexpectedMessageError'
 
-const logger = new Logger(window)
 const devtoolsConnections = {}
 
 
@@ -21,6 +19,12 @@ function checkBrowserActionState(tabId, url) {
 	}
 }
 
+function sendToDevToolsForTab(tabId, message) {
+	if (devtoolsConnections.hasOwnProperty(tabId)) {
+		devtoolsConnections[tabId].postMessage(message)
+	}
+}
+
 function updateGUIs(tabId, url) {
 	if (isContentScriptablePage(url)) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
@@ -31,23 +35,11 @@ function updateGUIs(tabId, url) {
 	}
 }
 
-function sendToDevToolsForTab(tabId, message) {
-	if (devtoolsConnections.hasOwnProperty(tabId)) {
-		devtoolsConnections[tabId].postMessage(message)
-	}
-}
-
 
 if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 	//
 	// Setting up and handling DevTools connections
 	//
-
-	// eslint-disable-next-line no-inner-declarations
-	function devtoolsDisconnect(tabId) {
-		logger.log(`DevTools page for tab ${tabId} disconnected`)
-		delete devtoolsConnections[tabId]
-	}
 
 	// eslint-disable-next-line no-inner-declarations
 	function devtoolsListenerMaker(connectingPort) {
@@ -56,10 +48,9 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 		return function(message) {
 			switch (message.name) {
 				case 'init':
-					logger.log(`DevTools page for tab ${message.tabId} connected`)
 					devtoolsConnections[message.tabId] = connectingPort
 					connectingPort.onDisconnect.addListener(function() {
-						devtoolsDisconnect(message.tabId)
+						delete devtoolsConnections[message.tabId]
 					})
 					break
 				case 'get-landmarks':
