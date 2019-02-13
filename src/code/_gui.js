@@ -4,7 +4,7 @@ import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
 import { isContentScriptablePage } from './isContent'
 
-let port = null  // DevTools-only - TODO does this get tree-shaken?
+let port = null
 
 
 //
@@ -300,12 +300,11 @@ function handleToggleStateMessage(state) {
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 //
-// TODO: the below comment shouldn't be needed?
 // Note: Firefox and Edge don't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
-//       This is a bit hacky, as these browsers really aren't using it, but at
-//       least it keeps all the code here, rather than putting some separately
-//       in the build script.
+//       This is a bit hacky, as these browsers really aren't using it, so
+//       shouldn't really have it, but at least it keeps all the code here,
+//       rather than putting some separately in the build script.
 function main() {
 	if (INTERFACE === 'devtools') {
 		document.getElementById('links').remove()
