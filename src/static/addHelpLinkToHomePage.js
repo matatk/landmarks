@@ -10,13 +10,7 @@ para.style.fontWeight = 'bold'
 
 const link = document.createElement('a')
 link.href = '#'
-link.onclick = function() {
-	const port = browser.runtime.connect({ name: 'splash' })
-	port.postMessage({
-		name: 'open-help'
-	})
-	port.disconnect()
-}
+link.onclick = () => browser.runtime.sendMessage({ name: 'open-help' })
 link.appendChild(document.createTextNode(
 	"You've already got the Landmarks extension; visit the help page..."))
 link.style.color = 'white'

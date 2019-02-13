@@ -15,44 +15,39 @@ const pauseHandler = new PauseHandler(logger)
 
 const outOfDateTime = 2000
 let observer = null
-let port = null
 
 
 //
 // Extension message management
 //
 
-function messageHandler(message, sendingPort) {
+function messageHandler(message) {
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			handleOutdatedResults()
-			sendingPort.postMessage({
-				name: 'landmarks',
-				data: landmarksFinder.allDepthsRolesLabelsSelectors()
-			})
+			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by clicking on an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(() =>
 				landmarksFinder.getLandmarkElementRoleLabel(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(landmarksFinder.getNextLandmarkElementRoleLabel)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			checkFocusElement(
 				landmarksFinder.getPreviousLandmarkElementRoleLabel)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
@@ -63,7 +58,7 @@ function messageHandler(message, sendingPort) {
 		}
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
-			handleOutdatedResults()
+			checkAndUpdateOutdatedResults()
 			if (thereMustBeLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
@@ -76,8 +71,8 @@ function messageHandler(message, sendingPort) {
 			}
 			// eslint-disable-next-line no-fallthrough
 		case 'get-toggle-state':
-			sendingPort.postMessage({
-				name: 'toggle-state',
+			browser.runtime.sendMessage({
+				name: 'toggle-state-is',
 				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
 			})
 			break
@@ -91,18 +86,17 @@ function messageHandler(message, sendingPort) {
 			logger.log('Landmarks: refresh triggered')
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
-			findLandmarksAndUpdateBackgroundScript()
-			break
-		default:
-			throw Error(`Unexpected message: ${JSON.stringify(message)}; sender: ${JSON.stringify(sendingPort)}`)
+			findLandmarksAndUpdateExtension()
 	}
 }
 
-function handleOutdatedResults() {
+function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
 		logger.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
-		findLandmarksAndUpdateBackgroundScript()
+		findLandmarksAndUpdateExtension()
+		return true
 	}
+	return false
 }
 
 function thereMustBeLandmarks() {
@@ -114,7 +108,7 @@ function thereMustBeLandmarks() {
 }
 
 function checkFocusElement(callbackReturningElementInfo) {
-	if(thereMustBeLandmarks()) {
+	if (thereMustBeLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
 }
@@ -124,13 +118,17 @@ function checkFocusElement(callbackReturningElementInfo) {
 // Actually finding landmarks
 //
 
-function findLandmarksAndUpdateBackgroundScript() {
-	logger.timeStamp('findLandmarksAndUpdateBackgroundScript()')
-	landmarksFinder.find()
-	port.postMessage({
+function sendLandmarks() {
+	browser.runtime.sendMessage({
 		name: 'landmarks',
 		data: landmarksFinder.allDepthsRolesLabelsSelectors()
 	})
+}
+
+function findLandmarksAndUpdateExtension() {
+	logger.timeStamp('findLandmarksAndUpdateExtension()')
+	landmarksFinder.find()
+	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
@@ -188,10 +186,10 @@ function setUpMutationObserver() {
 			function() {
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')
-					findLandmarksAndUpdateBackgroundScript()
+					findLandmarksAndUpdateExtension()
 				}
 			},
-			findLandmarksAndUpdateBackgroundScript)
+			findLandmarksAndUpdateExtension)
 	})
 
 	observer.observe(document, {
@@ -206,76 +204,20 @@ function setUpMutationObserver() {
 
 function bootstrap() {
 	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
-
-	port = browser.runtime.connect({ name: 'content' })
-	port.onDisconnect.addListener(function() {
-		// If the port disconnected normally, then on Chrome-like browsers this
-		// means the extension was unloaded and the content script has been
-		// orphaned, so we should stop the mutation observer.
-		//
-		// If the port disconnected with an error, it's most likely to occur on
-		// Firefox when the background script has not loaded and set up its
-		// listener yet. In this case, we would desist and wait for the
-		// background script to tell us we can try connecting to it again.
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
-		//
-		// However, we don't need to check for an error on Firefox, because the
-		// normal onDisconnect event is not received by content scripts when
-		// they're cleaned up, therefore the behaviour is actually the same no
-		// matter the browser on which we're running...
-		logger.log(`Port disconnected from ${window.location}`)
-		try {
-			observer.disconnect()
-			observer = null
-		} catch (error) {
-			logger.log(`Error whilst attempting to disconnect ${window.location} observer: ${error}`)
-		}
-	})
-	port.onMessage.addListener(messageHandler)
+	browser.runtime.onMessage.addListener(messageHandler)
 
 	// At the start, the ElementFocuser is always managing borders
-	port.postMessage({ name: 'toggle-state', data: 'selected' })
-	findLandmarksAndUpdateBackgroundScript()  // TODO try removing
+	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
+	findLandmarksAndUpdateExtension()  // TODO try removing
 	setUpMutationObserver()
+
+	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+		browser.runtime.connect({ name: 'disconnect-checker' })
+			.onDisconnect.addListener(function() {
+				logger.log('Content script disconnected.')
+				observer.disconnect()
+			})
+	}
 }
 
 bootstrap()
-
-if (BROWSER === 'firefox') {
-	// Firefox doesn't re-inject content scripts attatched to pages from which
-	// the user has moved away, but that haven't actually been destroyed yet.
-	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1390715
-	//
-	// Unfortunately that doesn't work here; when it doesn't work, the
-	// content script never receives this event in order to tell it to reload
-	// the script.
-	/* window.addEventListener('pageshow', function(event) {
-		if (event.target !== window.document) return
-		logger.log(`Page ${window.location} shown - re-booting...`)
-		try {
-			observer.disconnect()
-			observer = null
-			port.disconnect()
-			port = null
-		} catch (error) {
-			logger.log(`Error whilst attempting to disconnect observer: ${error}`)
-		}
-		bootstrap()
-	}) */
-
-	// Firefox loads content scripts into existing tabs before the background
-	// script, meaning that we may not have a background script to connect to
-	// with the port. If that's the case, we have to wait for a workaround
-	// message from the background script, to ask us to ry to connect.
-	// Thanks https://bugzilla.mozilla.org/show_bug.cgi?id=1474727#c3
-	browser.runtime.onMessage.addListener(function(message) {
-		switch (message.name) {
-			case 'FirefoxWorkaround':
-				logger.log(`Background script requesting connection from ${window.location.href}`)
-				bootstrap()
-				break
-			default:
-				throw Error(`Unknown message ${message} received.`)
-		}
-	})
-}

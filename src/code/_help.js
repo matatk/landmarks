@@ -1,6 +1,3 @@
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
-
-let port
 let shortcutNotSet = false
 
 const shortcutTableRows = [
@@ -20,14 +17,14 @@ const keyboardShortcutsLink = {
 	content: 'Add or change shortcuts',
 	listen: [{
 		event: 'click',
-		handler: () => port.postMessage({
+		handler: () => browser.runtime.sendMessage({
 			name: 'open-configure-shortcuts'
 		})
 	}, {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
-				port.postMessage({
+				browser.runtime.sendMessage({
 					name: 'open-configure-shortcuts'
 				})
 			}
@@ -43,16 +40,14 @@ const settingsLink = {
 	listen: [{
 		event: 'click',
 		handler: () => {
-			port.postMessage({
-				name: 'open-settings'
-			})
+			browser.runtime.sendMessage({ name: 'open-settings' })
 		}
 	}, {
 		event: 'keydown',
 		handler: (event) => {
 			if (event.key === 'Enter') {
-				port.postMessage({
-					name: 'open-configure-shortcuts'
+				browser.runtime.sendMessage({
+					name: 'open-configure-shortcuts'  // FIXME
 				})
 			}
 		}
@@ -159,7 +154,7 @@ function firefoxShortcutElements(shortcut) {
 	return shortcutElements
 }
 
-function messageHandler(message) {  // also sendingPort
+function messageHandler(message) {  // also sender, sendResponse
 	if (message.name !== 'populate-commands') return
 
 	// Chrome allows only four keyboard shortcuts to be specified in the
@@ -249,10 +244,8 @@ function allowLinksToOpenSections() {
 }
 
 function main() {
-	port = browser.runtime.connect({ name: 'splash' })
-	port.onDisconnect.addListener(disconnectingPortErrorCheck)
-	port.onMessage.addListener(messageHandler)
-	port.postMessage({ name: 'get-commands' })
+	browser.runtime.onMessage.addListener(messageHandler)
+	browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER !== 'firefox' && BROWSER !== 'opera') {
 		document.getElementById('section-sidebar').open = false

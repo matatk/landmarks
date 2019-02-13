@@ -2,9 +2,10 @@ import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, dismissalStates } from './defaults'
-import disconnectingPortErrorCheck from './disconnectingPortErrorCheck'
+import { isContentScriptablePage } from './isContent'
 
 let port = null
+
 
 //
 // Creating a landmarks tree in response to info from content script
@@ -34,7 +35,7 @@ function handleLandmarksMessage(data) {
 			showAllContainer.style.display = null
 		}
 	} else {
-		addText(display, browser.i18n.getMessage('errorNoConnection'))
+		addText(display, browser.i18n.getMessage('forbiddenPage'))
 		showAllContainer.style.display = 'none'
 	}
 }
@@ -78,7 +79,7 @@ function makeLandmarksTree(landmarks, container) {
 		const item = document.createElement('li')
 		const button = makeButtonAlreadyTranslated(
 			function() {
-				focusLandmark(index)
+				send({ name: 'focus-landmark', index: index })
 			},
 			landmarkName(landmark))
 		item.appendChild(button)
@@ -110,11 +111,6 @@ function makeLandmarksTree(landmarks, container) {
 
 	container.appendChild(root)
 }
-
-
-//
-// DOM manipulation utilities
-//
 
 // Remove all nodes contained within a node
 function removeChildNodes(element) {
@@ -156,42 +152,6 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	}
 	button.onclick = onClick
 	return button
-}
-
-
-//
-// General utilities
-//
-
-// When a landmark's corresponding button in the UI is clicked, focus it
-function focusLandmark(index) {
-	port.postMessage({
-		name: 'focus-landmark',
-		index: index
-	})
-}
-
-
-//
-// Toggling all landmarks
-//
-
-function handleToggleStateMessage(state) {
-	const box = document.getElementById('show-all')
-	switch(state) {
-		case 'selected':
-			box.checked = false
-			break
-		case 'all':
-			box.checked = true
-			break
-		default:
-			throw Error(`Unknown state ${state} given.`)
-	}
-}
-
-function flipToggle() {
-	port.postMessage({ name: 'toggle-all-landmarks' })
 }
 
 
@@ -266,7 +226,7 @@ if (INTERFACE === 'sidebar') {
 				case 'popup': createNote()
 					break
 				default:
-					throw Error(`Unknown interface type "${changes.interface.newValue}`)
+					throw Error(`Unexpected interface type "${changes.interface.newValue}`)
 			}
 		}
 
@@ -291,7 +251,7 @@ if (INTERFACE === 'sidebar') {
 function makeEventHandlers(linkName) {
 	const link = document.getElementById(linkName)
 	const core = () => {
-		port.postMessage({ name: `open-${linkName}` })
+		browser.runtime.sendMessage({ name: `open-${linkName}` })
 		if (INTERFACE === 'popup') window.close()
 	}
 
@@ -301,64 +261,119 @@ function makeEventHandlers(linkName) {
 	})
 }
 
+// TODO this leaves an anonymous code block in the devtools script
+function send(message) {
+	if (INTERFACE === 'devtools') {
+		const messageWithTabId = Object.assign({}, message, {
+			from: browser.devtools.inspectedWindow.tabId
+		})
+		port.postMessage(messageWithTabId)
+	} else {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			browser.tabs.sendMessage(tabs[0].id, message)
+		})
+	}
+}
+
+function messageHandlerCore(message) {
+	if (message.name === 'landmarks') {
+		handleLandmarksMessage(message.data)
+	} else if (message.name === 'toggle-state-is') {
+		handleToggleStateMessage(message.data)
+	}
+}
+
+function handleToggleStateMessage(state) {
+	const box = document.getElementById('show-all')
+	switch(state) {
+		case 'selected':
+			box.checked = false
+			break
+		case 'all':
+			box.checked = true
+			break
+		default:
+			throw Error(`Unexpected toggle state ${state} given.`)
+	}
+}
+
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
+//
+// Note: Firefox and Edge don't use 'devToolsConnectionError' but if it is not
+//       mentioned here, the build will not pass the unused messages check.
+//       This is a bit hacky, as these browsers really aren't using it, so
+//       shouldn't really have it, but at least it keeps all the code here,
+//       rather than putting some separately in the build script.
 function main() {
 	if (INTERFACE === 'devtools') {
 		document.getElementById('links').remove()
 
 		port = browser.runtime.connect({ name: INTERFACE })
+		if (BROWSER === 'chrome' || BROWSER === 'opera') {
+			// DevTools page doesn't get reloaded when the extension does
+			port.onDisconnect.addListener(function() {
+				// TODO use styles presently in help.css (currently hardcoded)
+				const para = document.createElement('p')
+				para.style.margin = '1em'
+				para.style.padding = '1em'
+				para.style.border = '1px solid #d00'
+				para.style.borderRadius = '1em'
+				const strong = document.createElement('strong')
+				strong.style.color = '#d00'
+				strong.appendChild(document.createTextNode(
+					browser.i18n.getMessage('devToolsConnectionError')))
+				para.appendChild(strong)
+				document.body.insertBefore(para, document.body.firstChild)
+				document.body.style.backgroundColor = '#fee'
+			})
+		}
+
+		port.onMessage.addListener(messageHandlerCore)
+
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
+
+		// The checking for if the page is scriptable is done at the other end.
+		send({ name: 'get-landmarks' })
+		send({ name: 'get-toggle-state' })
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')
 
-		port = browser.runtime.connect({ name: INTERFACE })
+		// The message could be coming from any content script or other GUI, so
+		// it needs to be filtered. (The background script filters out messages
+		// for the DevTools panel.)
+		browser.runtime.onMessage.addListener(function(message, sender) {
+			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+				const activeTabId = tabs[0].id
+				if (!sender.tab || sender.tab.id === activeTabId) {
+					messageHandlerCore(message, sender)
+				}
+			})
+		})
+
+		// Most GUIs can check that they are running on a content-scriptable
+		// page (DevTools doesn't have access to browser.tabs).
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			browser.tabs.get(tabs[0].id, function(tab) {
+				if (!isContentScriptablePage(tab.url)) {
+					handleLandmarksMessage(null)
+					return
+				}
+				browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
+				browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
+			})
+		})
 	}
 
+	document.getElementById('show-all').addEventListener('change', function() {
+		send({ name: 'toggle-all-landmarks' })
+	})
+
 	translate()
-
-	port.onDisconnect.addListener(function() {
-		disconnectingPortErrorCheck()
-		// Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
-		//       mentioned here, the build will not pass the unused messages
-		//       check. This is a bit hacky, as Firefox really isn't using it,
-		//       but at least it keeps all the code here, rather than putting
-		//       some separately in the build script.
-		if (INTERFACE === 'devtools'
-			&& (BROWSER === 'chrome' || BROWSER === 'opera')) {
-			// DevTools page doesn't get reloaded when the extension does
-			const para = document.createElement('p')
-			const warning = document.createTextNode(
-				browser.i18n.getMessage('devToolsConnectionError'))
-			para.appendChild(warning)
-			document.body.insertBefore(para,
-				document.querySelector('h1').nextSibling)
-			document.body.style.backgroundColor = '#fee'
-			// TODO make this use the note styles; will need some refactoring
-		}
-	})
-
-	port.onMessage.addListener(function(message) {
-		switch (message.name) {
-			case 'landmarks':
-				handleLandmarksMessage(message.data)
-				break
-			case 'toggle-state':
-				handleToggleStateMessage(message.data)
-				break
-			default:
-				throw Error(`Unkown message ${JSON.stringify(message)}`)
-		}
-	})
-
-	port.postMessage({ name: 'get-landmarks' })
-	port.postMessage({ name: 'get-toggle-state' })
-
-	document.getElementById('show-all').addEventListener('change', flipToggle)
 }
 
 main()

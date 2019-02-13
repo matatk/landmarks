@@ -41,7 +41,7 @@
     "message": "Show all landmarks"
   },
 
-  "errorNoConnection": {
+  "forbiddenPage": {
     "message": "Landmarks is not allowed to run on this page."
   },
 
