@@ -3,7 +3,7 @@ import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
 
-const devtoolsConnections = {}
+const devtoolsConnections = {}  // TODO tree-shake, or not, as Edge will do it
 
 
 //
@@ -30,7 +30,7 @@ function updateGUIs(tabId, url) {
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
-		sendToDevToolsForTab(tabId, { name: 'landmarks', data: null })
+		// DevTools panel doesn't need updating, as it maintains state
 	}
 }
 
@@ -41,14 +41,14 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 	//
 
 	// eslint-disable-next-line no-inner-declarations
-	function devtoolsListenerMaker(connectingPort) {
+	function devtoolsListenerMaker(port) {
 		// DevTools connections come from the DevTools panel, but the panel is
 		// inspecting a particular web page, which has a different tab ID.
 		return function(message) {
 			switch (message.name) {
 				case 'init':
-					devtoolsConnections[message.tabId] = connectingPort
-					connectingPort.onDisconnect.addListener(function() {
+					devtoolsConnections[message.tabId] = port
+					port.onDisconnect.addListener(function() {
 						delete devtoolsConnections[message.tabId]
 					})
 					break
@@ -62,7 +62,7 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 						if (isContentScriptablePage(tab.url)) {
 							browser.tabs.sendMessage(tab.id, message)
 						} else {
-							connectingPort.postMessage({
+							port.postMessage({
 								name: 'landmarks',
 								data: null
 							})
@@ -72,16 +72,15 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 		}
 	}
 
-	browser.runtime.onConnect.addListener(function(connectingPort) {
-		switch (connectingPort.name) {
+	browser.runtime.onConnect.addListener(function(port) {
+		switch (port.name) {
 			case 'devtools':
-				connectingPort.onMessage.addListener(
-					devtoolsListenerMaker(connectingPort))
+				port.onMessage.addListener(devtoolsListenerMaker(port))
 				break
 			case 'disconnect-checker':  // Used on Chrome, Opera and Edge
 				break
 			default:
-				throw Error(`Unkown connection type ${connectingPort.name}`)
+				throw Error(`Unkown connection type ${port.name}`)
 		}
 	})
 }
@@ -280,8 +279,6 @@ if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
-		// Note: Background can send this to GUIs, but it wouldn't be picked
-		//       up here.
 		case 'landmarks':
 			browser.browserAction.setBadgeText({
 				text: message.data.length <= 0

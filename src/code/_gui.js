@@ -330,7 +330,8 @@ function main() {
 			})
 		}
 
-		browser.runtime.onMessage.addListener(messageHandlerCore)
+		port.onMessage.addListener(messageHandlerCore)
+
 		port.postMessage({
 			name: 'init',
 			tabId: browser.devtools.inspectedWindow.tabId
@@ -346,7 +347,7 @@ function main() {
 		// The message could be coming from any content script or other GUI, so
 		// it needs to be filtered. (The background script filters out messages
 		// for the DevTools panel.)
-		port.onMessage.addListener(function(message, sender) {
+		browser.runtime.onMessage.addListener(function(message, sender) {
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				const activeTabId = tabs[0].id
 				if (!sender.tab || sender.tab.id === activeTabId) {
