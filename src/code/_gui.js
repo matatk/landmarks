@@ -281,8 +281,7 @@ function messageHandlerCore(message) {
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutations') {
-		document.getElementById('mutation-stats').textContent
-			= JSON.stringify(message.data)
+		handleMutationMessage(message.data)
 	}
 }
 
@@ -297,6 +296,12 @@ function handleToggleStateMessage(state) {
 			break
 		default:
 			throw Error(`Unexpected toggle state ${state} given.`)
+	}
+}
+
+function handleMutationMessage(data) {
+	for (const key in data) {
+		document.getElementById(key).textContent = data[key]
 	}
 }
 
@@ -342,17 +347,11 @@ function main() {
 		// The checking for if the page is scriptable is done at the other end.
 		send({ name: 'get-landmarks' })
 		send({ name: 'get-toggle-state' })
-
-		const mutationObservationStation = document.createElement('div')
-		mutationObservationStation.id = 'mutation-stats'
-		mutationObservationStation.style.position = 'absolute'
-		mutationObservationStation.style.top = 0
-		mutationObservationStation.style.right = 0
-		mutationObservationStation.style.padding = '0.5em'
-		document.body.appendChild(mutationObservationStation)
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')
+
+		document.getElementById('mutation-observation-station').remove()
 
 		// The message could be coming from any content script or other GUI, so
 		// it needs to be filtered. (The background script filters out messages

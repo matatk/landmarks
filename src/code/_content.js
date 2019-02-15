@@ -213,10 +213,10 @@ function setUpMutationObserver() {
 function sendMutationUpdate() {
 	browser.runtime.sendMessage({
 		name: 'mutations', data: {
-			totalMutations: totalMutations,
-			checkedMutations: checkedMutations,
-			mutationScans: mutationScans,
-			pauseTime: pauseHandler.getPauseTime()
+			'mutations': totalMutations,
+			'checks': checkedMutations,
+			'scans': mutationScans,
+			'pause': pauseHandler.getPauseTime()
 		}
 	})
 }
