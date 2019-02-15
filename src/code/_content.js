@@ -87,10 +87,13 @@ function messageHandler(message) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			logger.log('Landmarks: refresh triggered')
+			totalMutations = 0
+			checkedMutations = 0
+			mutationScans = 0
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
-			break
+			// eslint-disable-next-line no-fallthrough
 		case 'get-mutation-info':
 			sendMutationUpdate()
 			sendPauseTimeUpdate()
