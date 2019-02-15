@@ -280,6 +280,9 @@ function messageHandlerCore(message) {
 		handleLandmarksMessage(message.data)
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
+	} else if (INTERFACE === 'devtools' && message.name === 'mutations') {
+		document.getElementById('mutation-stats').textContent
+			= JSON.stringify(message.data)
 	}
 }
 
@@ -339,6 +342,14 @@ function main() {
 		// The checking for if the page is scriptable is done at the other end.
 		send({ name: 'get-landmarks' })
 		send({ name: 'get-toggle-state' })
+
+		const mutationObservationStation = document.createElement('div')
+		mutationObservationStation.id = 'mutation-stats'
+		mutationObservationStation.style.position = 'absolute'
+		mutationObservationStation.style.top = 0
+		mutationObservationStation.style.right = 0
+		mutationObservationStation.style.padding = '0.5em'
+		document.body.appendChild(mutationObservationStation)
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')

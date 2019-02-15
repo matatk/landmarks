@@ -15,6 +15,9 @@ const pauseHandler = new PauseHandler(logger)
 
 const outOfDateTime = 2000
 let observer = null
+let totalMutations = 0
+let checkedMutations = 0
+let mutationScans = 0
 
 
 //
@@ -178,18 +181,23 @@ function shouldRefreshLandmarkss(mutations) {
 
 function setUpMutationObserver() {
 	observer = new MutationObserver((mutations) => {
+		totalMutations += 1
+
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
-			// Ignore mutations if Landmarks caused them
-			borderDrawer.hasMadeDOMChanges,
+			borderDrawer.hasMadeDOMChanges,  // Ignore border-drawing mutations
 			function() {
+				checkedMutations += 1
 				if (shouldRefreshLandmarkss(mutations)) {
 					logger.log('Scan due to mutation')
 					findLandmarksAndUpdateExtension()
+					mutationScans += 1
 				}
 			},
 			findLandmarksAndUpdateExtension)
+
+		sendMutationUpdate()
 	})
 
 	observer.observe(document, {
@@ -199,6 +207,17 @@ function setUpMutationObserver() {
 		attributeFilter: [
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
 		]
+	})
+}
+
+function sendMutationUpdate() {
+	browser.runtime.sendMessage({
+		name: 'mutations', data: {
+			totalMutations: totalMutations,
+			checkedMutations: checkedMutations,
+			mutationScans: mutationScans,
+			pauseTime: pauseHandler.getPauseTime()
+		}
 	})
 }
 

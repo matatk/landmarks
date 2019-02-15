@@ -312,10 +312,13 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'open-settings':
 			browser.runtime.openOptionsPage()
 			break
-		// Messages DevTools panel needs to know
+		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
+			break
+		case 'mutations':
+			sendToDevToolsForTab(sender.tab.id, message)
 	}
 })
