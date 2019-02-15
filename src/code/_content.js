@@ -11,7 +11,7 @@ const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
-const pauseHandler = new PauseHandler(logger)
+const pauseHandler = new PauseHandler(logger, sendPauseTimeUpdate)
 
 const outOfDateTime = 2000
 let observer = null
@@ -215,8 +215,16 @@ function sendMutationUpdate() {
 		name: 'mutations', data: {
 			'mutations': totalMutations,
 			'checks': checkedMutations,
-			'scans': mutationScans,
-			'pause': pauseHandler.getPauseTime()
+			'scans': mutationScans
+		}
+	})
+}
+
+function sendPauseTimeUpdate(pauseTime) {
+	console.log(`sendPauseTimeUpdate ${pauseTime}`)
+	browser.runtime.sendMessage({
+		name: 'mutations', data: {
+			'pause': pauseTime
 		}
 	})
 }

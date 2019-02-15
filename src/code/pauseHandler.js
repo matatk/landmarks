@@ -1,4 +1,4 @@
-export default function PauseHandler(logger) {
+export default function PauseHandler(logger, afterUpdatePauseTime) {
 	//
 	// Constants
 	//
@@ -31,6 +31,7 @@ export default function PauseHandler(logger) {
 			pause = maxPause
 		}
 		logger.log(`Increased pause to: ${pause}`)
+		afterUpdatePauseTime(pause)
 	}
 
 	function decreasePause() {
@@ -46,6 +47,7 @@ export default function PauseHandler(logger) {
 			decreasePause()
 		}
 		logger.timeStamp(`Decreased pause to: ${pause}`)
+		afterUpdatePauseTime(pause)
 	}
 
 	function stopDecreasingPause() {
