@@ -280,7 +280,7 @@ function messageHandlerCore(message) {
 		handleLandmarksMessage(message.data)
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
-	} else if (INTERFACE === 'devtools' && message.name === 'mutations') {
+	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
 		handleMutationMessage(message.data)
 	}
 }

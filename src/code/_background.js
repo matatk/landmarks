@@ -318,7 +318,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
 			break
-		case 'mutations':
+		case 'mutation-info':
 			sendToDevToolsForTab(sender.tab.id, message)
 	}
 })

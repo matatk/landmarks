@@ -212,8 +212,8 @@ function setUpMutationObserver() {
 
 function sendMutationUpdate() {
 	browser.runtime.sendMessage({
-		name: 'mutations', data: {
-			'mutations': totalMutations,
+		name: 'mutation-info', data: {
+			'mutation-info': totalMutations,
 			'checks': checkedMutations,
 			'scans': mutationScans
 		}
@@ -221,9 +221,8 @@ function sendMutationUpdate() {
 }
 
 function sendPauseTimeUpdate(pauseTime) {
-	console.log(`sendPauseTimeUpdate ${pauseTime}`)
 	browser.runtime.sendMessage({
-		name: 'mutations', data: {
+		name: 'mutation-info', data: {
 			'pause': pauseTime
 		}
 	})
