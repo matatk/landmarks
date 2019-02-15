@@ -56,6 +56,7 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'get-toggle-state':
 				case 'focus-landmark':
 				case 'toggle-all-landmarks':
+				case 'get-mutation-info':
 					// The DevTools panel can't check if it's on a scriptable
 					// page, so we do that here. Other GUIs check themselves.
 					browser.tabs.get(message.from, function(tab) {

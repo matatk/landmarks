@@ -347,6 +347,7 @@ function main() {
 		// The checking for if the page is scriptable is done at the other end.
 		send({ name: 'get-landmarks' })
 		send({ name: 'get-toggle-state' })
+		send({ name: 'get-mutation-info' })
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')

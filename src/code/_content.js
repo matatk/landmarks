@@ -90,6 +90,10 @@ function messageHandler(message) {
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
+			break
+		case 'get-mutation-info':
+			sendMutationUpdate()
+			sendPauseTimeUpdate()
 	}
 }
 
@@ -213,17 +217,17 @@ function setUpMutationObserver() {
 function sendMutationUpdate() {
 	browser.runtime.sendMessage({
 		name: 'mutation-info', data: {
-			'mutation-info': totalMutations,
+			'mutations': totalMutations,
 			'checks': checkedMutations,
 			'scans': mutationScans
 		}
 	})
 }
 
-function sendPauseTimeUpdate(pauseTime) {
+function sendPauseTimeUpdate(pauseTime = null) {
 	browser.runtime.sendMessage({
 		name: 'mutation-info', data: {
-			'pause': pauseTime
+			'pause': pauseTime ? pauseTime : pauseHandler.getPauseTime()
 		}
 	})
 }
