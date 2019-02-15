@@ -1,4 +1,4 @@
-export default function PauseHandler(logger, afterUpdatePauseTime) {
+export default function PauseHandler(afterUpdatePauseTime) {
 	//
 	// Constants
 	//
@@ -30,7 +30,7 @@ export default function PauseHandler(logger, afterUpdatePauseTime) {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		logger.log(`Increased pause to: ${pause}`)
+		console.log(`Increased pause to: ${pause}`)
 		afterUpdatePauseTime(pause)
 	}
 
@@ -46,7 +46,7 @@ export default function PauseHandler(logger, afterUpdatePauseTime) {
 		} else {
 			decreasePause()
 		}
-		logger.timeStamp(`Decreased pause to: ${pause}`)
+		console.timeStamp(`Decreased pause to: ${pause}`)
 		afterUpdatePauseTime(pause)
 	}
 
@@ -54,7 +54,7 @@ export default function PauseHandler(logger, afterUpdatePauseTime) {
 		if (decreasePauseTimeout) {
 			clearTimeout(decreasePauseTimeout)
 			decreasePauseTimeout = null
-			logger.log('Stopped decreasing the pause')
+			console.log('Stopped decreasing the pause')
 		}
 	}
 
@@ -72,9 +72,9 @@ export default function PauseHandler(logger, afterUpdatePauseTime) {
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
-			logger.timeStamp(`Scheduling task in: ${pause}`)
+			console.timeStamp(`Scheduling task in: ${pause}`)
 			setTimeout(() => {
-				logger.log('Running task as scheduled')
+				console.log('Running task as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false

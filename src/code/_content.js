@@ -2,16 +2,14 @@ import './compatibility'
 import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
-import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 
-const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
-const pauseHandler = new PauseHandler(logger, sendPauseTimeUpdate)
+const pauseHandler = new PauseHandler(sendPauseTimeUpdate)
 
 const outOfDateTime = 2000
 let observer = null
@@ -86,7 +84,7 @@ function messageHandler(message) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			logger.log('Landmarks: refresh triggered')
+			console.log('Landmarks: refresh triggered')
 			totalMutations = 0
 			checkedMutations = 0
 			mutationScans = 0
@@ -102,7 +100,7 @@ function messageHandler(message) {
 
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		logger.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
+		console.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
 		findLandmarksAndUpdateExtension()
 		return true
 	}
@@ -136,7 +134,7 @@ function sendLandmarks() {
 }
 
 function findLandmarksAndUpdateExtension() {
-	logger.timeStamp('findLandmarksAndUpdateExtension()')
+	console.timeStamp('findLandmarksAndUpdateExtension()')
 	landmarksFinder.find()
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
@@ -197,7 +195,7 @@ function setUpMutationObserver() {
 			function() {
 				checkedMutations += 1
 				if (shouldRefreshLandmarkss(mutations)) {
-					logger.log('Scan due to mutation')
+					console.log('Scan due to mutation')
 					findLandmarksAndUpdateExtension()
 					mutationScans += 1
 				}
@@ -236,7 +234,7 @@ function sendPauseTimeUpdate(pauseTime = null) {
 }
 
 function bootstrap() {
-	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
+	console.log(`Bootstrapping Landmarks content script in ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	// At the start, the ElementFocuser is always managing borders
@@ -247,7 +245,7 @@ function bootstrap() {
 	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
 			.onDisconnect.addListener(function() {
-				logger.log('Content script disconnected.')
+				console.log('Content script disconnected.')
 				observer.disconnect()
 			})
 	}
