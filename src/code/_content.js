@@ -13,9 +13,12 @@ const pauseHandler = new PauseHandler(sendPauseTimeUpdate)
 
 const outOfDateTime = 2000
 let observer = null
+
+let isDevToolsPanelOpen = null
 let totalMutations = 0
 let checkedMutations = 0
 let mutationScans = 0
+let lastScanDuration = null
 
 
 //
@@ -29,7 +32,7 @@ function messageHandler(message) {
 			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
-			// Triggered by clicking on an item in a GUI, or indirectly via one
+			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			checkAndUpdateOutdatedResults()
 			checkFocusElement(() =>
@@ -88,13 +91,20 @@ function messageHandler(message) {
 			totalMutations = 0
 			checkedMutations = 0
 			mutationScans = 0
+			lastScanDuration = 0
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
-			// eslint-disable-next-line no-fallthrough
-		case 'get-mutation-info':
-			sendMutationUpdate()
-			sendPauseTimeUpdate()
+			if (isDevToolsPanelOpen) sendAllUpdates()
+			break
+		case 'devtools-panel-opened':
+			console.log('devtools panel opened')
+			isDevToolsPanelOpen = true
+			sendAllUpdates()
+			break
+		case 'devtools-panel-closed':
+			console.log('devtools panel closed')
+			isDevToolsPanelOpen = false
 	}
 }
 
@@ -123,7 +133,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 
 
 //
-// Actually finding landmarks
+// Finding landmarks
 //
 
 function sendLandmarks() {
@@ -135,7 +145,10 @@ function sendLandmarks() {
 
 function findLandmarksAndUpdateExtension() {
 	console.timeStamp('findLandmarksAndUpdateExtension()')
+	const start = performance.now()
 	landmarksFinder.find()
+	lastScanDuration = performance.now() - start
+	if (isDevToolsPanelOpen) sendDurationUpdate()
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
@@ -202,7 +215,7 @@ function setUpMutationObserver() {
 			},
 			findLandmarksAndUpdateExtension)
 
-		sendMutationUpdate()
+		if (isDevToolsPanelOpen) sendMutationUpdate()
 	})
 
 	observer.observe(document, {
@@ -216,6 +229,7 @@ function setUpMutationObserver() {
 }
 
 function sendMutationUpdate() {
+	console.log('sending mutation update')
 	browser.runtime.sendMessage({
 		name: 'mutation-info', data: {
 			'mutations': totalMutations,
@@ -226,11 +240,29 @@ function sendMutationUpdate() {
 }
 
 function sendPauseTimeUpdate(pauseTime = null) {
+	if (isDevToolsPanelOpen) {
+		console.log('sending pause time update')
+		browser.runtime.sendMessage({
+			name: 'mutation-info', data: {
+				'pause': pauseTime ? pauseTime : pauseHandler.getPauseTime()
+			}
+		})
+	}
+}
+
+function sendDurationUpdate() {
+	console.log('sending duration update')
 	browser.runtime.sendMessage({
 		name: 'mutation-info', data: {
-			'pause': pauseTime ? pauseTime : pauseHandler.getPauseTime()
+			'duration': lastScanDuration
 		}
 	})
+}
+
+function sendAllUpdates() {
+	sendMutationUpdate()
+	sendPauseTimeUpdate()
+	sendDurationUpdate()
 }
 
 function bootstrap() {

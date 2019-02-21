@@ -49,7 +49,17 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'init':
 					devtoolsConnections[message.tabId] = port
 					port.onDisconnect.addListener(function() {
+						browser.tabs.get(message.tabId, function(tab) {
+							if (isContentScriptablePage(tab.url)) {
+								browser.tabs.sendMessage(tab.id, {
+									name: 'devtools-panel-closed'
+								})
+							}
+						})
 						delete devtoolsConnections[message.tabId]
+					})
+					browser.tabs.sendMessage(message.tabId, {
+						name: 'devtools-panel-opened'
 					})
 					break
 				case 'get-landmarks':
