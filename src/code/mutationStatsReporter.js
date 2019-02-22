@@ -1,4 +1,4 @@
-export default class MutationObservationStation {
+export default class MutationStatsReporter {
 	constructor() {
 		this.reset()
 		this._quiet = true

@@ -19,6 +19,7 @@ export default function PauseHandler(pauseTimeHook) {
 	let decreasePauseTimeout = null
 	let haveIncreasedPauseAndScheduledTask = false
 	pauseTimeHook(pause)
+	let scheduledTaskTimer = null
 
 	//
 	// Private API
@@ -30,6 +31,7 @@ export default function PauseHandler(pauseTimeHook) {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
+		console.log(`Increased pause to: ${pause}`)
 		pauseTimeHook(pause)
 	}
 
@@ -67,17 +69,26 @@ export default function PauseHandler(pauseTimeHook) {
 
 		const now = Date.now()
 		if (now > lastEvent + pause) {
+			console.log('Running guarded task')
 			guardedTask()
+			if (scheduledTaskTimer) {
+				console.log('Clearing scheduled task timer')
+				clearTimeout(scheduledTaskTimer)
+				scheduledTaskTimer = null
+			}
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
 			console.timeStamp(`Scheduling task in: ${pause}`)
-			setTimeout(() => {
+			scheduledTaskTimer = setTimeout(() => {
+				console.log('Running scheduled task')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
 			}, pause)
 			haveIncreasedPauseAndScheduledTask = true
+		} else {
+			console.log(`Already increased pause (${pause})`)
 		}
 	}
 
