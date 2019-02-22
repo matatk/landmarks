@@ -1,95 +1,98 @@
-export default class MutationStatsReporter {
-	constructor() {
-		this.reset()
-		this._quiet = true
+export default function MutationStatsReporter() {
+	let totalMutations = 0
+	let checkedMutations = 0
+	let mutationScans = 0
+	let pauseTime = null
+	let lastScanDuration = null
+
+	let quiet = true
+
+
+	//
+	// Public API
+	//
+
+	this.reset = function() {
+		totalMutations = 0
+		checkedMutations = 0
+		mutationScans = 0
+		pauseTime = null
+		lastScanDuration = null
 	}
 
-	reset() {
-		this._totalMutations = 0
-		this._checkedMutations = 0
-		this._mutationScans = 0
-		this._pauseTime = null
-		this._lastScanDuration = null
+	this.beQuiet = function() {
+		quiet = true
 	}
 
-	beQuiet() {
-		this._quiet = true
+	this.beVerbose = function() {
+		quiet = false
+		_sendAllUpdates()
 	}
 
-	beVerbose() {
-		this._quiet = false
-		this._sendAllUpdates()
+	this.incrementTotalMutations = function() {
+		totalMutations += 1
+	}
+
+	this.incrementCheckedMutations = function() {
+		checkedMutations += 1
+	}
+
+	this.incrementMutationScans = function() {
+		mutationScans += 1
+	}
+
+	this.setPauseTime = function(time) {
+		pauseTime = time
+		if (!quiet) _sendPauseTimeUpdate()
+	}
+
+	this.setLastScanDuration = function(duration) {
+		lastScanDuration = duration
+		if (!quiet) _sendDurationUpdate()
+	}
+
+	this.sendMutationUpdate = function() {
+		if (!quiet) _sendMutationUpdate()
+	}
+
+	this.sendAllUpdates = function() {
+		if (!quiet) _sendAllUpdates()
 	}
 
 
 	//
-	// Counting
+	// Private API
 	//
 
-	incrementTotalMutations() {
-		this._totalMutations += 1
-	}
-
-	incrementCheckedMutations() {
-		this._checkedMutations += 1
-	}
-
-	incrementMutationScans() {
-		this._mutationScans += 1
-	}
-
-	set pauseTime(time) {
-		this._pauseTime = time
-		if (!this._quiet) this._sendPauseTimeUpdate()
-	}
-
-	set lastScanDuration(duration) {
-		this._lastScanDuration = duration
-		if (!this._quiet) this._sendDurationUpdate()
-	}
-
-
-	//
-	// Sending stats
-	//
-
-	sendMutationUpdate() {
-		if (!this._quiet) this._sendMutationUpdate()
-	}
-
-	_sendMutationUpdate() {
+	function _sendMutationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'mutations': this._totalMutations,
-				'checks': this._checkedMutations,
-				'scans': this._mutationScans
+				'mutations': totalMutations,
+				'checks': checkedMutations,
+				'scans': mutationScans
 			}
 		})
 	}
 
-	_sendPauseTimeUpdate() {
+	function _sendPauseTimeUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'pause': this._pauseTime
+				'pause': pauseTime
 			}
 		})
 	}
 
-	_sendDurationUpdate() {
+	function _sendDurationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'duration': this._lastScanDuration
+				'duration': lastScanDuration
 			}
 		})
 	}
 
-	sendAllUpdates() {
-		if (!this._quiet) this._sendAllUpdates()
-	}
-
-	_sendAllUpdates() {
-		this._sendMutationUpdate()
-		this._sendPauseTimeUpdate()
-		this._sendDurationUpdate()
+	function _sendAllUpdates() {
+		_sendMutationUpdate()
+		_sendPauseTimeUpdate()
+		_sendDurationUpdate()
 	}
 }

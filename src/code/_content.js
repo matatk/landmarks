@@ -11,7 +11,7 @@ const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
-const pauseHandler = new PauseHandler(pause => msr.pauseTime = pause)
+const pauseHandler = new PauseHandler(msr.setPauseTime)
 
 const outOfDateTime = 2000
 let observer = null
@@ -136,7 +136,7 @@ function findLandmarksAndUpdateExtension() {
 	console.timeStamp('findLandmarksAndUpdateExtension()')
 	const start = performance.now()
 	landmarksFinder.find()
-	msr.lastScanDuration = performance.now() - start
+	msr.setLastScanDuration(performance.now() - start)
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
