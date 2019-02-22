@@ -58,7 +58,6 @@ export default class MutationObservationStation {
 	}
 
 	_sendMutationUpdate() {
-		console.log('msr: sending mutation update')
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'mutations': this._totalMutations,
@@ -69,7 +68,6 @@ export default class MutationObservationStation {
 	}
 
 	_sendPauseTimeUpdate() {
-		console.log('msr: sending pause time update')
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'pause': this._pauseTime
@@ -78,7 +76,6 @@ export default class MutationObservationStation {
 	}
 
 	_sendDurationUpdate() {
-		console.log('msr: sending duration update')
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'duration': this._lastScanDuration
@@ -91,7 +88,6 @@ export default class MutationObservationStation {
 	}
 
 	_sendAllUpdates() {
-		console.log('msr: sending all updates')
 		this._sendMutationUpdate()
 		this._sendPauseTimeUpdate()
 		this._sendDurationUpdate()

@@ -83,7 +83,6 @@ function messageHandler(message) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			console.log('Landmarks: refresh triggered')
 			msr.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
@@ -91,18 +90,15 @@ function messageHandler(message) {
 			msr.sendAllUpdates()
 			break
 		case 'devtools-panel-opened':
-			console.log('devtools panel opened')
 			msr.beVerbose()
 			break
 		case 'devtools-panel-closed':
-			console.log('devtools panel closed')
 			msr.beQuiet()
 	}
 }
 
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		console.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
 		findLandmarksAndUpdateExtension()
 		return true
 	}
@@ -199,7 +195,6 @@ function setUpMutationObserver() {
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					console.log('Scan due to mutation')
 					findLandmarksAndUpdateExtension()
 					msr.incrementMutationScans()
 				}
@@ -220,7 +215,6 @@ function setUpMutationObserver() {
 }
 
 function bootstrap() {
-	console.log(`Bootstrapping Landmarks content script in ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	// At the start, the ElementFocuser is always managing borders
@@ -231,7 +225,7 @@ function bootstrap() {
 	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
 			.onDisconnect.addListener(function() {
-				console.log('Content script disconnected.')
+				console.log('Landmarks: content script disconnected.')
 				observer.disconnect()
 			})
 	}

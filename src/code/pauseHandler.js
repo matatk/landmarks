@@ -30,7 +30,6 @@ export default function PauseHandler(afterUpdatePauseTime) {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		console.log(`Increased pause to: ${pause}`)
 		afterUpdatePauseTime(pause)
 	}
 
@@ -54,7 +53,6 @@ export default function PauseHandler(afterUpdatePauseTime) {
 		if (decreasePauseTimeout) {
 			clearTimeout(decreasePauseTimeout)
 			decreasePauseTimeout = null
-			console.log('Stopped decreasing the pause')
 		}
 	}
 
@@ -74,7 +72,6 @@ export default function PauseHandler(afterUpdatePauseTime) {
 			increasePause()
 			console.timeStamp(`Scheduling task in: ${pause}`)
 			setTimeout(() => {
-				console.log('Running task as scheduled')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
