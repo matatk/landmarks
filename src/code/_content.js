@@ -4,21 +4,17 @@ import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
+import MutationStatsReporter from './mutationStatsReporter'
 
 const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
-const pauseHandler = new PauseHandler(sendPauseTimeUpdate)
+const msr = new MutationStatsReporter()
+const pauseHandler = new PauseHandler(pauseTime => msr.pauseTime = pauseTime)
 
 const outOfDateTime = 2000
 let observer = null
-
-let isDevToolsPanelOpen = null
-let totalMutations = 0
-let checkedMutations = 0
-let mutationScans = 0
-let lastScanDuration = null
 
 
 //
@@ -88,23 +84,19 @@ function messageHandler(message) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			console.log('Landmarks: refresh triggered')
-			totalMutations = 0
-			checkedMutations = 0
-			mutationScans = 0
-			lastScanDuration = 0
+			msr.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
-			if (isDevToolsPanelOpen) sendAllUpdates()
+			msr.sendAllUpdates()
 			break
 		case 'devtools-panel-opened':
 			console.log('devtools panel opened')
-			isDevToolsPanelOpen = true
-			sendAllUpdates()
+			msr.beVerbose()
 			break
 		case 'devtools-panel-closed':
 			console.log('devtools panel closed')
-			isDevToolsPanelOpen = false
+			msr.beQuiet()
 	}
 }
 
@@ -147,8 +139,7 @@ function findLandmarksAndUpdateExtension() {
 	console.timeStamp('findLandmarksAndUpdateExtension()')
 	const start = performance.now()
 	landmarksFinder.find()
-	lastScanDuration = performance.now() - start
-	if (isDevToolsPanelOpen) sendDurationUpdate()
+	msr.lastScanDuration = performance.now() - start
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
@@ -199,23 +190,23 @@ function shouldRefreshLandmarkss(mutations) {
 
 function setUpMutationObserver() {
 	observer = new MutationObserver((mutations) => {
-		totalMutations += 1
+		msr.incrementTotalMutations()
 
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
 			borderDrawer.hasMadeDOMChanges,  // Ignore border-drawing mutations
 			function() {
-				checkedMutations += 1
+				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
 					console.log('Scan due to mutation')
 					findLandmarksAndUpdateExtension()
-					mutationScans += 1
+					msr.incrementMutationScans()
 				}
 			},
 			findLandmarksAndUpdateExtension)
 
-		if (isDevToolsPanelOpen) sendMutationUpdate()
+		msr.sendMutationUpdate()
 	})
 
 	observer.observe(document, {
@@ -226,43 +217,6 @@ function setUpMutationObserver() {
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
 		]
 	})
-}
-
-function sendMutationUpdate() {
-	console.log('sending mutation update')
-	browser.runtime.sendMessage({
-		name: 'mutation-info', data: {
-			'mutations': totalMutations,
-			'checks': checkedMutations,
-			'scans': mutationScans
-		}
-	})
-}
-
-function sendPauseTimeUpdate(pauseTime = null) {
-	if (isDevToolsPanelOpen) {
-		console.log('sending pause time update')
-		browser.runtime.sendMessage({
-			name: 'mutation-info', data: {
-				'pause': pauseTime ? pauseTime : pauseHandler.getPauseTime()
-			}
-		})
-	}
-}
-
-function sendDurationUpdate() {
-	console.log('sending duration update')
-	browser.runtime.sendMessage({
-		name: 'mutation-info', data: {
-			'duration': lastScanDuration
-		}
-	})
-}
-
-function sendAllUpdates() {
-	sendMutationUpdate()
-	sendPauseTimeUpdate()
-	sendDurationUpdate()
 }
 
 function bootstrap() {
