@@ -11,7 +11,7 @@ const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
-const pauseHandler = new PauseHandler(pauseTime => msr.pauseTime = pauseTime)
+const pauseHandler = new PauseHandler(pause => msr.pauseTime = pause)
 
 const outOfDateTime = 2000
 let observer = null
@@ -89,11 +89,12 @@ function messageHandler(message) {
 			findLandmarksAndUpdateExtension()
 			msr.sendAllUpdates()
 			break
-		case 'devtools-panel-opened':
-			msr.beVerbose()
-			break
-		case 'devtools-panel-closed':
-			msr.beQuiet()
+		case 'devtools-state':
+			if (message.state === 'open') {
+				msr.beVerbose()
+			} else {
+				msr.beQuiet()
+			}
 	}
 }
 
@@ -199,7 +200,7 @@ function setUpMutationObserver() {
 					msr.incrementMutationScans()
 				}
 			},
-			findLandmarksAndUpdateExtension)
+			findLandmarksAndUpdateExtension)  // TODO or just when pause = 500?
 
 		msr.sendMutationUpdate()
 	})
@@ -229,6 +230,8 @@ function bootstrap() {
 				observer.disconnect()
 			})
 	}
+
+	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
 bootstrap()

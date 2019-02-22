@@ -1,4 +1,4 @@
-export default function PauseHandler(afterUpdatePauseTime) {
+export default function PauseHandler(pauseTimeHook) {
 	//
 	// Constants
 	//
@@ -18,7 +18,7 @@ export default function PauseHandler(afterUpdatePauseTime) {
 	let lastEvent = Date.now()
 	let decreasePauseTimeout = null
 	let haveIncreasedPauseAndScheduledTask = false
-
+	pauseTimeHook(pause)
 
 	//
 	// Private API
@@ -30,7 +30,7 @@ export default function PauseHandler(afterUpdatePauseTime) {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		afterUpdatePauseTime(pause)
+		pauseTimeHook(pause)
 	}
 
 	function decreasePause() {
@@ -46,7 +46,7 @@ export default function PauseHandler(afterUpdatePauseTime) {
 			decreasePause()
 		}
 		console.timeStamp(`Decreased pause to: ${pause}`)
-		afterUpdatePauseTime(pause)
+		pauseTimeHook(pause)
 	}
 
 	function stopDecreasingPause() {
@@ -61,6 +61,7 @@ export default function PauseHandler(afterUpdatePauseTime) {
 	// Public API
 	//
 
+	// TODO would this be more efficient if tasks specified at init?
 	this.run = function(ignoreCheck, guardedTask, scheduledTask) {
 		if (ignoreCheck()) return
 

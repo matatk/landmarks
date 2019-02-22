@@ -51,16 +51,12 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 					port.onDisconnect.addListener(function() {
 						browser.tabs.get(message.tabId, function(tab) {
 							if (isContentScriptablePage(tab.url)) {
-								browser.tabs.sendMessage(tab.id, {
-									name: 'devtools-panel-closed'
-								})
+								sendDevToolsStateMessage(tab.id, false)
 							}
 						})
 						delete devtoolsConnections[message.tabId]
 					})
-					browser.tabs.sendMessage(message.tabId, {
-						name: 'devtools-panel-opened'
-					})
+					sendDevToolsStateMessage(message.tabId, true)
 					break
 				case 'get-landmarks':
 				case 'get-toggle-state':
@@ -93,6 +89,14 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 			default:
 				throw Error(`Unkown connection type ${port.name}`)
 		}
+	})
+}
+
+// TODO this will be neater when Edge support is removed
+function sendDevToolsStateMessage(tabId, panelIsOpen) {
+	browser.tabs.sendMessage(tabId, {
+		name: 'devtools-state',
+		state: panelIsOpen ? 'open' : 'closed'
 	})
 }
 
@@ -297,6 +301,10 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 				tabId: sender.tab.id
 			})
 			sendToDevToolsForTab(sender.tab.id, message)
+			break
+		case 'get-devtools-state':
+			sendDevToolsStateMessage(sender.tab.id,
+				devtoolsConnections.hasOwnProperty(sender.tab.id))
 			break
 		// Splash
 		case 'get-commands':
