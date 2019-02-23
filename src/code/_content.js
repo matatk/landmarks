@@ -220,6 +220,7 @@ function bootstrap() {
 
 	// At the start, the ElementFocuser is always managing borders
 	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
+	console.log('Booting')
 	findLandmarksAndUpdateExtension()  // TODO try removing
 	setUpMutationObserver()
 

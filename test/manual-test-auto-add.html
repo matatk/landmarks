@@ -13,6 +13,7 @@ const pool = document.getElementById('landmarks-pool')
 let count = 0
 
 function createLandmark() {
+	console.log('createLandmark()')
 	count += 1
 	const landmark = document.createElement('section')
 	const landmarkHeading = document.createElement('h2')
@@ -30,10 +31,10 @@ function createLandmark() {
 }
 
 function doStuff() {
+	console.log('doStuff()')
 	createLandmark()
-	setTimeout(createLandmark, (500 - 50))
-	setTimeout(createLandmark, (500 - 50) + (750 - 50))
-	setTimeout(createLandmark, (500 - 50) + (750 - 50) + (1125 - 50))
+	setTimeout(createLandmark,  750 - 20)
+	setTimeout(createLandmark, 1125 - 20)
 }
 
 setTimeout(doStuff, 500)
