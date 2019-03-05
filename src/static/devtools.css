@@ -1,0 +1,71 @@
+* {
+	box-sizing: border-box;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+#content {
+	width: 100%;
+	flex-grow: 1;
+}
+
+#mutation-observation-station {
+	border: 0;
+	border-top: 1px solid black;
+}
+
+#mutation-observation-station > details > summary {
+	padding: 0.5em;
+	white-space: nowrap;
+}
+
+summary > h1 {
+	display: inline;
+	margin: 0;
+}
+
+/* Thanks to https://www.the-art-of-web.com/css/format-dl/ and https://stackoverflow.com/a/40762801/1485308 */
+dl {
+	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+}
+
+dt, dd {
+	margin: 0;
+	padding: 0.25em;
+	text-align: right;
+}
+
+dt {
+	width: calc(100% - 4em);
+}
+
+details > p {
+	text-align: left;
+	margin: 0;
+	padding: 0.25em;
+	max-width: 15em;
+	float: right;
+	color: #757575;
+}
+
+@media screen and (orientation: landscape) {
+	body {
+		flex-direction: row;
+	}
+
+	#mutation-observation-station {
+		border: 0;
+		border-left: 1px solid black;
+	}
+}
