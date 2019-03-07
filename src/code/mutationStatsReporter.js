@@ -47,7 +47,7 @@ export default function MutationStatsReporter() {
 	}
 
 	this.setLastScanDuration = function(duration) {
-		lastScanDuration = duration
+		lastScanDuration = Math.round(duration)  // Chrome is precise
 		if (!quiet) _sendDurationUpdate()
 	}
 
