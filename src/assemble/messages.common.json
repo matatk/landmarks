@@ -223,6 +223,6 @@
   },
 
   "devToolsConnectionError": {
-    "message": "This DevTools frame has become disconnected, probably due to reloading the extension. You'll need to reload this frame for it to recieve landmark updates again."
+    "message": "Warning: This DevTools frame has become disconnected, probably due to the extension being reloaded. You'll need to reload this frame (e.g. via its context menu) for it to recieve updates again."
   }
 }
