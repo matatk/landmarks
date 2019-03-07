@@ -224,5 +224,49 @@
 
   "devToolsConnectionError": {
     "message": "Warning: This DevTools frame has become disconnected, probably due to the extension being reloaded. You'll need to reload this frame (e.g. via its context menu) for it to recieve updates again."
+  },
+
+  "statsHeading": {
+    "message": "Mutation information"
+  },
+
+  "statsMutationsTerm": {
+    "message": "Mutations:"
+  },
+
+  "statsMutationsDefinition": {
+    "message": "Total number of changes to the page."
+  },
+
+  "statsCheckedMutationsTerm": {
+    "message": "Checked Mutations:"
+  },
+
+  "statsCheckedMutationsDefinition": {
+    "message": "Mutations that Landmarks has tested to see if they are relevant."
+  },
+
+  "statsScansTerm": {
+    "message": "Scans:"
+  },
+
+  "statsScansDefinition": {
+    "message": "Number of times the page has been scanned for landmarks."
+  },
+
+  "statsPauseTerm": {
+    "message": "Pause time:"
+  },
+
+  "statsPauseDefinition": {
+    "message": "Time during which subsequent changes to the page will be ignored."
+  },
+
+  "statsDurationTerm": {
+    "message": "Last scan took:"
+  },
+
+  "statsDurationDefinition": {
+    "message": "Number of milliseconds the last landmark scan took."
   }
 }
