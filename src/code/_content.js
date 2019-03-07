@@ -101,6 +101,7 @@ function messageHandler(message) {
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
 		findLandmarksAndUpdateExtension()
+		msr.sendMutationUpdate()
 		return true
 	}
 	return false
@@ -137,6 +138,7 @@ function findLandmarksAndUpdateExtension() {
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
+	msr.incrementMutationScans()
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
@@ -192,15 +194,20 @@ function setUpMutationObserver() {
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
-			borderDrawer.hasMadeDOMChanges,  // Ignore border-drawing mutations
+			// Ignore border-drawing mutations
+			borderDrawer.hasMadeDOMChanges,
+			// Guarded task
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
 					findLandmarksAndUpdateExtension()
-					msr.incrementMutationScans()
 				}
 			},
-			findLandmarksAndUpdateExtension)  // TODO or just when pause = 500?
+			// Scheduled task
+			function() {
+				findLandmarksAndUpdateExtension()
+				msr.sendMutationUpdate()
+			})
 
 		msr.sendMutationUpdate()
 	})
@@ -221,7 +228,8 @@ function bootstrap() {
 	// At the start, the ElementFocuser is always managing borders
 	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
 	console.log('Booting')
-	findLandmarksAndUpdateExtension()  // TODO try removing
+	findLandmarksAndUpdateExtension()
+	msr.sendMutationUpdate()  // There will've been one scan now
 	setUpMutationObserver()
 
 	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
