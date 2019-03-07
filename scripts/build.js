@@ -244,21 +244,23 @@ async function flattenCode(browser) {
 }
 
 
-function removeUIstuff(file) {  // TODO DRY
+function removeStuff(name, string, file) {
+	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
 	doReplace(
 		file,
-		/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
+		new RegExp(re, 'g'),
 		'',
-		'Removed UI stuff')
+		`Removed ${name} stuff`)
 }
 
 
-function removeDevToolsStuff(file) {  // TODO DRY
-	doReplace(
-		file,
-		/<!-- devtools -->[\s\S]*?<!-- \/devtools -->\s*/g,
-		'',
-		'Removed DevTools stuff')
+function removeUIstuff(file) {
+	removeStuff('UI', 'ui', file)
+}
+
+
+function removeDevToolsStuff(file) {
+	removeStuff('DevTools', 'devtools', file)
 }
 
 
