@@ -5,6 +5,7 @@ import { defaultInterfaceSettings } from './defaults'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}  // TODO tree-shake, or not, as Edge will do it
+const startupCode = []
 
 
 //
@@ -163,9 +164,10 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		}
 	}
 
-	// FIXME startup
-	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-		switchInterface(items.interface)
+	startupCode.push(function() {
+		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+			switchInterface(items.interface)
+		})
 	})
 
 	browser.storage.onChanged.addListener(function(changes) {
@@ -341,7 +343,7 @@ browser.tabs.query({}, function(tabs) {
 })
 
 if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
-	contentScriptInjector()
+	startupCode.push(contentScriptInjector)
 }
 
 const migrationManager = new MigrationManager({
@@ -350,11 +352,21 @@ const migrationManager = new MigrationManager({
 	}
 })
 
+function runStartupCode() {
+	for (const func of startupCode) {
+		func()
+	}
+}
+
 browser.storage.sync.get(null, function(items) {
 	const didMigration = migrationManager.migrate(items)
 	if (didMigration) {
 		browser.storage.sync.clear(function() {
-			browser.storage.sync.set(items)
+			browser.storage.sync.set(items, function() {
+				runStartupCode()
+			})
 		})
+	} else {
+		runStartupCode()
 	}
 })
