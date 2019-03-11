@@ -1,58 +1,48 @@
 'use strict'
-function getSettingsVersion(settings) {
-	if (!settings.hasOwnProperty('version')) {
-		return 0
+function MigrationManager(migrations) {
+	function getVersion(settings) {
+		if (!settings.hasOwnProperty('version')) {
+			return 0
+		}
+		return settings.version
 	}
-	return settings.version
-}
 
-function runMigrations(migrations, settings) {
-	const startingVersion = getSettingsVersion(settings)
-	for (const key in migrations) {
-		const toVersion = Number(key)
-		if (toVersion > startingVersion) {
-			migrations[toVersion](settings)
-			settings.version = toVersion
+	function isMigrationNeeded(startingVersion) {
+		return startingVersion < Object.keys(migrations).pop()
+	}
+
+	this.migrate = function(settings) {
+		const startingVersion = getVersion(settings)
+		if (isMigrationNeeded(startingVersion)) {
+			for (const key in migrations) {
+				const toVersion = Number(key)
+				if (toVersion > startingVersion) {
+					migrations[toVersion](settings)
+					settings.version = toVersion
+				}
+			}
 		}
 	}
-}
-
-function isMigrationNeeded(migrations, startingVersion) {
-	return startingVersion < Object.keys(migrations).pop()
 }
 
 exports['test the damage report machine'] = function(assert) {
 	assert.ok(true, 'damage report machine intact')
 }
 
-exports['test implicit v0'] = function(assert) {
+exports['test one field-adding migration (implied v0)'] = function(assert) {
 	const settings = {}
-	assert.strictEqual(getSettingsVersion(settings), 0, 'ok')
-}
-
-exports['test explicit v0'] = function(assert) {
-	const settings = { 'version': 0 }
-	assert.strictEqual(getSettingsVersion(settings), 0, 'ok')
-}
-
-exports['test explicit v42'] = function(assert) {
-	const settings = { 'version': 42 }
-	assert.strictEqual(getSettingsVersion(settings), 42, 'ok')
-}
-
-exports['test one migration that adds a field'] = function(assert) {
-	const settings = { 'version': 0 }
 	const migrations = {
 		1: function(settings) {
 			settings['newSetting'] = true
 		}
 	}
-	runMigrations(migrations, settings)
-	assert.strictEqual(getSettingsVersion(settings), 1, 'bumped version')
+	const migrationManager = new MigrationManager(migrations)
+	migrationManager.migrate(settings)
+	assert.strictEqual(settings.version, 1, 'bumped version')
 	assert.strictEqual(settings.newSetting, true, 'added new setting')
 }
 
-exports['test one migration that removes a field'] = function(assert) {
+exports['test removing a field (explicit version number)'] = function(assert) {
 	const settings = {
 		'version': 42,
 		'deprecatedSetting': 'orange'
@@ -62,13 +52,14 @@ exports['test one migration that removes a field'] = function(assert) {
 			delete settings.deprecatedSetting
 		}
 	}
-	runMigrations(migrations, settings)
-	assert.strictEqual(getSettingsVersion(settings), 43, 'bumped version')
+	const migrationManager = new MigrationManager(migrations)
+	migrationManager.migrate(settings)
+	assert.strictEqual(settings.version, 43, 'bumped version')
 	assert.strictEqual(
 		settings.hasOwnProperty('deprecatedSetting'), false, 'removed setting')
 }
 
-exports['test two migrations'] = function(assert) {
+exports['test two migrations (explicit v0)'] = function(assert) {
 	const settings = { 'version': 0 }
 	const migrations = {
 		1: function(settings) {
@@ -78,8 +69,9 @@ exports['test two migrations'] = function(assert) {
 			settings['newNewSetting'] = true
 		}
 	}
-	runMigrations(migrations, settings)
-	assert.strictEqual(getSettingsVersion(settings), 2, 'got latest version')
+	const migrationManager = new MigrationManager(migrations)
+	migrationManager.migrate(settings)
+	assert.strictEqual(settings.version, 2, 'got latest version')
 	assert.strictEqual(settings.newSetting, true, 'added new setting')
 	assert.strictEqual(settings.newNewSetting, true, 'added new new setting')
 }
@@ -95,28 +87,11 @@ exports['test two migrations, only one needed, error path'] = function(assert) {
 			settings['newNewSetting'] = true
 		}
 	}
-	runMigrations(migrations, settings)
-	assert.strictEqual(getSettingsVersion(settings), 2, 'got latest version')
+	const migrationManager = new MigrationManager(migrations)
+	migrationManager.migrate(settings)
+	assert.strictEqual(settings.version, 2, 'got latest version')
 	assert.strictEqual(settings.newSetting, undefined, "didn't run migration 1")
 	assert.strictEqual(settings.newNewSetting, true, 'added new new setting')
-}
-
-exports['test if migrations are needed (expecting no)'] = function(assert) {
-	const startingVersion = 1
-	const migrations = {
-		1: () => {}
-	}
-	assert.strictEqual(
-		isMigrationNeeded(migrations, startingVersion), false, 'no')
-}
-
-exports['test if migrations are needed (expecting yes)'] = function(assert) {
-	const startingVersion = 0
-	const migrations = {
-		1: () => {}
-	}
-	assert.strictEqual(
-		isMigrationNeeded(migrations, startingVersion), true, 'yes')
 }
 
 if (module === require.main) {
