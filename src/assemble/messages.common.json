@@ -92,14 +92,6 @@
     "message": "Border label font size (pixels):"
   },
 
-  "prefsDeveloper": {
-    "message": "Debugging"
-  },
-
-  "prefsDebugInfo": {
-    "message": "Show debugging info in the console"
-  },
-
   "prefsResetAll": {
     "message": "Reset settings to defaults"
   },

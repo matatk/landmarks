@@ -2,6 +2,7 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
+import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}  // TODO tree-shake, or not, as Edge will do it
 
@@ -162,6 +163,7 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		}
 	}
 
+	// FIXME startup
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 		switchInterface(items.interface)
 	})
@@ -270,24 +272,6 @@ browser.runtime.onInstalled.addListener(function(details) {
 
 
 //
-// Actions when the extension starts up
-//
-
-// When the extension is loaded, if it's loaded into a page that is not an
-// HTTP(S) page, then we need to disable the browser action button.  This is
-// not done by default on Chrome or Firefox.
-browser.tabs.query({}, function(tabs) {
-	for (const i in tabs) {
-		checkBrowserActionState(tabs[i].id, tabs[i].url)
-	}
-})
-
-if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
-	contentScriptInjector()
-}
-
-
-//
 // Message handling
 //
 
@@ -340,4 +324,40 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'mutation-info':
 			sendToDevToolsForTab(sender.tab.id, message)
 	}
+})
+
+
+//
+// Actions when the extension starts up
+//
+
+// When the extension is loaded, if it's loaded into a page that is not an
+// HTTP(S) page, then we need to disable the browser action button.  This is
+// not done by default on Chrome or Firefox.
+browser.tabs.query({}, function(tabs) {
+	for (const i in tabs) {
+		checkBrowserActionState(tabs[i].id, tabs[i].url)
+	}
+})
+
+if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+	contentScriptInjector()
+}
+
+const migrationManager = new MigrationManager({
+	1: function(settings) {
+		delete settings.debugInfo
+	}
+})
+
+browser.storage.sync.get(null, function(items) {
+	migrationManager.migrate(items)
+	browser.storage.sync.clear(function() {
+		browser.storage.sync.set(items, function() {
+			// Debugging
+			browser.storage.sync.get(null, function(newItems) {
+				console.log('Landmarks new settings:', newItems)
+			})
+		})
+	})
 })

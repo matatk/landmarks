@@ -13,6 +13,7 @@ export default function MigrationManager(migrations) {
 	this.migrate = function(settings) {
 		const startingVersion = getVersion(settings)
 		if (isMigrationNeeded(startingVersion)) {
+			console.log('Landmarks settings pre-migration:', settings)
 			for (const key in migrations) {
 				const toVersion = Number(key)
 				if (toVersion > startingVersion) {
@@ -20,6 +21,8 @@ export default function MigrationManager(migrations) {
 					settings.version = toVersion
 				}
 			}
+			console.log('Landmarks settings post-migration:', settings)
+			console.log(`Landmarks: migrated from ${startingVersion} to ${settings.version}`)
 		}
 	}
 }
