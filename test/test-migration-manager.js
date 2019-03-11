@@ -84,6 +84,16 @@ exports['test returns false when migration not necessary'] = function(assert) {
 	assert.strictEqual(result, false, 'migration not needed')
 }
 
+exports['test returns true when migration is necessary'] = function(assert) {
+	const settings = {}
+	const migrations = {
+		1: function() {}
+	}
+	const migrationManager = new MigrationManager(migrations)
+	const result = migrationManager.migrate(settings)
+	assert.strictEqual(result, true, 'migration was needed')
+}
+
 if (module === require.main) {
 	require('test').run(exports)
 }

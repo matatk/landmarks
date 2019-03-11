@@ -23,6 +23,7 @@ export default function MigrationManager(migrations) {
 			}
 			console.log('Landmarks settings post-migration:', settings)
 			console.log(`Landmarks: migrated from ${startingVersion} to ${settings.version}`)
+			return true
 		}
 		return false
 	}
