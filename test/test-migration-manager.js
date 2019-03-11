@@ -1,29 +1,7 @@
 'use strict'
-function MigrationManager(migrations) {
-	function getVersion(settings) {
-		if (!settings.hasOwnProperty('version')) {
-			return 0
-		}
-		return settings.version
-	}
-
-	function isMigrationNeeded(startingVersion) {
-		return startingVersion < Object.keys(migrations).pop()
-	}
-
-	this.migrate = function(settings) {
-		const startingVersion = getVersion(settings)
-		if (isMigrationNeeded(startingVersion)) {
-			for (const key in migrations) {
-				const toVersion = Number(key)
-				if (toVersion > startingVersion) {
-					migrations[toVersion](settings)
-					settings.version = toVersion
-				}
-			}
-		}
-	}
-}
+const path = require('path')
+const MigrationManager = require(
+	path.join(__dirname, 'test-code-in-harness-migration-manager.js'))
 
 exports['test the damage report machine'] = function(assert) {
 	assert.ok(true, 'damage report machine intact')
