@@ -354,14 +354,7 @@ browser.storage.sync.get(null, function(items) {
 	const didMigration = migrationManager.migrate(items)
 	if (didMigration) {
 		browser.storage.sync.clear(function() {
-			browser.storage.sync.set(items, function() {
-				// Debugging
-				browser.storage.sync.get(null, function(newItems) {
-					console.log('Landmarks new settings:', newItems)
-				})
-			})
+			browser.storage.sync.set(items)
 		})
-	} else {
-		console.log('Landmarks: migration not needed')
 	}
 })
