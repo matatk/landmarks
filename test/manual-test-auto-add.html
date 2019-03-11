@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Test automatically added landmarks</title>
+</head>
+<body>
+	<h1>Test automatically added landmarks</h1>
+	<p>This can be used to test dynamic updates and also to ensure that mutations are only observed on visible pages. It adds a landmark every two seconds.</p>
+	<div id="landmarks-pool"></div>
+	<script>
+const pool = document.getElementById('landmarks-pool')
+let count = 0
+
+function createLandmark() {
+	console.log('createLandmark()')
+	count += 1
+	const landmark = document.createElement('section')
+	const landmarkHeading = document.createElement('h2')
+	landmarkHeading.id = `heading-${count}`
+	landmarkHeading.appendChild(
+		document.createTextNode(`Landmark ${count}`))
+	landmark.appendChild(landmarkHeading)
+	landmark.setAttribute('aria-labelledby', landmarkHeading.id)
+	const para = document.createElement('p')
+	para.appendChild(document.createTextNode(count % 2 == 0
+		? 'Hello, world :-).'
+		: 'Lorem ipsum.'))
+	landmark.appendChild(para)
+	pool.insertBefore(landmark, pool.firstChild)
+}
+
+function doStuff() {
+	console.log('doStuff()')
+	createLandmark()
+	setTimeout(createLandmark,  750 - 20)
+	setTimeout(createLandmark, 1125 - 20)
+}
+
+setTimeout(doStuff, 500)
+	</script>
+</body>
+</html>

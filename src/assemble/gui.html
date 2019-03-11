@@ -7,7 +7,10 @@
 		<!-- ui -->
 		<link rel="stylesheet" href="sidebar.css">
 		<!-- /ui -->
-	</head>
+		<!-- devtools -->
+		<link rel="stylesheet" href="devtools.css">
+		<!-- /devtools -->
+	</head>  <!-- FIXME: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
 			<h1 data-message="popupHeading"></h1>
@@ -19,6 +22,38 @@
 		<div id="links"> <!-- removed in DevTools panel -->
 			<button id="help" data-message="popupHelpButton" class="browser-style"></button>
 			<button id="settings" data-message="popupPreferencesButton" class="browser-style"></button>
+		</div>
+		<div id="mutation-observation-station"> <!-- only in DevTools -->
+			<details>
+				<summary><h1 data-message="statsHeading"></h1></summary>
+				<dl>
+					<dt><details>
+						<summary data-message="statsMutationsTerm"></summary>
+						<p data-message="statsMutationsDefinition"></p>
+					</details></dt>
+					<dd id="mutations">0</dd>
+					<dt><details>
+						<summary data-message="statsCheckedMutationsTerm"></summary>
+						<p data-message="statsCheckedMutationsDefinition"></p>
+					</details></dt>
+					<dd id="checks">0</dd>
+					<dt><details>
+						<summary data-message="statsScansTerm"></summary>
+						<p data-message="statsScansDefinition"></p>
+					</details></dt>
+					<dd id="scans">0</dd>
+					<dt><details>
+						<summary data-message="statsPauseTerm"></summary>
+						<p data-message="statsPauseDefinition"></p>
+					</details></dt>
+					<dd id="pause">&mdash;</dd>
+					<dt><details>
+						<summary data-message="statsDurationTerm"></summary>
+						<p data-message="statsDurationDefinition"></p>
+					</details></dt>
+					<dd id="duration">&mdash;</dd>
+				</dl>
+			</details>
 		</div>
 		<script src="GUIJS"></script>
 	</body>

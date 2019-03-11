@@ -49,13 +49,20 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 				case 'init':
 					devtoolsConnections[message.tabId] = port
 					port.onDisconnect.addListener(function() {
+						browser.tabs.get(message.tabId, function(tab) {
+							if (isContentScriptablePage(tab.url)) {
+								sendDevToolsStateMessage(tab.id, false)
+							}
+						})
 						delete devtoolsConnections[message.tabId]
 					})
+					sendDevToolsStateMessage(message.tabId, true)
 					break
 				case 'get-landmarks':
 				case 'get-toggle-state':
 				case 'focus-landmark':
 				case 'toggle-all-landmarks':
+				case 'get-mutation-info':
 					// The DevTools panel can't check if it's on a scriptable
 					// page, so we do that here. Other GUIs check themselves.
 					browser.tabs.get(message.from, function(tab) {
@@ -82,6 +89,14 @@ if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
 			default:
 				throw Error(`Unkown connection type ${port.name}`)
 		}
+	})
+}
+
+// TODO this will be neater when Edge support is removed
+function sendDevToolsStateMessage(tabId, panelIsOpen) {
+	browser.tabs.sendMessage(tabId, {
+		name: 'devtools-state',
+		state: panelIsOpen ? 'open' : 'closed'
 	})
 }
 
@@ -287,6 +302,10 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			})
 			sendToDevToolsForTab(sender.tab.id, message)
 			break
+		case 'get-devtools-state':
+			sendDevToolsStateMessage(sender.tab.id,
+				devtoolsConnections.hasOwnProperty(sender.tab.id))
+			break
 		// Splash
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
@@ -312,10 +331,13 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'open-settings':
 			browser.runtime.openOptionsPage()
 			break
-		// Messages DevTools panel needs to know
+		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
+			break
+		case 'mutation-info':
+			sendToDevToolsForTab(sender.tab.id, message)
 	}
 })

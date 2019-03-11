@@ -244,17 +244,29 @@ async function flattenCode(browser) {
 }
 
 
-function removeUIstuff(htmlFile) {
+function removeStuff(name, string, file) {
+	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
 	doReplace(
-		htmlFile,
-		/<!-- ui -->[\s\S]*?<!-- \/ui -->\s*/g,
+		file,
+		new RegExp(re, 'g'),
 		'',
-		'Removed UI stuff')
+		`Removed ${name} stuff`)
+}
+
+
+function removeUIstuff(file) {
+	removeStuff('UI', 'ui', file)
+}
+
+
+function removeDevToolsStuff(file) {
+	removeStuff('DevTools', 'devtools', file)
 }
 
 
 function copyStaticFiles(browser) {
 	logStep('Copying static files')
+
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
 
@@ -268,36 +280,33 @@ function copyStaticFiles(browser) {
 function copyGuiFiles(browser) {
 	logStep('Copying root GUI HTML to create the popup and other bits')
 
-	function copyOneGuiFile(destination, doRemoveUIstuff) {
+	function copyOneGuiFile(destination, doUIRemove, doDevToolsRemove) {
 		const destHtml = path.join(pathToBuild(browser), `${destination}.html`)
-
 		fs.copyFileSync(path.join(srcAssembleDir, 'gui.html'), destHtml)
-
 		doReplace(
 			destHtml,
 			'GUIJS',
 			`${destination}.js`,
 			`Included ${destination} code`)
-
-		if (doRemoveUIstuff) {
-			removeUIstuff(destHtml)
-		}
+		if (doUIRemove) removeUIstuff(destHtml)
+		if (doDevToolsRemove) removeDevToolsStuff(destHtml)
 	}
 
-	copyOneGuiFile('popup', true)
+	copyOneGuiFile('popup', true, true)
 
 	if (browser === 'firefox' || browser === 'opera') {
-		copyOneGuiFile('sidebarPanel', false)
+		copyOneGuiFile('sidebarPanel', false, true)
 	}
 
 	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
-		copyOneGuiFile('devtoolsPanel', true)
+		copyOneGuiFile('devtoolsPanel', true, false)
 	}
 }
 
 
 function mergeMessages(browser) {
 	logStep('Merging messages JSON files')
+
 	const common = path.join(srcAssembleDir, 'messages.common.json')
 	const destinationDir = path.join(pathToBuild(browser), localeSubPath)
 	const destinationFile = path.join(pathToBuild(browser), messagesSubPath)
@@ -323,6 +332,7 @@ function mergeMessages(browser) {
 
 function mergeManifest(browser) {
 	logStep('Merging manifest.json')
+
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
 	const commonJson = require(common)
@@ -399,6 +409,7 @@ function checkMessages(browser) {
 // Get PNG files from the cache (which will generate them if needed)
 function getPngs(converter, browser) {
 	logStep('Generating/copying in PNG files')
+
 	browserPngSizes[browser].forEach((size) => {
 		const pngPath = converter.getPngPath(size)
 		const basename = path.basename(pngPath)
@@ -409,6 +420,7 @@ function getPngs(converter, browser) {
 
 function renameTestVersion(browser) {
 	logStep('Changing test version name in messages.json')
+
 	doReplace(
 		path.join(pathToBuild(browser), '**', 'messages.json'),
 		/"Landmark(s| Navigation via Keyboard or Pop-up)"/g,
@@ -425,6 +437,7 @@ function zipFileName(browser) {
 
 async function makeZip(browser) {
 	logStep('Createing ZIP file')
+
 	const outputFileName = zipFileName(browser)
 	const archive = archiver(outputFileName)
 

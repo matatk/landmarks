@@ -280,6 +280,8 @@ function messageHandlerCore(message) {
 		handleLandmarksMessage(message.data)
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
+	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
+		handleMutationMessage(message.data)
 	}
 }
 
@@ -294,6 +296,12 @@ function handleToggleStateMessage(state) {
 			break
 		default:
 			throw Error(`Unexpected toggle state ${state} given.`)
+	}
+}
+
+function handleMutationMessage(data) {
+	for (const key in data) {
+		document.getElementById(key).textContent = data[key]
 	}
 }
 
@@ -315,16 +323,21 @@ function main() {
 			port.onDisconnect.addListener(function() {
 				// TODO use styles presently in help.css (currently hardcoded)
 				const para = document.createElement('p')
-				para.style.margin = '1em'
+				para.style.margin = 0
+				para.style.marginBottom = '0.5em'
 				para.style.padding = '1em'
 				para.style.border = '1px solid #d00'
 				para.style.borderRadius = '1em'
+
 				const strong = document.createElement('strong')
 				strong.style.color = '#d00'
 				strong.appendChild(document.createTextNode(
 					browser.i18n.getMessage('devToolsConnectionError')))
 				para.appendChild(strong)
-				document.body.insertBefore(para, document.body.firstChild)
+
+				const content = document.getElementById('content')
+				content.insertBefore(para, content.firstChild)
+
 				document.body.style.backgroundColor = '#fee'
 			})
 		}
@@ -339,9 +352,12 @@ function main() {
 		// The checking for if the page is scriptable is done at the other end.
 		send({ name: 'get-landmarks' })
 		send({ name: 'get-toggle-state' })
+		send({ name: 'get-mutation-info' })
 	} else {
 		makeEventHandlers('help')
 		makeEventHandlers('settings')
+
+		document.getElementById('mutation-observation-station').remove()
 
 		// The message could be coming from any content script or other GUI, so
 		// it needs to be filtered. (The background script filters out messages

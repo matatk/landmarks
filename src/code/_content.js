@@ -2,16 +2,16 @@ import './compatibility'
 import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
-import Logger from './logger'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
+import MutationStatsReporter from './mutationStatsReporter'
 
-const logger = new Logger(window)
 const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
-const pauseHandler = new PauseHandler(logger)
+const msr = new MutationStatsReporter()
+const pauseHandler = new PauseHandler(msr.setPauseTime)
 
 const outOfDateTime = 2000
 let observer = null
@@ -28,7 +28,7 @@ function messageHandler(message) {
 			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
-			// Triggered by clicking on an item in a GUI, or indirectly via one
+			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			checkAndUpdateOutdatedResults()
 			checkFocusElement(() =>
@@ -83,17 +83,25 @@ function messageHandler(message) {
 			// (indicating that its content has changed substantially). When
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
-			logger.log('Landmarks: refresh triggered')
+			msr.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndUpdateExtension()
+			msr.sendAllUpdates()
+			break
+		case 'devtools-state':
+			if (message.state === 'open') {
+				msr.beVerbose()
+			} else {
+				msr.beQuiet()
+			}
 	}
 }
 
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		logger.log(`Landmarks may be out of date (pause: ${pauseHandler.getPauseTime()}); scanning now...`)
 		findLandmarksAndUpdateExtension()
+		msr.sendMutationUpdate()
 		return true
 	}
 	return false
@@ -115,7 +123,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 
 
 //
-// Actually finding landmarks
+// Finding landmarks
 //
 
 function sendLandmarks() {
@@ -126,8 +134,11 @@ function sendLandmarks() {
 }
 
 function findLandmarksAndUpdateExtension() {
-	logger.timeStamp('findLandmarksAndUpdateExtension()')
+	console.timeStamp('findLandmarksAndUpdateExtension()')
+	const start = performance.now()
 	landmarksFinder.find()
+	msr.setLastScanDuration(performance.now() - start)
+	msr.incrementMutationScans()
 	sendLandmarks()
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
@@ -178,18 +189,27 @@ function shouldRefreshLandmarkss(mutations) {
 
 function setUpMutationObserver() {
 	observer = new MutationObserver((mutations) => {
+		msr.incrementTotalMutations()
+
 		// Guard against being innundated by mutation events
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
-			// Ignore mutations if Landmarks caused them
+			// Ignore border-drawing mutations
 			borderDrawer.hasMadeDOMChanges,
+			// Guarded task
 			function() {
+				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					logger.log('Scan due to mutation')
 					findLandmarksAndUpdateExtension()
 				}
 			},
-			findLandmarksAndUpdateExtension)
+			// Scheduled task
+			function() {
+				findLandmarksAndUpdateExtension()
+				msr.sendMutationUpdate()
+			})
+
+		msr.sendMutationUpdate()
 	})
 
 	observer.observe(document, {
@@ -203,21 +223,24 @@ function setUpMutationObserver() {
 }
 
 function bootstrap() {
-	logger.log(`Bootstrapping Landmarks content script in ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	// At the start, the ElementFocuser is always managing borders
 	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
-	findLandmarksAndUpdateExtension()  // TODO try removing
+	console.log('Booting')
+	findLandmarksAndUpdateExtension()
+	msr.sendMutationUpdate()  // There will've been one scan now
 	setUpMutationObserver()
 
 	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
 			.onDisconnect.addListener(function() {
-				logger.log('Content script disconnected.')
+				console.log('Landmarks: content script disconnected.')
 				observer.disconnect()
 			})
 	}
+
+	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
 bootstrap()
