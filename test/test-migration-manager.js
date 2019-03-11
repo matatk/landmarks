@@ -72,6 +72,18 @@ exports['test two migrations, only one needed, error path'] = function(assert) {
 	assert.strictEqual(settings.newNewSetting, true, 'added new new setting')
 }
 
+exports['test returns false when migration not necessary'] = function(assert) {
+	const settings = { version: 1 }
+	const migrations = {
+		1: function() {
+			throw new Error('This should not be run')
+		}
+	}
+	const migrationManager = new MigrationManager(migrations)
+	const result = migrationManager.migrate(settings)
+	assert.strictEqual(result, false, 'migration not needed')
+}
+
 if (module === require.main) {
 	require('test').run(exports)
 }
