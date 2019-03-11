@@ -8,10 +8,6 @@ export const defaultBorderSettings = Object.freeze({
 	borderFontSize: '16'
 })
 
-export const defaultDebugSettings = Object.freeze({
-	debugInfo: false
-})
-
 export const defaultInterfaceSettings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
 		? Object.freeze({ interface: 'popup' })
@@ -21,11 +17,8 @@ export const defaultSettings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
 		? Object.freeze(Object.assign({},
 			defaultBorderSettings,
-			defaultDebugSettings,
 			defaultInterfaceSettings))
-		: Object.freeze(Object.assign({},
-			defaultBorderSettings,
-			defaultDebugSettings))
+		: Object.freeze(defaultBorderSettings)
 
 
 //

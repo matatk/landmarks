@@ -2,8 +2,10 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
+import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}  // TODO tree-shake, or not, as Edge will do it
+const startupCode = []
 
 
 //
@@ -162,8 +164,10 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		}
 	}
 
-	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-		switchInterface(items.interface)
+	startupCode.push(function() {
+		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+			switchInterface(items.interface)
+		})
 	})
 
 	browser.storage.onChanged.addListener(function(changes) {
@@ -270,24 +274,6 @@ browser.runtime.onInstalled.addListener(function(details) {
 
 
 //
-// Actions when the extension starts up
-//
-
-// When the extension is loaded, if it's loaded into a page that is not an
-// HTTP(S) page, then we need to disable the browser action button.  This is
-// not done by default on Chrome or Firefox.
-browser.tabs.query({}, function(tabs) {
-	for (const i in tabs) {
-		checkBrowserActionState(tabs[i].id, tabs[i].url)
-	}
-})
-
-if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
-	contentScriptInjector()
-}
-
-
-//
 // Message handling
 //
 
@@ -339,5 +325,48 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		case 'mutation-info':
 			sendToDevToolsForTab(sender.tab.id, message)
+	}
+})
+
+
+//
+// Actions when the extension starts up
+//
+
+// When the extension is loaded, if it's loaded into a page that is not an
+// HTTP(S) page, then we need to disable the browser action button.  This is
+// not done by default on Chrome or Firefox.
+browser.tabs.query({}, function(tabs) {
+	for (const i in tabs) {
+		checkBrowserActionState(tabs[i].id, tabs[i].url)
+	}
+})
+
+if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+	startupCode.push(contentScriptInjector)
+}
+
+const migrationManager = new MigrationManager({
+	1: function(settings) {
+		delete settings.debugInfo
+	}
+})
+
+function runStartupCode() {
+	for (const func of startupCode) {
+		func()
+	}
+}
+
+browser.storage.sync.get(null, function(items) {
+	const didMigration = migrationManager.migrate(items)
+	if (didMigration) {
+		browser.storage.sync.clear(function() {
+			browser.storage.sync.set(items, function() {
+				runStartupCode()
+			})
+		})
+	} else {
+		runStartupCode()
 	}
 })

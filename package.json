@@ -24,11 +24,13 @@
     "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
     "pretest": "eslint .",
-    "test": "npm run test:landmarks && npm run test:contrast",
+    "test": "npm run test:landmarks && npm run test:contrast && npm run test:migration-manager",
     "pretest:contrast": "rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
     "test:contrast": "node test/test-contrast.js",
     "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
     "test:landmarks": "node test/test-landmarks.js",
+    "pretest:migration-manager": "rollup src/code/migrationManager.js -f cjs > test/test-code-in-harness-migration-manager.js",
+    "test:migration-manager": "node test/test-migration-manager.js",
     "version": "npm run _changelog && git add CHANGELOG.md"
   },
   "husky": {

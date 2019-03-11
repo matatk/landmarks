@@ -14,10 +14,6 @@ const options = [{
 	name: 'borderFontSize',
 	element: document.getElementById('border-font-size'),
 	property: 'value'
-}, {
-	name: 'debugInfo',
-	element: document.getElementById('debug-info'),
-	property: 'checked'
 }]
 
 function restoreOptions() {
