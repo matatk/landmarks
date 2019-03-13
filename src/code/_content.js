@@ -13,8 +13,10 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
-const outOfDateTime = 2000
+const outOfDateTime = 2e3
+const observerReconnectionGrace = 1e3
 let observer = null
+let observerReconnectionTimer = null
 
 
 //
@@ -134,7 +136,7 @@ function sendLandmarks() {
 }
 
 function findLandmarksAndUpdateExtension() {
-	console.timeStamp('findLandmarksAndUpdateExtension()')
+	console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
@@ -229,11 +231,18 @@ function observeMutationObserver() {
 
 function reflectPageVisibility() {
 	if (document.hidden) {
+		if (observerReconnectionTimer) {
+			clearTimeout(observerReconnectionTimer)
+			observerReconnectionTimer = null
+		}
 		observer.disconnect()
 	} else {
-		observeMutationObserver()
-		findLandmarksAndUpdateExtension()
-		msr.sendMutationUpdate()
+		observerReconnectionTimer = setTimeout(function() {
+			observeMutationObserver()
+			findLandmarksAndUpdateExtension()
+			msr.sendMutationUpdate()
+			observerReconnectionTimer = null
+		}, observerReconnectionGrace)
 	}
 }
 
