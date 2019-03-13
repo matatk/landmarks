@@ -13,8 +13,10 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
-const outOfDateTime = 2000
+const outOfDateTime = 2e3
+const observerReconnectionGrace = 1e3
 let observer = null
+let observerReconnectionTimer = null
 
 
 //
@@ -134,7 +136,7 @@ function sendLandmarks() {
 }
 
 function findLandmarksAndUpdateExtension() {
-	console.timeStamp('findLandmarksAndUpdateExtension()')
+	console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
@@ -188,7 +190,7 @@ function shouldRefreshLandmarkss(mutations) {
 }
 
 function setUpMutationObserver() {
-	observer = new MutationObserver((mutations) => {
+	observer = new MutationObserver(function(mutations) {
 		msr.incrementTotalMutations()
 
 		// Guard against being innundated by mutation events
@@ -201,6 +203,7 @@ function setUpMutationObserver() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
 					findLandmarksAndUpdateExtension()
+					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
@@ -212,6 +215,10 @@ function setUpMutationObserver() {
 		msr.sendMutationUpdate()
 	})
 
+	observeMutationObserver()
+}
+
+function observeMutationObserver() {
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -222,15 +229,25 @@ function setUpMutationObserver() {
 	})
 }
 
+function reflectPageVisibility() {
+	if (document.hidden) {
+		if (observerReconnectionTimer) {
+			clearTimeout(observerReconnectionTimer)
+			observerReconnectionTimer = null
+		}
+		observer.disconnect()
+	} else {
+		observerReconnectionTimer = setTimeout(function() {
+			observeMutationObserver()
+			findLandmarksAndUpdateExtension()
+			msr.sendMutationUpdate()
+			observerReconnectionTimer = null
+		}, observerReconnectionGrace)
+	}
+}
+
 function bootstrap() {
 	browser.runtime.onMessage.addListener(messageHandler)
-
-	// At the start, the ElementFocuser is always managing borders
-	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
-	console.log('Booting')
-	findLandmarksAndUpdateExtension()
-	msr.sendMutationUpdate()  // There will've been one scan now
-	setUpMutationObserver()
 
 	if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
@@ -240,6 +257,11 @@ function bootstrap() {
 			})
 	}
 
+	// At the start, the ElementFocuser is always managing borders
+	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
+	setUpMutationObserver()
+	reflectPageVisibility()
+	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 

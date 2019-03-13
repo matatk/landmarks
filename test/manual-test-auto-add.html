@@ -30,14 +30,16 @@ function createLandmark() {
 	pool.insertBefore(landmark, pool.firstChild)
 }
 
-function doStuff() {
-	console.log('doStuff()')
+function createLandmarksGroup() {
+	console.log('Starting a group')
 	createLandmark()
 	setTimeout(createLandmark,  750 - 20)
 	setTimeout(createLandmark, 1125 - 20)
+	setTimeout(() => console.log('Finished a group'), 1125 - 20 + 10)
+	setTimeout(createLandmarksGroup, 1125 - 20 + 4000)
 }
 
-setTimeout(doStuff, 500)
+setTimeout(createLandmarksGroup, 2000)
 	</script>
 </body>
 </html>
