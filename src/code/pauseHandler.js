@@ -75,7 +75,6 @@ export default function PauseHandler(pauseTimeHook) {
 			increasePause()
 			console.timeStamp(`Scheduling task in: ${pause}`)
 			setTimeout(() => {
-				console.timeStamp('Running scheduled task')
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
