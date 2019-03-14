@@ -4,7 +4,7 @@ import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings } from './defaults'
 import MigrationManager from './migrationManager'
 
-const devtoolsConnections = {}  // TODO tree-shake, or not, as Edge will do it
+const devtoolsConnections = {}
 const startupCode = []
 
 
@@ -37,64 +37,60 @@ function updateGUIs(tabId, url) {
 }
 
 
-if (BROWSER === 'firefox' || BROWSER === 'chrome' || BROWSER === 'opera') {
-	//
-	// Setting up and handling DevTools connections
-	//
+//
+// Setting up and handling DevTools connections
+//
 
-	// eslint-disable-next-line no-inner-declarations
-	function devtoolsListenerMaker(port) {
-		// DevTools connections come from the DevTools panel, but the panel is
-		// inspecting a particular web page, which has a different tab ID.
-		return function(message) {
-			switch (message.name) {
-				case 'init':
-					devtoolsConnections[message.tabId] = port
-					port.onDisconnect.addListener(function() {
-						browser.tabs.get(message.tabId, function(tab) {
-							if (isContentScriptablePage(tab.url)) {
-								sendDevToolsStateMessage(tab.id, false)
-							}
-						})
-						delete devtoolsConnections[message.tabId]
-					})
-					sendDevToolsStateMessage(message.tabId, true)
-					break
-				case 'get-landmarks':
-				case 'get-toggle-state':
-				case 'focus-landmark':
-				case 'toggle-all-landmarks':
-				case 'get-mutation-info':
-					// The DevTools panel can't check if it's on a scriptable
-					// page, so we do that here. Other GUIs check themselves.
-					browser.tabs.get(message.from, function(tab) {
+function devtoolsListenerMaker(port) {
+	// DevTools connections come from the DevTools panel, but the panel is
+	// inspecting a particular web page, which has a different tab ID.
+	return function(message) {
+		switch (message.name) {
+			case 'init':
+				devtoolsConnections[message.tabId] = port
+				port.onDisconnect.addListener(function() {
+					browser.tabs.get(message.tabId, function(tab) {
 						if (isContentScriptablePage(tab.url)) {
-							browser.tabs.sendMessage(tab.id, message)
-						} else {
-							port.postMessage({
-								name: 'landmarks',
-								data: null
-							})
+							sendDevToolsStateMessage(tab.id, false)
 						}
 					})
-			}
+					delete devtoolsConnections[message.tabId]
+				})
+				sendDevToolsStateMessage(message.tabId, true)
+				break
+			case 'get-landmarks':
+			case 'get-toggle-state':
+			case 'focus-landmark':
+			case 'toggle-all-landmarks':
+			case 'get-mutation-info':
+				// The DevTools panel can't check if it's on a scriptable
+				// page, so we do that here. Other GUIs check themselves.
+				browser.tabs.get(message.from, function(tab) {
+					if (isContentScriptablePage(tab.url)) {
+						browser.tabs.sendMessage(tab.id, message)
+					} else {
+						port.postMessage({
+							name: 'landmarks',
+							data: null
+						})
+					}
+				})
 		}
 	}
-
-	browser.runtime.onConnect.addListener(function(port) {
-		switch (port.name) {
-			case 'devtools':
-				port.onMessage.addListener(devtoolsListenerMaker(port))
-				break
-			case 'disconnect-checker':  // Used on Chrome, Opera and Edge
-				break
-			default:
-				throw Error(`Unkown connection type ${port.name}`)
-		}
-	})
 }
 
-// TODO this will be neater when Edge support is removed
+browser.runtime.onConnect.addListener(function(port) {
+	switch (port.name) {
+		case 'devtools':
+			port.onMessage.addListener(devtoolsListenerMaker(port))
+			break
+		case 'disconnect-checker':  // Used on Chrome and Opera
+			break
+		default:
+			throw Error(`Unkown connection type ${port.name}`)
+	}
+})
+
 function sendDevToolsStateMessage(tabId, panelIsOpen) {
 	browser.tabs.sendMessage(tabId, {
 		name: 'devtools-state',
@@ -342,7 +338,7 @@ browser.tabs.query({}, function(tabs) {
 	}
 })
 
-if (BROWSER === 'chrome' || BROWSER === 'opera' || BROWSER === 'edge') {
+if (BROWSER === 'chrome' || BROWSER === 'opera') {
 	startupCode.push(contentScriptInjector)
 }
 

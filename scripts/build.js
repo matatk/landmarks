@@ -28,7 +28,6 @@ const validBrowsers = Object.freeze([
 	'firefox',
 	'chrome',
 	'opera',
-	'edge'
 ])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
@@ -57,16 +56,6 @@ const browserPngSizes = Object.freeze({
 		38,  // Browser action
 		48,  // Icon
 		128  // Icon
-	],
-	'edge': [
-		// https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/design
-		20,  // Normal browser action
-		40,  // 2x browser action
-		24,  // Management UI
-		48,  // 2x Management UI
-		44,  // Windows UI (App List, Settings -> System -> Apps & features
-		50,  // Packaging requirement (not visible anywhere)
-		150  // Icon for Windows Store
 	]
 })
 
@@ -270,7 +259,7 @@ function copyStaticFiles(browser) {
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
 
-	if (browser === 'chrome' || browser === 'edge') {
+	if (browser === 'chrome') {
 		removeUIstuff(path.join(pathToBuild(browser), 'options.html'))
 		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
