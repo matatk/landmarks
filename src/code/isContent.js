@@ -3,7 +3,6 @@ const specialPages
 	= BROWSER === 'firefox' ? /^https:\/\/addons.mozilla.org/
 	: BROWSER === 'chrome' ? /^https:\/\/chrome.google.com\/webstore/
 	: BROWSER === 'opera' ? /^https:\/\/addons.opera.com/
-	: BROWSER === 'edge' ? /^https:\/\/www.microsoft.com\/*?\/store/
 	: null
 /* eslint-enable indent */
 

@@ -98,9 +98,6 @@ function makeLandmarksTree(landmarks, container) {
 			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
 		}
-		// Note: Edge doesn't support DevTools, so doesn't use the message
-		//       'inspectButtonName' - but the build process needs this to be
-		//       here for it to pass (hacky, as below, but Edge will change...)
 
 		base.appendChild(item)  // add to current base
 
@@ -308,7 +305,7 @@ function handleMutationMessage(data) {
 // When the pop-up (or sidebar) opens, translate the heading and grab and
 // process the list of page landmarks
 //
-// Note: Firefox and Edge don't use 'devToolsConnectionError' but if it is not
+// Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
 //       This is a bit hacky, as these browsers really aren't using it, so
 //       shouldn't really have it, but at least it keeps all the code here,
