@@ -457,7 +457,9 @@ async function main() {
 
 	for (const browser of browsers) {
 		console.log()
-		logStep(chalk.bold(`Building for ${browser}${testModeMessage}`))
+		logStep(chalk.bold(`Cleaning and building for ${browser}${testModeMessage}`))
+		fse.removeSync(pathToBuild(browser))
+		fse.removeSync(zipFileName(browser))
 		await flattenCode(browser)
 		copyStaticFiles(browser)
 		copyGuiFiles(browser)

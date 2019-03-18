@@ -5,4 +5,4 @@ cache:
     - node_modules
     - build/png-cache
 install: npm install
-script: npm run build:all
+script: npm run build -- --browser all
