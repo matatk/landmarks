@@ -54,6 +54,7 @@
     "rollup-plugin-esformatter": "~0.5",
     "rollup-plugin-terser": "~3.0",
     "stats-lite": "~2.2",
-    "test": "~0.6"
+    "test": "~0.6",
+    "yargs": "~13.2"
   }
 }

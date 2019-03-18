@@ -99,24 +99,6 @@ function logStep(name) {
 }
 
 
-// First user argument is the name of a browser (or 'all').
-// Second user argument is (optionally) 'test' to signify a test release.
-function checkBuildMode() {
-	const browser = process.argv[2]
-	testMode = process.argv[3] === 'test' ? true : false
-
-	if (!buildTargets.includes(browser)) {
-		error(`Invalid build mode requested: expected one of [${buildTargets}] but received '${browser}'`)
-	}
-
-	if (testMode && browser !== 'chrome') {
-		error('Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as "2.1.0alpha1" can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.')
-	}
-
-	return browser === 'all' ? validBrowsers : [browser]
-}
-
-
 // Return path for extension in build folder
 function pathToBuild(browser) {
 	if (validBrowsers.includes(browser)) {
@@ -450,8 +432,26 @@ async function lintFirefox() {
 
 
 async function main() {
+	const argv = require('yargs')
+		.usage('Usage: $0 --browser <browser> [--test-release]')
+		.help('h')
+		.alias('h', 'help')
+		.describe('browser', 'Build for a specific browser, or all browsers')
+		.choices('browser', buildTargets)
+		.alias('browser', 'b')
+		.describe('test-release', 'Build an experimental release (Chrome-only)')
+		.boolean('test-release')
+		.alias('test-release', 't')
+		.demandOption('browser')
+		.argv
+
+	testMode = argv.testRelease === true
+	if (testMode && argv.browser !== 'chrome') {
+		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
+	}
+
 	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
-	const browsers = checkBuildMode()
+	const browsers = argv.browser === 'all' ? validBrowsers : [argv.browser]
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
 
