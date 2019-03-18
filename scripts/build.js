@@ -276,7 +276,7 @@ function copyGuiFiles(browser) {
 			destHtml,
 			'GUIJS',
 			`${destination}.js`,
-			`Included ${destination} code`)
+			`Referenced ${destination} code`)
 		if (doUIRemove) removeUIstuff(destHtml)
 		if (doDevToolsRemove) removeDevToolsStuff(destHtml)
 	}
