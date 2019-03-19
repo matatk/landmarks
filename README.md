@@ -118,8 +118,6 @@ You can build and run the current code locally as follows.
 
     The built versions of the extension are placed in `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
-	For more info on the build script, use `npm run build -- --help`.
-
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** either:
         -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation#Loading_from_disk), or
@@ -133,7 +131,7 @@ Some further info on the test/build process:
 
 -   You can remove the `build/<browser>/` directories and ZIP files for all browsers with `npm run clean:builds`.
 
--   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
+-   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. They are cached in the `build/png-cache/` directory.
 
 -   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
 
