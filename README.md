@@ -112,9 +112,7 @@ You can build and run the current code locally as follows.
 
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
 
-3.  Run the tests and build script to build one or all of the extensions:
-
-    `npm run build -- --browser (firefox|chrome|opera|all)`
+3.  Run the tests and build script to create versions of the extension for all browsers with `npm run build:all`.
 
     The built versions of the extension are placed in `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
@@ -134,6 +132,8 @@ Some further info on the test/build process:
 -   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. They are cached in the `build/png-cache/` directory.
 
 -   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
+
+-   For advanced use, you can run the build script directly (which bypasses the tests, beware) with `node scripts/build.js --help`.
 
 ### Test pages
 

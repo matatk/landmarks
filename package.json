@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "_changelog": "replace-in-file --isRegex true '/^# Landmarks ChangeLog\\n/' '' CHANGELOG.md && conventional-changelog --infile CHANGELOG.md --same-file -p angular --config scripts/conventional-changelog-writer-opts.js && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks ChangeLog\n\n' CHANGELOG.md",
-    "prebuild": "npm test",
-    "build": "node scripts/build.js",
-    "build:quick": "node scripts/build.js",
+    "prebuild:all": "npm test",
+    "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
     "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder > scripts/browser-landmarks.js",
     "profile": "node scripts/profile.js",

@@ -1,6 +1,4 @@
 'use strict'
-// FIXME clean chrome test doesn't seem to work
-
 // FIXME remove:
 let testMode = false	// are we building a test (alpha/beta) version?
 
@@ -461,23 +459,20 @@ async function lintFirefox() {
 //
 
 async function main() {
-	const syntax = '--browser <browser> [--test-release] [--clean-only]'
 	const argv = require('yargs')
-		.usage(`Usage: $0 ${syntax}`)
-		.usage(`   or: npm run build -- ${syntax}`)
+		.usage('Usage: $0 --browser <browser> [other options]')
 		.help('help')
 		.alias('help', 'h')
-		.describe('browser', 'Build for a specific browser, or all browsers')
+		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
-		.describe('test-release', "Build an experimental release (Chrome-only: a Firefox test release can be uploaded to the add-on's beta channel)")
+		.describe('test-release', "Build an experimental release (Chrome-only: a Firefox test release can be uploaded to the add-on's beta channel).")
 		.boolean('test-release')
 		.alias('test-release', 't')
-		.describe('clean-only', "Don't build; just remove existing build directory and ZIP")
+		.describe('clean-only', "Don't build; just remove existing build directory and ZIP.")
 		.boolean('clean-only')
 		.alias('clean-only', 'c')
 		.demandOption('browser')
-		.epilogue('Existing build directory and extension ZIP files are deleted first.')
 		.argv
 
 	const browsers = argv.browser === 'all'
