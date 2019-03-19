@@ -34,6 +34,7 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 }
 
 function main() {
+	console.log('Remember to run this with a debug build of the extension.\n')
 	puppeteer.launch({
 		headless: false,  // needed to support extensions
 		args: [

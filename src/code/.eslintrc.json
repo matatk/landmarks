@@ -6,6 +6,7 @@
   "globals": {
     "BROWSER": false,
     "INTERFACE": false,
+    "DEBUG": false,
     "browser": false
   },
   "parserOptions": {

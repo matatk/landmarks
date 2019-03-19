@@ -149,7 +149,7 @@ function clean(browser) {
 }
 
 
-async function flattenCode(browser) {
+async function flattenCode(browser, debug) {
 	logStep('Flattening JavaScript code')
 
 	const ioPairsAndGlobals = [{
@@ -203,7 +203,8 @@ async function flattenCode(browser) {
 		const bundleOption = {}
 
 		const defines = {
-			BROWSER: browser
+			BROWSER: browser,
+			DEBUG: debug
 		}
 
 		for (const global in ioPair.globals) {
@@ -470,6 +471,9 @@ async function main() {
 		.describe('clean-only', "Don't build; just remove existing build directory and ZIP.")
 		.boolean('clean-only')
 		.alias('clean-only', 'c')
+		.describe('debug', 'Create a debug build, with console.timeStamp() calls included, which are used in profile recordings.')
+		.boolean('debug')
+		.alias('debug', 'd')
 		.demandOption('browser')
 		.argv
 
@@ -483,6 +487,7 @@ async function main() {
 	const action = isFullBuild ? 'Building' : 'Cleaning'
 	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
+	const debugMode = argv.debug === true
 
 	testMode = argv.testRelease === true
 	if (testMode && argv.browser !== 'chrome') {
@@ -495,7 +500,7 @@ async function main() {
 		logStep(chalk.bold(`${action} for ${browser}${testModeMessage}`))
 		clean(browser)
 		if (isFullBuild) {
-			await flattenCode(browser)
+			await flattenCode(browser, debugMode)
 			copyStaticFiles(browser)
 			copyGuiFiles(browser)
 			mergeMessages(browser)
