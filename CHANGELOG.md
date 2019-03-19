@@ -6,6 +6,7 @@
 
 * Move to simpler message passing ([#268](https://github.com/matatk/landmarks/issues/268)) ([0404b77](https://github.com/matatk/landmarks/commit/0404b77)), closes [#265](https://github.com/matatk/landmarks/issues/265)
 * Support migration of user settings; Remove the debugInfo setting ([#272](https://github.com/matatk/landmarks/issues/272)) ([9f1924e](https://github.com/matatk/landmarks/commit/9f1924e))
+* Ensure command descriptions appear on the help page on Firefox 66 ([#280](https://github.com/matatk/landmarks/issues/280)) ([0a3b6b2](https://github.com/matatk/landmarks/commit/0a3b6b2))
 
 ### Build system
 
