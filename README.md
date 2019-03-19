@@ -112,11 +112,13 @@ You can build and run the current code locally as follows.
 
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
 
-3.  Run the tests build script to build one or all of the extensions:
+3.  Run the tests and build script to build one or all of the extensions:
 
     `npm run build -- --browser (firefox|chrome|opera|all)`
 
-    The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
+    The built versions of the extension are placed in `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
+
+	For more info on the build script, use `npm run build -- --help`.
 
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** either:
@@ -129,13 +131,11 @@ Some further info on the test/build process:
 
 -   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
 
--   You can remove the `build/<browser>/` directories and ZIP files with `npm run clean:<browser>` and `npm run clean:all`, as with the build scripts above.
+-   You can remove the `build/<browser>/` directories and ZIP files for all browsers with `npm run clean:builds`.
 
 -   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. You can clean out the cache with `npm run clean:cache`.
 
 -   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
-
--   The `build:chrome:test` script is provided for making an alpha/beta/test build for Chrome, which is the same as a normal build, but the extension is retitled to "Landmarks (test version)". A separate extension listing is required for publishing test versions in the Chrome Web Store. For Firefox Add-ons, a version number such as "2.1.0beta1" can be used and the built package can be uploaded to the extension's beta channel.
 
 ### Test pages
 

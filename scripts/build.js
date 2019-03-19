@@ -1,4 +1,9 @@
 'use strict'
+// FIXME clean chrome test doesn't seem to work
+
+// FIXME remove:
+let testMode = false	// are we building a test (alpha/beta) version?
+
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
@@ -24,11 +29,17 @@ const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubPath = path.join('_locales', 'en_GB')
 const messagesSubPath = path.join(localeSubPath, 'messages.json')
 
+
+//
+// Static Configuration
+//
+
 const validBrowsers = Object.freeze([
 	'firefox',
 	'chrome',
 	'opera',
 ])
+
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
@@ -63,8 +74,10 @@ const linters = Object.freeze({
 	'firefox': lintFirefox
 })
 
-let testMode = false	// are we building a test (alpha/beta) version?
 
+//
+// Utilities
+//
 
 function doReplace(files, from, to, message) {
 	try {
@@ -109,6 +122,34 @@ function pathToBuild(browser) {
 	}
 
 	error(`pathToBuild: invalid browser ${browser} given`)
+}
+
+
+function removeStuff(name, string, file) {
+	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
+	doReplace(
+		file,
+		new RegExp(re, 'g'),
+		'',
+		`Removed ${name} stuff`)
+}
+
+
+function zipFileName(browser) {
+	const test = testMode ? '-test' : ''
+	return extName + '-' + extVersion + test + '-' + browser + '.zip'
+}
+
+
+//
+// Build Steps
+//
+
+function clean(browser) {
+	logStep('Cleaning build directory and ZIP file')
+
+	fse.removeSync(pathToBuild(browser))
+	fse.removeSync(zipFileName(browser))
 }
 
 
@@ -212,16 +253,6 @@ async function flattenCode(browser) {
 		const bundle = await rollup.rollup(options.input)
 		await bundle.write(options.output)
 	}
-}
-
-
-function removeStuff(name, string, file) {
-	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
-	doReplace(
-		file,
-		new RegExp(re, 'g'),
-		'',
-		`Removed ${name} stuff`)
 }
 
 
@@ -400,12 +431,6 @@ function renameTestVersion(browser) {
 }
 
 
-function zipFileName(browser) {
-	const test = testMode ? '-test' : ''
-	return extName + '-' + extVersion + test + '-' + browser + '.zip'
-}
-
-
 async function makeZip(browser) {
 	logStep('Createing ZIP file')
 
@@ -431,51 +456,67 @@ async function lintFirefox() {
 }
 
 
+//
+// Startup and options management
+//
+
 async function main() {
-	const syntax = '--browser <browser> [--test-release]'
+	const syntax = '--browser <browser> [--test-release] [--clean-only]'
 	const argv = require('yargs')
 		.usage(`Usage: $0 ${syntax}`)
 		.usage(`   or: npm run build -- ${syntax}`)
-		.help('h')
-		.alias('h', 'help')
+		.help('help')
+		.alias('help', 'h')
 		.describe('browser', 'Build for a specific browser, or all browsers')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
-		.describe('test-release', 'Build an experimental release (Chrome-only)')
+		.describe('test-release', "Build an experimental release (Chrome-only: a Firefox test release can be uploaded to the add-on's beta channel)")
 		.boolean('test-release')
 		.alias('test-release', 't')
+		.describe('clean-only', "Don't build; just remove existing build directory and ZIP")
+		.boolean('clean-only')
+		.alias('clean-only', 'c')
 		.demandOption('browser')
 		.epilogue('Existing build directory and extension ZIP files are deleted first.')
 		.argv
+
+	const browsers = argv.browser === 'all'
+		? validBrowsers
+		: Array.isArray(argv.browser)
+			? argv.browser
+			: [argv.browser]
+
+	const isFullBuild = argv.cleanOnly !== true
+	const action = isFullBuild ? 'Building' : 'Cleaning'
 
 	testMode = argv.testRelease === true
 	if (testMode && argv.browser !== 'chrome') {
 		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
 	}
 
-	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
-	const browsers = argv.browser === 'all' ? validBrowsers : [argv.browser]
+	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
 
 	for (const browser of browsers) {
 		console.log()
-		logStep(chalk.bold(`Cleaning and building for ${browser}${testModeMessage}`))
-		fse.removeSync(pathToBuild(browser))
-		fse.removeSync(zipFileName(browser))
-		await flattenCode(browser)
-		copyStaticFiles(browser)
-		copyGuiFiles(browser)
-		mergeMessages(browser)
-		mergeManifest(browser)
-		checkMessages(browser)
-		getPngs(sp, browser)
-		if (testMode) {
-			renameTestVersion(browser)
-		}
-		await makeZip(browser)
-		if (browser in linters) {
-			await linters[browser]()
+		logStep(chalk.bold(`${action} for ${browser}${testModeMessage}`))
+		clean(browser)
+		if (isFullBuild) {
+			await flattenCode(browser)
+			copyStaticFiles(browser)
+			copyGuiFiles(browser)
+			mergeMessages(browser)
+			mergeManifest(browser)
+			checkMessages(browser)
+			getPngs(sp, browser)
+			if (testMode) {
+				renameTestVersion(browser)
+			}
+			await makeZip(browser)
+			if (browser in linters) {
+				await linters[browser]()
+			}
 		}
 	}
 }
