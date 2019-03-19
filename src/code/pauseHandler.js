@@ -31,7 +31,7 @@ export default function PauseHandler(pauseTimeHook) {
 		if (pause >= maxPause) {
 			pause = maxPause
 		}
-		console.timeStamp(`Increased pause to: ${pause}`)
+		if (DEBUG) console.timeStamp(`Increased pause to: ${pause}`)
 		pauseTimeHook(pause)
 	}
 
@@ -47,7 +47,7 @@ export default function PauseHandler(pauseTimeHook) {
 		} else {
 			decreasePause()
 		}
-		console.timeStamp(`Decreased pause to: ${pause}`)
+		if (DEBUG) console.timeStamp(`Decreased pause to: ${pause}`)
 		pauseTimeHook(pause)
 	}
 
@@ -73,7 +73,7 @@ export default function PauseHandler(pauseTimeHook) {
 			lastEvent = now
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
-			console.timeStamp(`Scheduling task in: ${pause}`)
+			if (DEBUG) console.timeStamp(`Scheduling task in: ${pause}`)
 			setTimeout(() => {
 				scheduledTask()
 				decreasePause()

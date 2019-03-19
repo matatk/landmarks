@@ -136,7 +136,7 @@ function sendLandmarks() {
 }
 
 function findLandmarksAndUpdateExtension() {
-	console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
+	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)

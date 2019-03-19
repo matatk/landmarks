@@ -12,6 +12,11 @@ const rollup = require('rollup')
 const terser = require('rollup-plugin-terser').terser
 const esformatter = require('rollup-plugin-esformatter')
 
+
+//
+// Static Configuration
+//
+
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
 const extVersion = packageJson.version
@@ -23,12 +28,7 @@ const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubPath = path.join('_locales', 'en_GB')
 const messagesSubPath = path.join(localeSubPath, 'messages.json')
-
-const validBrowsers = Object.freeze([
-	'firefox',
-	'chrome',
-	'opera',
-])
+const validBrowsers = Object.freeze([ 'firefox', 'chrome', 'opera', ])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
@@ -63,8 +63,17 @@ const linters = Object.freeze({
 	'firefox': lintFirefox
 })
 
+
+//
+// State
+//
+
 let testMode = false	// are we building a test (alpha/beta) version?
 
+
+//
+// Utilities
+//
 
 function doReplace(files, from, to, message) {
 	try {
@@ -99,24 +108,6 @@ function logStep(name) {
 }
 
 
-// First user argument is the name of a browser (or 'all').
-// Second user argument is (optionally) 'test' to signify a test release.
-function checkBuildMode() {
-	const browser = process.argv[2]
-	testMode = process.argv[3] === 'test' ? true : false
-
-	if (!buildTargets.includes(browser)) {
-		error(`Invalid build mode requested: expected one of [${buildTargets}] but received '${browser}'`)
-	}
-
-	if (testMode && browser !== 'chrome') {
-		error('Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as "2.1.0alpha1" can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.')
-	}
-
-	return browser === 'all' ? validBrowsers : [browser]
-}
-
-
 // Return path for extension in build folder
 function pathToBuild(browser) {
 	if (validBrowsers.includes(browser)) {
@@ -130,7 +121,35 @@ function pathToBuild(browser) {
 }
 
 
-async function flattenCode(browser) {
+function removeStuff(name, string, file) {
+	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
+	doReplace(
+		file,
+		new RegExp(re, 'g'),
+		'',
+		`Removed ${name} stuff`)
+}
+
+
+function zipFileName(browser) {
+	const test = testMode ? '-test' : ''
+	return extName + '-' + extVersion + test + '-' + browser + '.zip'
+}
+
+
+//
+// Build Steps
+//
+
+function clean(browser) {
+	logStep('Cleaning build directory and ZIP file')
+
+	fse.removeSync(pathToBuild(browser))
+	fse.removeSync(zipFileName(browser))
+}
+
+
+async function flattenCode(browser, debug) {
 	logStep('Flattening JavaScript code')
 
 	const ioPairsAndGlobals = [{
@@ -184,7 +203,8 @@ async function flattenCode(browser) {
 		const bundleOption = {}
 
 		const defines = {
-			BROWSER: browser
+			BROWSER: browser,
+			DEBUG: debug
 		}
 
 		for (const global in ioPair.globals) {
@@ -233,16 +253,6 @@ async function flattenCode(browser) {
 }
 
 
-function removeStuff(name, string, file) {
-	const re = `<!-- ${string} -->[\\s\\S]*?<!-- \\/${string} -->\\s*`
-	doReplace(
-		file,
-		new RegExp(re, 'g'),
-		'',
-		`Removed ${name} stuff`)
-}
-
-
 function removeUIstuff(file) {
 	removeStuff('UI', 'ui', file)
 }
@@ -276,7 +286,7 @@ function copyGuiFiles(browser) {
 			destHtml,
 			'GUIJS',
 			`${destination}.js`,
-			`Included ${destination} code`)
+			`Referenced ${destination} code`)
 		if (doUIRemove) removeUIstuff(destHtml)
 		if (doDevToolsRemove) removeDevToolsStuff(destHtml)
 	}
@@ -418,12 +428,6 @@ function renameTestVersion(browser) {
 }
 
 
-function zipFileName(browser) {
-	const test = testMode ? '-test' : ''
-	return extName + '-' + extVersion + test + '-' + browser + '.zip'
-}
-
-
 async function makeZip(browser) {
 	logStep('Createing ZIP file')
 
@@ -449,28 +453,67 @@ async function lintFirefox() {
 }
 
 
+//
+// Startup and options management
+//
+
 async function main() {
-	console.log(chalk.bold(`Builing ${extName} ${extVersion}...`))
-	const browsers = checkBuildMode()
+	const argv = require('yargs')
+		.usage('Usage: $0 --browser <browser> [other options]')
+		.help('help')
+		.alias('help', 'h')
+		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
+		.choices('browser', buildTargets)
+		.alias('browser', 'b')
+		.describe('test-release', "Build an experimental release (Chrome-only: a Firefox test release can be uploaded to the add-on's beta channel).")
+		.boolean('test-release')
+		.alias('test-release', 't')
+		.describe('clean-only', "Don't build; just remove existing build directory and ZIP.")
+		.boolean('clean-only')
+		.alias('clean-only', 'c')
+		.describe('debug', 'Create a debug build, with console.timeStamp() calls included, which are used in profile recordings.')
+		.boolean('debug')
+		.alias('debug', 'd')
+		.demandOption('browser')
+		.argv
+
+	const browsers = argv.browser === 'all'
+		? validBrowsers
+		: Array.isArray(argv.browser)
+			? argv.browser
+			: [argv.browser]
+
+	const isFullBuild = argv.cleanOnly !== true
+	const action = isFullBuild ? 'Building' : 'Cleaning'
+	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
 	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
+	const debugMode = argv.debug === true
+
+	testMode = argv.testRelease === true
+	if (testMode && argv.browser !== 'chrome') {
+		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
+	}
 	const testModeMessage = testMode ? ' (test version)' : ''
 
 	for (const browser of browsers) {
 		console.log()
-		logStep(chalk.bold(`Building for ${browser}${testModeMessage}`))
-		await flattenCode(browser)
-		copyStaticFiles(browser)
-		copyGuiFiles(browser)
-		mergeMessages(browser)
-		mergeManifest(browser)
-		checkMessages(browser)
-		getPngs(sp, browser)
-		if (testMode) {
-			renameTestVersion(browser)
-		}
-		await makeZip(browser)
-		if (browser in linters) {
-			await linters[browser]()
+		logStep(chalk.bold(`${action} for ${browser}${testModeMessage}`))
+		clean(browser)
+		if (isFullBuild) {
+			await flattenCode(browser, debugMode)
+			copyStaticFiles(browser)
+			copyGuiFiles(browser)
+			mergeMessages(browser)
+			mergeManifest(browser)
+			checkMessages(browser)
+			getPngs(sp, browser)
+			if (testMode) {
+				renameTestVersion(browser)
+			}
+			await makeZip(browser)
+			if (browser in linters) {
+				await linters[browser]()
+			}
 		}
 	}
 }
