@@ -96,18 +96,9 @@ function makeHTML(structure, root) {
 
 function addCommandRowAndReportIfMissing(command) {
 	// Work out the command's friendly name
-	let action
-
-	if (command.name === '_execute_browser_action') {
-		action = 'Show pop-up'
-	} else if (BROWSER === 'chrome' || BROWSER === 'opera') {
-		// Chrome returns the full descriptions
-		action = command.description
-	} else {
-		// Firefox requires the descriptions to be translated
-		const messageName = command.description.slice(6, -2)
-		action = browser.i18n.getMessage(messageName)
-	}
+	const action = command.name === '_execute_browser_action'
+		? 'Show pop-up'
+		: command.description
 
 	// Work out the command's shortcut
 	let shortcutCellElement
