@@ -1,5 +1,27 @@
 # Landmarks ChangeLog
 
+## [2.5.3](https://github.com/matatk/landmarks/compare/2.5.2...2.5.3) (2019-03-19)
+
+### Bug fixes
+
+* Move to simpler message passing ([#268](https://github.com/matatk/landmarks/issues/268)) ([0404b77](https://github.com/matatk/landmarks/commit/0404b77)), closes [#265](https://github.com/matatk/landmarks/issues/265)
+* Support migration of user settings; Remove the debugInfo setting ([#272](https://github.com/matatk/landmarks/issues/272)) ([9f1924e](https://github.com/matatk/landmarks/commit/9f1924e))
+
+### Build system
+
+* Remove Edge support for now ([#274](https://github.com/matatk/landmarks/issues/274)) ([ef55e8a](https://github.com/matatk/landmarks/commit/ef55e8a)), closes [#270](https://github.com/matatk/landmarks/issues/270)
+* Support debug builds; build refactoring ([#279](https://github.com/matatk/landmarks/issues/279)) ([48e5aeb](https://github.com/matatk/landmarks/commit/48e5aeb)), closes [#271](https://github.com/matatk/landmarks/issues/271)
+
+### Documentation
+
+* **Help:** Explain how to modify keyboard shortcuts on Firefox ([#281](https://github.com/matatk/landmarks/issues/281)) ([086804b](https://github.com/matatk/landmarks/commit/086804b))
+* **Help:** Update for 2.5.3 ([#282](https://github.com/matatk/landmarks/issues/282)) ([ae88692](https://github.com/matatk/landmarks/commit/ae88692))
+
+### Performance improvements
+
+* Mutation observation metrics ([#271](https://github.com/matatk/landmarks/issues/271)) ([171b16a](https://github.com/matatk/landmarks/commit/171b16a))
+* Only observe mutations when the page is visible ([#273](https://github.com/matatk/landmarks/issues/273)) ([f1c0a01](https://github.com/matatk/landmarks/commit/f1c0a01)), closes [#269](https://github.com/matatk/landmarks/issues/269)
+
 ## [2.5.2](https://github.com/matatk/landmarks/compare/2.5.1...2.5.2) (2019-01-26)
 
 ### Bug fixes

@@ -1,6 +1,6 @@
 {
   "name": "landmarks",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "private": true,
   "scripts": {
     "_changelog": "replace-in-file --isRegex true '/^# Landmarks ChangeLog\\n/' '' CHANGELOG.md && conventional-changelog --infile CHANGELOG.md --same-file -p angular --config scripts/conventional-changelog-writer-opts.js && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks ChangeLog\n\n' CHANGELOG.md",
