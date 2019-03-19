@@ -112,12 +112,9 @@ You can build and run the current code locally as follows.
 
 2.  Ensure you have all the required build tools with `npm install` (you will need [Node.js](https://nodejs.org/)).
 
-3.  Run the build script to build one or all of the extensions:
+3.  Run the tests build script to build one or all of the extensions:
 
-    -   `npm run build:firefox`
-    -   `npm run build:chrome`
-    -   `npm run build:opera`
-    -   `npm run build:all`
+    `npm run build -- --browser (firefox|chrome|opera|all)`
 
     The built versions of the extension are placed in the `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 

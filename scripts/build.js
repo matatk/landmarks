@@ -432,8 +432,10 @@ async function lintFirefox() {
 
 
 async function main() {
+	const syntax = '--browser <browser> [--test-release]'
 	const argv = require('yargs')
-		.usage('Usage: $0 --browser <browser> [--test-release]')
+		.usage(`Usage: $0 ${syntax}`)
+		.usage(`   or: npm run build -- ${syntax}`)
 		.help('h')
 		.alias('h', 'help')
 		.describe('browser', 'Build for a specific browser, or all browsers')
@@ -443,6 +445,7 @@ async function main() {
 		.boolean('test-release')
 		.alias('test-release', 't')
 		.demandOption('browser')
+		.epilogue('Existing build directory and extension ZIP files are deleted first.')
 		.argv
 
 	testMode = argv.testRelease === true
