@@ -1,7 +1,4 @@
 'use strict'
-// FIXME remove:
-let testMode = false	// are we building a test (alpha/beta) version?
-
 const path = require('path')
 const fs = require('fs')
 const fse = require('fs-extra')
@@ -15,6 +12,11 @@ const rollup = require('rollup')
 const terser = require('rollup-plugin-terser').terser
 const esformatter = require('rollup-plugin-esformatter')
 
+
+//
+// Static Configuration
+//
+
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
 const extVersion = packageJson.version
@@ -26,18 +28,7 @@ const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubPath = path.join('_locales', 'en_GB')
 const messagesSubPath = path.join(localeSubPath, 'messages.json')
-
-
-//
-// Static Configuration
-//
-
-const validBrowsers = Object.freeze([
-	'firefox',
-	'chrome',
-	'opera',
-])
-
+const validBrowsers = Object.freeze([ 'firefox', 'chrome', 'opera', ])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
@@ -71,6 +62,13 @@ const browserPngSizes = Object.freeze({
 const linters = Object.freeze({
 	'firefox': lintFirefox
 })
+
+
+//
+// State
+//
+
+let testMode = false	// are we building a test (alpha/beta) version?
 
 
 //
@@ -483,14 +481,13 @@ async function main() {
 
 	const isFullBuild = argv.cleanOnly !== true
 	const action = isFullBuild ? 'Building' : 'Cleaning'
+	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
+	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 
 	testMode = argv.testRelease === true
 	if (testMode && argv.browser !== 'chrome') {
 		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
 	}
-
-	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
-	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const testModeMessage = testMode ? ' (test version)' : ''
 
 	for (const browser of browsers) {
