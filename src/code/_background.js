@@ -273,6 +273,22 @@ browser.runtime.onInstalled.addListener(function(details) {
 // Message handling
 //
 
+function openHelpPage(openInSameTab) {
+	const helpPage = browser.runtime.getURL('help.html')
+	if (openInSameTab) {
+		// Link added to Landmarks' home page should open in the same tab
+		browser.tabs.update({ url: helpPage })
+	} else {
+		// When opened from GUIs, it should open in a new tab
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			browser.tabs.create({
+				url: helpPage,
+				openerTabId: tabs[0].id
+			})
+		})
+	}
+}
+
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
@@ -288,7 +304,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			sendDevToolsStateMessage(sender.tab.id,
 				devtoolsConnections.hasOwnProperty(sender.tab.id))
 			break
-		// Splash
+		// Help page
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
 				browser.tabs.sendMessage(sender.tab.id, {
@@ -305,13 +321,12 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 					: 'opera://settings/keyboardShortcuts'
 			})
 			break
-		case 'open-help':
-			browser.tabs.update({
-				url: browser.runtime.getURL('help.html')
-			})
-			break
 		case 'open-settings':
 			browser.runtime.openOptionsPage()
+			break
+		// Pop-up, sidebar and big link added to Landmarks' home page
+		case 'open-help':
+			openHelpPage(message.openInSameTab === true)
 			break
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
