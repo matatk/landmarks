@@ -10,49 +10,33 @@ const shortcutTableRows = [
 	}
 ]
 
-const keyboardShortcutsLink = {
-	element: 'a',
-	class: 'configAction',
-	tabindex: 0,
-	content: 'Add or change shortcuts',
-	listen: [{
-		event: 'click',
-		handler: () => browser.runtime.sendMessage({
-			name: 'open-configure-shortcuts'
-		})
-	}, {
-		event: 'keydown',
-		handler: (event) => {
-			if (event.key === 'Enter') {
-				browser.runtime.sendMessage({
-					name: 'open-configure-shortcuts'
-				})
+function makeLink(description, messageName) {
+	return {
+		element: 'a',
+		class: 'configAction',
+		tabindex: 0,
+		content: description,
+		listen: [{
+			event: 'click',
+			handler: () => browser.runtime.sendMessage({ name: messageName })
+		}, {
+			event: 'keydown',
+			handler: (event) => {
+				if (event.key === 'Enter') {
+					browser.runtime.sendMessage({ name: messageName })
+				}
 			}
-		}
-	}]
+		}]
+	}
 }
 
-const settingsLink = {
-	element: 'a',
-	class: 'configAction',
-	tabindex: 0,
-	content: 'Change preferences (opens in new tab)',
-	listen: [{
-		event: 'click',
-		handler: () => {
-			browser.runtime.sendMessage({ name: 'open-settings' })
-		}
-	}, {
-		event: 'keydown',
-		handler: (event) => {
-			if (event.key === 'Enter') {
-				browser.runtime.sendMessage({
-					name: 'open-configure-shortcuts'  // FIXME
-				})
-			}
-		}
-	}]
-}
+const keyboardShortcutsLink = makeLink(
+	'Add or change shortcuts',
+	'open-configure-shortcuts')
+
+const settingsLink = makeLink(
+	'Change preferences (opens in new tab)',
+	'open-settings')
 
 function makeHTML(structure, root) {
 	let newElement
