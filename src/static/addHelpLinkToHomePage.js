@@ -10,7 +10,9 @@ para.style.fontWeight = 'bold'
 
 const link = document.createElement('a')
 link.href = '#'
-link.onclick = () => browser.runtime.sendMessage({ name: 'open-help' })
+link.onclick = function() {
+	browser.runtime.sendMessage({ name: 'open-help', openInSameTab: true })
+}
 link.appendChild(document.createTextNode(
 	"You've already got the Landmarks extension; visit the help page..."))
 link.style.color = 'white'
