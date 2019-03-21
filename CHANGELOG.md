@@ -1,5 +1,18 @@
 # Landmarks ChangeLog
 
+## [2.5.4](https://github.com/matatk/landmarks/compare/2.5.3...2.5.4) (2019-03-21)
+
+### Bug fixes
+
+* **Help:** Ensure correct key handling for links ([#287](https://github.com/matatk/landmarks/issues/287)) ([8dc137a](https://github.com/matatk/landmarks/commit/8dc137a)), closes [#286](https://github.com/matatk/landmarks/issues/286)
+* **Metadata:** Update build instructions for Firefox reviewers ([#290](https://github.com/matatk/landmarks/issues/290)) ([9461815](https://github.com/matatk/landmarks/commit/9461815)), closes [#284](https://github.com/matatk/landmarks/issues/284)
+* **UI:** Help should open, from GUIs, in new page (regression) ([#289](https://github.com/matatk/landmarks/issues/289)) ([f07e58b](https://github.com/matatk/landmarks/commit/f07e58b)), closes [#285](https://github.com/matatk/landmarks/issues/285)
+
+### Documentation
+
+* Update extension-loading links and copyright date range ([#291](https://github.com/matatk/landmarks/issues/291)) ([ea3fbcc](https://github.com/matatk/landmarks/commit/ea3fbcc)), closes [#275](https://github.com/matatk/landmarks/issues/275) [#155](https://github.com/matatk/landmarks/issues/155)
+* **Help:** Update for 2.5.4 ([#292](https://github.com/matatk/landmarks/issues/292)) ([f7d108f](https://github.com/matatk/landmarks/commit/f7d108f))
+
 ## [2.5.3](https://github.com/matatk/landmarks/compare/2.5.2...2.5.3) (2019-03-19)
 
 ### Bug fixes
