@@ -14,7 +14,7 @@ Required software for the build:
 To build for Firefox specifically:
 
 1. npm install
-2. npm run build:firefox
+2. npm test && node scripts/build.js --browser firefox
 
 You'll find the extension in the build/firefox/ directory.
 
