@@ -39,9 +39,9 @@
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
     "puppeteer": "~1.13",
     "replace-in-file": "~3.4",
-    "rollup": "~0.68",
-    "rollup-plugin-esformatter": "~0.5",
-    "rollup-plugin-terser": "~3.0",
+    "rollup": "~1.7",
+    "rollup-plugin-esformatter": "~0.7",
+    "rollup-plugin-terser": "~4.0",
     "stats-lite": "~2.2",
     "test": "~0.6",
     "yargs": "~13.2"
