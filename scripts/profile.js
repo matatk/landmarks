@@ -159,7 +159,7 @@ function printAndSaveResults(results, loops) {
 
 function checkText(text, thing) {
 	if (!text) {
-		console.error(`No ${thing} given.`)
+		console.error(`No ${thing} given.\n`)
 		usageAndExit()
 	}
 	return text
@@ -168,7 +168,7 @@ function checkText(text, thing) {
 function checkNumber(input, limit, things) {
 	const number = Number(input)
 	if (isNaN(number) || number < limit) {
-		console.error(`Invalid number of ${things} "${input}".`)
+		console.error(`Invalid number of ${things} "${input}".\n`)
 		usageAndExit()
 	}
 	return number
@@ -195,11 +195,12 @@ function usageAndExit() {
 	console.error('                           between each one).')
 	console.error('               <runs> number of separate tracing runs to make')
 	console.error('                      (recommend setting this to 1 only).')
+	console.error('           Remember to run this with a debug build of the extension.\n')
 	console.error('or:    npm run profile -- time <site> <repetitions>')
 	console.error('           Runs only the code to find landmarks specifically, for')
-	console.error('           the number of times specified.')
+	console.error('           the number of times specified.\n')
 	console.error('Valid <sites>:\n', urls)
-	console.error('"all" can also be specified to run the profile on each site.')
+	console.error('"all" can be specified to run the profile on each site.\n')
 	process.exit(42)
 }
 
