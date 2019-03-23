@@ -69,5 +69,7 @@
     "storage",
     "webNavigation",
     "tabs"
-  ]
+  ],
+
+  "devtools_page": "devtools.html"
 }
