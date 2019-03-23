@@ -4,10 +4,10 @@
     "node": false
   },
   "globals": {
-    "BROWSER": false,
-    "INTERFACE": false,
-    "DEBUG": false,
-    "browser": false
+    "BROWSER": "readonly",
+    "INTERFACE": "readonly",
+    "DEBUG": "readonly",
+    "browser": "readonly"
   },
   "parserOptions": {
     "sourceType": "module"
