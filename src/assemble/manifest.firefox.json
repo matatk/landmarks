@@ -34,8 +34,6 @@
     }
   },
 
-  "devtools_page": "devtools.html",
-
   "commands": {
     "toggle-all-landmarks": {
       "suggested_key": {
