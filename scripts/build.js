@@ -137,6 +137,16 @@ function zipFileName(browser) {
 }
 
 
+function checkForUnexpectedDotfiles() {
+	const dotfiles = glob.sync(path.join(srcStaticDir, '.*'), {
+		ignore: '**/.eslintrc.json'  // handled already
+	})
+	if (dotfiles.length > 0) {
+		error(`The following unexpected files would be copied to the extension: ${dotfiles}`)
+	}
+}
+
+
 //
 // Build Steps
 //
@@ -494,6 +504,8 @@ async function main() {
 		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
 	}
 	const testModeMessage = testMode ? ' (test version)' : ''
+
+	checkForUnexpectedDotfiles()
 
 	for (const browser of browsers) {
 		console.log()
