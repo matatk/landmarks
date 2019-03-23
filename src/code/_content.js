@@ -252,8 +252,9 @@ function bootstrap() {
 	if (BROWSER === 'chrome' || BROWSER === 'opera') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
 			.onDisconnect.addListener(function() {
-				console.log('Landmarks: content script disconnected.')
+				console.log('Landmarks: content script disconnected due to extension unload/reload.')
 				observer.disconnect()
+				document.removeEventListener('visibilitychange', reflectPageVisibility, false)
 			})
 	}
 
