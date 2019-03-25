@@ -1,5 +1,30 @@
 # Landmarks Changelog
 
+## [2.5.5](https://github.com/matatk/landmarks/compare/2.5.4...2.5.5) (2019-03-25)
+
+### Bug fixes
+
+* Remove page visibility event listener when content script gets disconnected on Chrome-like browsers ([#299](https://github.com/matatk/landmarks/issues/299)) ([5c514a2](https://github.com/matatk/landmarks/commit/5c514a2)), closes [#296](https://github.com/matatk/landmarks/issues/296)
+
+### Build system
+
+* Check there are no unexpected dotfiles ([#301](https://github.com/matatk/landmarks/issues/301)) ([6e095ad](https://github.com/matatk/landmarks/commit/6e095ad)), closes [#295](https://github.com/matatk/landmarks/issues/295)
+* Remove Edge manifest and DRY DevTools key ([#300](https://github.com/matatk/landmarks/issues/300)) ([2aff6b4](https://github.com/matatk/landmarks/commit/2aff6b4)), closes [#294](https://github.com/matatk/landmarks/issues/294)
+* Use ESLint's new (as of 5.13) syntax for configuring globals ([#304](https://github.com/matatk/landmarks/issues/304)) ([a111cee](https://github.com/matatk/landmarks/commit/a111cee))
+
+### Chores
+
+* Bump dependencies ([#298](https://github.com/matatk/landmarks/issues/298)) ([63e8791](https://github.com/matatk/landmarks/commit/63e8791))
+
+### Documentation
+
+* **Help:** Update for 2.5.5 ([#308](https://github.com/matatk/landmarks/issues/308)) ([a96f8b2](https://github.com/matatk/landmarks/commit/a96f8b2))
+
+### Performance improvements
+
+* Enhance profiling script help message ([#302](https://github.com/matatk/landmarks/issues/302)) ([19409dd](https://github.com/matatk/landmarks/commit/19409dd)), closes [#297](https://github.com/matatk/landmarks/issues/297)
+* Perform the first scan for landmarks sooner ([#307](https://github.com/matatk/landmarks/issues/307)) ([4992396](https://github.com/matatk/landmarks/commit/4992396)), closes [#306](https://github.com/matatk/landmarks/issues/306)
+
 ## [2.5.4](https://github.com/matatk/landmarks/compare/2.5.3...2.5.4) (2019-03-21)
 
 ### Bug fixes
