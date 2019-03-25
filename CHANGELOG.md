@@ -1,4 +1,4 @@
-# Landmarks ChangeLog
+# Landmarks Changelog
 
 ## [2.5.4](https://github.com/matatk/landmarks/compare/2.5.3...2.5.4) (2019-03-21)
 
