@@ -189,7 +189,7 @@ function shouldRefreshLandmarkss(mutations) {
 	return false
 }
 
-function setUpMutationObserver() {
+function createMutationObserver() {
 	observer = new MutationObserver(function(mutations) {
 		msr.incrementTotalMutations()
 
@@ -214,8 +214,6 @@ function setUpMutationObserver() {
 
 		msr.sendMutationUpdate()
 	})
-
-	observeMutationObserver()
 }
 
 function observeMutationObserver() {
@@ -229,6 +227,12 @@ function observeMutationObserver() {
 	})
 }
 
+function observeMutationObserverAndFindLandmarks() {
+	observeMutationObserver()
+	findLandmarksAndUpdateExtension()
+	msr.sendMutationUpdate()
+}
+
 function reflectPageVisibility() {
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
@@ -238,9 +242,7 @@ function reflectPageVisibility() {
 		observer.disconnect()
 	} else {
 		observerReconnectionTimer = setTimeout(function() {
-			observeMutationObserver()
-			findLandmarksAndUpdateExtension()
-			msr.sendMutationUpdate()
+			observeMutationObserverAndFindLandmarks()
 			observerReconnectionTimer = null
 		}, observerReconnectionGrace)
 	}
@@ -260,8 +262,8 @@ function bootstrap() {
 
 	// At the start, the ElementFocuser is always managing borders
 	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
-	setUpMutationObserver()
-	reflectPageVisibility()
+	createMutationObserver()
+	observeMutationObserverAndFindLandmarks()
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
