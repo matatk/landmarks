@@ -1,31 +1,31 @@
 {
   "expected": [
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "banner",
       "label": null,
       "selector": "body > header"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "complementary",
       "label": null,
       "selector": "body > aside"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "navigation",
       "label": null,
       "selector": "body > nav"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "main",
       "label": null,
       "selector": "body > main"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "contentinfo",
       "label": null,
       "selector": "body > footer"

@@ -1,22 +1,24 @@
 {
   "expected": [
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "main",
       "label": null,
-      "selector": "body > main"
-    },
-    {
-      "depth": 1,
-      "role": "region",
-      "label": "Sibling One",
-      "selector": "body > main > div:nth-child(1) > div"
-    },
-    {
-      "depth": 1,
-      "role": "region",
-      "label": "Sibling Two",
-      "selector": "body > main > div:nth-child(2) > div"
+      "selector": "body > main",
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "region",
+          "label": "Sibling One",
+          "selector": "body > main > div:nth-child(1) > div"
+        },
+        {
+          "type": "landmark",
+          "role": "region",
+          "label": "Sibling Two",
+          "selector": "body > main > div:nth-child(2) > div"
+        }
+      ]
     }
   ]
 }

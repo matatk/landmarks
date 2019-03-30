@@ -1,31 +1,35 @@
 {
   "expected": [
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "banner",
       "label": null,
       "selector": "body > header"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "main",
       "label": null,
-      "selector": "body > main"
+      "selector": "body > main",
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "region",
+          "label": "Outer section header",
+          "selector": "body > main > section",
+          "contains": [
+            {
+              "type": "landmark",
+              "role": "region",
+              "label": "Inner section header",
+              "selector": "body > main > section > section"
+            }
+          ]
+        }
+      ]
     },
     {
-      "depth": 1,
-      "role": "region",
-      "label": "Outer section header",
-      "selector": "body > main > section"
-    },
-    {
-      "depth": 2,
-      "role": "region",
-      "label": "Inner section header",
-      "selector": "body > main > section > section"
-    },
-    {
-      "depth": 0,
+      "type": "landmark",
       "role": "contentinfo",
       "label": null,
       "selector": "body > footer"

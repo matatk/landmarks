@@ -1,37 +1,39 @@
 {
   "expected": [
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "banner",
       "label": null,
       "selector": "#banner"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "navigation",
       "label": null,
       "selector": "#navigation"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "main",
       "label": null,
       "selector": "#main"
     },
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "complementary",
       "label": null,
-      "selector": "#complementary"
+      "selector": "#complementary",
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "search",
+          "label": null,
+          "selector": "#search"
+        }
+      ]
     },
     {
-      "depth": 1,
-      "role": "search",
-      "label": null,
-      "selector": "#search"
-    },
-    {
-      "depth": 0,
+      "type": "landmark",
       "role": "contentinfo",
       "label": null,
       "selector": "#contentinfo"
