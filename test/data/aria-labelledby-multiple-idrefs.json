@@ -1,31 +1,35 @@
 {
   "expected": [
     {
-      "depth": 0,
+      "type": "landmark",
       "role": "banner",
       "label": null,
-      "selector": "body > header"
+      "selector": "body > header",
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "navigation",
+          "label": "World of wombats",
+          "selector": "body > header > nav"
+        }
+      ]
     },
     {
-      "depth": 1,
-      "role": "navigation",
-      "label": "World of wombats",
-      "selector": "body > header > nav"
-    },
-    {
-      "depth": 0,
+      "type": "landmark",
       "role": "main",
       "label": "Looking after your wombat",
-      "selector": "body > main"
+      "selector": "body > main",
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "navigation",
+          "label": "Looking after your wombat Topics",
+          "selector": "body > main > nav:nth-child(2)"
+        }
+      ]
     },
     {
-      "depth": 1,
-      "role": "navigation",
-      "label": "Looking after your wombat Topics",
-      "selector": "body > main > nav:nth-child(2)"
-    },
-    {
-      "depth": 0,
+      "type": "landmark",
       "role": "contentinfo",
       "label": null,
       "selector": "body > footer"
