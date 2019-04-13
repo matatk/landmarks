@@ -3,7 +3,6 @@
   "version": "2.5.5",
   "private": true,
   "scripts": {
-    "_changelog": "replace-in-file --isRegex true '/^# Landmarks Changelog\\n/' '' CHANGELOG.md && conventional-changelog --infile CHANGELOG.md --same-file -p angular --config scripts/conventional-changelog-writer-opts.js && replace-in-file --isRegex true '/^# /g' '## ' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/\\n\\n\\n/g' '\n\n' CHANGELOG.md && replace-in-file --isRegex true '/^/' '# Landmarks Changelog\n\n' CHANGELOG.md",
     "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
@@ -19,7 +18,7 @@
     "test:landmarks": "node test/test-landmarks.js",
     "pretest:migration-manager": "rollup src/code/migrationManager.js -f cjs > test/test-code-in-harness-migration-manager.js",
     "test:migration-manager": "node test/test-migration-manager.js",
-    "version": "npm run _changelog && git add CHANGELOG.md"
+    "version": "conventional-changelog-moulded-angular Landmarks && git add CHANGELOG.md"
   },
   "husky": {
     "hooks": {
@@ -30,7 +29,7 @@
     "addons-linter": "~1.6",
     "archiver-promise": "~1.0",
     "chalk": "~2.4",
-    "conventional-changelog-cli": "~2.0",
+    "conventional-changelog-moulded-angular": "github:matatk/conventional-changelog-moulded-angular#0.1.1",
     "deepmerge": "~3.2",
     "eslint": "~5.15",
     "fs-extra": "~7.0",
