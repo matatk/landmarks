@@ -62,7 +62,7 @@ If an `aria-labelledby` attribute references multiple elements, all of those ele
 
 The following additional landmark roles defined in the [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/) are also supported.
 
--    `doc-acknowledgements`
+-    `doc-acknowledgments`
 -    `doc-afterword`
 -    `doc-appendix`
 -    `doc-bibliography`
