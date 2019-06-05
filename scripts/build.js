@@ -333,7 +333,7 @@ function mergeMessages(browser) {
 			: {}
 	}
 
-	for (const locale of ['en_GB']) {
+	for (const locale of ['en_GB', 'en_US']) {
 		const destinationDir = builtLocaleDir(browser, locale)
 		const destinationFile = builtMessagesFile(browser, locale)
 
