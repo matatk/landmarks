@@ -26,9 +26,8 @@ const srcAssembleDir = path.join('src', 'assemble')
 const srcCodeDir = path.join('src', 'code')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
-const localeSubPath = path.join('_locales', 'en_GB')
-const messagesSubPath = path.join(localeSubPath, 'messages.json')
-const validBrowsers = Object.freeze([ 'firefox', 'chrome', 'opera', ])
+const localeSubDir = path.join('_locales')
+const validBrowsers = Object.freeze(['firefox', 'chrome', 'opera'])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
@@ -144,6 +143,16 @@ function checkForUnexpectedDotfiles() {
 	if (dotfiles.length > 0) {
 		error(`The following unexpected files would be copied to the extension: ${dotfiles}`)
 	}
+}
+
+
+function builtLocaleDir(browser, locale) {
+	return path.join(pathToBuild(browser), localeSubDir, locale)
+}
+
+
+function builtMessagesFile(browser, locale) {
+	return path.join(builtLocaleDir(browser, locale), 'messages.json')
 }
 
 
@@ -316,26 +325,37 @@ function copyGuiFiles(browser) {
 function mergeMessages(browser) {
 	logStep('Merging messages JSON files')
 
-	const common = path.join(srcAssembleDir, 'messages.common.json')
-	const destinationDir = path.join(pathToBuild(browser), localeSubPath)
-	const destinationFile = path.join(pathToBuild(browser), messagesSubPath)
-
-	fse.ensureDirSync(destinationDir)
-
-	if (browser === 'firefox' || browser === 'opera') {
-		const ui = path.join(srcAssembleDir, 'messages.interface.json')
-		const commonJson = require(path.join('..', common))
-		const uiJson = require(path.join('..', ui))
-		const merged = merge(commonJson, uiJson)
-		fs.writeFileSync(destinationFile, JSON.stringify(merged, null, 2))
-	} else {
-		// Instead of just copying the common file, write it in the same way as
-		// the merged one, so that diffs between builds are minimal.
-		const commonJson = require(path.join('..', common))
-		fs.writeFileSync(destinationFile, JSON.stringify(commonJson, null, 2))
+	function getMessagesOrEmpty(locale, mode) {
+		const messagesFileName = `messages.${mode}.${locale}.json`
+		const messagesPath = path.join(srcAssembleDir, messagesFileName)
+		return fs.existsSync(messagesPath)
+			? require(path.join('..', messagesPath))
+			: {}
 	}
 
-	ok(`messages.json written for ${browser}.`)
+	for (const locale of ['en_GB']) {
+		const destinationDir = builtLocaleDir(browser, locale)
+		const destinationFile = builtMessagesFile(browser, locale)
+
+		fse.ensureDirSync(destinationDir)
+
+		if (browser === 'firefox' || browser === 'opera') {
+			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
+			const uiMessagesJson = getMessagesOrEmpty(locale, 'interface')
+			const merged = merge(commonMessagesJson, uiMessagesJson)
+			fs.writeFileSync(destinationFile, JSON.stringify(merged, null, 2))
+		} else {
+			// Instead of just copying the common file, write it in the same
+			// way as the merged one, so that diffs between builds are minimal.
+			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
+			if (commonMessagesJson !== {}) {
+				fs.writeFileSync(destinationFile,
+					JSON.stringify(commonMessagesJson, null, 2))
+			}
+		}
+
+		ok(`messages.json written for ${browser} in ${locale} locale.`)
+	}
 }
 
 
@@ -385,7 +405,9 @@ function mergeManifest(browser) {
 function checkMessages(browser) {
 	logStep('Checking for unused messages (except role names)')
 
-	const translationsFile = path.join(pathToBuild(browser), messagesSubPath)
+	// We're only looking for the message keys, so any complete locale's
+	// messages file will do; the default one seems most apt.
+	const translationsFile = builtMessagesFile(browser, 'en_GB')
 	const messages = JSON.parse(fs.readFileSync(translationsFile))
 	const files = glob.sync(path.join(pathToBuild(browser), '**'), {
 		nodir: true,
