@@ -16,7 +16,7 @@ export default function LandmarksFinder(win, doc) {
 		'search',
 
 		// Digital Publishing ARIA module
-		'doc-acknowledgements',
+		'doc-acknowledgments',
 		'doc-afterword',
 		'doc-appendix',
 		'doc-bibliography',
