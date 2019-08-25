@@ -9,10 +9,10 @@ export default function LandmarksFinder(win, doc) {
 		'banner',
 		'complementary',
 		'contentinfo',
-		'form',           // spec says should label; Landmarks ignores if not
+		'form',           // spec says should label
 		'main',
 		'navigation',
-		'region',         // spec says must label; Landmarks ignores if not
+		'region',         // spec says must label
 		'search',
 
 		// Digital Publishing ARIA module
@@ -118,12 +118,14 @@ export default function LandmarksFinder(win, doc) {
 
 		// Support HTML5 elements' native roles
 		let role = getRoleFromTagNameAndContainment(element)
+		let explicitRole = false
 
 		// Elements with explicitly-set rolees
 		if (element.getAttribute) {
 			const tempRole = element.getAttribute('role')
 			if (tempRole) {
 				role = tempRole
+				explicitRole = true
 			}
 		}
 
@@ -131,7 +133,7 @@ export default function LandmarksFinder(win, doc) {
 		const label = getARIAProvidedLabel(element)
 
 		// Add the element if it should be considered a landmark
-		if (role && isLandmark(role, label)) {
+		if (role && isLandmark(role, explicitRole, label)) {
 			if (parentLandmark && parentLandmark.contains(element)) {
 				depth = depth + 1
 			}
@@ -185,9 +187,10 @@ export default function LandmarksFinder(win, doc) {
 		return label
 	}
 
-	function isLandmark(role, label) {
-		// Region and form are landmarks only when they have labels
-		if (role === 'region' || role === 'form') {
+	function isLandmark(role, explicitRole, label) {
+		// <section> and <form> are only landmarks when labelled.
+		// <div role="form"> is always a landmark.
+		if (role === 'region' || (role === 'form' && !explicitRole)) {
 			return label !== null
 		}
 

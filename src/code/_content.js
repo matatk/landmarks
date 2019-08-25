@@ -131,7 +131,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 function sendLandmarks() {
 	browser.runtime.sendMessage({
 		name: 'landmarks',
-		data: landmarksFinder.allDepthsRolesLabelsSelectors()
+		data: landmarksFinder.allDepthsRolesDescriptionsLabelsSelectors()
 	})
 }
 
