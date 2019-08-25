@@ -139,6 +139,7 @@ export default function LandmarksFinder(win, doc) {
 			landmarks.push({
 				'depth': depth,
 				'role': role,
+				'roleDescription': getRoleDescription(element),
 				'label': label,
 				'element': element,
 				'selector': createSelector(element)
@@ -167,6 +168,7 @@ export default function LandmarksFinder(win, doc) {
 	function getARIAProvidedLabel(element) {
 		let label = null
 
+		// TODO general whitespace test?
 		const idRefs = element.getAttribute('aria-labelledby')
 		if (idRefs !== null && idRefs.length > 0) {
 			const innerTexts = Array.from(idRefs.split(' '), idRef => {
@@ -225,6 +227,15 @@ export default function LandmarksFinder(win, doc) {
 		}
 
 		return role
+	}
+
+	function getRoleDescription(element) {
+		const roleDescription = element.getAttribute('aria-roledescription')
+		// TODO make this a general whitespace check?
+		if (/^\s*$/.test(roleDescription)) {
+			return null
+		}
+		return roleDescription
 	}
 
 	function isChildOfTopLevelSection(element) {
@@ -315,19 +326,21 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	this.allDepthsRolesLabelsSelectors = function() {
+	this.allDepthsRolesDescriptionsLabelsSelectors = function() {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
+			roleDescription: landmark.roleDescription,
 			label: landmark.label,
 			selector: landmark.selector
 		}))
 	}
 
-	this.allElementsRolesLabels = function() {
+	this.allElementsRolesDescriptionsLabels = function() {
 		return landmarks.map(landmark => ({
 			element: landmark.element,
 			role: landmark.role,
+			roleDescription: landmark.roleDescription,
 			label: landmark.label
 		}))
 	}
