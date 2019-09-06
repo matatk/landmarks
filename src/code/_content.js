@@ -34,23 +34,23 @@ function messageHandler(message) {
 			// of the keyboard shortcuts (if landmarks are present)
 			checkAndUpdateOutdatedResults()
 			checkFocusElement(() =>
-				landmarksFinder.getLandmarkElementRoleLabel(message.index))
+				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			checkAndUpdateOutdatedResults()
-			checkFocusElement(landmarksFinder.getNextLandmarkElementRoleLabel)
+			checkFocusElement(landmarksFinder.getNextLandmarkElementInfo)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			checkAndUpdateOutdatedResults()
 			checkFocusElement(
-				landmarksFinder.getPreviousLandmarkElementRoleLabel)
+				landmarksFinder.getPreviousLandmarkElementInfo)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
 			checkAndUpdateOutdatedResults()
-			const mainElementInfo = landmarksFinder.getMainElementRoleLabel()
+			const mainElementInfo = landmarksFinder.getMainElementInfo()
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
 			} else {
@@ -65,7 +65,7 @@ function messageHandler(message) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
 					borderDrawer.addBorderToElements(
-						landmarksFinder.allElementsRolesLabels())
+						landmarksFinder.allElementsInfos())
 				} else {
 					borderDrawer.removeAllBorders()
 					elementFocuser.manageBorders(true)
@@ -131,7 +131,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 function sendLandmarks() {
 	browser.runtime.sendMessage({
 		name: 'landmarks',
-		data: landmarksFinder.allDepthsRolesDescriptionsLabelsSelectors()
+		data: landmarksFinder.allInfos()
 	})
 }
 
@@ -146,7 +146,7 @@ function findLandmarksAndUpdateExtension() {
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
 		borderDrawer.addBorderToElements(
-			landmarksFinder.allElementsRolesLabels())
+			landmarksFinder.allElementsInfos())
 	}
 }
 

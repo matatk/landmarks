@@ -1,11 +1,13 @@
-// If the landmark has a label, the name is: 'label (role)'
-// otherwise the name is just 'role'
 export default function landmarkName(landmark) {
+	const roleName = landmark.roleDescription
+		? landmark.roleDescription
+		: processRole(landmark.role)
+
 	if (landmark.label) {
-		return landmark.label + ' (' + processRole(landmark.role) + ')'
+		return landmark.label + ' (' + roleName + ')'
 	}
 
-	return processRole(landmark.role)
+	return roleName
 }
 
 // Fetch the user-friendly name for a role

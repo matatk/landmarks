@@ -77,11 +77,12 @@ export default function LandmarksFinder(win, doc) {
 
 	let landmarks = []
 	// Each member of this array is an object of the form:
-	//   depth: (int)            -- indicates nesting of landmarks
-	//   role: (string)          -- the ARIA role
-	//   label: (string or null) -- author-supplied label
-	//   element: (HTML*Element) -- in-memory element
-	//   selector: (string)      -- CSS selector path for this element
+	//   depth: (int)                      -- indicates nesting of landmarks
+	//   role: (string)                    -- the ARIA role
+	//   roleDescription: (string | null)  -- custom role description
+	//   label: (string | null)            -- associated label
+	//   selector: (string)                -- CSS selector path of element
+	//   element: (HTML*Element)           -- in-memory element
 
 
 	//
@@ -102,6 +103,7 @@ export default function LandmarksFinder(win, doc) {
 		return {
 			element: currentlySelectedElement,
 			role: landmarks[index].role,
+			roleDescription: landmarks[index].roleDescription,
 			label: landmarks[index].label
 			// No need to send the selector this time
 		}
@@ -329,7 +331,7 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	this.allDepthsRolesDescriptionsLabelsSelectors = function() {
+	this.allInfos = function() {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
@@ -339,34 +341,35 @@ export default function LandmarksFinder(win, doc) {
 		}))
 	}
 
-	this.allElementsRolesDescriptionsLabels = function() {
+	this.allElementsInfos = function() {
 		return landmarks.map(landmark => ({
 			element: landmark.element,
+			depth: landmark.depth,
 			role: landmark.role,
 			roleDescription: landmark.roleDescription,
-			label: landmark.label
+			label: landmark.label,
+			selector: landmark.selector
 		}))
 	}
 
-	// These all return elements and their public-facing info:
-	// { element: <HTMLElement>, role: <string>, label: <string> }
+	// These all return elements and their related info
 
-	this.getNextLandmarkElementRoleLabel = function() {
+	this.getNextLandmarkElementInfo = function() {
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
-	this.getPreviousLandmarkElementRoleLabel = function() {
+	this.getPreviousLandmarkElementInfo = function() {
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
-	this.getLandmarkElementRoleLabel = function(index) {
+	this.getLandmarkElementInfo = function(index) {
 		return updateSelectedIndexAndReturnElementInfo(index)
 	}
 
-	this.getMainElementRoleLabel = function() {
+	this.getMainElementInfo = function() {
 		return mainElementIndex < 0 ?
 			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
 	}
