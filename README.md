@@ -33,7 +33,7 @@ The rest of this file provides information that may be of help and interest to w
 This extension's support for landmarks
 --------------------------------------
 
-Landmarks uses the [Page Structural Semantics Scanner Tests](https://github.com/matatk/page-structural-semantics-scanner-tests) suite; you can find information on standards support there.
+The Landmarks extension uses the [Page Structural Semantics Scanner Tests suite; you can find information on standards support there](https://github.com/matatk/page-structural-semantics-scanner-tests#support-for-landmarks).
 
 Information for web authors, designers and developers
 -----------------------------------------------------
