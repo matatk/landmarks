@@ -13,11 +13,6 @@ let port = null
 
 // Handle incoming landmarks message response
 //
-// If there are landmarks, then the response will be a list of objects that
-// represent the landmarks.
-//
-//     [ { label: X, role: Y, depth: Z, selector: @ }, { . . . }, . . . ]
-//
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
 function handleLandmarksMessage(data) {

@@ -9,10 +9,10 @@ export default function LandmarksFinder(win, doc) {
 		'banner',
 		'complementary',
 		'contentinfo',
-		'form',           // spec says should label; Landmarks ignores if not
+		'form',           // spec says should label
 		'main',
 		'navigation',
-		'region',         // spec says must label; Landmarks ignores if not
+		'region',         // spec says must label
 		'search',
 
 		// Digital Publishing ARIA module
@@ -77,11 +77,12 @@ export default function LandmarksFinder(win, doc) {
 
 	let landmarks = []
 	// Each member of this array is an object of the form:
-	//   depth: (int)            -- indicates nesting of landmarks
-	//   role: (string)          -- the ARIA role
-	//   label: (string or null) -- author-supplied label
-	//   element: (HTML*Element) -- in-memory element
-	//   selector: (string)      -- CSS selector path for this element
+	//   depth: (int)                      -- indicates nesting of landmarks
+	//   role: (string)                    -- the ARIA role
+	//   roleDescription: (string | null)  -- custom role description
+	//   label: (string | null)            -- associated label
+	//   selector: (string)                -- CSS selector path of element
+	//   element: (HTML*Element)           -- in-memory element
 
 
 	//
@@ -102,6 +103,7 @@ export default function LandmarksFinder(win, doc) {
 		return {
 			element: currentlySelectedElement,
 			role: landmarks[index].role,
+			roleDescription: landmarks[index].roleDescription,
 			label: landmarks[index].label
 			// No need to send the selector this time
 		}
@@ -118,12 +120,14 @@ export default function LandmarksFinder(win, doc) {
 
 		// Support HTML5 elements' native roles
 		let role = getRoleFromTagNameAndContainment(element)
+		let explicitRole = false
 
 		// Elements with explicitly-set rolees
 		if (element.getAttribute) {
 			const tempRole = element.getAttribute('role')
 			if (tempRole) {
 				role = tempRole
+				explicitRole = true
 			}
 		}
 
@@ -131,7 +135,7 @@ export default function LandmarksFinder(win, doc) {
 		const label = getARIAProvidedLabel(element)
 
 		// Add the element if it should be considered a landmark
-		if (role && isLandmark(role, label)) {
+		if (role && isLandmark(role, explicitRole, label)) {
 			if (parentLandmark && parentLandmark.contains(element)) {
 				depth = depth + 1
 			}
@@ -139,6 +143,7 @@ export default function LandmarksFinder(win, doc) {
 			landmarks.push({
 				'depth': depth,
 				'role': role,
+				'roleDescription': getRoleDescription(element),
 				'label': label,
 				'element': element,
 				'selector': createSelector(element)
@@ -167,6 +172,7 @@ export default function LandmarksFinder(win, doc) {
 	function getARIAProvidedLabel(element) {
 		let label = null
 
+		// TODO general whitespace test?
 		const idRefs = element.getAttribute('aria-labelledby')
 		if (idRefs !== null && idRefs.length > 0) {
 			const innerTexts = Array.from(idRefs.split(' '), idRef => {
@@ -183,9 +189,10 @@ export default function LandmarksFinder(win, doc) {
 		return label
 	}
 
-	function isLandmark(role, label) {
-		// Region and form are landmarks only when they have labels
-		if (role === 'region' || role === 'form') {
+	function isLandmark(role, explicitRole, label) {
+		// <section> and <form> are only landmarks when labelled.
+		// <div role="form"> is always a landmark.
+		if (role === 'region' || (role === 'form' && !explicitRole)) {
 			return label !== null
 		}
 
@@ -225,6 +232,15 @@ export default function LandmarksFinder(win, doc) {
 		}
 
 		return role
+	}
+
+	function getRoleDescription(element) {
+		const roleDescription = element.getAttribute('aria-roledescription')
+		// TODO make this a general whitespace check?
+		if (/^\s*$/.test(roleDescription)) {
+			return null
+		}
+		return roleDescription
 	}
 
 	function isChildOfTopLevelSection(element) {
@@ -315,42 +331,45 @@ export default function LandmarksFinder(win, doc) {
 		return landmarks.length
 	}
 
-	this.allDepthsRolesLabelsSelectors = function() {
+	this.allInfos = function() {
 		return landmarks.map(landmark => ({
 			depth: landmark.depth,
 			role: landmark.role,
+			roleDescription: landmark.roleDescription,
 			label: landmark.label,
 			selector: landmark.selector
 		}))
 	}
 
-	this.allElementsRolesLabels = function() {
+	this.allElementsInfos = function() {
 		return landmarks.map(landmark => ({
 			element: landmark.element,
+			depth: landmark.depth,
 			role: landmark.role,
-			label: landmark.label
+			roleDescription: landmark.roleDescription,
+			label: landmark.label,
+			selector: landmark.selector
 		}))
 	}
 
-	// These all return elements and their public-facing info:
-	// { element: <HTMLElement>, role: <string>, label: <string> }
+	// These all return elements and their related info
 
-	this.getNextLandmarkElementRoleLabel = function() {
+	this.getNextLandmarkElementInfo = function() {
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
-	this.getPreviousLandmarkElementRoleLabel = function() {
+	this.getPreviousLandmarkElementInfo = function() {
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
-	this.getLandmarkElementRoleLabel = function(index) {
+	this.getLandmarkElementInfo = function(index) {
 		return updateSelectedIndexAndReturnElementInfo(index)
 	}
 
-	this.getMainElementRoleLabel = function() {
+	this.getMainElementInfo = function() {
 		return mainElementIndex < 0 ?
 			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
 	}

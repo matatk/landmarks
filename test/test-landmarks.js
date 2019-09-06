@@ -5,5 +5,5 @@ const LandmarksFinder = require('./test-code-in-harness-landmarks')
 runner(function(win, doc) {
 	const lf = new LandmarksFinder(win, doc)
 	lf.find()
-	return lf.allDepthsRolesLabelsSelectors()
+	return lf.allInfos()
 })
