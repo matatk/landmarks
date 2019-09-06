@@ -1,4 +1,33 @@
-# Landmarks Changelog
+# Landmarks changelog
+
+## [2.6.0](https://github.com/matatk/landmarks/compare/2.5.5...2.6.0) (2019-09-06)
+
+### Bug fixes
+
+* Use specified spelling for "doc-acknowledgments" role; add en_US locale ([#315](https://github.com/matatk/landmarks/issues/315)) ([cfbfd6c](https://github.com/matatk/landmarks/commit/cfbfd6c))
+
+### Builds
+
+* Use factored-out package for generating/updating the changelog ([#313](https://github.com/matatk/landmarks/issues/313)) ([17a228a](https://github.com/matatk/landmarks/commit/17a228a))
+
+### Chores
+
+* **Dependencies:** Remove unused JSDOM; Bumps ([#314](https://github.com/matatk/landmarks/issues/314)) ([c6f1b00](https://github.com/matatk/landmarks/commit/c6f1b00))
+* Bump to Node 10 on Travis ([#318](https://github.com/matatk/landmarks/issues/318)) ([cc0f2b0](https://github.com/matatk/landmarks/commit/cc0f2b0)), closes [#276](https://github.com/matatk/landmarks/issues/276)
+
+### Documentation
+
+* **README:** Refer to test suite documentation for standards su… ([#319](https://github.com/matatk/landmarks/issues/319)) ([129955f](https://github.com/matatk/landmarks/commit/129955f))
+* Release notes for 2.6.0 ([#320](https://github.com/matatk/landmarks/issues/320)) ([43e194f](https://github.com/matatk/landmarks/commit/43e194f))
+
+### Features
+
+* Support aria-roledescription (also fix forms detection) ([#317](https://github.com/matatk/landmarks/issues/317)) ([711fb16](https://github.com/matatk/landmarks/commit/711fb16)), closes [#316](https://github.com/matatk/landmarks/issues/316) [matatk/page-structural-semantics-scanner-tests#2](https://github.com/matatk/page-structural-semantics-scanner-tests/issues/2)
+
+### Tests
+
+* Expected test results in tree format ([#311](https://github.com/matatk/landmarks/issues/311)) ([b530435](https://github.com/matatk/landmarks/commit/b530435))
+* Use factored-out landmark scanner test suite ([#312](https://github.com/matatk/landmarks/issues/312)) ([a710d49](https://github.com/matatk/landmarks/commit/a710d49))
 
 ## [2.5.5](https://github.com/matatk/landmarks/compare/2.5.4...2.5.5) (2019-03-25)
 
