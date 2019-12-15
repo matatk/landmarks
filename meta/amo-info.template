@@ -8,7 +8,7 @@ The attached source is from the VERSION_NUMBER tag: <https://github.com/matatk/l
 
 Required software for the build:
 
-* git - needed to fetch my "one-svg-to-many-sized-pngs" node package from GitHub.
+* git - needed to fetch my "one-svg-to-many-sized-pngs" and "page-structural-semantics-scanner-tests" node packages from GitHub.
 * Node and npm.
 
 To build for Firefox specifically:
