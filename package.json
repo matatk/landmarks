@@ -30,7 +30,7 @@
     "archiver-promise": "~1.0",
     "chalk": "~2.4",
     "conventional-changelog-moulded-angular": "github:matatk/conventional-changelog-moulded-angular#0.2.0",
-    "deepmerge": "~3.2",
+    "deepmerge": "~4.2",
     "eslint": "~5.16",
     "fs-extra": "~7.0",
     "husky": "~1.3",
