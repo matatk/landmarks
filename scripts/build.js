@@ -367,23 +367,16 @@ function mergeManifest(browser) {
 	const commonJson = require(common)
 	const extraJson = require(extra)
 
-	// For pre-2.0.0 deepmerge behaviour...
-	// https://github.com/KyleAMathews/deepmerge#examples (and scroll a bit)
-	const emptyTarget = value => Array.isArray(value) ? [] : {}
-	const clone = (value, options) => merge(emptyTarget(value), value, options)
-
-	function legacyArrayMerge(target, source, options) {
+	function combineMerge(target, source, options) {
 		const destination = target.slice()
 
-		source.forEach(function(e, i) {
-			if (typeof destination[i] === 'undefined') {
-				const cloneRequested = options.clone !== false
-				const shouldClone = cloneRequested && options.isMergeableObject(e)
-				destination[i] = shouldClone ? clone(e, options) : e
-			} else if (options.isMergeableObject(e)) {
-				destination[i] = merge(target[i], e, options)
-			} else if (target.indexOf(e) === -1) {
-				destination.push(e)
+		source.forEach((item, index) => {
+			if (typeof destination[index] === 'undefined') {
+				destination[index] = options.cloneUnlessOtherwiseSpecified(item, options)
+			} else if (options.isMergeableObject(item)) {
+				destination[index] = merge(target[index], item, options)
+			} else if (target.indexOf(item) === -1) {
+				destination.push(item)
 			}
 		})
 		return destination
@@ -391,7 +384,7 @@ function mergeManifest(browser) {
 
 	// Merging this way 'round just happens to make it so that, when merging
 	// the arrays of scripts to include, the compatibility one comes first.
-	const merged = merge(extraJson, commonJson, { arrayMerge: legacyArrayMerge })
+	const merged = merge(extraJson, commonJson, { arrayMerge: combineMerge })
 	merged.version = extVersion
 	fs.writeFileSync(
 		path.join(pathToBuild(browser), 'manifest.json'),
