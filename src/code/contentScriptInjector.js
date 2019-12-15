@@ -1,15 +1,35 @@
-import { isContentInjectablePage } from './isContent'
+import { isContentInjectablePage, isContentScriptablePage } from './isContent'
 
-const contentScriptInjector = BROWSER === 'firefox' ? null : function() {
-	// Inject content script manually
-	browser.tabs.query({}, function(tabs) {
-		for (const i in tabs) {
-			if (isContentInjectablePage(tabs[i].url)) {
-				browser.tabs.executeScript(tabs[i].id, { file: 'content.js' },
-					() => browser.runtime.lastError)
-			}
+function ensureInjectedAndRun(tabId, url, runAfterInjection) {
+	browser.tabs.sendMessage(tabId, { name: 'are-you-there' }, response => {
+		if (browser.runtime.lastError) {
+			browser.tabs.executeScript(
+				tabId, { file: 'content.js' }, () => {
+					if (!browser.runtime.lastError) {
+						if (runAfterInjection) runAfterInjection()
+					}
+				})
+		} else if (response === 'cake') {
+			if (runAfterInjection) runAfterInjection()
+		} else {
+			console.error(`Injector: tab ${tabId} gave unexpected response`,
+				response)
 		}
 	})
 }
 
-export default contentScriptInjector
+export function injectTab(tabId, url, runAfterInjection) {
+	if (isContentInjectablePage(url)) {
+		ensureInjectedAndRun(tabId, url, runAfterInjection)
+	} else if (isContentScriptablePage(url)) {
+		if (runAfterInjection) runAfterInjection()
+	}
+}
+
+export function injectAllTabs() {
+	browser.tabs.query({}, function(tabs) {
+		for (const i in tabs) {
+			injectTab(tabs[i].id, tabs[i].url, null)
+		}
+	})
+}

@@ -18,10 +18,6 @@
 
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    },
-    {
       "matches": ["http://matatk.agrip.org.uk/landmarks/"],
       "js": ["addHelpLinkToHomePage.js"]
     }
@@ -68,8 +64,13 @@
 
   "permissions": [
     "storage",
-    "webNavigation",
-    "tabs"
+    "activeTab"
+  ],
+
+  "optional_permissions": [
+    "<all_urls>",
+    "tabs",
+    "webNavigation"
   ],
 
   "devtools_page": "devtoolsRoot.html"

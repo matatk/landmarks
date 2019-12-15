@@ -5,6 +5,7 @@ import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+import fullPermissions from './fullPermissions'
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -69,6 +70,17 @@ function handleLandmarksMessage(data) {
 		addText(display, browser.i18n.getMessage('forbiddenPage'))
 		showAllContainer.style.display = 'none'
 	}
+}
+
+function explicitForbiddenPageWarning() {
+	// This is only needed when the extension isn't allowed to run on all
+	// pages, as in that case it can't test the URL to see if the action should
+	// be enabled or disabled.
+	const display = document.getElementById('landmarks')
+	const showAllContainer = document.getElementById('show-all-label')
+	removeChildNodes(display)
+	addText(display, browser.i18n.getMessage('forbiddenPage'))
+	showAllContainer.style.display = 'none'
 }
 
 // Go through the landmarks identified for the page and create an HTML
@@ -280,7 +292,14 @@ function send(message) {
 		port.postMessage(messageWithTabId)
 	} else {
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.sendMessage(tabs[0].id, message)
+			browser.tabs.sendMessage(tabs[0].id, message, function() {
+				if (browser.runtime.lastError) {
+					// Assume that the extension doesn't have permisssions to
+					// run on all pages, and the error is because the content
+					// script couldn't be injected.
+					explicitForbiddenPageWarning()
+				}
+			})
 		})
 	}
 }
@@ -368,6 +387,15 @@ function startupPopupOrSidebar() {
 		})
 	})
 
+	browser.permissions.contains(fullPermissions, result => {
+		if (result === false) {
+			browser.tabs.executeScript({ file: 'content.js' },
+				() => browser.runtime.lastError)
+		}
+		send({ name: 'get-landmarks' })
+		send({ name: 'get-toggle-state' })
+	})
+
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
 	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
@@ -394,7 +422,7 @@ function main() {
 		startupPopupOrSidebar()
 	}
 
-	document.getElementById('show-all').addEventListener('change', function() {
+	document.getElementById('show-all').addEventListener('change', () => {
 		send({ name: 'toggle-all-landmarks' })
 	})
 

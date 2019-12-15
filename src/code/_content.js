@@ -23,7 +23,7 @@ let observerReconnectionTimer = null
 // Extension message management
 //
 
-function messageHandler(message) {
+function messageHandler(message, sender, sendResponse) {
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -97,7 +97,16 @@ function messageHandler(message) {
 			} else {
 				msr.beQuiet()
 			}
+			break
+		case 'are-you-there':
+			sendResponse('cake')
+			return
 	}
+
+	// Alas this is required because we need to be able to check the response
+	// sent by the content script to see if it needs being injected, which
+	// means we have to respond to every message.
+	sendResponse(true)
 }
 
 function checkAndUpdateOutdatedResults() {

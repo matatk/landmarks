@@ -1,8 +1,10 @@
 /* eslint-disable no-prototype-builtins */
+// TODO when in low permissions mode, have to activate extension with L key first
 import './compatibility'
-import contentScriptInjector from './contentScriptInjector'
+import { injectAllTabs, injectTab } from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
+import fullPermissions from './fullPermissions'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
@@ -33,6 +35,9 @@ function updateGUIs(tabId, url) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
+		// Note: This sometimes causes errors on Firefox. It's needed for if
+		//       the sidebar is open. It seems that the errors only occur on
+		//       the extension inspection page (which is all DevTools).
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -174,7 +179,7 @@ browser.commands.onCommand.addListener(function(command) {
 //
 // Note: This used to be wrapped in a query for the active tab, but on browser
 //       startup, URL changes are going on in all tabs.
-browser.webNavigation.onBeforeNavigate.addListener(function(details) {
+function beforeNavigateHandler(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
 	if (dismissedUpdate) {
@@ -183,13 +188,16 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 			tabId: details.tabId
 		})
 	}
-})
+}
 
-browser.webNavigation.onCompleted.addListener(function(details) {
+function navigationCompletedHandler(details) {
 	if (details.frameId > 0) return
-	checkBrowserActionState(details.tabId, details.url)
-	updateGUIs(details.tabId, details.url)
-})
+	injectTab(details.tabId, details.url,
+		() => {
+			checkBrowserActionState(details.tabId, details.url)
+			updateGUIs(details.tabId, details.url)
+		})
+}
 
 // If the page uses 'single-page app' techniques to load in new components --
 // as YouTube and GitHub do -- then the landmarks can change. We assume that if
@@ -215,22 +223,75 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       Or could it be because we're not checking if the state *was* updated?
 //
 // TODO: Wouldn't these changes be caught by mutation observervation?
-browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+function historyStateUpdatedHandler(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
 		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
-})
+}
 
-browser.tabs.onActivated.addListener(function(activeTabInfo) {
+function tabActivatedHandler(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		updateGUIs(tab.id, tab.url)
+		checkBrowserActionState(tab.tabId, tab.url)
+		updateGUIs(tab.tabId, tab.url)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
 	//       that page, and sends the null landmarks message, which appears
 	//       briefly before the content script sends back the actual landmarks.
-})
+}
+
+
+//
+// Handling permissions changes
+//
+
+function handleTabAndNavigationEvents() {
+	browser.tabs.onActivated.addListener(tabActivatedHandler)
+	browser.webNavigation.onBeforeNavigate.addListener(beforeNavigateHandler)
+	browser.webNavigation.onCompleted.addListener(navigationCompletedHandler)
+	browser.webNavigation.onHistoryStateUpdated.addListener(
+		historyStateUpdatedHandler)
+}
+
+function unhandleTabAndNavigationEvents() {
+	browser.tabs.onActivated.removeListener(tabActivatedHandler)
+	if (BROWSER !== 'firefox') {  // Firefox removes the object entirely
+		browser.webNavigation.onBeforeNavigate.removeListener(
+			beforeNavigateHandler)
+		browser.webNavigation.onCompleted.removeListener(
+			navigationCompletedHandler)
+		browser.webNavigation.onHistoryStateUpdated.removeListener(
+			historyStateUpdatedHandler)
+	}
+}
+
+function permissionsGained() {
+	handleTabAndNavigationEvents()
+	browser.tabs.query({}, function(tabs) {
+		for (const i in tabs) {
+			checkBrowserActionState(tabs[i].id, tabs[i].url)
+		}
+	})
+	injectAllTabs()
+}
+
+function permissionsLost() {
+	unhandleTabAndNavigationEvents()
+}
+
+function permissionsCheck() {
+	browser.permissions.contains(fullPermissions, function(result) {
+		if (result === true) {
+			permissionsGained()
+		} else {
+			permissionsLost()
+		}
+	})
+}
+
+browser.permissions.onAdded.addListener(permissionsCheck)
+browser.permissions.onRemoved.addListener(permissionsCheck)
 
 
 //
@@ -308,6 +369,9 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			sendDevToolsStateMessage(sender.tab.id,
 				devtoolsConnections.hasOwnProperty(sender.tab.id))
 			break
+		case 'mutation-info':
+			sendToDevToolsForTab(sender.tab.id, message)
+			break
 		// Help page
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
@@ -341,9 +405,6 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
-			break
-		case 'mutation-info':
-			sendToDevToolsForTab(sender.tab.id, message)
 	}
 })
 
@@ -352,17 +413,17 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // Actions when the extension starts up
 //
 
-// When the extension is loaded, if it's loaded into a page that is not an
-// HTTP(S) page, then we need to disable the browser action button.  This is
-// not done by default on Chrome or Firefox.
-browser.tabs.query({}, function(tabs) {
-	for (const i in tabs) {
-		checkBrowserActionState(tabs[i].id, tabs[i].url)
+
+// When the extension is loaded, it needs to check if it has full permissions.
+// If it does, it injects the content script into all HTTP(S) pages.
+browser.permissions.contains(fullPermissions, function(result) {
+	if (result === true) {
+		startupCode.push(permissionsGained)
 	}
 })
 
 if (BROWSER !== 'firefox') {
-	startupCode.push(contentScriptInjector)
+	startupCode.push(injectAllTabs)
 }
 
 // Listen for UI or notification dismissal changes

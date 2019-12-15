@@ -8,14 +8,14 @@ const specialPages
 /* eslint-enable indent */
 
 export function isContentInjectablePage(url) {
+	// Don't consider about: chrome:// or opera:// as injectable
 	if (/^(https?|file):\/\//.test(url) && !specialPages.test(url)) return true
 	return false
 }
 
 export function isContentScriptablePage(url) {
-	const isContentInjectable = isContentInjectablePage(url)
-	const isContentScriptable =
+	return isContentInjectablePage(url) ||
 		url.startsWith(browser.runtime.getURL('help.html')) ||
-		url.startsWith(browser.runtime.getURL('options.html'))
-	return isContentInjectable || isContentScriptable
+		url.startsWith(browser.runtime.getURL('options.html')) ||
+		url.startsWith(browser.runtime.getURL('permissions.html'))
 }

@@ -1,4 +1,5 @@
 import handlePopulateCommandsMessage from './keyboardShortcutTableMaker'
+import fullPermissions from './fullPermissions'
 
 function messageHandler(message) {
 	if (message.name !== 'populate-commands') return
@@ -39,6 +40,8 @@ function reflectInstallOrUpdate() {
 }
 
 function main() {
+	// TODO check if it works if shortcuts are changed (currently the page
+	//      reloads as to change shortcuts you need to visit anohter page).
 	browser.runtime.onMessage.addListener(messageHandler)
 	browser.runtime.sendMessage({ name: 'get-commands' })
 
@@ -53,6 +56,10 @@ function main() {
 
 	includeVersionNumber()
 	reflectInstallOrUpdate()
+
+	browser.permissions.contains(fullPermissions, function(result) {
+		document.getElementById('warning-permissions').hidden = result
+	})
 }
 
 main()

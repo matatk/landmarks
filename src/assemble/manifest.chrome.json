@@ -16,7 +16,5 @@
 
   "options_ui": {
     "chrome_style": false
-  },
-
-  "permissions": ["<all_urls>"]
+  }
 }

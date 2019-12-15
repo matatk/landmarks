@@ -21,11 +21,9 @@
     }
   },
 
-  "options_ui": {
-    "chrome_style": false
-  },
-
   "minimum_opera_version": "57",
 
-  "permissions": ["<all_urls>"]
+  "options_ui": {
+    "chrome_style": false
+  }
 }

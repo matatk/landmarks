@@ -14,6 +14,50 @@
 		</header>
 
 		<main>
+			<fieldset>
+				<legend>Run on each page</legend>
+
+				<div class="warning" id="perms-warning" hidden>
+					<div class="warning-symbol">
+						<span aria-hidden="true">&#x26a0;</span>
+						<span class="visually-hidden">warning</span>
+					</div>
+					<p>The Landmarks extension can show you how many landmarks there are on every page automatically, but to do so, it needs your permission to run on all pages.</p>
+				</div>
+
+				<details>
+					<summary>About permissions</summary>
+					<ul>
+						<li><p>Permissions are needed to allow the extension tor un automatically for you on every page, rather than requiring you to activate the toolbar button or use the Landmarks extension shortcut key.</p></li>
+						<li><p>Granting permissions gives you:</p>
+							<ul>
+								<li><p>Automatic counts of landmark regions on each page, displayed as a badge on the toolbar icon (if there are any landmark regions).</p></li>
+								<li><p>Automatic updates to the sidebar as you follow links, or switch between tabs.</p></li>
+							</ul>
+						</li>
+						<li><p>The Landmarks extension doesn't collect any data.</p></li>
+						<li><p>The permissions here relate only to you allowing the Landmarks extension's code to run on all pages. If you want to see the code, you can find it in the <a href="https://github.com/matatk/landmarks/">Landmarks extension GitHub repository</a>.</p></li>
+						<li><p>You can rescind these permissions at any time.</p></li>
+					</ul>
+				</details>
+
+				<div id="permissions">
+					<button id="perms-rescind">
+						<p>Manually</p>
+					</button>
+					<div>
+						<p>You'll need to use the toolbar button (or its shortcut key) in order to display the number of landmarks found on each page.</p>
+						<p><strong>Note:</strong> you'll not be able to use the sidebar feature.</p>
+					</div>
+					<button id="perms-request">
+						<p>Automatically</p>
+					</button>
+					<div>
+						<p>The number of landmarks on each page you visit will be displayed automatically in the badge of the toolbar icon.</p>
+					</div>
+				</div>
+			</fieldset>
+
 			<!-- ui -->
 			<fieldset data-pref="interface">
 				<legend data-message="prefsInterface"></legend>

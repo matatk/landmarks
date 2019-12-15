@@ -33,6 +33,7 @@ input[type=color] {
 	width: 5rem;
 }
 
+#permissions,
 #gird {
 	display: grid;
 	grid-template-columns: max-content 1fr; /* TODO refine */
@@ -41,6 +42,10 @@ input[type=color] {
 	align-items: center;
 }
 
+#permissions { align-items: center; }
+
+#permissions button,
 #gird label { grid-column: 1 / 2; }
 
+#permissions div,
 #gird :not(label) { grid-column: 2 / 3; }

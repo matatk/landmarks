@@ -3,6 +3,9 @@
 import './compatibility'
 import translate from './translate'
 import { defaultSettings, defaultDismissalStates } from './defaults'
+import fullPermissions from './fullPermissions'
+
+const interfaceWarning = "Please note that the sidebar won't be able to update automatically as you follow links or switch between tabs, because the Landmarks extension doesn't have permissoni to run automatically."  // FIXME localise
 
 
 //
@@ -60,6 +63,15 @@ function setUpOptionHandlers() {
 			browser.storage.sync.set({
 				[pref]: this.value
 			})
+
+			if (BROWSER === 'firefox' || BROWSER === 'opera') {
+				console.log('radiobutton', this.id, document.getElementById('perms-request').getAttribute('aria-pressed'))
+				if (this.id === 'radio-sidebar'
+				&& document.getElementById('perms-request')
+					.getAttribute('aria-pressed') === String(false)) {
+					alert(interfaceWarning)
+				}
+			}
 		})
 	}
 
@@ -112,6 +124,41 @@ function resetToDefaults() {
 
 
 //
+// Permissions
+//
+
+function permissionsHaveChanged() {
+	browser.permissions.contains(fullPermissions, function(result) {
+		document.getElementById('perms-warning').hidden = result
+		document.getElementById('perms-request').setAttribute('aria-pressed', result)
+		document.getElementById('perms-rescind').setAttribute('aria-pressed', !result)
+
+		if (BROWSER === 'firefox' || BROWSER === 'opera') {
+			if (result === false
+				&& document.getElementById('radio-sidebar').checked === true) {
+				alert(interfaceWarning)
+			}
+		}
+	})
+}
+
+function permissionsSetup() {
+	browser.permissions.onAdded.addListener(permissionsHaveChanged)
+	browser.permissions.onRemoved.addListener(permissionsHaveChanged)
+
+	permissionsHaveChanged()
+
+	document.getElementById('perms-request').addEventListener('click', () => {
+		browser.permissions.request(fullPermissions)
+	})
+
+	document.getElementById('perms-rescind').addEventListener('click', () => {
+		browser.permissions.remove(fullPermissions)
+	})
+}
+
+
+//
 // Entryway
 //
 
@@ -134,6 +181,7 @@ function main() {
 	translate()
 	restoreOptions()
 	setUpOptionHandlers()
+	permissionsSetup()
 }
 
 main()
