@@ -1,125 +1,34 @@
-:root {
-	--hla: #155799;
-	--hlb: #159957;
-	--words: #606c71;
-	--warn: #d00;
-	--lightWarn: #fee;
-	--lightNeutral: #efefef;
-}
-
-body {
-	margin: 0;
-	font-family: Verdana, sans-serif;
-	color: var(--words);
-	font-size: 1em;  /* if not given, text is small in Chrome-like browsers */
-	line-height: 1.5em;
-}
-
-header {
-	background-image: linear-gradient(120deg, var(--hla), var(--hlb));
-	padding: 2em;
-	margin: 0;
-	color: white;
-}
-
-header a {
-	color: white;
+.missing-shortcut {
 	font-weight: bold;
-}
-
-main { padding-top: 2em; }
-
-details {
-	padding: 1em;
-	margin: 2em;
-	margin-top: 0;
-	border-bottom: 1px solid var(--words);
-}
-
-details.call-to-action {
-	border: none;
-	border-radius: 1em;
-	background-color: #eee;
-}
-
-details:not(:first-child) {
-	margin-top: 2em;
-}
-
-summary > :first-child { display: inline; }
-
-svg {
-	height: 0.75em;
-	width: auto;
-}
-
-path { fill: var(--warn); }
-
-#symbol { display: none; }
-
-.configAction, .errorAction, [data-warning] {
-	border-radius: 1em;
-	padding: 1em;
-	display: inline-block;
-}
-
-a.configAction, a.errorAction {
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-.configAction {
-	border: 1px solid var(--words);
-	color: var(--words);
-	background-color: var(--lightNeutral);
-}
-
-.errorAction, [data-warning] {
-	border: 1px solid var(--warn);
-	background-color: var(--lightWarn);
-}
-
-[data-warning], [data-warning] > a, .errorAction, .errorItem {
 	color: var(--warn);
+	border-color: var(--warn);
 }
 
-[data-warning] {
-	display: none;  /* overidden by script if need be */
-}
+.warning-symbol { display: none; }
+
+.warning > .warning-symbol,
+.missing-shortcut > .warning-symbol { display: initial; }
 
 table {
-	margin-top: 0.5em;
+	margin-top: 0.5rem;
 	border-collapse: collapse;
+	margin-left: auto;
+	margin-right: auto;
 }
 
-tr:nth-child(odd) { background-color: var(--lightNeutral); }
+tr:nth-child(odd) { background-color: var(--background-2); }
 
 tr:first-child {
-	background-color: var(--hla);
-	color: white;
+	background-color: var(--accent-1);
+	color: var(--background-1);
 }
 
-th, td {
-	padding: 0.5em;
-	padding-left: 2em;
-	padding-right: 2em;
+th,
+td {
+	padding: 0.5rem;
+	padding-left: 2rem;
+	padding-right: 2rem;
 }
 
-td:last-child { text-align: center; }
-
-footer { padding: 2em; }
-
-footer a { color: var(--words); }
-
-@media screen and (min-width: 80em) {
-	main {
-		column-count: 2;
-		column-fill: balance;
-		column-gap: 0;
-	}
-
-	details {
-		break-inside: avoid;
-		page-break-inside: avoid;  /* for Firefox */
-	}
-}
+td:last-child,
+.centre { text-align: center; }

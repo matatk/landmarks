@@ -18,7 +18,8 @@ h1 {
 	margin-bottom: calc(var(--spacing) * 4);
 }
 
-p, #show-all-label {
+p,
+#show-all-label {
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 2);
 }

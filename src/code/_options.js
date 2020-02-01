@@ -2,30 +2,41 @@ import './compatibility'
 import translate from './translate'
 import { defaultSettings, dismissalStates } from './defaults'
 
+
+//
+// Options
+//
+
 const options = [{
 	name: 'borderType',
-	element: document.getElementById('border-type'),
-	property: 'value'
+	kind: 'radio'
 }, {
 	name: 'borderColour',
+	kind: 'individual',
 	element: document.getElementById('border-colour'),
-	property: 'value'
 }, {
 	name: 'borderFontSize',
+	kind: 'individual',
 	element: document.getElementById('border-font-size'),
-	property: 'value'
 }]
 
 function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
 		for (const option of options) {
-			if (option.element) {  // Sidebar option will be null on Chrome
-				option.element[option.property] = items[option.name]
+			const name = option.name
+			const saved = items[name]
 
-				// Some options result in changes to the options UI
-				if (option.change) {
-					option.change()
-				}
+			console.log('restoring', name, 'to', saved)
+
+			switch (option.kind) {
+				case 'radio':
+					document.getElementById(`radio-${saved}`).checked = true
+					break
+				case 'individual':
+					option.element.value = saved
+					break
+				default:
+					console.error(`Unexpected option kind '${option.kind}'`)
 			}
 		}
 	})
@@ -33,18 +44,25 @@ function restoreOptions() {
 
 function setUpOptionHandlers() {
 	for (const option of options) {
-		if (option.element) {  // Sidebar option will be null on Chrome
+		if (option.kind === 'individual') {
 			option.element.addEventListener('change', () => {
+				console.log('setting', option.name, 'to', option.element.value)
 				browser.storage.sync.set({
-					[option.name]: option.element[option.property]
+					[option.name]: option.element.value
 				})
 			})
-
-			// Some options result in changes to the options UI
-			if (option.change) {
-				option.element.addEventListener('change', option.change)
-			}
 		}
+	}
+
+	for (const radio of document.querySelectorAll('input[type="radio"]')) {
+		radio.addEventListener('change', function() {
+			const pref = this.parentElement.parentElement
+				.getAttribute('data-pref')
+			console.log('setting', pref, 'to', this.value)
+			browser.storage.sync.set({
+				[pref]: this.value
+			})
+		})
 	}
 
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
@@ -52,17 +70,6 @@ function setUpOptionHandlers() {
 	}
 
 	document.getElementById('reset-to-defaults').onclick = resetToDefaults
-}
-
-function interfaceExplainer() {
-	const messageName = document.getElementById('landmarks-interface')
-		.selectedOptions[0].dataset.explainer
-	document.getElementById('interface-explainer')
-		.innerText = browser.i18n.getMessage(messageName)
-	setTimeout(function() {
-		document.getElementById('interface-explainer-live')
-			.innerText = browser.i18n.getMessage(messageName)
-	}, 250)
 }
 
 function updateResetDismissedMessagesButtonState() {
@@ -95,6 +102,7 @@ function resetMessages() {
 }
 
 function dismissalStateChanged(thingChanged) {
+	// eslint-disable-next-line no-prototype-builtins
 	return dismissalStates.hasOwnProperty(thingChanged)
 }
 
@@ -104,15 +112,20 @@ function resetToDefaults() {
 	})
 	// Note: Can't use use .clear() as that removes everything, which would
 	//       cause problems for currently-visible borders.
+	// FIXME use restoreOptions instead?
+	// FIXME resetting to defaults after seetting to sidebar still brings up the warning message (even though it's going back to toolbar) -- this is because it reloads and persists the selection across reloads
 }
+
+
+//
+// Entryway
+//
 
 function main() {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		options.push({
 			name: 'interface',
-			element: document.getElementById('landmarks-interface'),
-			property: 'value',
-			change: interfaceExplainer
+			kind: 'radio'
 		})
 
 		updateResetDismissedMessagesButtonState()

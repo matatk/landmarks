@@ -1,49 +1,42 @@
-div.label-first, div.input-first {
-	padding-bottom: 1.25em;
+main > * + * { margin-top: 1rem; }
+
+button[aria-pressed="true"] {
+	background-color: var(--accent-1);
+	color: var(--background-1);
 }
 
-div.label-first {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
+fieldset > * + * { margin-top: 0.5rem; }
+
+.field-radio { display: flex; }
+
+.field-radio label {
+	margin-left: 0.5rem;
+	flex-grow: 1;
 }
 
-div.label-first :first-child {
-	grid-column: 1 / 2;
-}
-
-div.label-first :not(:first-child) {
-	grid-column: 2 / 3;
-}
-
-div.label-first p {
+fieldset label p {
 	margin: 0;
-	padding: 0.25em;
-	padding-left: calc(8px + 3px);  /* Firefox */
+	margin-bottom: 0.25rem;
 }
 
-div.input-first span {
-	margin-left: 0.5em;
+fieldset label p:first-child { font-weight: bold; }
+
+fieldset > :last-child { margin-bottom: 0.5rem; }
+
+input[type=number] { width: 3rem; }
+
+input[type=color] {
+	height: 1.5rem;
+	width: 5rem;
 }
 
-input[type=number] {
-	width: 3em;
+#gird {
+	display: grid;
+	grid-template-columns: max-content 1fr; /* TODO refine */
+	grid-column-gap: 1rem;
+	grid-row-gap: 1rem;
 }
 
-button[aria-disabled="true"] {
-	color: gray;
-}
+#gird label { grid-column: 1 / 2; }
 
-summary {
-	padding-bottom: 1em;
-}
-
-.visually-hidden {
-	position: absolute !important;
-	clip: rect(1px, 1px, 1px, 1px);
-	padding: 0 !important;
-	border: 0 !important;
-	height: 1px !important;
-	width: 1px !important;
-	overflow: hidden;
-	white-space: nowrap;
-}
+#gird :not(label) { grid-column: 2 / 3; }
