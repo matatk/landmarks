@@ -4,6 +4,7 @@
 		<meta charset="UTF-8">
 		<title>Landmarks help</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" href="help.css">
 	</head>
 	<body>
@@ -11,139 +12,65 @@
 			<h1>Landmarks help</h1>
 			<p>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</p>
 		</header>
+
 		<main>
-		<details class="call-to-action" id="actions-install" open>
-			<summary><h2>Thanks for installing Landmarks</h2></summary>
-			<p>You may want to learn how to <a href="#section-keyboard-navigation">navigate via keyboard</a> and set up keyboard shortcuts.</p>
-			<!-- Note the following paragraph is repeated below. -->
-			<p data-warning>Your browser allows extensions to pre-set up to four keyboard shortcuts, but Landmarks provides more than this. <a href="#section-keyboard-navigation">At least one available keyboard shortcut is not set; you may wish to review them.</a></p>
-		</details>
-		<details class="call-to-action" id="actions-update" open>
-			<summary><h2>Landmarks was updated</h2></summary>
-			<ul>
-				<li>
-					<p>Check out <a href="#section-new">what's new</a>.</p>
-				</li>
-				<li>
-					<p>Learn how to <a href="#section-keyboard-navigation">navigate via keyboard</a> and set up keyboard shortcuts.</p>
-				</li>
-			</ul>
-			<!-- Note the following paragraph is repeated above. -->
-			<p data-warning>Your browser allows extensions to pre-set up to four keyboard shortcuts, but Landmarks provides more than this. <a href="#section-keyboard-navigation">At least one available keyboard shortcut is not set; you may wish to review them.</a></p>
-		</details>
-		<details id="section-new">
-			<summary><h2>What's new?</h2></summary>
-			<p>New in version <span id="version"></span>&hellip;</p>
-			<ul>
-				<li><p>Support for custom landmark role descriptions (<a href="https://github.com/matatk/landmarks/issues/316">thanks to Eric Eggert for the suggestion</a>).</p></li>
-				<li><p>Provide a US English locale alongside the current UK English one.</p></li>
-				<li><p>Fix the spelling of the <code>doc-acknowledgments</code> Digital Publishing role (localised for the UK).</p></li>
-			</ul>
-			<p>For more details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">change log</a>.</p>
-		</details>
-		<details id="section-keyboard-navigation" open>
-			<!-- Thanks to Heydon Pickering for the SVG: https://twitter.com/heydonworks/status/928999112296620032 :-) -->
-			<summary><h2>Keyboard navigation<span id="symbol"> <svg viewBox="1 1 8 8"><path d="m5 1-4 8h8zm-.36 2.6h.7v3h-.7v-2.8594zm.36 3.4c.4 0 .5.3.5.6-.1.3-.4.45-.63.4-.27-.1-.47-.4-.37-.63.07-.17.20-.37.50-.37z"/></svg></h2></summary>
-			<p>You can use shortcut keys to navigate between landmarks, as detailed below. When you do, landmarks will be focused, and a border shown according to your <a href="#section-border-preferences">border preferences</a>.</p>
-			<div id="keyboard-shortcuts-table"></div>
-			<p data-link="shortcuts"></p>
-			<p>You can also change the keyboard shortcuts as follows.</p>
-			<ul>
-				<li>
-					<p><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Cog wheel [to the right of Manage Your Extensions] → Manage Extension Shortcuts</p>
-				</li>
-				<li>
-					<p><strong>Chrome:</strong> More ⋮ → Settings → Extensions [on the left-hand side] → Keyboard shortcuts [at the bottom of the page]</p>
-				</li>
-				<li>
-					<p><strong>Opera:</strong> Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts</p>
-				</li>
-			</ul>
-		</details>
-		<details open>
-			<summary><h2>Toolbar pop-up</h2></summary>
-			<p>If landmarks are found on the page, the Landmarks button in the toolbar (which looks like an "L") will be badged with the number of landmarks found. You can use the pop-up as follows.</p>
-			<ol>
-				<li>
-					<p>Activate the Landmarks toolbar button. A pop-up will appear. If landmarks are present on the page, they will be shown in a nested list, reflecting the structure of the landmarks on the page.</p>
-				</li>
-				<li>
-					<p>Activate a button in the list to move to that landmark. The landmark will be focused, and a border shown according to your <a href="#section-border-preferences">border preferences</a>.</p>
-				</li>
-				<li>
-					<p>To close the pop-up, press <kbd>Escape</kbd>, or click outside of the pop-up.</p>
-				</li>
-			</ol>
-		</details>
-		<details id="section-sidebar" open>
-			<summary><h2>Sidebar</h2></summary>
-			<p>On Firefox and Opera, you can also explore landmarks on the page by way of a sidebar. You can choose in the preferences whether you'd like to use both the toolbar pop-up and sidebar, or just the sidebar.</p>
-			<p data-link="settings"></p>
-			<!-- Note: the following is almost identical in the Border Preferences section below. -->
-			<p>You can also get to the extension’s settings as follows.</p>
-			<ul>
-				<li>
-					<p><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Preferences [under Landmarks, then scroll down]</p>
-				</li>
-				<li>
-					<p><strong>Opera:</strong> Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options</p>
-				</li>
-			</ul>
-		</details>
-		<details id="section-border-preferences" open>
-			<summary><h2>Border preferences</h2></summary>
-			<p>A border will be drawn around the landmarks as you navigate them. The border contains a label that displays the landmark’s type and name (if one was provided by the author of the page). You can customise various aspects of this in the extension’s preferences/options page. The available settings are:</p>
-			<ul>
-				<li>
-					<p><strong>If the border should be displayed, and for how long.</strong></p>
+			<div class="warning" id="warning-shortcuts" hidden>
+				<span class="warning-symbol"> <span aria-hidden="true">&#x26a0;</span><span class="visually-hidden">warning</span></span>
+				<p>At least one <a href="#section-keyboard-shortcuts">keyboard shortcut</a> is not set.</p>
+			</div>
+
+			<div id="placeholder"></div>
+
+			<div id="section-keyboard-shortcuts">
+				<h2 id="section-keyboard-shortcuts-heading">Keyboard navigation<span class="warning-symbol"> <span aria-hidden="true">&#x26a0;</span><span class="visually-hidden">warning</span></span></h2> <!-- FIXME concat -->
+				<div id="keyboard-shortcuts-table"></div>
+				<p class="centre"><button id="open-browser-shortcuts-settings">Add or change shortcuts</button></p>
+				<details>
+					<summary>How to change the keyboard shortcuts</summary>
 					<ul>
-						<li>
-							<p><strong>Momentary (default):</strong> the border remains visible for a short time, then disappears.</p>
-						</li>
-						<li>
-							<p><strong>Persistent:</strong> the border remains visible at all times.</p>
-						</li>
-						<li>
-							<p><strong>None:</strong> no border is drawn.</p>
-						</li>
+						<li><p><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Cog wheel [to the right of Manage Your Extensions] → Manage Extension Shortcuts.</p></li>
+						<li><p><strong>Chrome:</strong> More ⋮ → Settings → Extensions [on the left-hand side] → Keyboard shortcuts [at the bottom of the page].</p></li>
+						<li><p><strong>Opera:</strong> Opera Menu / Speed Dial → Extensions → Extension Keyboard Shortcuts.</p></li>
 					</ul>
-				</li>
-				<li>
-					<p><strong>The border’s colour.</strong></p>
-				</li>
-				<li>
-					<p><strong>The font size used in the landmark label.</strong></p>
-				</li>
-			</ul>
-			<p data-link="settings"></p>
-			<!-- Note: the following is almost identical in the Sidebar section above. -->
-			<p>You can also get to the extension’s settings as follows.</p>
-			<ul>
-				<li>
-					<p><strong>Firefox:</strong> Menu ☰ → Add-ons → Extensions [on left-hand side, if not already activated] → Preferences [under Landmarks, then scroll down]</p>
-				</li>
-				<li>
-					<p><strong>Chrome/Opera:</strong> Right-click on, or activate the context menu of, the Landmarks button in the toolbar → Options</p>
-				</li>
-			</ul>
-		</details>
-		<details open>
-			<summary><h2>Information for web authors, designers and developers</h2></summary>
-			<p>You can learn about <a href="https://github.com/matatk/landmarks#information-for-web-authors-designers-and-developers">why landmarks rock, and how easy they are to use on your site</a> in the README on GitHub.</p>
-			<p>You can learn about <a href="https://github.com/matatk/landmarks#this-extensions-support-for-landmarks">this extension's support for the landmarks standards</a> in the README on GitHub.</p>
-		</details>
-		<details open>
-			<summary><h2>Inspecting landmarks in the DOM</h2></summary>
-			<p>A Developer Tools panel called “Landmarks” is also provided. This can be used in the same way as the pop-up above, but also allows you to visit each landmark element in the DOM inspector, using inspection buttons that are placed immediately after the button for each landmark.</p> <p>This feature is primarily intended for web authors/developers and accessibility testers.</p>
-		</details>
-		<details open>
-			<summary><h2>Landmarks extension development information</h2></summary>
-			<p>Check out the <a href="https://github.com/matatk/landmarks#development">Development</a> section of the README on GitHub.</p>
-		</details>
+				</details>
+			</div>
+
+			<div id="section-features">
+				<h2>Features</h2>
+				<p>Thanks for installing the Landmarks extension. With it, you can&hellip;</p>
+				<ul>
+					<li>Quickly check how many landmark regions the page has, via the toolbar icon.</li>
+					<li>Explore landmarks via keyboard shortcuts.</li>
+					<li>Explore landmarks via the toolbar pop-up.</li>
+					<li>Explore landmarks via the browser sidebar (Firefox and Opera only).</li>
+					<li>Use the developer tools panel to inspect the code behind landmark regions.</li>
+				</ul>
+				<p>You can change the following <a href="options.html">preferences</a>.</p>
+				<ul>
+					<li>How long the border is shown.</li>
+					<li>The border's colour.</li>
+					<li>The font size of the in-page landmark labels.</li>
+				</ul>
+			</div>
+
+			<div id="section-new">
+				<h2>What's new?</h2>
+				<p>New in version <span id="version"></span>&hellip;</p>
+				<ul>
+					<li>Streamlined help content.</li>
+					<li>Stand-alone and clearer preferences page.</li>
+					<li>Refreshed styles for the help and options.</li>
+				</ul>
+				<p>For more details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">change log</a>.</p>
+			</div>
+
+			<div>
+				<h2>Information for web authors, designers and developers</h2>
+				<p>You can learn about <a href="https://github.com/matatk/landmarks#information-for-web-authors-designers-and-developers">why landmarks rock, and how easy they are to use on your site</a> in the README on GitHub.</p>
+				<p>You can learn about <a href="https://github.com/matatk/landmarks#this-extensions-support-for-landmarks">this extension's support for the landmarks standards</a> in the README on GitHub.</p>
+			</div>
 		</main>
-		<footer>
-			<p><a href="https://github.com/matatk/landmarks">Landmarks</a> is maintained by <a href="https://github.com/matatk">matatk</a>. <p>Gradient design is from the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a>.</p>
-		</footer>
+
 		<script src="content.js"></script>
 		<script src="help.js"></script>
 	</body>

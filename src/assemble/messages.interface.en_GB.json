@@ -1,6 +1,6 @@
 {
   "prefsInterface": {
-    "message": "Show landmarks in:"
+    "message": "Show landmarks in"
   },
 
   "prefsPopup": {
@@ -38,7 +38,7 @@
   },
 
   "hintSidebarIsNotPrimaryOptions": {
-    "message": "Change options"
+    "message": "Change preferences"
   },
 
   "hintDismiss": {

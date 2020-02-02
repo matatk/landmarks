@@ -3,9 +3,7 @@
 	--vivid: #159957;
 }
 
-html {
-	height: 100%;
-}
+html { height: 100%; }
 
 body {
 	height: 100%;
@@ -13,9 +11,7 @@ body {
 	flex-direction: column;
 }
 
-#content {
-	flex-grow: 1;
-}
+#content { flex-grow: 1; }
 
 #note {
 	margin-bottom: calc(var(--spacing) * 4);
@@ -24,9 +20,7 @@ body {
 	border-radius: 1em;
 }
 
-#note p {
-	margin: calc(var(--spacing) * 3);
-}
+#note p { margin: calc(var(--spacing) * 3); }
 
 #note div {
 	margin: calc(var(--spacing) * 3);

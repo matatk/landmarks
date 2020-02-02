@@ -21,7 +21,7 @@
   },
 
   "options_ui": {
-    "chrome_style": true
+    "chrome_style": false
   },
 
   "minimum_opera_version": "57",

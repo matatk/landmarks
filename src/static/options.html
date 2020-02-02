@@ -3,51 +3,76 @@
 	<head>
 		<meta charset="UTF-8">
 		<title data-message="prefsTitle"></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" href="options.css">
 	</head>
 	<body>
-		<!-- ui -->
-		<div class="label-first">
-			<label for="landmarks-interface" data-message="prefsInterface"></label>
-			<select id="landmarks-interface" aria-describedby="interface-explainer" class="browser-style">
-				<option value="popup" data-explainer="prefsPopupExplanation" data-message="prefsPopup"></option>
-				<option value="sidebar" data-explainer="prefsSidebarExplanation" data-message="prefsSidebar"></option>
-			</select>
-			<p id="interface-explainer"></p>
-			<p id="interface-explainer-live" aria-live="polite" class="visually-hidden"></p>
-		</div>
-		<!-- /ui -->
+		<header>
+			<h1 data-message="prefsTitle"></h1>
+		</header>
 
-		<div class="label-first">
-			<label for="border-type" data-message="prefsBorderType"></label>
-			<select id="border-type" class="browser-style">
-				<option value="momentary" data-message="prefsMomentary"></option>
-				<option value="persistent" data-message="prefsPersistent"></option>
-				<option value="none" data-message="prefsNone"></option>
-			</select>
-		</div>
+		<main>
+			<!-- ui -->
+			<fieldset data-pref="interface">
+				<legend data-message="prefsInterface"></legend>
 
-		<div class="browser-style label-first">
-			<label for="border-colour" data-message="prefsBorderColour"></label>
-			<input type="color" id="border-colour">
-		</div>
+				<div class="field-radio">
+					<input type="radio" name="interface" value="popup" id="radio-popup">
+					<label for="radio-popup">
+						<p data-message="prefsPopup"></p>
+						<p data-message="prefsPopupExplanation"></p>
+					</label>
+				</div>
 
-		<div class="browser-style label-first">
-			<label for="border-font-size" data-message="prefsBorderFontSize"></label>
-			<input type="number" id="border-font-size">
-		</div>
+				<div class="field-radio">
+					<input type="radio" name="interface" value="sidebar" id="radio-sidebar">
+					<label for="radio-sidebar">
+						<p data-message="prefsSidebar"></p>
+						<p data-message="prefsSidebarExplanation"></p>
+					</label>
+				</div>
+			</fieldset>
+			<!-- /ui -->
 
-		<!-- ui -->
-		<div class="input-first">
-			<button id="reset-messages" data-message="prefsResetMessages" class="browser-style" aria-describedby="reset-messages-feedback"></button>
-			<span aria-live="polite" id="reset-messages-feedback"></span>
-		</div>
-		<!-- /ui -->
+			<fieldset data-pref="borderType">
+				<legend data-message="prefsBorderType"></legend>
 
-		<div class="input-first"> <!-- TODO: remove? Would remove bottom -->
-			<button id="reset-to-defaults" data-message="prefsResetAll" class="browser-style"></button>
-		</div>
+				<div class="field-radio">
+					<input type="radio" name="border-type" value="momentary" id="radio-momentary">
+					<label for="radio-momentary" data-message="prefsMomentary"></label>
+				</div>
 
+				<div class="field-radio">
+					<input type="radio" name="border-type" value="persistent" id="radio-persistent">
+					<label for="radio-persistent" data-message="prefsPersistent"></label>
+				</div>
+
+				<div class="field-radio">
+					<input type="radio" name="border-type" value="none" id="radio-none">
+					<label for="radio-none" data-message="prefsNone"></label>
+				</div>
+			</fieldset>
+
+			<div id="gird">
+				<label for="border-colour" data-message="prefsBorderColour"></label>
+				<input type="color" id="border-colour" data-pref="borderColor">
+
+				<label for="border-font-size" data-message="prefsBorderFontSize"></label>
+				<input type="number" id="border-font-size" data-pref="borderFontSize">
+			</div>
+
+			<!-- ui -->
+			<div>
+				<button id="reset-messages" data-message="prefsResetMessages" aria-describedby="reset-messages-feedback"></button>
+				<span aria-live="polite" id="reset-messages-feedback"></span>
+			</div>
+			<!-- /ui -->
+
+			<button id="reset-to-defaults" data-message="prefsResetAll"></button>
+		</main>
+
+		<script src="content.js"></script>
 		<script src="options.js"></script>
 	</body>
 </html>

@@ -40,7 +40,8 @@ dl {
 	align-content: flex-start;
 }
 
-dt, dd {
+dt,
+dd {
 	margin: 0;
 	padding: 0.25em;
 	text-align: right;
