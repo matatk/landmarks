@@ -315,10 +315,12 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		case 'open-configure-shortcuts':
 			browser.tabs.update({
-				// This should only appear on Chrome/Opera
-				url: BROWSER === 'chrome'
-					? 'chrome://extensions/configureCommands'
-					: 'opera://settings/keyboardShortcuts'
+				/* eslint-disable indent */
+				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'  // TODO: now chrome://extensions/shortcuts - since when?
+					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
+					: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
+					: null
+				/* eslint-enable indent */
 			})
 			break
 		case 'open-settings':
