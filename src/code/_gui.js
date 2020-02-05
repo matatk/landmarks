@@ -310,7 +310,7 @@ function main() {
 		document.getElementById('links').remove()
 
 		port = browser.runtime.connect({ name: INTERFACE })
-		if (BROWSER === 'chrome' || BROWSER === 'opera') {
+		if (BROWSER !== 'firefox') {
 			// DevTools page doesn't get reloaded when the extension does
 			port.onDisconnect.addListener(function() {
 				// TODO use styles presently in help.css (currently hardcoded)

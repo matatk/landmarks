@@ -56,13 +56,12 @@ const browserPngSizes = Object.freeze({
 		48,  // Icon
 		128  // Icon
 	],
-	'edge': [  // TODO: there don't seem to be docs about this?
-		16,  // Chrome (favicon)
-		19,  // Chrome (toolbar)
-		32,  // Chrome (Windows) + Firefox (menu panel)
-		38,  // Chrome (tooblar x2)
-		48,  // Both   (general)
-		128  // Chrome (store)
+	'edge': [
+		// https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#extension-icons-setup
+		16,
+		32,
+		48,
+		128
 	]
 })
 

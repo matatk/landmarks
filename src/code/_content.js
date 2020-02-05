@@ -251,7 +251,7 @@ function reflectPageVisibility() {
 function bootstrap() {
 	browser.runtime.onMessage.addListener(messageHandler)
 
-	if (BROWSER === 'chrome' || BROWSER === 'opera') {
+	if (BROWSER !== 'firefox') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
 			.onDisconnect.addListener(function() {
 				console.log('Landmarks: content script disconnected due to extension unload/reload.')

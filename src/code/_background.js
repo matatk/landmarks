@@ -316,11 +316,13 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'open-configure-shortcuts':
 			browser.tabs.update({
 				/* eslint-disable indent */
-				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'  // TODO: now chrome://extensions/shortcuts - since when?
+				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
 					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
 					: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
 					: null
 				/* eslint-enable indent */
+				// Note: the Chromium URL is now chrome://extensions/shortcuts
+				//       but the original one is redirected.
 			})
 			break
 		case 'open-settings':
@@ -355,7 +357,7 @@ browser.tabs.query({}, function(tabs) {
 	}
 })
 
-if (BROWSER === 'chrome' || BROWSER === 'opera') {
+if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
 
