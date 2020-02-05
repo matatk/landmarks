@@ -14,6 +14,7 @@ export function isContentInjectablePage(url) {
 export function isContentScriptablePage(url) {
 	const isContentInjectable = isContentInjectablePage(url)
 	const isContentScriptable =
-		url.startsWith(browser.runtime.getURL('help.html')) ? true : false
+		url.startsWith(browser.runtime.getURL('help.html')) ||
+		url.startsWith(browser.runtime.getURL('options.html'))
 	return isContentInjectable || isContentScriptable
 }
