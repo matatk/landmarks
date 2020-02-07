@@ -27,7 +27,7 @@ const srcCodeDir = path.join('src', 'code')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const localeSubDir = path.join('_locales')
-const validBrowsers = Object.freeze(['firefox', 'chrome', 'opera'])
+const validBrowsers = Object.freeze(['firefox', 'chrome', 'opera', 'edge'])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
@@ -55,6 +55,13 @@ const browserPngSizes = Object.freeze({
 		38,  // Browser action
 		48,  // Icon
 		128  // Icon
+	],
+	'edge': [
+		// https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#extension-icons-setup
+		16,
+		32,
+		48,
+		128
 	]
 })
 
@@ -187,6 +194,14 @@ async function flattenCode(browser, debug) {
 		input: path.join(srcCodeDir, '_gui.js'),
 		output: path.join(pathToBuild(browser), 'popup.js'),
 		globals: { INTERFACE: 'popup' }
+	}, {
+		input: path.join(srcCodeDir, '_devtools.js'),
+		output: path.join(pathToBuild(browser), 'devtools.js'),
+		globals: { INTERFACE: 'devtools' }
+	}, {
+		input: path.join(srcCodeDir, '_gui.js'),
+		output: path.join(pathToBuild(browser), 'devtoolsPanel.js'),
+		globals: { INTERFACE: 'devtools' }
 	}]
 
 	if (browser === 'firefox' || browser === 'opera') {
@@ -194,22 +209,6 @@ async function flattenCode(browser, debug) {
 			input: path.join(srcCodeDir, '_gui.js'),
 			output: path.join(pathToBuild(browser), 'sidebarPanel.js'),
 			globals: { INTERFACE: 'sidebar' }
-		})
-	}
-
-	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
-		// Root DevTools HTML page script
-		ioPairsAndGlobals.push({
-			input: path.join(srcCodeDir, '_devtools.js'),
-			output: path.join(pathToBuild(browser), 'devtools.js'),
-			globals: { INTERFACE: 'devtools' }
-		})
-
-		// Landmarks DevTools panel
-		ioPairsAndGlobals.push({
-			input: path.join(srcCodeDir, '_gui.js'),
-			output: path.join(pathToBuild(browser), 'devtoolsPanel.js'),
-			globals: { INTERFACE: 'devtools' }
 		})
 	}
 
@@ -288,7 +287,7 @@ function copyStaticFiles(browser) {
 	fse.copySync(srcStaticDir, pathToBuild(browser))
 	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
 
-	if (browser === 'chrome') {
+	if (browser === 'chrome' || browser === 'edge') {
 		removeUIstuff(path.join(pathToBuild(browser), 'options.html'))
 		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
@@ -311,13 +310,10 @@ function copyGuiFiles(browser) {
 	}
 
 	copyOneGuiFile('popup', true, true)
+	copyOneGuiFile('devtoolsPanel', true, false)
 
 	if (browser === 'firefox' || browser === 'opera') {
 		copyOneGuiFile('sidebarPanel', false, true)
-	}
-
-	if (browser === 'firefox' || browser === 'chrome' || browser === 'opera') {
-		copyOneGuiFile('devtoolsPanel', true, false)
 	}
 }
 

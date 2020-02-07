@@ -3,6 +3,7 @@ switch (BROWSER) {
 		break
 	case 'chrome':
 	case 'opera':
+	case 'edge':
 		window.browser = window.chrome
 		break
 	default:

@@ -61,20 +61,21 @@ function addCommandRowAndReportIfMissing(command) {
 	let shortcutCellElement
 
 	if (command.shortcut) {
-		// Firefox gives "Alt+Shift+N" but Chrome gives ⌥⇧N
-		if (BROWSER === 'chrome' || BROWSER === 'opera') {
-			shortcutCellElement = { element: 'td', contains: [
-				{ element: 'kbd', content: command.shortcut }
-			]}
-		} else {
+		// Firefox gives "Alt+Shift+N" but Chrome (& Opera & Edge) gives ⌥⇧N
+		if (BROWSER === 'firefox') {
 			shortcutCellElement = { element: 'td', contains:
 				firefoxShortcutElements(command.shortcut)
 			}
+		} else {
+			shortcutCellElement = { element: 'td', contains: [
+				{ element: 'kbd', content: command.shortcut }
+			]}
 		}
 	} else {
-		shortcutCellElement = { element: 'td', class: 'missing-shortcut', contains: [
-			{ text: 'Not set up' }  // TODO: localise
-		]}
+		shortcutCellElement = {
+			element: 'td', class: 'missing-shortcut', contains: [
+				{ text: 'Not set up' }  // TODO: localise
+			]}
 		allShortcutsAreSet = false
 	}
 
@@ -120,8 +121,9 @@ export default function handlePopulateCommandsMessage(message, id) {
 
 	allShortcutsAreSet = true
 
-	const commandsInOrder = (BROWSER === 'chrome' || BROWSER === 'opera') ?
-		message.commands : message.commands.reverse()
+	const commandsInOrder = (BROWSER === 'firefox')
+		? message.commands.reverse()
+		: message.commands
 
 	for (const command of commandsInOrder) {
 		addCommandRowAndReportIfMissing(command)

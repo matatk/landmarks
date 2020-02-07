@@ -1,0 +1,14 @@
+{
+  "icons": {
+    "16": "landmarks-16.png",
+    "32": "landmarks-32.png",
+    "48": "landmarks-48.png",
+    "128": "landmarks-128.png"
+  },
+
+  "options_ui": {
+    "chrome_style": false
+  },
+
+  "permissions": ["<all_urls>"]
+}
