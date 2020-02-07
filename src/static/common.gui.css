@@ -1,0 +1,45 @@
+:root { --spacing: 0.25rem; }
+
+body {
+	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
+	min-width: 12rem;      /* for Chrome-like browsers */
+	font-family: sans-serif;
+}
+
+#content {
+	padding: calc(var(--spacing) * 2);
+	padding-top: 0;
+}
+
+#show-all-label {
+	display: block;
+	margin: 0;
+	margin-bottom: calc(var(--spacing) * 2);
+	margin-top: calc(var(--spacing) * 2);
+}
+
+ul {
+	margin: 0;
+	padding: 0;
+}
+
+ul ul { padding-left: 2rem; }
+
+li {
+	display: block;
+	margin-top: 0.5rem;
+}
+
+#links {
+	display: flex;
+	margin-left: var(--spacing);
+	margin-right: 0;
+	margin-bottom: calc(var(--spacing) * 2);
+}
+
+#links button {
+	display: block;
+	flex-grow: 1;
+	margin-left: 0;
+	margin-right: var(--spacing);
+}

@@ -6,6 +6,10 @@
     "128": "landmarks-128.png"
   },
 
+  "browser_action": {
+    "chrome_style": false
+  },
+
   "options_ui": {
     "chrome_style": false
   },

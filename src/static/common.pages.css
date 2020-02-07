@@ -1,0 +1,8 @@
+html { font-size: var(--base-font-size); }
+
+body {
+	width: var(--body-width);
+	max-width: var(--body-width-max);
+	margin: auto;
+	margin-bottom: 1rem;
+}

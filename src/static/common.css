@@ -7,7 +7,7 @@
 	--background-1: white;
 	--background-2: #ccc;
 	--text: #333;
-	--warn: red;
+	--error: #e00;
 
 	/* Lengths */
 	--base-font-size: 1.5rem;
@@ -25,9 +25,37 @@
 	--standard-line: var(--thickness) solid var(--accent-1);
 }
 
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Colours */
+		--accent-1: #9f9;
+		--accent-2: #fa6;
+		--background-1: #333;
+		--background-2: #555;
+		--text: #ddd;
+		--error: #f99;
+	}
+}
+
 button,
 input,
-select { font-size: inherit; }
+select {
+	font-size: inherit;
+	border-color: var(--text);
+	background-color: var(--background-1);
+	color: var(--text);
+	border: 0.1rem solid var(--text);
+}
+
+button {
+	/* FIXME: check that Firefox doesn't have overflows on Windows https://github.com/matatk/landmarks/issues/149 (that was browser-style-specific) */
+	border-radius: var(--roundedness);
+	margin: 0;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+}
 
 a {
 	color: var(--accent-1);
@@ -50,17 +78,9 @@ summary:hover {
 
 html {
 	font-family: Verdana, sans-serif;
-	font-size: var(--base-font-size);
 	line-height: var(--line-height);
 	background-color: var(--background-1);
 	color: var(--text);
-}
-
-body {
-	width: var(--body-width);
-	max-width: var(--body-width-max);
-	margin: auto;  /* TODO check */
-	margin-bottom: 1rem;
 }
 
 h1,
@@ -91,7 +111,9 @@ h2 {
 .warning a { color: var(--background-1); }
 
 .warning a:focus,
-.warning a:hover { outline-color: var(--background-1); }
+.warning a:hover,
+.warning button:focus,
+.warning button:hover { outline-color: var(--background-1); }
 
 .visually-hidden {
 	position: absolute !important;

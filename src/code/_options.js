@@ -1,3 +1,5 @@
+// hasOwnProperty is only used on browser-provided objects
+/* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate'
 import { defaultSettings, dismissalStates } from './defaults'
@@ -102,7 +104,6 @@ function resetMessages() {
 }
 
 function dismissalStateChanged(thingChanged) {
-	// eslint-disable-next-line no-prototype-builtins
 	return dismissalStates.hasOwnProperty(thingChanged)
 }
 

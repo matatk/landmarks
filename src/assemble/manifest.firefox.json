@@ -4,7 +4,7 @@
   },
 
   "browser_action": {
-    "browser_style": true,
+    "browser_style": false,
     "default_icon": {
       "18": "landmarks-18.png",
       "32": "landmarks-32.png",
@@ -14,6 +14,7 @@
   },
 
   "sidebar_action": {
+    "browser_style": false,
     "default_title": "Landmarks",
     "default_panel": "sidebarPanel.html",
     "default_icon": {

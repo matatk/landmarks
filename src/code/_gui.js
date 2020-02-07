@@ -1,3 +1,5 @@
+// hasOwnProperty is only used on browser-provided objects
+/* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
@@ -119,12 +121,6 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeButton(onClick, nameMessage) {
-	return makeButtonAlreadyTranslated(
-		onClick,
-		browser.i18n.getMessage(nameMessage))
-}
-
 function makeSymbolButton(onClick, nameMessage, symbol, context) {
 	return makeButtonAlreadyTranslated(
 		onClick,
@@ -157,54 +153,34 @@ if (INTERFACE === 'sidebar') {
 	// sidebar to explain this to the user.
 	const noteId = 'note'
 
-	function createNote() {  // eslint-disable-line no-inner-declarations
+	function showNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
-				const para = document.createElement('p')
-				para.appendChild(document.createTextNode(
-					browser.i18n.getMessage('hintSidebarIsNotPrimary')))
-
-				const optionsButton = makeButton(
-					function() {
-						browser.runtime.openOptionsPage()
-					},
-					'hintSidebarIsNotPrimaryOptions')
-
-				const dismissButton = makeButton(
-					function() {
-						browser.storage.sync.set({
-							dismissedSidebarNotAlone: true
-						}, function() {
-							removeNote()
-						})
-					},
-					'hintDismiss')
-
-				// Contains buttons; allows for them to be flexbox'd
-				const buttons = document.createElement('div')
-				buttons.appendChild(optionsButton)
-				buttons.appendChild(dismissButton)
-
-				const note = document.createElement('div')
-				note.id = noteId
-				note.appendChild(para)
-				note.appendChild(buttons)
-
-				const content = document.getElementById('content')
-				content.insertBefore(note, content.firstChild)
+				document.getElementById(noteId).hidden = false
 			}
 		})
 	}
 
-	function removeNote() {  // eslint-disable-line no-inner-declarations
-		const message = document.getElementById(noteId)
-		if (message) message.remove()
+	function hideNote() {  // eslint-disable-line no-inner-declarations
+		document.getElementById(noteId).hidden = true
+	}
+
+	document.getElementById('note-prefs').onclick = function() {
+		browser.runtime.openOptionsPage()
+	}
+
+	document.getElementById('note-dismiss').onclick = function() {
+		browser.storage.sync.set({
+			dismissedSidebarNotAlone: true
+		}, function() {
+			hideNote()
+		})
 	}
 
 	// Should we create the note in the sidebar when it opens?
 	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 		if (items.interface === 'popup') {
-			createNote()
+			showNote()
 		}
 	})
 
@@ -213,9 +189,9 @@ if (INTERFACE === 'sidebar') {
 		if (changes.hasOwnProperty('interface')
 			&& changes.interface.newValue !== changes.interface.oldValue) {
 			switch (changes.interface.newValue) {
-				case 'sidebar': removeNote()
+				case 'sidebar': hideNote()
 					break
-				case 'popup': createNote()
+				case 'popup': showNote()
 					break
 				default:
 					throw Error(`Unexpected interface type "${changes.interface.newValue}`)
@@ -227,7 +203,7 @@ if (INTERFACE === 'sidebar') {
 			browser.storage.sync.get('interface', function(items) {
 				if (items.interface === 'popup') {
 					if (changes.dismissedSidebarNotAlone.newValue === false) {
-						createNote()
+						showNote()
 					}
 				}
 			})
@@ -313,7 +289,7 @@ function main() {
 		if (BROWSER !== 'firefox') {
 			// DevTools page doesn't get reloaded when the extension does
 			port.onDisconnect.addListener(function() {
-				// TODO use styles presently in help.css (currently hardcoded)
+				// TODO use styles from CSS
 				const para = document.createElement('p')
 				para.style.margin = 0
 				para.style.marginBottom = '0.5em'
