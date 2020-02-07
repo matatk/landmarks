@@ -143,16 +143,6 @@ function zipFileName(browser) {
 }
 
 
-function checkForUnexpectedDotfiles() {
-	const dotfiles = glob.sync(path.join(srcStaticDir, '.*'), {
-		ignore: '**/.eslintrc.json'  // handled already
-	})
-	if (dotfiles.length > 0) {
-		error(`The following unexpected files would be copied to the extension: ${dotfiles}`)
-	}
-}
-
-
 function builtLocaleDir(browser, locale) {
 	return path.join(pathToBuild(browser), localeSubDir, locale)
 }
@@ -284,8 +274,9 @@ function removeDevToolsStuff(file) {
 function copyStaticFiles(browser) {
 	logStep('Copying static files')
 
-	fse.copySync(srcStaticDir, pathToBuild(browser))
-	fs.unlinkSync(path.join(pathToBuild(browser), '.eslintrc.json'))
+	const skipDots = (src) => !path.basename(src).startsWith('.')
+
+	fse.copySync(srcStaticDir, pathToBuild(browser), { filter: skipDots })
 
 	if (browser === 'chrome' || browser === 'edge') {
 		removeUIstuff(path.join(pathToBuild(browser), 'options.html'))
@@ -515,8 +506,6 @@ async function main() {
 		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
 	}
 	const testModeMessage = testMode ? ' (test version)' : ''
-
-	checkForUnexpectedDotfiles()
 
 	for (const browser of browsers) {
 		console.log()
