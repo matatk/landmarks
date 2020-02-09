@@ -1,8 +1,11 @@
 :root { --spacing: 0.25rem; }
 
+html {
+	min-width: 15rem;  /* for Chrome-like browsers */
+}
+
 body {
-	margin: 0 !important;  /* https://stackoverflow.com/a/37425269/1485308 */
-	min-width: 12rem;      /* for Chrome-like browsers */
+	margin: 0;
 	font-family: sans-serif;
 }
 
@@ -16,6 +19,7 @@ body {
 	margin: 0;
 	margin-bottom: calc(var(--spacing) * 2);
 	margin-top: calc(var(--spacing) * 2);
+	white-space: nowrap;
 }
 
 ul {
