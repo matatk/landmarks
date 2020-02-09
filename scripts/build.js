@@ -185,8 +185,8 @@ async function flattenCode(browser, debug) {
 		output: path.join(pathToBuild(browser), 'popup.js'),
 		globals: { INTERFACE: 'popup' }
 	}, {
-		input: path.join(srcCodeDir, '_devtools.js'),
-		output: path.join(pathToBuild(browser), 'devtools.js'),
+		input: path.join(srcCodeDir, '_devtoolsRoot.js'),
+		output: path.join(pathToBuild(browser), 'devtoolsRoot.js'),
 		globals: { INTERFACE: 'devtools' }
 	}, {
 		input: path.join(srcCodeDir, '_gui.js'),
@@ -197,7 +197,7 @@ async function flattenCode(browser, debug) {
 	if (browser === 'firefox' || browser === 'opera') {
 		ioPairsAndGlobals.push({
 			input: path.join(srcCodeDir, '_gui.js'),
-			output: path.join(pathToBuild(browser), 'sidebarPanel.js'),
+			output: path.join(pathToBuild(browser), 'sidebar.js'),
 			globals: { INTERFACE: 'sidebar' }
 		})
 	}
@@ -304,7 +304,7 @@ function copyGuiFiles(browser) {
 	copyOneGuiFile('devtoolsPanel', true, false)
 
 	if (browser === 'firefox' || browser === 'opera') {
-		copyOneGuiFile('sidebarPanel', false, true)
+		copyOneGuiFile('sidebar', false, true)
 	}
 }
 
