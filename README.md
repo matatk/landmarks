@@ -3,7 +3,7 @@ Landmarks
 
 [![Build Status](https://travis-ci.org/matatk/landmarks.svg?branch=master)](https://travis-ci.org/matatk/landmarks)
 
-This is a browser extension (for Firefox, Chrome and Opera) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu.
+This is a browser extension (for Firefox, Chrome, Opera and Edge) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu.
 
 Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
