@@ -65,16 +65,29 @@ a {
 	font-weight: bold;
 }
 
+/* FIXME note working on Firefox? */
+:focus {
+	/* With great power... */
+	outline: none;
+}
+
 a:focus,
 a:hover,
-button:focus,
-button:hover,
-input:focus,
-input:hover,
-select:focus,
-select:hover,
 summary:focus,
 summary:hover {
+	color: var(--background-1);
+	background-color: var(--accent-1);
+	outline: var(--standard-line);
+}
+
+button:focus,
+button:hover {
+	color: var(--background-1);
+	background-color: var(--text-1);
+}
+
+input:focus,
+input:hover {
 	outline: var(--standard-line);
 	outline-offset: var(--focus-outline-offset);
 }
@@ -91,6 +104,24 @@ h2 {
 	border-bottom: var(--standard-line);
 	color: var(--accent-1);
 }
+
+.visually-hidden {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0 !important;
+	border: 0 !important;
+	height: 1px !important;
+	width: 1px !important;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/*
+ * Warning boxes
+ *
+ * Assumed by default to be horizontal flexboxes with a warning symbol as first
+ * child and content as the second/last.
+ */
 
 .warning[hidden] { display: none; }
 
@@ -116,15 +147,12 @@ h2 {
 .warning a:focus,
 .warning a:hover,
 .warning button:focus,
-.warning button:hover { outline-color: var(--background-1); }
+.warning button:hover {
+	background-color: var(--background-1);
+	color: var(--accent-2);
+}
 
-.visually-hidden {
-	position: absolute !important;
-	clip: rect(1px, 1px, 1px, 1px);
-	padding: 0 !important;
-	border: 0 !important;
-	height: 1px !important;
-	width: 1px !important;
-	overflow: hidden;
-	white-space: nowrap;
+.warning a:focus,
+.warning a:hover {
+	outline-color: var(--background-1);
 }

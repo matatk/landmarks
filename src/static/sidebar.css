@@ -8,21 +8,21 @@ body {
 
 #content { flex-grow: 1; }
 
-#note {
+.warning {
 	/* The note is displayed as flexbox due to the general "warning" class, but
 	 * we want to display it vertically in the sidebar */
 	flex-direction: column;
 	margin-bottom: 0.5rem;
 }
 
-#note > :first-child { margin-top: 0.5rem; }
-#note > * { margin-bottom: 0.5rem; }
+.warning > :first-child { margin-top: 0.5rem; }
+.warning > * { margin-bottom: 0.5rem; }
+.warning > :last-child { margin-left: 0; }  /* countermand common.css */
 
-#note button {
+.warning button {
 	width: 100%;
 	border-color: var(--background-1);
 	color: var(--background-1);
 	background-color: var(--accent-2);
-	margin-left: 0;  /* counteract .warning's :last-child margin */
 	font-weight: bold;
 }
