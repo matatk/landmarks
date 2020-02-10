@@ -3,6 +3,7 @@
 :root {
 	/* Colours */
 	--accent-1: #080;
+	--light-accent-1: #0805;
 	--accent-2: #ff6200;
 	--background-1: white;
 	--background-2: #ccc;
@@ -32,6 +33,7 @@
 	:root {
 		/* Colours */
 		--accent-1: #9f9;
+		--light-accent-1: #9f95;
 		--accent-2: #fa6;
 		--background-1: #272727;
 		--background-2: #555;
@@ -92,10 +94,15 @@ input:hover {
 	outline-offset: var(--focus-outline-offset);
 }
 
+label {
+	color: var(--text-1);  /* countermand Firefox extension.css */
+}
+
 label:hover {
-	background-color: var(--background-2);
+	background-color: var(--light-accent-1);
 	outline: var(--standard-line);
-	outline-color: var(--background-2);
+	outline-width: calc(var(--thickness) + var(--focus-outline-offset));
+	outline-color: var(--light-accent-1);
 }
 
 html {

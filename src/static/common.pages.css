@@ -6,3 +6,5 @@ body {
 	margin: auto;
 	margin-bottom: 1rem;
 }
+
+fieldset { border: var(--standard-control-line); }
