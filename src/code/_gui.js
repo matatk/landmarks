@@ -131,7 +131,6 @@ function makeSymbolButton(onClick, nameMessage, symbol, context) {
 
 function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	const button = document.createElement('button')
-	button.className = 'browser-style'
 	button.appendChild(document.createTextNode(symbol ? symbol : name))
 	if (symbol) {
 		button.setAttribute('aria-label', name + ' ' + context)
