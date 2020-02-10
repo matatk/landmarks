@@ -34,7 +34,6 @@ button {
 	margin-bottom: calc(var(--spacing) * 2);
 	margin-top: calc(var(--spacing) * 2);
 	white-space: nowrap;  /* encourage the pop-up to be wide enough on Chrome */
-	text-overflow: ellipsis;  /* for sidebar, given the nowrap */
 }
 
 #links {
