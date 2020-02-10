@@ -1,8 +1,3 @@
-:root {
-	--light: #e4fbf0;
-	--vivid: #159957;
-}
-
 html { height: 100%; }
 
 body {
@@ -13,24 +8,21 @@ body {
 
 #content { flex-grow: 1; }
 
-#note {
-	margin-bottom: calc(var(--spacing) * 4);
-	background-color: var(--light);
-	border: 1px solid var(--vivid);
-	border-radius: 1em;
-}
-
-#note p { margin: calc(var(--spacing) * 3); }
-
-#note div {
-	margin: calc(var(--spacing) * 3);
-	display: flex;
+.warning {
+	/* The note is displayed as flexbox due to the general "warning" class, but
+	 * we want to display it vertically in the sidebar */
 	flex-direction: column;
+	margin-bottom: 0.5rem;
 }
 
-#note button {
-	border-color: var(--vivid);
-	background-color: var(--light);
-	border-radius: 1em;
-	text-align: center;
+.warning > :first-child { margin-top: 0.5rem; }
+.warning > * { margin-bottom: 0.5rem; }
+.warning > :last-child { margin-left: 0; }  /* countermand common.css */
+
+.warning button {
+	width: 100%;
+	border-color: var(--background-1);
+	color: var(--background-1);
+	background-color: var(--accent-2);
+	font-weight: bold;
 }

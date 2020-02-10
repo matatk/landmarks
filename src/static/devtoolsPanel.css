@@ -1,10 +1,4 @@
-* {
-	box-sizing: border-box;
-}
-
-html {
-	height: 100%;
-}
+html { height: 100%; }
 
 body {
 	display: flex;
@@ -19,7 +13,7 @@ body {
 
 #mutation-observation-station {
 	border: 0;
-	border-top: 1px solid black;
+	border-top: var(--standard-control-line);
 }
 
 #mutation-observation-station > details > summary {
@@ -57,7 +51,7 @@ details > p {
 	padding: 0.25em;
 	max-width: 15em;
 	float: right;
-	color: #757575;
+	color: var(--text-2);
 }
 
 @media screen and (orientation: landscape) {
@@ -67,6 +61,6 @@ details > p {
 
 	#mutation-observation-station {
 		border: 0;
-		border-left: 1px solid black;
+		border-left: var(--standard-control-line);
 	}
 }

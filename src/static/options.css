@@ -7,7 +7,10 @@ button[aria-pressed="true"] {
 
 fieldset > * + * { margin-top: 0.5rem; }
 
-.field-radio { display: flex; }
+.field-radio {
+	display: flex;
+	align-items: center;
+}
 
 .field-radio label {
 	margin-left: 0.5rem;
@@ -35,6 +38,7 @@ input[type=color] {
 	grid-template-columns: max-content 1fr; /* TODO refine */
 	grid-column-gap: 1rem;
 	grid-row-gap: 1rem;
+	align-items: center;
 }
 
 #gird label { grid-column: 1 / 2; }

@@ -1,7 +1,7 @@
 .missing-shortcut {
 	font-weight: bold;
-	color: var(--warn);
-	border-color: var(--warn);
+	color: var(--error);
+	border-color: var(--error);
 }
 
 .warning-symbol { display: none; }

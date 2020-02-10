@@ -3,29 +3,45 @@
 	<head>
 		<meta charset="UTF-8">
 		<title></title>
-		<link rel="stylesheet" href="gui.css">
+		<link rel="stylesheet" href="common.css">
+		<link rel="stylesheet" href="common.gui.css">
 		<!-- ui -->
 		<link rel="stylesheet" href="sidebar.css">
 		<!-- /ui -->
 		<!-- devtools -->
-		<link rel="stylesheet" href="devtools.css">
+		<link rel="stylesheet" href="devtoolsPanel.css">
 		<!-- /devtools -->
 	</head>  <!-- FIXME: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
-			<h1 data-message="popupHeading"></h1>
+			<!-- ui -->
+			<div id="note" class="warning" hidden>
+				<p>Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar.</p>
+				<button id="note-prefs" data-message="hintSidebarIsNotPrimaryOptions"></button>
+				<button id="note-dismiss" data-message="hintDismiss"></button>
+			</div>
+			<!-- /ui -->
+			<!-- devtools -->
+			<div id="connection-error" class="warning" hidden>
+				<p data-message="devToolsConnectionError"></p>
+			</div>
+			<!-- /devtools -->
+
 			<div id="landmarks"></div>
+
 			<label id="show-all-label" data-message="popupShowAllLandmarks">
 				<input type="checkbox" id="show-all">
 			</label>
 		</div>
+
 		<div id="links"> <!-- removed in DevTools panel -->
-			<button id="help" data-message="popupHelpButton" class="browser-style"></button>
-			<button id="settings" data-message="popupPreferencesButton" class="browser-style"></button>
+			<button id="help" data-message="popupHelpButton"></button>
+			<button id="settings" data-message="popupPreferencesButton"></button>
 		</div>
+
 		<div id="mutation-observation-station"> <!-- only in DevTools -->
 			<details>
-				<summary><h1 data-message="statsHeading"></h1></summary>
+				<summary data-message="statsHeading"></summary>
 				<dl>
 					<dt><details>
 						<summary data-message="statsMutationsTerm"></summary>
@@ -55,6 +71,7 @@
 				</dl>
 			</details>
 		</div>
+
 		<script src="GUIJS"></script>
 	</body>
 </html>
