@@ -92,6 +92,12 @@ input:hover {
 	outline-offset: var(--focus-outline-offset);
 }
 
+label:hover {
+	background-color: var(--background-2);
+	outline: var(--standard-line);
+	outline-color: var(--background-2);
+}
+
 html {
 	font-family: Verdana, sans-serif;
 	line-height: var(--line-height);
