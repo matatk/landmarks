@@ -52,7 +52,6 @@ select {
 }
 
 button {
-	/* FIXME: check that Firefox doesn't have overflows on Windows https://github.com/matatk/landmarks/issues/149 (that was browser-style-specific) */
 	border-radius: var(--roundedness);
 	margin: 0;
 	padding-left: 0.5rem;

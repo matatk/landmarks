@@ -1,7 +1,4 @@
-html {
-	height: 100%;
-	min-width: auto;  /* countermand Chrome */
-}
+html { height: 100%; }
 
 body {
 	height: 100%;
@@ -9,10 +6,7 @@ body {
 	flex-direction: column;
 }
 
-#content {
-	flex-grow: 1;
-	overflow: scroll;
-}
+#content { flex-grow: 1; }
 
 #note {
 	/* The note is displayed as flexbox due to the general "warning" class, but

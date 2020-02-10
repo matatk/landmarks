@@ -5,7 +5,6 @@
   },
 
   "browser_action": {
-    "chrome_style": false,
     "default_icon": {
       "19": "landmarks-19.png",
       "38": "landmarks-38.png"
@@ -13,7 +12,6 @@
   },
 
   "sidebar_action": {
-    "chrome_style": false,
     "default_title": "Landmarks",
     "default_panel": "sidebar.html",
     "default_icon": {
