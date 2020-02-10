@@ -14,11 +14,18 @@
 	</head>  <!-- FIXME: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
+			<!-- ui -->
 			<div id="note" class="warning" hidden>
 				<p>Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar.</p>
 				<button id="note-prefs" data-message="hintSidebarIsNotPrimaryOptions"></button>
 				<button id="note-dismiss" data-message="hintDismiss"></button>
 			</div>
+			<!-- /ui -->
+			<!-- devtools -->
+			<div id="connection-error" class="warning" hidden>
+				<p data-message="devToolsConnectionError"></p>
+			</div>
+			<!-- /devtools -->
 
 			<div id="landmarks"></div>
 

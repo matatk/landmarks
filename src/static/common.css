@@ -6,13 +6,15 @@
 	--accent-2: #ff6200;
 	--background-1: white;
 	--background-2: #ccc;
-	--text: #333;
+	--text-1: #333;
+	--text-2: #757575;
 	--error: #e00;
 
 	/* Lengths */
 	--base-font-size: 1.5rem;
 	--line-height: 1.5;
 	--thickness: 0.2rem;
+	--secondary-thickness: 0.1rem;
 	--side-padding: 1rem;
 	--top-padding: 0.25rem;
 	--roundedness: 0.5rem;
@@ -23,6 +25,7 @@
 
 	/* Bits */
 	--standard-line: var(--thickness) solid var(--accent-1);
+	--standard-control-line: var(--secondary-thickness) solid var(--text-1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,7 +35,8 @@
 		--accent-2: #fa6;
 		--background-1: #272727;
 		--background-2: #555;
-		--text: #ddd;
+		--text-1: #ddd;
+		--text-2: #8d8d8d;
 		--error: #f99;
 	}
 }
@@ -41,10 +45,10 @@ button,
 input,
 select {
 	font-size: inherit;
-	border-color: var(--text);
+	border-color: var(--text-1);
 	background-color: var(--background-1);
-	color: var(--text);
-	border: 0.1rem solid var(--text);
+	color: var(--text-1);
+	border: var(--standard-control-line);
 }
 
 button {
@@ -80,7 +84,7 @@ html {
 	font-family: Verdana, sans-serif;
 	line-height: var(--line-height);
 	background-color: var(--background-1);
-	color: var(--text);
+	color: var(--text-1);
 }
 
 h1,

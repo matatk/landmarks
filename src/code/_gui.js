@@ -289,24 +289,7 @@ function main() {
 		if (BROWSER !== 'firefox') {
 			// DevTools page doesn't get reloaded when the extension does
 			port.onDisconnect.addListener(function() {
-				// TODO use styles from CSS
-				const para = document.createElement('p')
-				para.style.margin = 0
-				para.style.marginBottom = '0.5em'
-				para.style.padding = '1em'
-				para.style.border = '1px solid #d00'
-				para.style.borderRadius = '1em'
-
-				const strong = document.createElement('strong')
-				strong.style.color = '#d00'
-				strong.appendChild(document.createTextNode(
-					browser.i18n.getMessage('devToolsConnectionError')))
-				para.appendChild(strong)
-
-				const content = document.getElementById('content')
-				content.insertBefore(para, content.firstChild)
-
-				document.body.style.backgroundColor = '#fee'
+				document.getElementById('connection-error').hidden = false
 			})
 		}
 
