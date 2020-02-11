@@ -1,13 +1,15 @@
 #!/bin/sh
+# shellcheck disable=SC1004
 in='meta/detailed-description.html'
 
 echo "// Description for Mozilla Add-ons"; echo
-cat $in | sed \
-	-e 's/<p>//g' \
-	-e 's/<\/p>/@/g' \
-	| tr '@' "\n"
+cat $in
 
-echo; echo "// Plain Text Description"; echo
-pandoc $in --to markdown --wrap none | sed -E \
-	-e 's/\\//g' \
-	-e 's/\*\*/*/g'
+echo; echo; echo "// Plain Text Description"; echo
+sed < $in -E \
+	-e 's/<p>//g' \
+	-e 's/<\/p>/\
+/g' \
+	-e 's/<\/?strong>/*/g' \
+	-e 's/^\*//' \
+	-e 's/\*$//'
