@@ -20,7 +20,7 @@
 ### Features
 
 * Dark mode and GUI style improvements ([#332](https://github.com/matatk/landmarks/issues/332)) ([c2653fe](https://github.com/matatk/landmarks/commit/c2653fe))
-* Standalone options page; streamline help ([#327](https://github.com/matatk/landmarks/issues/327)) ([4aa2b60](https://github.com/matatk/landmarks/commit/4aa2b60)), closes [#157](https://github.com/matatk/landmarks/issues/157) [#227](https://github.com/matatk/landmarks/issues/227) [#288](https://github.com/matatk/landmarks/issues/288) [#226](https://github.com/matatk/landmarks/issues/226)
+* Standalone options page; streamline help ([#327](https://github.com/matatk/landmarks/issues/327)) ([4aa2b60](https://github.com/matatk/landmarks/commit/4aa2b60)), closes [#227](https://github.com/matatk/landmarks/issues/227) [#288](https://github.com/matatk/landmarks/issues/288) [#226](https://github.com/matatk/landmarks/issues/226)
 * Support the new Microsoft Edge ([#329](https://github.com/matatk/landmarks/issues/329)) ([a4d4743](https://github.com/matatk/landmarks/commit/a4d4743)), closes [#53](https://github.com/matatk/landmarks/issues/53)
 
 ## [2.6.0](https://github.com/matatk/landmarks/compare/2.5.5...2.6.0) (2019-09-06)
