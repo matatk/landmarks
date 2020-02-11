@@ -1,5 +1,28 @@
 # Landmarks changelog
 
+## [2.7.0](https://github.com/matatk/landmarks/compare/2.6.0...2.7.0) (2020-02-11)
+
+### Bug fixes
+
+* Allow Landmarks to run on the stand-alone options page ([#328](https://github.com/matatk/landmarks/issues/328)) ([4e634bc](https://github.com/matatk/landmarks/commit/4e634bc))
+
+### Builds
+
+* Skip dotfiles when bringing in static assets ([#330](https://github.com/matatk/landmarks/issues/330)) ([79bde2d](https://github.com/matatk/landmarks/commit/79bde2d))
+* Use additional deepmerge convenience function ([#326](https://github.com/matatk/landmarks/issues/326)) ([8bc2e91](https://github.com/matatk/landmarks/commit/8bc2e91)), closes [#324](https://github.com/matatk/landmarks/issues/324)
+
+### Documentation
+
+* **Mozilla Add-ons:** Update notes for reviewers ([#325](https://github.com/matatk/landmarks/issues/325)) ([0017bcb](https://github.com/matatk/landmarks/commit/0017bcb)), closes [#322](https://github.com/matatk/landmarks/issues/322)
+* **README:** Mention Edge support ([#331](https://github.com/matatk/landmarks/issues/331)) ([b7d93af](https://github.com/matatk/landmarks/commit/b7d93af))
+* Update extension metadata ([#333](https://github.com/matatk/landmarks/issues/333)) ([a445b5b](https://github.com/matatk/landmarks/commit/a445b5b))
+
+### Features
+
+* Dark mode and GUI style improvements ([#332](https://github.com/matatk/landmarks/issues/332)) ([c2653fe](https://github.com/matatk/landmarks/commit/c2653fe))
+* Standalone options page; streamline help ([#327](https://github.com/matatk/landmarks/issues/327)) ([4aa2b60](https://github.com/matatk/landmarks/commit/4aa2b60)), closes [#227](https://github.com/matatk/landmarks/issues/227) [#288](https://github.com/matatk/landmarks/issues/288) [#226](https://github.com/matatk/landmarks/issues/226)
+* Support the new Microsoft Edge ([#329](https://github.com/matatk/landmarks/issues/329)) ([a4d4743](https://github.com/matatk/landmarks/commit/a4d4743)), closes [#53](https://github.com/matatk/landmarks/issues/53)
+
 ## [2.6.0](https://github.com/matatk/landmarks/compare/2.5.5...2.6.0) (2019-09-06)
 
 ### Bug fixes
