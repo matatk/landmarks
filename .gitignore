@@ -2,7 +2,7 @@
 *.swp
 node_modules/
 build/
-landmarks-*-*.zip
+landmarks-*.zip
 _site/
 test/
 meta/
