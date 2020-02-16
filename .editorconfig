@@ -1,0 +1,16 @@
+# http://EditorConfig.org
+root = true
+
+[*.css]
+# Stylelint is used to check CSS, but we'd like auto-whitespace-trimming
+trim_trailing_whitespace = true
+
+# Ignores
+# To ignore an entire subtree: echo 'root = true' > dir/.editorconfig
+[Gemfile.lock]
+charset = none
+end_of_line = none
+insert_final_newline = none
+trim_trailing_whitespace = none
+indent_style = none
+indent_size = none
