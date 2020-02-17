@@ -1,0 +1,171 @@
+* { box-sizing: border-box; }
+
+:root {
+	/* Colours */
+	--accent-1: #080;
+	--light-accent-1: #0805;
+	--accent-2: #ff6200;
+	--background-1: white;
+	--background-2: #ccc;
+	--text-1: #333;
+	--text-2: #757575;
+	--error: #e00;
+
+	/* Lengths */
+	--base-font-size: 1.5rem;
+	--line-height: 1.5;
+	--thickness: 0.2rem;
+	--secondary-thickness: 0.1rem;
+	--side-padding: 1rem;
+	--top-padding: 0.25rem;
+	--roundedness: 0.5rem;
+	--body-width: 60rem;
+	--body-width-max: 90vw;
+	--focus-outline-offset: 0.15rem;
+	--sibling-gap: 1rem;
+
+	/* Bits */
+	--standard-line: var(--thickness) solid var(--accent-1);
+	--standard-control-line: var(--secondary-thickness) solid var(--text-1);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Colours */
+		--accent-1: #9f9;
+		--light-accent-1: #9f95;
+		--accent-2: #fa6;
+		--background-1: #272727;
+		--background-2: #555;
+		--text-1: #ddd;
+		--text-2: #8d8d8d;
+		--error: #f99;
+	}
+}
+
+button,
+input,
+select {
+	font-size: inherit;
+	border-color: var(--text-1);
+	background-color: var(--background-1);
+	color: var(--text-1);
+	border: var(--standard-control-line);
+}
+
+button {
+	border-radius: var(--roundedness);
+	margin: 0;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+}
+
+a {
+	color: var(--accent-1);
+	font-weight: bold;
+}
+
+/* FIXME note working on Firefox? */
+:focus {
+	/* With great power... */
+	outline: none;
+}
+
+a:focus,
+a:hover,
+summary:focus,
+summary:hover {
+	color: var(--background-1);
+	background-color: var(--accent-1);
+	outline: var(--standard-line);
+}
+
+button:focus,
+button:hover {
+	color: var(--background-1);
+	background-color: var(--text-1);
+}
+
+input:focus,
+input:hover {
+	outline: var(--standard-line);
+	outline-offset: var(--focus-outline-offset);
+}
+
+label {
+	color: var(--text-1);  /* countermand Firefox extension.css */
+}
+
+label:hover {
+	background-color: var(--light-accent-1);
+	outline: var(--standard-line);
+	outline-width: calc(var(--thickness) + var(--focus-outline-offset));
+	outline-color: var(--light-accent-1);
+}
+
+html {
+	font-family: Verdana, sans-serif;
+	line-height: var(--line-height);
+	background-color: var(--background-1);
+	color: var(--text-1);
+}
+
+h1,
+h2 {
+	border-bottom: var(--standard-line);
+	color: var(--accent-1);
+}
+
+.visually-hidden {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0 !important;
+	border: 0 !important;
+	height: 1px !important;
+	width: 1px !important;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/*
+ * Warning boxes
+ *
+ * Assumed by default to be horizontal flexboxes with a warning symbol as first
+ * child and content as the second/last.
+ */
+
+.warning[hidden] { display: none; }
+
+.warning {
+	padding: var(--top-padding) var(--side-padding) var(--top-padding) var(--side-padding);
+	background-color: var(--accent-2);
+	border-radius: var(--roundedness);
+	color: var(--background-1);
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+}
+
+.warning > .warning-symbol {
+	font-size: 2rem;
+	font-weight: bold;
+}
+
+.warning > :last-child { margin-left: 1rem; }
+
+.warning a { color: var(--background-1); }
+
+.warning a:focus,
+.warning a:hover,
+.warning button:focus,
+.warning button:hover {
+	background-color: var(--background-1);
+	color: var(--accent-2);
+}
+
+.warning a:focus,
+.warning a:hover {
+	outline-color: var(--background-1);
+}

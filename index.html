@@ -4,149 +4,131 @@
 		<meta charset="UTF-8">
 		<title>Landmarks</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" href="landmarks.css">
-		<style>
-/* TODO: Remove when <2.5.0 is no longer in use */
-.notice {
-	margin-top: 1.5em;
-	display: inline-block;
-	max-width: 50em;
-	color: rgba(255, 255, 255, 0.7);
-	background-color: rgba(255, 255, 255, 0.08);
-	border-color: rgba(255, 255, 255, 0.2);
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 0.3rem;
-	padding: 0.75rem 1rem; }
-  .notice a {
-	  color: white;
-	  text-decoration: underline; }
-		</style>
 	</head>
 	<body>
 		<header>
 			<h1>Landmarks</h1>
 			<p>Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu</p>
-			<!-- TODO: Remove when <2.5.0 is no longer in use -->
-			<div id="install-notice" hidden>
-				<p>Thanks for installing the Landmarks extension. Instructions for <a href="https://github.com/matatk/landmarks/blob/c1afef12a8f4263e43277a3c03030537096743b5/README.md#navigating-landmarks">navigating landmarks</a> and changing settings can be found in the <a href="https://github.com/matatk/landmarks/blob/c1afef12a8f4263e43277a3c03030537096743b5/README.md#landmarks">README</a>.</p>
-				<p><strong>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</strong></p>
-			</div>
-			<div id="update-notice" hidden>
-				<p>The Landmarks extension was updated; information on what's changed can be found <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">in the change log</a>.</p>
+		</header>
+
+		<main>
+			<!-- These are needed by versions before 2.5.0 -->
+			<section id="action-notice" hidden>
+				<p data-install hidden>Thanks for installing the Landmarks extension.</p>
+				<p><strong>Please note that you're using an outdated version of the extension. You may need to update your browser in order to use the latest version.</strong></p>
+				<p data-update hidden>The Landmarks extension was updated; information on the latest changes can be found <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#landmarks-changelog">in the change log</a>&mdash;<strong>However, as you are using an earlier version, you may not have access to all of the latest features</strong>.</p>
 				<p>Instructions for <a href="https://github.com/matatk/landmarks/blob/c1afef12a8f4263e43277a3c03030537096743b5/README.md#navigating-landmarks">navigating landmarks</a> and changing settings can be found in the <a href="https://github.com/matatk/landmarks/blob/c1afef12a8f4263e43277a3c03030537096743b5/README.md#landmarks">README</a>.</p>
 				<p><strong>If you need support, please <a href="https://github.com/matatk/landmarks/issues">check the known issues for Landmarks</a> and, if necessary, file a new issue using the "New Issue" button on that page.</strong></p>
-			</div>
-		</header>
-		<main>
-		<section class="abstract">
-			<p>Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks, <strong>if they've been provided by its author</strong>, using the keyboard or a pop-up menu.</p>
-		</section>
-		<section class="install">
-			<!-- This section is repeated below. -->
-			<ul>
-				<li>
-					<a href="https://addons.mozilla.org/addon/landmarks/">Firefox add&#8209;on</a>
-				</li>
-				<li>
-					<a href="https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp">Chrome extension</a>
-				</li>
-				<li>
-					<a href="https://addons.opera.com/en-gb/extensions/details/landmarks/">Opera extension</a> (latest version available on Opera Developer and Opera Beta; awaiting review for Opera stable)
-				</li>
-				<li>
-					Edge version coming soon
-				</li>
-			</ul>
-		</section>
-		<section class="feature">
-			<div>
-				<h2>Explore landmarks via pop-up</h2>
-				<p>The pop-up shows landmark regions found on the page, and can be accessed via mouse or keyboard.</p>
-			</div>
-			<div>
-				<img src="meta/firefox-1.png" alt="">
-			</div>
-		</section>
-		<section class="feature">
-			<div>
-				<h2>Explore landmarks via keyboard</h2>
-				<p>Landmarks are scrolled into view, focused and highlighted, with their label shown.</p>
-				<p>You can change how long the border appears, its colour and the font size.</p>
-				<p>Keyboard shortcuts allow you to move between landmarks directly, and you can also change these shortcuts if you're using Chrome or Opera.</p>
-			</div>
-			<div>
-				<img src="meta/firefox-2.png" alt="">
-			</div>
-		</section>
-		<section class="feature">
-			<div>
-				<h2>Explore landmarks via sidebar</h2>
-				<p>Firefox and Opera support sidebars, and you can opt for landmark regions to be shown here, too.</p>
-			</div>
-			<div>
-				<img src="meta/firefox-3.png" alt="">
-			</div>
-		</section>
-		<section class="feature">
-			<div>
-				<h2>Tools for developers</h2>
-				<p>A DevTools panel allows you to inspect the code behind the landmark regions on the page.</p>
-			</div>
-			<div>
-				<img src="meta/firefox-4.png" alt="">
-				<img src="meta/firefox-5.png" alt="">
-			</div>
-		</section>
-		<section class="further-info">
-			<h2>Further information</h2>
-			<ul>
-				<li>
-					<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#information-for-web-authors-designers-and-developers">Why landmarks rock, and how to easily provide them on your site</a>.</p>
-				</li>
-				<li>
-					<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#this-extensions-support-for-landmarks">This extension's support for the landmarks standards</a>.</p>
-				</li>
-				<li>
-					<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#development">Landmarks extension development information</a>.</p>
-				</li>
-			</ul>
-		</section>
-		<section class="install">
-			<!-- This section is repeated above. -->
-			<ul>
-				<li>
-					<a href="https://addons.mozilla.org/addon/landmarks/">Firefox add&#8209;on</a>
-				</li>
-				<li>
-					<a href="https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp">Chrome extension</a>
-				</li>
-				<li>
-					<a href="https://addons.opera.com/en-gb/extensions/details/landmarks/">Opera extension</a> (latest version available on Opera Developer and Opera Beta; awaiting review for Opera stable)
-				</li>
-				<li>
-					Edge version coming soon
-				</li>
-			</ul>
-		</section>
+			</section>
+
+			<section class="abstract">
+				<p>Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). This extension allows you to navigate a web page via its landmarks, <strong>if they've been provided by its author</strong>, using the keyboard or a pop-up menu.</p>
+			</section>
+
+			<!-- This section is copied below by script -->
+			<section class="install">
+				<ul role="list">  <!-- for VoiceOver on iOS -->
+					<li>
+						<a href="https://addons.mozilla.org/addon/landmarks/">Firefox add&#8209;on</a>
+					</li>
+					<li>
+						<a href="https://chrome.google.com/webstore/detail/landmark-navigation-via-k/ddpokpbjopmeeiiolheejjpkonlkklgp">Chrome extension</a>
+					</li>
+					<li>
+						<a href="https://addons.opera.com/en-gb/extensions/details/landmarks/">Opera extension</a> <small>(latest version available on Opera Developer &amp; Opera Beta; awaiting review for Opera stable)</small>
+					</li>
+					<li>
+						Edge version coming soon&nbsp;:-)
+					</li>
+				</ul>
+			</section>
+
+			<section class="feature">
+				<div>
+					<h2>Explore landmarks via pop-up</h2>
+					<p>The pop-up shows landmark regions found on the page, and can be accessed via mouse or keyboard.</p>
+				</div>
+				<div>
+					<img src="meta/firefox-1.png" alt="">
+				</div>
+			</section>
+
+			<section class="feature">
+				<div>
+					<h2>Explore landmarks via keyboard</h2>
+					<p>Landmarks are scrolled into view, focused and highlighted, with their label shown.</p>
+					<p>You can change how long the border appears, its colour and the font size.</p>
+					<p>Keyboard shortcuts allow you to move between landmarks directly, and you can also change these shortcuts if you're using Chrome or Opera.</p>
+				</div>
+				<div>
+					<img src="meta/firefox-2.png" alt="">
+				</div>
+			</section>
+
+			<section class="feature">
+				<div>
+					<h2>Explore landmarks via sidebar</h2>
+					<p>Firefox and Opera support sidebars, and you can opt for landmark regions to be shown here, too.</p>
+				</div>
+				<div>
+					<img src="meta/firefox-3.png" alt="">
+				</div>
+			</section>
+
+			<section class="feature">
+				<div>
+					<h2>Tools for developers</h2>
+					<p>A DevTools panel allows you to inspect the code behind the landmark regions on the page.</p>
+				</div>
+				<div>
+					<img src="meta/firefox-4.png" alt="">
+					<img src="meta/firefox-5.png" alt="">
+				</div>
+			</section>
+
+			<section class="further-info">
+				<h2>Further information</h2>
+				<ul>
+					<li>
+						<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#information-for-web-authors-designers-and-developers">Why landmarks rock, and how to easily provide them on your site</a>.</p>
+					</li>
+					<li>
+						<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#this-extensions-support-for-landmarks">This extension's support for the landmarks standards</a>.</p>
+					</li>
+					<li>
+						<p><a href="https://github.com/matatk/landmarks/blob/master/README.md#development">Landmarks extension development information</a>.</p>
+					</li>
+				</ul>
+			</section>
+
+			<div id="install-clone"></div>
 		</main>
+
 		<footer>
 			<p><a href="https://github.com/matatk/landmarks">Landmarks</a> is maintained by <a href="https://github.com/matatk">matatk</a>.</p>
-			<p>This page is hosted on <a href="https://pages.github.com">GitHub Pages</a>. Gradient design is from the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a>.</p>
+			<p>This page is hosted on <a href="https://pages.github.com">GitHub Pages</a>.</p>
 		</footer>
+
 		<script>
-// TODO: Remove when <2.5.0 is no longer in use
-const fragment = window.location.hash.substr(1);  // includes the bang
-const id_part = fragment.substr(1);  // doesn't include the bang
-switch (fragment) {
-	case "!install":
-	case "!update":
-		const element = document.getElementById(id_part + "-notice");
-		element.removeAttribute('hidden');
-		element.classList.add('notice');
-	default:
-		//
-}
+			const installClone =
+				document.getElementsByClassName('install')[0].cloneNode(true)
+			document.getElementById('install-clone').appendChild(installClone)
+
+			// This is needed by versions before 2.5.0
+			// They will try to load this URL + #! + one of the below
+			const fragment = window.location.hash.substr(1);
+			const action = fragment.substr(1);
+			switch (fragment) {
+				case "!install":
+				case "!update":
+					document.getElementById('action-notice').hidden = false;
+					document.querySelector(
+						'[data-' + action + ']').hidden = false
+				default:
+					// pass
+			}
 		</script>
 	</body>
 </html>

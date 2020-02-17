@@ -1,78 +1,76 @@
 :root {
-	--hla: #155799;
-	--hlb: #159957;
-	--words: #606c71;
+	--spacing: 1rem;
+	--big-spacing: 4rem;
 }
 
 body {
 	margin: 0;
-	font-family: Verdana, sans-serif;
-	color: var(--words);
-	line-height: 1.5em;
+	font-size: var(--base-font-size);
 }
 
 header {
-	background-image: linear-gradient(120deg, var(--hla), var(--hlb));
-	padding: 10vw;
-	margin: 0;
+	padding: 2rem;
 	text-align: center;
-	color: white;
 }
 
-section, footer {
-	padding: 5vw;
-	margin: auto;
+h1 { font-size: 3em; }
+
+section,
+footer { padding: var(--big-spacing); }
+
+#action-notice {
+	/* Used by Landmarks <2.5.0 */
+	border: var(--standard-line);
+	border-radius: 1rem;
+	margin-bottom: var(--big-spacing);
 }
 
-footer {
-	padding-bottom: 1em;
-}
-
-section.abstract, section.install {
-	padding-bottom: 0;
-	padding-top: 2em;
-}
+section.abstract,
+section.further-info { background-color: var(--background-2); }
 
 section.install { text-align: center; }
+
 section.install ul {
-	width: 75%;
 	margin: auto;
 	padding: 0;
 	list-style-type: none;
 }
-section.install li {
-	background: #eee;
-	padding: 1em;
-	margin: 0.5em;
-	border-radius: 1em;
-}
 
-section.feature:nth-child(odd) h2 { color: var(--hlb); }
-section.feature:nth-child(even) h2 { color: var(--hla); }
+section.install li {
+	padding: var(--spacing);
+	margin: 0.5rem;
+	border-radius: var(--roundedness);
+	border: var(--standard-line);
+}
 
 img {
 	max-width: 100%;
-	filter: drop-shadow(0.5em 0.5em 0.5em #999);
+	filter: drop-shadow(0.5em 0.5em 0.5em var(--background-2));
 }
 
 img:nth-of-type(2) { padding-top: 2em; }
 
-section.install a { color: var(--words); }
-footer a { color: var(--words); }
-
-section.further-info {
-	margin-top: 2em;
-	background-color: #eee;
+section.further-info h2,
+section.further-info a {
+	color: var(--text-1);
 }
 
-@media screen and (min-width: 45em) {
-	header { padding: 5vw; }
+section.further-info h2 { border-color: var(--text-2); }
 
-	h1 { font-size: 3em }
+section.further-info a:hover,
+section.further-info a:focus {
+	color: var(--background-2);
+	background-color: var(--text-1);
+	outline-color: var(--text-1);
+}
 
-	section.install ul, section.feature {
+footer { padding-bottom: var(--spacing); }
+
+@media screen and (min-width: 65rem) {
+	section.install ul,
+	section.feature {
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 	}
 
 	section.install ul li {
@@ -82,17 +80,16 @@ section.further-info {
 	}
 
 	section.feature > :first-child { flex: 0 1 40%; }
-	section.feature > :last-child { flex: 0 1 55%; }
+	section.feature > :last-child { flex: 0 1 50%; }
 
 	section.feature:nth-child(odd) { flex-direction: row; }
 	section.feature:nth-child(even) { flex-direction: row-reverse; }
 
-	section.further-info {
-		padding-left: 15%;
-		padding-right: 15%;
+	section > * {
+		margin-left: auto;
+		margin-right: auto;
+		max-width: 65rem;
 	}
-}
 
-@media screen and (min-width: 65em) {
-	section { max-width: 65em; }
+	h2 { margin-top: 0; }
 }
