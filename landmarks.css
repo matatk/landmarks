@@ -18,6 +18,20 @@ h1 { font-size: 3em; }
 section,
 footer { padding: var(--big-spacing); }
 
+fieldset { border: 0; }
+
+details p {
+	position: absolute;
+	background-color: var(--accent-1);
+	outline: var(--standard-line);  /* to match that around the disclosure */
+	outline-color: var(--accent-1);
+	color: var(--background-1);
+	margin: 0;
+	margin-right: 1em;
+	max-width: 35em;
+	padding: 0.25em;
+}
+
 #action-notice {
 	/* Used by Landmarks <2.5.0 */
 	border: var(--standard-line);
@@ -31,7 +45,7 @@ section.further-info { background-color: var(--background-2); }
 section.install { text-align: center; }
 
 section.install ul {
-	margin: auto;
+	margin: 0;
 	padding: 0;
 	list-style-type: none;
 }
@@ -66,6 +80,8 @@ section.further-info a:focus {
 
 footer { padding-bottom: var(--spacing); }
 
+.vertical-spacer { display: none; }  /* don't need vertical-spacer in vertical mode */
+
 @media screen and (min-width: 65rem) {
 	section.install ul,
 	section.feature {
@@ -74,6 +90,7 @@ footer { padding-bottom: var(--spacing); }
 	}
 
 	section.install ul li {
+		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -92,4 +109,6 @@ footer { padding-bottom: var(--spacing); }
 	}
 
 	h2 { margin-top: 0; }
+
+	.vertical-spacer { display: block; }  /* do need vertical-spacer in horizontal mode */
 }
