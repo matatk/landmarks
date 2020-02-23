@@ -150,18 +150,17 @@ if (INTERFACE === 'sidebar') {
 	// The sidebar can be open even if the user has chosen the pop-up as the
 	// primary GUI for Landmarks. In this case, a note can be created in the
 	// sidebar to explain this to the user.
-	const noteId = 'note'
 
 	function showNote() {  // eslint-disable-line no-inner-declarations
 		browser.storage.sync.get(dismissalStates, function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
-				document.getElementById(noteId).hidden = false
+				document.getElementById('note').hidden = false
 			}
 		})
 	}
 
 	function hideNote() {  // eslint-disable-line no-inner-declarations
-		document.getElementById(noteId).hidden = true
+		document.getElementById('note').hidden = true
 	}
 
 	document.getElementById('note-prefs').onclick = function() {

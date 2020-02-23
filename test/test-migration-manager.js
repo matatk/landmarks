@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 'use strict'
 const path = require('path')
 const MigrationManager = require(
