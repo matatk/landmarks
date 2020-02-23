@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
@@ -107,52 +108,25 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	// If the user has elected to use the sidebar, the pop-up is disabled, and
 	// we will receive events, which we can then use to open the sidebar.
 	//
-	// Have to do this in a really hacky way at the moment due to
-	// https://bugzilla.mozilla.org/show_bug.cgi?id=1438465
-	// https://bugzilla.mozilla.org/show_bug.cgi?id=1398833
-	// TODO: Check for when these may be fixed upstream.
-	//
-	// Also Opera doesn't have open().
-
-	// eslint-disable-next-line no-inner-declarations
-	function openSidebarWhenClicked() {
-		browser.browserAction.onClicked.removeListener(openSidebarWhenClicked)
-		browser.sidebarAction.open()
-		browser.browserAction.onClicked.addListener(closeSidebarWhenClicked)
-	}
-
-	// eslint-disable-next-line no-inner-declarations
-	function closeSidebarWhenClicked() {
-		browser.browserAction.onClicked.removeListener(closeSidebarWhenClicked)
-		browser.sidebarAction.close()
-		browser.browserAction.onClicked.addListener(openSidebarWhenClicked)
-	}
+	// Opera doesn't have open().
 
 	// eslint-disable-next-line no-inner-declarations
 	function switchInterface(mode) {
 		switch (mode) {
 			case 'sidebar':
 				browser.browserAction.setPopup({ popup: '' })
-
 				if (BROWSER === 'firefox') {
-					// The sidebar will be closed because we are setting
-					// "open_at_install" to false. It might be nice to actually
-					// show the sidebar at install, but isOpen() isn't usable
-					// because it breaks propogation of the user input event.
 					browser.browserAction.onClicked.addListener(
-						openSidebarWhenClicked)
+						browser.sidebarAction.toggle)
 				}
 				break
 			case 'popup':
 				// On Firefox this could be set to null to return to the
 				// default popup. However Chrome/Opera doesn't support this.
 				browser.browserAction.setPopup({ popup: 'popup.html' })
-
 				if (BROWSER === 'firefox') {
 					browser.browserAction.onClicked.removeListener(
-						openSidebarWhenClicked)
-					browser.browserAction.onClicked.removeListener(
-						closeSidebarWhenClicked)
+						browser.sidebarAction.toggle)
 				}
 				break
 			default:

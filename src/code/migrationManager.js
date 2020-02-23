@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 export default function MigrationManager(migrations) {
 	function getVersion(settings) {
 		if (!settings.hasOwnProperty('version')) {

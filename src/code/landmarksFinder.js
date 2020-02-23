@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 export default function LandmarksFinder(win, doc) {
 	//
 	// Constants

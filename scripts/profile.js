@@ -1,5 +1,5 @@
+/* eslint-disable no-prototype-builtins */
 'use strict'
-/* global window document */
 const path = require('path')
 const fs = require('fs')
 const puppeteer = require('puppeteer')
