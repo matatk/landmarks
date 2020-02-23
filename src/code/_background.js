@@ -110,14 +110,15 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	//
 	// Opera doesn't have open().
 
+	const sidebarToggle = () => browser.sidebarAction.toggle()
+
 	// eslint-disable-next-line no-inner-declarations
 	function switchInterface(mode) {
 		switch (mode) {
 			case 'sidebar':
 				browser.browserAction.setPopup({ popup: '' })
 				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.addListener(
-						browser.sidebarAction.toggle)
+					browser.browserAction.onClicked.addListener(sidebarToggle)
 				}
 				break
 			case 'popup':
@@ -125,8 +126,7 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 				// default popup. However Chrome/Opera doesn't support this.
 				browser.browserAction.setPopup({ popup: 'popup.html' })
 				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.removeListener(
-						browser.sidebarAction.toggle)
+					browser.browserAction.onClicked.removeListener(sidebarToggle)
 				}
 				break
 			default:
