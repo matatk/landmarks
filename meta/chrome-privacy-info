@@ -1,0 +1,14 @@
+Single Purpose Description:
+Accessibility aid to help keyboard-only users navigate around pages. This may include people with motor control difficulties and/or RSI, for example.
+
+webNavigation:
+Lets the extension scan newly-loaded pages/SPA views for landmark regions, so the browser action can be badged with the number found, and the user knows if there are landmarks on each page. Without this, the user would have to manually activate the extension on every page they visit.
+
+tabs:
+Needed so that when the user switches tabs, the browser action can be enabled/disabled/updated depending on whether the extension can run on the active tab's page. (It won't be able to run on chrome:// or Chrome Web Store pages.)
+
+Host Permission:
+Allows the extension to run automatically on any page, which helps users by showing them if there are landmarks on the page without them having to activate the browser action (which may be non-trivial for them).
+
+Remote Code:
+<No, I am not using Remote Code.>

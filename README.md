@@ -71,10 +71,11 @@ You can build and run the current code locally as follows.
 
 4.  To load and use the extension locally in your browser...
     -   **Firefox:** either:
-        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Packaging_and_installation), or
-        -   if you have [`web-ext`](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
+        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/), or
+        -   if you have [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
     -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#manifest).
     -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
+    -   **Edge:** refer to [Run your Extension locally in your browser while developing it (side-loading)](https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#run-your-extension-locally-in-your-browser-while-developing-it-side-loading).
 
 Some further info on the test/build process:
 
@@ -98,4 +99,4 @@ The following pages are incorporated into the automated test suite, but you can 
 Acknowledgements
 ----------------
 
-This is a fork of the [original landmarks extension](https://github.com/davidtodd/landmarks) written by [davidtodd](https://github.com/davidtodd) at IBM. Thanks to [stevefaulkner](https://github.com/stevefaulkner) for suggesting I work on this, and for feature suggestions (and again to [davidtodd](https://github.com/davidtodd) for supporting me doing so), and to [The Paciello Group](https://www.paciellogroup.com) for donating a significant chunk of the initial development time.
+This is a fork of the [original landmarks extension](https://github.com/davidtodd/landmarks) written by [David Todd](https://github.com/davidtodd) at IBM. Thanks to [Steve Faulkner](https://github.com/stevefaulkner) for encouraging me to work on this, for feature suggestions, help with the relevant specifications and initial test cases (and again to [David Todd](https://github.com/davidtodd) for supporting my contributions). Thanks also to [The Paciello Group](https://www.paciellogroup.com) for donating my development time when this was a Firefox-specific extension and during the conversion to the WebExtensions API.

@@ -11,11 +11,11 @@ Required software for the build:
 * git - needed to fetch my "one-svg-to-many-sized-pngs" and "page-structural-semantics-scanner-tests" node packages from GitHub.
 * Node and npm.
 
-To build for Firefox specifically:
+To build for BROWSER_PRETTY specifically:
 
 1. npm install
-2. npm test && node scripts/build.js --browser firefox
+2. npm test && node scripts/build.js --browser BROWSER_VAR
 
-You'll find the extension in the build/firefox/ directory.
+You'll find the extension in the build/BROWSER_VAR/ directory.
 
 Please note: the build process has only been extensively tested on macOS. It runs on Windows and should be fine there and on Linux, but if you have any problems and are able to check on macOS, please do.

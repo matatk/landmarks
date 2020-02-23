@@ -1,8 +1,10 @@
 #!/bin/sh
 chromeSize='640x400'
 operaSize='612x408'
+edgeSize='640x400'
 chromeBackgroundColour='rgb(250,250,250)'
 operaBackgroundColor='rgb(237,237,237)'
+edgeBackgroundColour='rgb(250,250,250)'
 
 function resize() {
 	browser=$1
@@ -19,3 +21,4 @@ function resize() {
 
 resize 'chrome' $chromeSize $chromeBackgroundColour
 resize 'opera' $operaSize $operaBackgroundColor
+resize 'edge' $edgeSize $edgeBackgroundColour
