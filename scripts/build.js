@@ -83,12 +83,15 @@ let testMode = false	// are we building a test (alpha/beta) version?
 
 function doReplace(files, from, to, message) {
 	try {
-		const changes = replace.sync({
+		const results = replace.sync({
 			'files': files,
 			'from': from,
 			'to': to
 		})
-		ok(message + ' in:', changes.join(', '))
+		const changedFiles = results
+			.filter(result => result.hasChanged)
+			.map(result => result.file)
+		ok(message + ' in:', changedFiles.join('; '))
 	} catch (err) {
 		error('Error occurred:', err)
 	}
