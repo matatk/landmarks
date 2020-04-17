@@ -93,7 +93,7 @@ async function insertLandmark(page, repetition) {
 //
 
 function timeLandmarksFinding(sites) {
-	const landmarksFinderPath = path.join('scripts', 'browser-landmarks.js')
+	const landmarksFinderPath = path.join('scripts', 'generated-browser-landmarks.js')
 	const loops = checkNumber(process.argv[4], 1, 'repetitions')
 	const results = {}
 

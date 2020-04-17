@@ -1,4 +1,3 @@
 build/
 _site/
-test/test-code-in-harness-*.js
-scripts/browser-landmarks.js
+generated-*.js
