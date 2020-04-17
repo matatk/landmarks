@@ -43,9 +43,9 @@ function main() {
 		]
 	}).then(async browser => {
 		const page = await browser.newPage()
-		await singleRun(page, 'trace-no-guarding.json', 600, 0)
+		await singleRun(page, 'trace--no-guarding.json', 600, 0)
 		console.log()
-		await singleRun(page, 'trace-triggering-guarding.json', 400, 1e3)
+		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
 		await browser.close()
 	})
 }
