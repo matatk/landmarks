@@ -1,0 +1,48 @@
+{
+  "types": [
+    {
+      "section": "Features",
+      "type": "feat"
+    },
+    {
+      "section": "Bug fixes",
+      "type": "fix"
+    },
+    {
+      "section": "Documentation",
+      "type": "docs"
+    },
+    {
+      "section": "Styles",
+      "type": "style"
+    },
+    {
+      "section": "Code refactoring",
+      "type": "refactor"
+    },
+    {
+      "section": "Performance improvements",
+      "type": "perf"
+    },
+    {
+      "section": "Tests",
+      "type": "test"
+    },
+    {
+      "section": "Builds",
+      "type": "build"
+    },
+    {
+      "section": "Continuous integrations",
+      "type": "ci"
+    },
+    {
+      "section": "Chores",
+      "type": "chore"
+    },
+    {
+      "section": "Reverts",
+      "type": "revert"
+    }
+  ]
+}
