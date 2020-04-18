@@ -5,12 +5,12 @@ const fse = require('fs-extra')
 const chalk = require('chalk')
 const merge = require('deepmerge')
 const archiver = require('archiver-promise')
-const oneSvgToManySizedPngs = require('one-svg-to-many-sized-pngs')
 const replace = require('replace-in-file')
 const glob = require('glob')
 const rollup = require('rollup')
 const terser = require('rollup-plugin-terser').terser
 const esformatter = require('rollup-plugin-esformatter')
+const sharp = require('sharp')
 
 
 //
@@ -421,14 +421,34 @@ function checkMessages(browser) {
 
 
 // Get PNG files from the cache (which will generate them if needed)
-function getPngs(converter, browser) {
+async function getPngs(browser) {
 	logStep('Generating/copying in PNG files')
+	const svgModified = fs.statSync(svgPath).mtime
+	fse.ensureDirSync(pngCacheDir)
 
-	browserPngSizes[browser].forEach((size) => {
-		const pngPath = converter.getPngPath(size)
-		const basename = path.basename(pngPath)
-		fse.copySync(pngPath, path.join(pathToBuild(browser), basename))
-	})
+	function isOlderThanSvg(pngPath) {
+		return fs.statSync(pngPath).mtime < svgModified
+	}
+
+	function isPngAbsentOrOutdated(pngPath) {
+		return !fs.existsSync(pngPath) || isOlderThanSvg(pngPath)
+	}
+
+	for (const size of browserPngSizes[browser]) {
+		const fileName = `landmarks-${size}.png`
+		const cachedFileName = path.join(pngCacheDir, fileName)
+		const buildFileName = path.join(pathToBuild(browser), fileName)
+
+		if (isPngAbsentOrOutdated(cachedFileName)) {
+			console.log(chalk.bold.blue(`Generating ${cachedFileName}...`))
+			await sharp(svgPath)
+				.resize(size, size)
+				.toFile(cachedFileName)
+		}
+
+		console.log(chalk.bold.blue(`Copying ${fileName} from cache...`))
+		fse.copyFileSync(cachedFileName, buildFileName)
+	}
 }
 
 
@@ -501,7 +521,6 @@ async function main() {
 	const isFullBuild = argv.cleanOnly !== true
 	const action = isFullBuild ? 'Building' : 'Cleaning'
 	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
-	const sp = oneSvgToManySizedPngs(pngCacheDir, svgPath)
 	const debugMode = argv.debug === true
 
 	testMode = argv.testRelease === true
@@ -521,7 +540,7 @@ async function main() {
 			mergeMessages(browser)
 			mergeManifest(browser)
 			checkMessages(browser)
-			getPngs(sp, browser)
+			await getPngs(browser)
 			if (testMode) {
 				renameTestVersion(browser)
 			}
