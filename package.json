@@ -6,19 +6,13 @@
     "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
-    "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder > scripts/browser-landmarks.js",
+    "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder -o scripts/generated-landmarks-finder.js",
     "profile": "node scripts/profile.js",
     "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
-    "pretest": "eslint .",
-    "test": "npm run test:landmarks && npm run test:contrast && npm run test:migration-manager && npm run test:css",
-    "pretest:contrast": "rollup src/code/contrastChecker.js -f cjs > test/test-code-in-harness-contrast.js",
-    "test:contrast": "node test/test-contrast.js",
+    "pretest": "eslint . && rollup -c test/rollup.config.js",
+    "test": "ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "pretest:landmarks": "rollup src/code/landmarksFinder.js -f cjs > test/test-code-in-harness-landmarks.js",
-    "test:landmarks": "node test/test-landmarks.js",
-    "pretest:migration-manager": "rollup src/code/migrationManager.js -f cjs > test/test-code-in-harness-migration-manager.js",
-    "test:migration-manager": "node test/test-migration-manager.js",
     "version": "standard-version --tag-prefix="
   },
   "husky": {
@@ -26,16 +20,24 @@
       "pre-commit": "npm run build:all"
     }
   },
+  "ava": {
+    "files": [
+      "!test/generated-*.js",
+      "!test/rollup.config.js"
+    ]
+  },
   "devDependencies": {
     "addons-linter": "^1.23.0",
     "archiver-promise": "~1.0",
+    "ava": "^3.7.0",
     "chalk": "^4.0.0",
     "deepmerge": "~4.2",
     "eslint": "^6.8.0",
     "fs-extra": "^9.0.0",
     "husky": "^4.2.5",
+    "jsdom": "^16.2.2",
     "one-svg-to-many-sized-pngs": "github:matatk/one-svg-to-many-sized-pngs#0.1.1",
-    "page-structural-semantics-scanner-tests": "git+https://github.com/matatk/page-structural-semantics-scanner-tests.git#0.3.0",
+    "page-structural-semantics-scanner-tests": "git+https://github.com/matatk/page-structural-semantics-scanner-tests.git#0.4.0",
     "puppeteer": "^3.0.0",
     "replace-in-file": "^5.0.2",
     "rollup": "^2.6.1",
@@ -45,7 +47,6 @@
     "stats-lite": "~2.2",
     "stylelint": "^13.3.2",
     "stylelint-config-standard": "^20.0.0",
-    "test": "~0.6",
     "yargs": "^15.3.1"
   }
 }
