@@ -8,10 +8,11 @@ export default function MigrationManager(migrations) {
 	}
 
 	function isMigrationNeeded(startingVersion) {
-		return startingVersion < Object.keys(migrations).pop()
+		return startingVersion < Number(Object.keys(migrations).pop())
 	}
 
 	this.migrate = function(settings) {
+		if (Object.keys(settings).length === 0) return false
 		const startingVersion = getVersion(settings)
 		if (isMigrationNeeded(startingVersion)) {
 			for (const key in migrations) {
@@ -21,7 +22,7 @@ export default function MigrationManager(migrations) {
 					settings.version = toVersion
 				}
 			}
-			console.log(`Landmarks: migrated settings from version ${startingVersion} to version ${settings.version}`)
+			console.log(`Landmarks: migrated user settings from version ${startingVersion} to version ${settings.version}`)
 			return true
 		}
 		return false

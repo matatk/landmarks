@@ -28,8 +28,6 @@ function restoreOptions() {
 			const name = option.name
 			const saved = items[name]
 
-			console.log('restoring', name, 'to', saved)
-
 			switch (option.kind) {
 				case 'radio':
 					document.getElementById(`radio-${saved}`).checked = true
@@ -48,7 +46,6 @@ function setUpOptionHandlers() {
 	for (const option of options) {
 		if (option.kind === 'individual') {
 			option.element.addEventListener('change', () => {
-				console.log('setting', option.name, 'to', option.element.value)
 				browser.storage.sync.set({
 					[option.name]: option.element.value
 				})
@@ -60,7 +57,6 @@ function setUpOptionHandlers() {
 		radio.addEventListener('change', function() {
 			const pref = this.parentElement.parentElement
 				.getAttribute('data-pref')
-			console.log('setting', pref, 'to', this.value)
 			browser.storage.sync.set({
 				[pref]: this.value
 			})

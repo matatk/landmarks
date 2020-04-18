@@ -348,8 +348,8 @@ function runStartupCode() {
 }
 
 browser.storage.sync.get(null, function(items) {
-	const didMigration = migrationManager.migrate(items)
-	if (didMigration) {
+	const changedSettings = migrationManager.migrate(items)
+	if (changedSettings) {
 		browser.storage.sync.clear(function() {
 			browser.storage.sync.set(items, function() {
 				runStartupCode()
