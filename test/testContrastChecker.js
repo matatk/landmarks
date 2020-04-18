@@ -4,10 +4,6 @@ const ContrastChecker = require('./generated-contrast-checker.js')
 
 const contrastChecker = new ContrastChecker()
 
-test('test the damage report machine', t => {
-	t.pass('damage report machine intact')
-})
-
 test('test white on black', t => {
 	t.is(
 		contrastChecker.contrastRatio('#ffffff', '#000000'),
