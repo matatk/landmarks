@@ -32,3 +32,10 @@ td {
 
 td:last-child,
 .centre { text-align: center; }
+
+/* When there's no button to take the user to the browser's keyboard shortcut
+ * settings, leave a space between the end of the table and the manaul
+ * instructions. */
+#keyboard-shortcuts-table + details summary {
+	margin-top: 1em;
+}
