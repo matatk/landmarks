@@ -94,11 +94,6 @@ input:hover {
 	outline-offset: var(--focus-outline-offset);
 }
 
-label,
-p {
-	color: var(--text-1);  /* countermand Firefox extension.css */
-}
-
 label:hover {
 	background-color: var(--light-accent-1);
 	outline: var(--standard-line);
