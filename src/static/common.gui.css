@@ -49,3 +49,8 @@ button {
 	margin-left: 0;
 	margin-right: var(--spacing);
 }
+
+label,
+p {
+	color: var(--text-1);  /* countermand Firefox extension.css */
+}
