@@ -26,6 +26,7 @@ const srcAssembleDir = path.join('src', 'assemble')
 const srcCodeDir = path.join('src', 'code')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
+const scriptCacheDir = path.join(buildDir, 'script-cache')
 const localeSubDir = path.join('_locales')
 const validBrowsers = Object.freeze(['firefox', 'chrome', 'opera', 'edge'])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
@@ -173,93 +174,120 @@ async function flattenCode(browser, debug) {
 
 	const ioPairsAndGlobals = [{
 		input: path.join(srcCodeDir, '_background.js'),
-		output: path.join(pathToBuild(browser), 'background.js')
+		output: 'background.js'
 	}, {
 		input: path.join(srcCodeDir, '_content.js'),
-		output: path.join(pathToBuild(browser), 'content.js')
+		output: 'content.js'
 	}, {
 		input: path.join(srcCodeDir, '_options.js'),
-		output: path.join(pathToBuild(browser), 'options.js')
+		output: 'options.js'
 	}, {
 		input: path.join(srcCodeDir, '_help.js'),
-		output: path.join(pathToBuild(browser), 'help.js')
+		output: 'help.js'
 	}, {
 		input: path.join(srcCodeDir, '_gui.js'),
-		output: path.join(pathToBuild(browser), 'popup.js'),
+		output: 'popup.js',
 		globals: { INTERFACE: 'popup' }
 	}, {
 		input: path.join(srcCodeDir, '_devtoolsRoot.js'),
-		output: path.join(pathToBuild(browser), 'devtoolsRoot.js'),
+		output: 'devtoolsRoot.js',
 		globals: { INTERFACE: 'devtools' }
 	}, {
 		input: path.join(srcCodeDir, '_gui.js'),
-		output: path.join(pathToBuild(browser), 'devtoolsPanel.js'),
+		output: 'devtoolsPanel.js',
 		globals: { INTERFACE: 'devtools' }
 	}]
 
 	if (browser === 'firefox' || browser === 'opera') {
 		ioPairsAndGlobals.push({
 			input: path.join(srcCodeDir, '_gui.js'),
-			output: path.join(pathToBuild(browser), 'sidebar.js'),
+			output: 'sidebar.js',
 			globals: { INTERFACE: 'sidebar' }
 		})
 	}
 
+	const browserScriptCacheDir = path.join(scriptCacheDir, browser)
+	fse.ensureDirSync(browserScriptCacheDir)
+
 	// Now create an array of full bundle options to pass to rollup. Each
 	// element of these specifies all the common rollup and terser options.
+	//
+	// This only needs to be done if the script file is either not cached, or
+	// the source has changed since the last time it was flattened.
 
 	const bundleOptions = []
 
 	for (const ioPair of ioPairsAndGlobals) {
-		const bundleOption = {}
+		const sourceModified = fs.statSync(ioPair.input).mtime
 
-		const defines = {
-			BROWSER: browser,
-			DEBUG: debug
+		const cachedScript = path.join(browserScriptCacheDir, ioPair.output)
+		const cachedScriptExists = fs.existsSync(cachedScript)
+
+		const cacheModified = cachedScriptExists
+			? fs.statSync(cachedScript).mtime
+			: null
+
+		if (!cachedScriptExists || (sourceModified > cacheModified)) {
+			console.log(chalk.bold.blue(
+				`Flattening ${ioPair.input} to ${ioPair.output}...`))
+
+			const bundleOption = {}
+
+			const defines = {
+				BROWSER: browser,
+				DEBUG: debug
+			}
+
+			for (const global in ioPair.globals) {
+				defines[global] = ioPair.globals[global]
+			}
+
+			bundleOption.input = {
+				input: ioPair.input,
+				plugins: [terser({
+					mangle: false,
+					compress: {
+						defaults: false,
+						global_defs: defines, // eslint-disable-line camelcase
+						conditionals: true,
+						dead_code: true,      // eslint-disable-line camelcase
+						evaluate: true,
+						side_effects: true,   // eslint-disable-line camelcase
+						switches: true,
+						unused: true,
+						passes: 2  // expand env vars; compresses their code
+					},
+					output: {
+						beautify: true,
+						braces: true,
+						comments: true
+						// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
+					}
+				}),
+				esformatter()]
+			}
+
+			bundleOption.output = {
+				file: cachedScript,
+				format: 'iife'
+			}
+
+			bundleOptions.push(bundleOption)
+		} else {
+			console.log(chalk.bold.blue(`Using cached ${ioPair.output}`))
+			fs.copyFileSync(cachedScript,
+				path.join(pathToBuild(browser), ioPair.output))
 		}
-
-		for (const global in ioPair.globals) {
-			defines[global] = ioPair.globals[global]
-		}
-
-		bundleOption.input = {
-			input: ioPair.input,
-			plugins: [terser({
-				mangle: false,
-				compress: {
-					defaults: false,
-					global_defs: defines,  // eslint-disable-line camelcase
-					conditionals: true,
-					dead_code: true,       // eslint-disable-line camelcase
-					evaluate: true,
-					side_effects: true,    // eslint-disable-line camelcase
-					switches: true,
-					unused: true,
-					passes: 2  // expands env vars, then compresses their code
-				},
-				output: {
-					beautify: true,
-					braces: true,
-					comments: true
-					// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
-				}
-			}),
-			esformatter()]
-		}
-
-		bundleOption.output = {
-			file: ioPair.output,
-			format: 'iife'
-		}
-
-		bundleOptions.push(bundleOption)
 	}
 
-	// Run each bundle through rollup, terser and esformatter.
+	// Run each bundle we need to make through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
 		const bundle = await rollup.rollup(options.input)
 		await bundle.write(options.output)
+		const basename = path.basename(options.output.file)
+		const builtScript = path.join(pathToBuild(browser), basename)
+		fs.copyFileSync(options.output.file, builtScript)
 	}
 }
 
@@ -446,8 +474,8 @@ async function getPngs(browser) {
 				.toFile(cachedFileName)
 		}
 
-		console.log(chalk.bold.blue(`Copying ${fileName} from cache...`))
-		fse.copyFileSync(cachedFileName, buildFileName)
+		console.log(chalk.bold.blue(`Using cached ${fileName}`))
+		fs.copyFileSync(cachedFileName, buildFileName)
 	}
 }
 
@@ -509,6 +537,9 @@ async function main() {
 		.describe('debug', 'Create a debug build, with console.timeStamp() calls included, which are used in profile recordings.')
 		.boolean('debug')
 		.alias('debug', 'd')
+		.describe('skip-linting', "Don't run linters (if applicable) - makes the build process quicker")
+		.boolean('skip-linting')
+		.alias('skip-linting', 'k')
 		.demandOption('browser')
 		.argv
 
@@ -534,8 +565,8 @@ async function main() {
 		logStep(chalk.bold(`${action} for ${browser}${testModeMessage}`))
 		clean(browser)
 		if (isFullBuild) {
-			await flattenCode(browser, debugMode)
 			copyStaticFiles(browser)
+			await flattenCode(browser, debugMode)
 			copyGuiFiles(browser)
 			mergeMessages(browser)
 			mergeManifest(browser)
@@ -545,7 +576,7 @@ async function main() {
 				renameTestVersion(browser)
 			}
 			await makeZip(browser)
-			if (browser in linters) {
+			if (!argv.skipLinting && browser in linters) {
 				await linters[browser]()
 			}
 		}
