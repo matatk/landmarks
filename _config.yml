@@ -1,5 +1,6 @@
 exclude:
  - node_modules
  - build
+ - test
  - landmarks-*-*.zip
  - get-images-from-master.sh
