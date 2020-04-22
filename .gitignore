@@ -7,3 +7,4 @@ _site/
 test/
 meta/
 scripts/
+.jekyll-metadata
