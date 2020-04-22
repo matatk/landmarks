@@ -3,4 +3,4 @@ exclude:
  - build
  - test
  - landmarks-*-*.zip
- - get-images-from-master.sh
+ - get-images-and-css-from-master.sh
