@@ -13,10 +13,12 @@ header {
 	text-align: center;
 }
 
-h1 { font-size: 3em; }
-
 section,
-footer { padding: var(--big-spacing); }
+footer {
+	padding: var(--big-spacing);
+	padding-left: var(--spacing);
+	padding-right: var(--spacing);
+}
 
 fieldset { border: 0; }
 
@@ -81,6 +83,21 @@ section.further-info a:focus {
 footer { padding-bottom: var(--spacing); }
 
 .vertical-spacer { display: none; }  /* don't need vertical-spacer in vertical mode */
+
+/*
+ * Add more spacing and increase <h1> size when the screen is wide enough
+ */
+
+@media screen and (min-width: 35rem) {
+	section,
+	footer { padding: var(--big-spacing); }
+
+	h1 { font-size: 3em; }
+}
+
+/*
+ * Alternating horizontal picture layout; Horizontal install links
+ */
 
 @media screen and (min-width: 65rem) {
 	section.install ul,
