@@ -8,3 +8,5 @@ npm-debug.log
 generated-*.js
 trace--*.json
 results--*.json
+_site
+.jekyll-metadata
