@@ -170,39 +170,39 @@ function clean(browser) {
 }
 
 
-async function flattenCode(browser, debug) {
-	logStep('Flattening JavaScript code')
+async function bundleCode(browser, debug) {
+	logStep('Bundling JavaScript code')
 
 	const ioPairsAndGlobals = [{
-		input: path.join(srcCodeDir, '_background.js'),
-		output: 'background.js'
+		mainSourceFile: path.join(srcCodeDir, '_background.js'),
+		bundleFile: 'background.js'
 	}, {
-		input: path.join(srcCodeDir, '_content.js'),
-		output: 'content.js'
+		mainSourceFile: path.join(srcCodeDir, '_content.js'),
+		bundleFile: 'content.js'
 	}, {
-		input: path.join(srcCodeDir, '_options.js'),
-		output: 'options.js'
+		mainSourceFile: path.join(srcCodeDir, '_options.js'),
+		bundleFile: 'options.js'
 	}, {
-		input: path.join(srcCodeDir, '_help.js'),
-		output: 'help.js'
+		mainSourceFile: path.join(srcCodeDir, '_help.js'),
+		bundleFile: 'help.js'
 	}, {
-		input: path.join(srcCodeDir, '_gui.js'),
-		output: 'popup.js',
+		mainSourceFile: path.join(srcCodeDir, '_gui.js'),
+		bundleFile: 'popup.js',
 		globals: { INTERFACE: 'popup' }
 	}, {
-		input: path.join(srcCodeDir, '_devtoolsRoot.js'),
-		output: 'devtoolsRoot.js',
+		mainSourceFile: path.join(srcCodeDir, '_devtoolsRoot.js'),
+		bundleFile: 'devtoolsRoot.js',
 		globals: { INTERFACE: 'devtools' }
 	}, {
-		input: path.join(srcCodeDir, '_gui.js'),
-		output: 'devtoolsPanel.js',
+		mainSourceFile: path.join(srcCodeDir, '_gui.js'),
+		bundleFile: 'devtoolsPanel.js',
 		globals: { INTERFACE: 'devtools' }
 	}]
 
 	if (browser === 'firefox' || browser === 'opera') {
 		ioPairsAndGlobals.push({
-			input: path.join(srcCodeDir, '_gui.js'),
-			output: 'sidebar.js',
+			mainSourceFile: path.join(srcCodeDir, '_gui.js'),
+			bundleFile: 'sidebar.js',
 			globals: { INTERFACE: 'sidebar' }
 		})
 	}
@@ -214,21 +214,21 @@ async function flattenCode(browser, debug) {
 	// element of these specifies all the common rollup and terser options.
 	//
 	// This only needs to be done if the script file is either not cached, or
-	// the source has changed since the last time it was flattened.
+	// the source has changed since the last time it was bundled.
 
 	const bundleOptions = []
 
 	for (const ioPair of ioPairsAndGlobals) {
-		const cachedScript = path.join(browserScriptCacheDir, ioPair.output)
+		const cachedScript = path.join(browserScriptCacheDir, ioPair.bundleFile)
 		const cachedScriptExists = fs.existsSync(cachedScript)
 		const cacheModified = cachedScriptExists
 			? fs.statSync(cachedScript).mtime
 			: null
 
 		const someSourcesAreNewer =
-			[ioPair.input]
+			[ioPair.mainSourceFile]
 				.concat(dependencyTree.toList({
-					filename: ioPair.input,
+					filename: ioPair.mainSourceFile,
 					directory: srcCodeDir
 				}))
 				.map(file => fs.statSync(file).mtime)
@@ -236,7 +236,7 @@ async function flattenCode(browser, debug) {
 
 		if (!cachedScriptExists || someSourcesAreNewer) {
 			console.log(chalk.bold.blue(
-				`Flattening ${ioPair.input} to ${ioPair.output}...`))
+				`Bundling ${ioPair.mainSourceFile} as ${ioPair.bundleFile}...`))
 
 			const bundleOption = {}
 
@@ -250,7 +250,7 @@ async function flattenCode(browser, debug) {
 			}
 
 			bundleOption.input = {
-				input: ioPair.input,
+				input: ioPair.mainSourceFile,
 				plugins: [terser({
 					mangle: false,
 					compress: {
@@ -281,9 +281,9 @@ async function flattenCode(browser, debug) {
 
 			bundleOptions.push(bundleOption)
 		} else {
-			console.log(chalk.bold.blue(`Using cached ${ioPair.output}`))
+			console.log(chalk.bold.blue(`Using cached ${ioPair.bundleFile}`))
 			fs.copyFileSync(cachedScript,
-				path.join(pathToBuild(browser), ioPair.output))
+				path.join(pathToBuild(browser), ioPair.bundleFile))
 		}
 	}
 
@@ -573,7 +573,7 @@ async function main() {
 		clean(browser)
 		if (isFullBuild) {
 			copyStaticFiles(browser)
-			await flattenCode(browser, debugMode)
+			await bundleCode(browser, debugMode)
 			copyGuiFiles(browser)
 			mergeMessages(browser)
 			mergeManifest(browser)
