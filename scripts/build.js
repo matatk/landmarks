@@ -11,6 +11,7 @@ const rollup = require('rollup')
 const terser = require('rollup-plugin-terser').terser
 const esformatter = require('rollup-plugin-esformatter')
 const sharp = require('sharp')
+const dependencyTree = require('dependency-tree')
 
 
 //
@@ -218,16 +219,22 @@ async function flattenCode(browser, debug) {
 	const bundleOptions = []
 
 	for (const ioPair of ioPairsAndGlobals) {
-		const sourceModified = fs.statSync(ioPair.input).mtime
-
 		const cachedScript = path.join(browserScriptCacheDir, ioPair.output)
 		const cachedScriptExists = fs.existsSync(cachedScript)
-
 		const cacheModified = cachedScriptExists
 			? fs.statSync(cachedScript).mtime
 			: null
 
-		if (!cachedScriptExists || (sourceModified > cacheModified)) {
+		const someSourcesAreNewer =
+			[ioPair.input]
+				.concat(dependencyTree.toList({
+					filename: ioPair.input,
+					directory: srcCodeDir
+				}))
+				.map(file => fs.statSync(file).mtime)
+				.some(sourceModified => sourceModified > cacheModified)
+
+		if (!cachedScriptExists || someSourcesAreNewer) {
 			console.log(chalk.bold.blue(
 				`Flattening ${ioPair.input} to ${ioPair.output}...`))
 
