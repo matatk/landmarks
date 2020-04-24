@@ -77,13 +77,13 @@ function updateResetDismissedMessagesButtonState() {
 	browser.storage.sync.get(dismissalStates, function(items) {
 		for (const dismissalState in items) {
 			if (items[dismissalState] === true) {
-				button.setAttribute('aria-disabled', false)
+				button.dataset.someMessagesDismissed = true
 				feedback.innerText = null
 				return
 			}
 		}
 
-		button.setAttribute('aria-disabled', true)
+		button.dataset.someMessagesDismissed = false
 		if (!feedback.innerText) {
 			feedback.innerText =
 				browser.i18n.getMessage('prefsResetMessagesNone')
@@ -92,7 +92,7 @@ function updateResetDismissedMessagesButtonState() {
 }
 
 function resetMessages() {
-	if (this.getAttribute('aria-disabled') === String(false)) {
+	if (this.dataset.someMessagesDismissed === String(true)) {
 		browser.storage.sync.set(dismissalStates)  // default values are false
 		document.getElementById('reset-messages-feedback')
 			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
