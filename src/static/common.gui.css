@@ -51,6 +51,6 @@ button {
 }
 
 label,
-p {
+:not(.warning) > p {
 	color: var(--text-1);  /* countermand Firefox extension.css */
 }
