@@ -117,7 +117,7 @@ export default function LandmarksFinder(win, doc) {
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth, parentLandmark) {
-		if (isVisuallyHidden(element)) return
+		if (isVisuallyHidden(element) || isSemantiallyHidden(element)) return
 
 		// Support HTML5 elements' native roles
 		let role = getRoleFromTagNameAndContainment(element)
@@ -264,7 +264,15 @@ export default function LandmarksFinder(win, doc) {
 			|| style.display === 'none' ) {
 			return true
 		}
+		return false
+	}
 
+	function isSemantiallyHidden(element) {
+		if (element.getAttribute('aria-hidden') === 'true'
+			|| (element.hasAttribute('inert')
+				&& element.getAttribute('inert') !== 'false')) {
+			return true
+		}
 		return false
 	}
 

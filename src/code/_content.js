@@ -64,7 +64,7 @@ function messageHandler(message) {
 			if (thereMustBeLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
-					borderDrawer.addBorderToElements(
+					borderDrawer.replaceCurrentBordersWithElements(
 						landmarksFinder.allElementsInfos())
 				} else {
 					borderDrawer.removeAllBorders()
@@ -145,7 +145,7 @@ function findLandmarksAndUpdateExtension() {
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
-		borderDrawer.addBorderToElements(
+		borderDrawer.replaceCurrentBordersWithElements(
 			landmarksFinder.allElementsInfos())
 	}
 }

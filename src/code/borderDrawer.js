@@ -81,9 +81,18 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		}
 	}
 
-	// Add the landmark border and label for several elements. Takes an array
-	// of element info objects, as detailed above.
-	this.addBorderToElements = function(elementInfoList) {
+	// Add the landmark border and label for several elements, and remove any
+	// borders associated with elements that currently have borders but aren't
+	// in this set. Takes an array of element info objects, as detailed above.
+	this.replaceCurrentBordersWithElements = function(elementInfoList) {
+		const elementsToAdd = elementInfoList.map(info => info.element)
+
+		for (const elementWithBorder of borderedElements.keys()) {
+			if (!elementsToAdd.includes(elementWithBorder)) {
+				this.removeBorderOn(elementWithBorder)
+			}
+		}
+
 		for (const elementInfo of elementInfoList) {
 			this.addBorder(elementInfo)
 		}
