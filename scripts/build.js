@@ -479,9 +479,10 @@ async function getPngs(browser) {
 			await sharp(svgPath)
 				.resize(size, size)
 				.toFile(cachedFileName)
+		} else {
+			console.log(chalk.bold.blue(`Using cached ${fileName}`))
 		}
 
-		console.log(chalk.bold.blue(`Using cached ${fileName}`))
 		fs.copyFileSync(cachedFileName, buildFileName)
 	}
 }
