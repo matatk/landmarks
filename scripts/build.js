@@ -34,29 +34,32 @@ const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
 	'firefox': [
-		18,  // Firefox (toolbar)
-		32,  // Firefox (menu panel) + Chrome (Windows)
-		36,  // Firefox (toolbar x2)
-		48,  // Both (general)
-		64,  // Firefox (menu panel x2)
-		96   // Firefox (general x2)
+		// Global: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/icons
+		// Actions:
+		//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action#Choosing_icon_sizes
+		//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/sidebar_action
+		16,  // Toolbar/Sidebar
+		32,  // Toolbar/Sidebar
+		48,  // Extension
+		96   // Extension
 	],
 	'chrome': [
-		16,  // Chrome (favicon)
-		19,  // Chrome (toolbar)
-		32,  // Chrome (Windows) + Firefox (menu panel)
-		38,  // Chrome (tooblar x2)
-		48,  // Both   (general)
-		128  // Chrome (store)
+		// Global: https://developer.chrome.com/extensions/manifest/icons
+		// Action: https://developer.chrome.com/extensions/browserAction#icon
+		16,  // Toolbar
+		24,  // Toolbar (suggested 1.5x)
+		32,  // Toolbar
+		48,  // Extension
+		128  // Extension
 	],
 	'opera': [
-		// https://dev.opera.com/extensions/manifest/#icons
-		// https://dev.opera.com/extensions/browser-actions/
-		16,  // Icon
-		19,  // Browser action
-		38,  // Browser action
-		48,  // Icon
-		128  // Icon
+		// Global: https://dev.opera.com/extensions/manifest/#icons
+		// Actions: https://dev.opera.com/extensions/browser-actions/
+		16,  // Extension
+		19,  // Toolbar/Action
+		38,  // Toolbar/Action
+		48,  // Extension
+		128  // Extension
 	],
 	'edge': [
 		// https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#extension-icons-setup
