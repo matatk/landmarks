@@ -22,6 +22,7 @@
 			</div>
 			<!-- /ui -->
 			<!-- devtools -->
+			<h1 data-message="extensionShortName"></h1>
 			<div id="connection-error" class="warning" hidden>
 				<p data-message="devToolsConnectionError"></p>
 			</div>
@@ -41,33 +42,62 @@
 
 		<div id="mutation-observation-station"> <!-- only in DevTools -->
 			<details>
-				<summary data-message="statsHeading"></summary>
+				<summary><h1 data-message="statsHeading"></h1></summary>
 				<dl>
-					<dt><details>
-						<summary data-message="statsMutationsTerm"></summary>
+					<dt id="statsMutationsTerm" data-message="statsMutationsTerm"></dt>
+					<dd>
+					<span id="mutations">0</span>
+					<details class="floaty">
+						<summary class="definition" aria-labelledby="define-statsMutationsTerm statsMutationsTerm">
+							<span id="define-statsMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
+						</summary>
 						<p data-message="statsMutationsDefinition"></p>
-					</details></dt>
-					<dd id="mutations">0</dd>
-					<dt><details>
-						<summary data-message="statsCheckedMutationsTerm"></summary>
+					</details>
+					</dd>
+
+					<dt id="statsCheckedMutationsTerm" data-message="statsCheckedMutationsTerm"></dt>
+					<dd>
+					<span id="checks">0</span>
+					<details class="floaty">
+						<summary class="definition" aria-labelledby="define-statsCheckedMutationsTerm statsCheckedMutationsTerm">
+							<span id="define-statsCheckedMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
+						</summary>
 						<p data-message="statsCheckedMutationsDefinition"></p>
-					</details></dt>
-					<dd id="checks">0</dd>
-					<dt><details>
-						<summary data-message="statsScansTerm"></summary>
+					</details>
+					</dd>
+
+					<dt id="statsScansTerm" data-message="statsScansTerm"></dt></dt>
+					<dd>
+					<span id="scans">0</span>
+					<details class="floaty">
+						<summary class="definition" aria-labelledby="define-statsScansTerm statsScansTerm">
+							<span id="define-statsScansTerm" data-message="statsDefine" class="visually-hidden"></span>
+						</summary>
 						<p data-message="statsScansDefinition"></p>
-					</details></dt>
-					<dd id="scans">0</dd>
-					<dt><details>
-						<summary data-message="statsPauseTerm"></summary>
+					</details>
+					</dd>
+
+					<dt id="statsPauseTerm" data-message="statsPauseTerm"></dt>
+					<dd>
+					<span id="pause">&mdash;</span>ms
+					<details class="floaty">
+						<summary class="definition" aria-labelledby="define-statsPauseTerm statsPauseTerm">
+							<span id="define-statsPauseTerm" data-message="statsDefine" class="visually-hidden"></span>
+						</summary>
 						<p data-message="statsPauseDefinition"></p>
-					</details></dt>
-					<dd id="pause">&mdash;</dd>
-					<dt><details>
-						<summary data-message="statsDurationTerm"></summary>
+					</details>
+					</dd>
+
+					<dt id="statsDurationTerm" data-message="statsDurationTerm"></dt>
+					<dd>
+					<span id="duration">&mdash;</span>ms
+					<details class="floaty">
+						<summary class="definition" aria-labelledby="define-statsDurationTerm statsDurationTerm">
+							<span id="define-statsDurationTerm" data-message="statsDefine" class="visually-hidden"></span>
+						</summary>
 						<p data-message="statsDurationDefinition"></p>
-					</details></dt>
-					<dd id="duration">&mdash;</dd>
+					</details>
+					</dd>
 				</dl>
 			</details>
 		</div>

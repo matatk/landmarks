@@ -6,61 +6,39 @@ body {
 	height: 100%;
 }
 
-#content {
-	width: 100%;
-	flex-grow: 1;
-}
+#content { flex-grow: 1; }
 
 #mutation-observation-station {
-	border: 0;
-	border-top: var(--standard-control-line);
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
 }
 
-#mutation-observation-station > details > summary {
-	padding: 0.5em;
-	white-space: nowrap;
-}
-
-summary > h1 {
-	display: inline;
+h1 {
 	margin: 0;
+	font-size: 1rem;
 }
 
-/* Thanks to https://www.the-art-of-web.com/css/format-dl/ and https://stackoverflow.com/a/40762801/1485308 */
-dl {
-	margin: 0;
-	display: flex;
-	flex-wrap: wrap;
-	align-content: flex-start;
+summary > h1 { display: inline-block; }
+
+summary:hover > h1,
+details[open] summary h1 {
+	color: var(--background-1);
+	border-color: var(--background-1);
 }
 
-dt,
-dd {
-	margin: 0;
-	padding: 0.25em;
-	text-align: right;
-}
+details details { display: inline; }
+details details p { position: absolute; }
+summary.definition { list-style: none; }
+summary.definition::-webkit-details-marker { display: none; }
 
-dt {
-	width: calc(100% - 4em);
-}
-
-details > p {
-	text-align: left;
-	margin: 0;
-	padding: 0.25em;
-	max-width: 15em;
-	float: right;
-	color: var(--text-2);
+summary.definition::after {
+	content: "?";
+	border: var(--standard-control-line);
+	margin: var(--top-padding);
+	padding-left: var(--top-padding);
+	padding-right: var(--top-padding);
 }
 
 @media screen and (orientation: landscape) {
-	body {
-		flex-direction: row;
-	}
-
-	#mutation-observation-station {
-		border: 0;
-		border-left: var(--standard-control-line);
-	}
+	body { flex-direction: row; }
 }
