@@ -256,5 +256,9 @@
 
   "statsDurationDefinition": {
     "message": "Number of milliseconds the last landmark scan took."
+  },
+
+  "statsDefine": {
+    "message": "Define"
   }
 }
