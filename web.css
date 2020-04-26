@@ -22,18 +22,6 @@ footer {
 
 fieldset { border: 0; }
 
-details p {
-	position: absolute;
-	background-color: var(--accent-1);
-	outline: var(--standard-line);  /* to match that around the disclosure */
-	outline-color: var(--accent-1);
-	color: var(--background-1);
-	margin: 0;
-	margin-right: 1em;
-	max-width: 35em;
-	padding: 0.25em;
-}
-
 #action-notice {
 	/* Used by Landmarks <2.5.0 */
 	border: var(--standard-line);

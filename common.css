@@ -76,7 +76,8 @@ a {
 a:focus,
 a:hover,
 summary:focus,
-summary:hover {
+summary:hover,
+details[open] > summary {
 	color: var(--background-1);
 	background-color: var(--accent-1);
 	outline: var(--standard-line);
@@ -92,10 +93,6 @@ input:focus,
 input:hover {
 	outline: var(--standard-line);
 	outline-offset: var(--focus-outline-offset);
-}
-
-label {
-	color: var(--text-1);  /* countermand Firefox extension.css */
 }
 
 label:hover {
@@ -127,6 +124,22 @@ h2 {
 	width: 1px !important;
 	overflow: hidden;
 	white-space: nowrap;
+}
+
+/*
+ * Floating disclosure content is used in DevTools and the website
+ */
+
+details.floaty p {
+	position: absolute;
+	background-color: var(--accent-1);
+	outline: var(--standard-line);  /* to match that around the disclosure */
+	outline-color: var(--accent-1);
+	color: var(--background-1);
+	margin: 0;
+	margin-right: 1em;
+	max-width: 35em;
+	padding: 0.25em;
 }
 
 /*
