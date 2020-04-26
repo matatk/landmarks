@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+body {
+	font-family: sans-serif;
+	padding: 5rem;
+}
+
+#promo {
+	width: 440px;
+	height: 280px;
+	background: linear-gradient(#FFD280, #FF94CE);
+	/* Start colour: CSS orange with +25 lightness
+	     end colour: CSS deeppink with +25 lightness
+	   Thanks https://github.com/ThePacielloGroup/CCAe */
+	display: flex;
+	justify-content: center;
+}
+
+#browserAction {
+	position: fixed;
+	height: 12%;
+	border: 0.35rem solid #858585;
+	border-radius: 1rem;
+	padding: 0.5rem;
+	background-color: white;
+	margin-left: -13rem;
+	margin-top: 1.5rem;
+}
+
+#badge {
+	font-size: 2rem;
+	position: fixed;
+	margin: 0;
+	margin-top: 6.5rem;
+	margin-left: -7rem;
+	background: #55f;
+	color: white;
+	border-radius: 1rem;
+	padding-top: 0.25rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+#jumpy {
+	margin-top: 8rem;
+	width: 75%;
+}
+		</style>
+	</head>
+	<body>
+		<div id="promo" role="main" aria-roledescription="Landmarks">
+			<img id="browserAction" src="../src/assemble/landmarks.svg" alt="">
+			<span id="badge">3</span>
+			<img id="jumpy" src="jumpy.svg" alt="">
+		</div>
+		<p>This was made with the Landmarks extension, with the label font size set to 32.</p>
+	</body>
+</html>
