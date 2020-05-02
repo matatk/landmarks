@@ -7,6 +7,6 @@ landmarks-*.zip
 npm-debug.log
 generated-*.js
 trace--*.json
-results--*.json
+times--*.json
 _site
 .jekyll-metadata

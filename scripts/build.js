@@ -210,8 +210,9 @@ async function bundleCode(browser, debug) {
 		})
 	}
 
-	const browserScriptCacheDir = path.join(scriptCacheDir, browser)
-	fse.ensureDirSync(browserScriptCacheDir)
+	const scriptCacheName = debug ? `${browser}-debug` : browser
+	const thisScriptCacheDir = path.join(scriptCacheDir, scriptCacheName)
+	fse.ensureDirSync(thisScriptCacheDir)
 
 	// Now create an array of full bundle options to pass to rollup. Each
 	// element of these specifies all the common rollup and terser options.
@@ -222,7 +223,7 @@ async function bundleCode(browser, debug) {
 	const bundleOptions = []
 
 	for (const ioPair of ioPairsAndGlobals) {
-		const cachedScript = path.join(browserScriptCacheDir, ioPair.bundleFile)
+		const cachedScript = path.join(thisScriptCacheDir, ioPair.bundleFile)
 		const cachedScriptExists = fs.existsSync(cachedScript)
 		const cacheModified = cachedScriptExists
 			? fs.statSync(cachedScript).mtime
