@@ -8,7 +8,6 @@
     "clean:builds": "node scripts/build.js --browser all --clean-only",
     "preprofile": "rollup src/code/landmarksFinder.js -f iife --output.name=LandmarksFinder -o scripts/generated-landmarks-finder.js",
     "profile": "node scripts/profile.js",
-    "profile-guarding": "node scripts/profile-guarding.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
     "pretest": "eslint . && rollup -c test/rollup.config.js",
     "test": "ava && npm run test:css",

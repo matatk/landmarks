@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 'use strict'
 const path = require('path')
 const fs = require('fs')
@@ -12,19 +11,13 @@ const urls = Object.freeze({
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
-
 const pageSettlingDelay = 2e3
+const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
 
 
 //
 // Trace the insertion of landmarks into a page over time
 //
-
-function setUpExtensionTrace(sites) {
-	const landmarks = checkNumber(process.argv[4], 0, 'landmarks')
-	const runs = checkNumber(process.argv[5], 1, 'runs')
-	doLandmarkInsertionRuns(sites, landmarks, runs)
-}
 
 function doLandmarkInsertionRuns(sites, landmarks, runs) {
 	const delayAfterInsertingLandmark = 1e3
@@ -89,12 +82,11 @@ async function insertLandmark(page, repetition) {
 
 
 //
-// Specific landmarksFinder.find() test
+// Specific landmarksFinder test
 //
 
-function timeLandmarksFinding(sites) {
+function timeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = path.join('scripts', 'generated-landmarks-finder.js')
-	const loops = checkNumber(process.argv[4], 1, 'repetitions')
 	const results = {}
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
@@ -147,9 +139,59 @@ function printAndSaveResults(results, loops) {
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `results--${loops}--${roughlyNow}.json`
+	const fileName = `times--${loops}--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
 	console.log(`${fileName} written to disk.`)
+}
+
+
+//
+// Making a trace to test mutation guarding in the debug extension
+//
+
+async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
+	const testPage = 'manual-test-injected-landmarks.html'
+	const testUrl = 'file://' + path.join(__dirname, '..', 'test', testPage)
+	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
+
+	console.log(`Making ${traceName}`)
+	await page.goto(testUrl, { waitUntil: 'domcontentloaded' })
+	await page.bringToFront()
+	await page.tracing.start({
+		path: traceName,
+		screenshots: true
+	})
+	await page.waitFor(500)
+
+	console.log(`Clicking buttons (pause: ${pauseBetweenClicks})`)
+	for (const selector of selectors) {
+		await page.click(selector)
+		await page.waitFor(pauseBetweenClicks)
+	}
+
+	console.log(`Waiting for ${postDelay} for page to settle`)
+	await page.waitFor(postDelay)
+
+	console.log('Stopping tracing')
+	await page.tracing.stop()
+}
+
+function traceWithAndWithoutGuarding() {
+	console.log(`${debugBuildNote}\n`)
+	puppeteer.launch({
+		headless: false,  // needed to support extensions
+		args: [
+			'--disable-extensions-except=build/chrome/',
+			'--load-extension=build/chrome/'
+		]
+	}).then(async browser => {
+		const page = await browser.newPage()
+		await page.bringToFront()  // stops it getting stuck on Landmarks help
+		await singleRun(page, 'trace--no-guarding.json', 600, 0)
+		console.log()
+		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
+		await browser.close()
+	})
 }
 
 
@@ -157,70 +199,82 @@ function printAndSaveResults(results, loops) {
 // Main and support
 //
 
-function checkText(text, thing) {
-	if (!text) {
-		console.error(`No ${thing} given.\n`)
-		usageAndExit()
-	}
-	return text
-}
-
-function checkNumber(input, limit, things) {
-	const number = Number(input)
-	if (isNaN(number) || number < limit) {
-		console.error(`Invalid number of ${things} "${input}".\n`)
-		usageAndExit()
-	}
-	return number
-}
-
-function checkSite(name) {
-	if (!urls.hasOwnProperty(name)) {
-		console.error(`Unkown site "${name}".`)
-		usageAndExit()
-	}
-	return name
-}
-
 async function settle(page) {
 	console.log('Page loaded; settling...')
 	await page.waitFor(pageSettlingDelay)
 }
 
-function usageAndExit() {
-	console.error('Usage: npm run profile -- trace <site> <landmarks> <runs>')
-	console.error('           Runs the built extension on a real site and traces for')
-	console.error('           performance, whilst inserting a number of landmarks.')
-	console.error('               <landmarks> number to insert (there is a pause')
-	console.error('                           between each one).')
-	console.error('               <runs> number of separate tracing runs to make')
-	console.error('                      (recommend setting this to 1 only).')
-	console.error('           Remember to run this with a debug build of the extension.\n')
-	console.error('or:    npm run profile -- time <site> <repetitions>')
-	console.error('           Runs only the code to find landmarks specifically, for')
-	console.error('           the number of times specified.\n')
-	console.error('Valid <sites>:\n', urls)
-	console.error('"all" can be specified to run the profile on each site.\n')
-	process.exit(42)
-}
-
 function main() {
-	const mode = checkText(process.argv[2], 'mode')
-	const requestedSite = checkText(process.argv[3], 'site')
-	const pages = requestedSite === 'all'
-		? Object.keys(urls)
-		: [checkSite(requestedSite)]
+	let mode
+
+	const siteParameterDefinition = {
+		describe: 'sites to scan',
+		choices: ['all'].concat(Object.keys(urls))
+	}
+
+	const epilogue = `Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n"all" can be specified to run the profile on each site.`
+
+	const argv = require('yargs')
+		.command('trace <site> <landmarks> [runs]', 'Run the built extension on a page and create a performance trace', (yargs) => {
+			yargs
+				.positional('site', siteParameterDefinition)
+				.positional('landmarks', {
+					describe: 'number of landmarks to insert (there is a pause between each)',
+					type: 'number'
+				})
+				.coerce('landmarks', function(landmarks) {
+					if (landmarks < 0) throw new Error("Can't insert a negative number of landmarks")
+					return landmarks
+				})
+				.positional('runs', {
+					describe: 'number of separate tracing runs to make (recommend keeping this at one)',
+					type: 'number',
+					default: 1
+				})
+				.coerce('runs', function(runs) {
+					if (runs < 1) throw new Error("Can't make less than one run")
+					return runs
+				})
+				.epilogue(epilogue)
+		}, () => {
+			mode = 'trace'
+		})
+		.command('time <site> [repetitions]', 'Runs only the LandmarksFinder code on a page', (yargs) => {
+			yargs
+				.positional('site', siteParameterDefinition)
+				.positional('repetitions', {
+					describe: 'number of separate tracing repetitions to make',
+					type: 'number',
+					default: 100
+				})
+				.coerce('repetitions', function(repetitions) {
+					if (repetitions < 1) throw new Error("Can't make less than one run")
+					return repetitions
+				})
+				.epilogue(epilogue)
+		}, () => {
+			mode = 'time'
+		})
+		.command('guarding', `Make a trace both with and without triggering mutation guarding. ${debugBuildNote}`, () => {}, () => {
+			mode = 'guarding'
+		})
+		.help()
+		.alias('help', 'h')
+		.demandCommand(1, 'You must specify a command')
+		.epilogue(epilogue)
+		.argv
+
+	const pages = argv.site === 'all' ? Object.keys(urls) : [argv.site]
 
 	switch (mode) {
 		case 'trace':
-			setUpExtensionTrace(pages)
+			doLandmarkInsertionRuns(pages, argv.landmarks, argv.runs)
 			break
 		case 'time':
-			timeLandmarksFinding(pages)
+			timeLandmarksFinding(pages, argv.repetitions)
 			break
-		default:
-			console.error(`Unknown mode: ${mode}`)
-			usageAndExit()
+		case 'guarding':
+			traceWithAndWithoutGuarding()
 	}
 }
 
