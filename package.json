@@ -10,7 +10,7 @@
     "profile": "node scripts/profile.js",
     "start:firefox": "web-ext run --browser-console --source-dir build/firefox/",
     "pretest": "eslint . && rollup -c test/rollup.config.js",
-    "test": "ava && npm run test:css",
+    "test": "npx nyc --exclude 'test/test*js' --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "version": "standard-version --tag-prefix="
   },
@@ -36,6 +36,7 @@
     "fs-extra": "^9.0.0",
     "husky": "^4.2.5",
     "jsdom": "^16.2.2",
+    "nyc": "^15.0.1",
     "page-structural-semantics-scanner-tests": "git+https://github.com/matatk/page-structural-semantics-scanner-tests.git#0.5.0",
     "puppeteer": "^3.0.0",
     "replace-in-file": "^5.0.2",
