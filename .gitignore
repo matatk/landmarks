@@ -10,3 +10,5 @@ trace--*.json
 times--*.json
 _site
 .jekyll-metadata
+.nyc_output
+coverage
