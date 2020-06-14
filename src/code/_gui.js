@@ -5,6 +5,7 @@ import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+import LandmarksCounter from './landmarksCounter'
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -40,6 +41,14 @@ const notes = (INTERFACE === 'sidebar')
 	? Object.assign({}, _sidebarNote, _updateNote)
 	: _updateNote
 
+const frameContainerIdPrefix = 'for-frame-'
+
+const rootLandmarks = document.getElementById('root-landmarks')
+const otherLandmarks = document.getElementById('other-landmarks')
+const status = document.getElementById('status')
+
+const landmarksCounter = new LandmarksCounter()
+
 let port = null
 
 
@@ -49,26 +58,71 @@ let port = null
 
 // Handle incoming landmarks message response
 //
-// If we got some landmarks from the page, make the tree of them. If there was
-// an error, let the user know.
-function handleLandmarksMessage(data) {
-	const display = document.getElementById('landmarks')
-	const showAllContainer = document.getElementById('show-all-label')
-	removeChildNodes(display)
+// If we got some landmarks from the page, make the tree of them. If Landmarks
+// can't run on that page, then the background script sends a null message, in
+// which case, let the user know.
+// FIXME: the null message may also mean simply 'reset for new page'
+function handleLandmarksMessage(data, frame) {
+	console.debug('handleLandmarksMessage():',
+		data === null ? data : data.length, frame)
 
-	// Content script would normally send back an array of landmarks
+	const isTopLevelFrame = frame === 0
+	const isDevTools = frame === null
+	const isTopLevelFrameOrDevTools = isTopLevelFrame || isDevTools
+
 	if (Array.isArray(data)) {
 		if (data.length === 0) {
-			addText(display, browser.i18n.getMessage('noLandmarksFound'))
-			showAllContainer.style.display = 'none'
+			if (isTopLevelFrameOrDevTools) {
+				status.innerText = browser.i18n.getMessage('noLandmarksFound')
+			}
 		} else {
+			const display = isTopLevelFrameOrDevTools
+				? rootLandmarks
+				: getResultsContainer(frame)
+
+			// TODO: Why does the frame-specific display need cleaning?
+			//       When the page reloads/is navigated, the null message from
+			//       the background script oughta clear it...
+			removeChildNodes(display)
+
+			if (isTopLevelFrameOrDevTools) {
+				status.innerText = null
+			} else {
+				const heading = document.createElement('p')
+				heading.innerText = frame
+				display.appendChild(heading)
+			}
+
 			makeLandmarksTree(data, display)
-			showAllContainer.style.display = null
 		}
+		landmarksCounter.updateLandmarkCountForFrame(frame, data.length)
 	} else {
-		addText(display, browser.i18n.getMessage('forbiddenPage'))
-		showAllContainer.style.display = 'none'
+		// FIXME separate out null cases (error or reset)
+		status.innerText = browser.i18n.getMessage('forbiddenPage')
+		landmarksCounter.reset()
+		removeChildNodes(rootLandmarks)
+		removeChildNodes(otherLandmarks)
 	}
+
+	const showAll = document.getElementById('show-all-label')
+	if (landmarksCounter.totalNumberOfLandmarks > 0) {
+		showAll.style.display = 'none'
+	} else {
+		delete showAll.style.display
+	}
+}
+
+// Landmarks can be reported for different frames (or the top-level page)
+function getResultsContainer(frame) {
+	const id = frameContainerIdPrefix + String(frame)
+	if (!document.getElementById(id)) {
+		console.debug(`making ${id}`)
+		const frameContainer = document.createElement('div')
+		frameContainer.id = id
+		otherLandmarks.appendChild(frameContainer)
+	}
+	console.debug(`returning ${id}`)
+	return document.getElementById(id)
 }
 
 // Go through the landmarks identified for the page and create an HTML
@@ -145,14 +199,6 @@ function removeChildNodes(element) {
 	while (element.firstChild) {
 		element.removeChild(element.firstChild)
 	}
-}
-
-// Append text paragraph to the given element
-function addText(element, message) {
-	const newPara = document.createElement('p')
-	const newParaText = document.createTextNode(message)
-	newPara.appendChild(newParaText)
-	element.appendChild(newPara)
 }
 
 function makeSymbolButton(onClick, nameMessage, symbol, context) {
@@ -285,9 +331,11 @@ function send(message) {
 	}
 }
 
-function messageHandlerCore(message) {
+function messageHandlerCore(message, sender) {
 	if (message.name === 'landmarks') {
-		handleLandmarksMessage(message.data)
+		handleLandmarksMessage(
+			message.data,
+			sender.hasOwnProperty('frameId') ? sender.frameId : null)
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {

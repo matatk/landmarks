@@ -29,13 +29,12 @@ function sendToDevToolsForTab(tabId, message) {
 }
 
 function updateGUIs(tabId, url) {
+	browser.runtime.sendMessage({ name: 'landmarks', data: null })
 	if (isContentScriptablePage(url)) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
-	} else {
-		browser.runtime.sendMessage({ name: 'landmarks', data: null })
-		// DevTools panel doesn't need updating, as it maintains state
 	}
+	// DevTools panel doesn't need updating, as it maintains state
 }
 
 
