@@ -268,4 +268,18 @@ function bootstrap() {
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
+// Notes:
+// - Chroem will block these requests in file:// URLs even if the extension has permission to access file:// URLs.
+// - Cross-origin frames probably won't work? Need to test; some say that they should in extensions (but not the content itself).
+if (window !== window.top) {
+	console.log('content script starting in child frame')
+	console.log(window.name, window.location.href)
+	console.log('parent window frames', window.parent.frames.length)
+	console.log('contained frames', window.frames.length)
+	console.log('viewport w h:', window.innerWidth, window.innerHeight)
+} else {
+	console.log('content script starting in top frame')
+}
+console.log('\n')
+
 bootstrap()

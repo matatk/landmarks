@@ -28,13 +28,12 @@ function sendToDevToolsForTab(tabId, message) {
 }
 
 function updateGUIs(tabId, url) {
+	browser.runtime.sendMessage({ name: 'landmarks', data: null })
 	if (isContentScriptablePage(url)) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
-	} else {
-		browser.runtime.sendMessage({ name: 'landmarks', data: null })
-		// DevTools panel doesn't need updating, as it maintains state
 	}
+	// DevTools panel doesn't need updating, as it maintains state
 }
 
 
@@ -267,12 +266,15 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			browser.browserAction.setBadgeText({
-				text: message.data.length <= 0
-					? '' : String(message.data.length),
-				tabId: sender.tab.id
-			})
-			sendToDevToolsForTab(sender.tab.id, message)
+			// TODO Support multiple frames in badge count and DevTools
+			if (sender.frameId === 0) {
+				browser.browserAction.setBadgeText({
+					text: message.data.length <= 0
+						? '' : String(message.data.length),
+					tabId: sender.tab.id
+				})
+				sendToDevToolsForTab(sender.tab.id, message)
+			}
 			break
 		case 'get-devtools-state':
 			sendDevToolsStateMessage(sender.tab.id,

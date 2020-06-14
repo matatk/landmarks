@@ -19,4 +19,10 @@ export default [{
 		format: 'cjs',
 		exports: 'default'
 	}
+}, {
+	input: 'src/code/landmarksCounter.js',
+	output: {
+		file: 'test/generated-landmarks-counter.js',
+		format: 'cjs'
+	}
 }]
