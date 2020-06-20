@@ -8,3 +8,5 @@ test/
 meta/
 scripts/
 .jekyll-metadata
+coverage/
+.nyc_output/
