@@ -45,7 +45,7 @@
 
 ### Features
 
-* Support aria-roledescription (also fix forms detection) ([#317](https://github.com/matatk/landmarks/issues/317)) ([711fb16](https://github.com/matatk/landmarks/commit/711fb16)), closes [#316](https://github.com/matatk/landmarks/issues/316) [matatk/page-structural-semantics-scanner-tests#2](https://github.com/matatk/page-structural-semantics-scanner-tests/issues/2)
+* Support aria-roledescription (also fix forms detection) ([#317](https://github.com/matatk/landmarks/issues/317)) ([711fb16](https://github.com/matatk/landmarks/commit/711fb16)), closes [#316](https://github.com/matatk/landmarks/issues/316)
 
 ### Tests
 
