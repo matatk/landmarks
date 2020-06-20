@@ -90,8 +90,9 @@ export default function LandmarksFinder(win, doc) {
 	// Keeping track of landmark navigation
 	//
 
-	let currentlySelectedIndex  // the landmark currently having focus/border
-	let mainElementIndex        // if we find a <main> or role="main" element
+	let currentlySelectedIndex   // the landmark currently having focus/border
+	let mainElementIndices = []  // if we find <main> or role="main" elements
+	let mainIndexPointer         // allows us to cylce through main regions
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmark is still there, but has moved within the list.
@@ -156,10 +157,10 @@ export default function LandmarksFinder(win, doc) {
 				currentlySelectedIndex = landmarks.length - 1
 			}
 
-			// If this is the first main landmark (there should only
-			// be one), store a reference to it.
-			if (mainElementIndex < 0 && role === 'main') {
-				mainElementIndex = landmarks.length - 1
+			// There should only be one main region, but pages may be bad and
+			// wrong, so catch 'em all...
+			if (role === 'main') {
+				mainElementIndices.push(landmarks.length - 1)
 			}
 
 			parentLandmark = element
@@ -331,7 +332,8 @@ export default function LandmarksFinder(win, doc) {
 
 	this.find = function() {
 		landmarks = []
-		mainElementIndex = -1
+		mainElementIndices = []
+		mainIndexPointer = -1
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 	}
@@ -378,8 +380,14 @@ export default function LandmarksFinder(win, doc) {
 		return updateSelectedIndexAndReturnElementInfo(index)
 	}
 
+	// If pages are naughty and have more than one 'main' region, we cycle
+	// betwixt them.
 	this.getMainElementInfo = function() {
-		return mainElementIndex < 0 ?
-			null : updateSelectedIndexAndReturnElementInfo(mainElementIndex)
+		if (mainElementIndices.length > 0) {
+			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
+			const mainElementIndex = mainElementIndices[mainIndexPointer]
+			return updateSelectedIndexAndReturnElementInfo(mainElementIndex)
+		}
+		return null
 	}
 }
