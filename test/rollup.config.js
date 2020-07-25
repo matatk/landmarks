@@ -23,6 +23,7 @@ export default [{
 	input: 'src/code/landmarksCounter.js',
 	output: {
 		file: 'test/generated-landmarks-counter.js',
-		format: 'cjs'
+		format: 'cjs',
+		exports: 'default'
 	}
 }]
