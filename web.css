@@ -33,6 +33,7 @@ section.abstract,
 section.further-info { background-color: var(--background-2); }
 
 section.install { text-align: center; }
+section.install p { text-align: left; }
 
 section.install ul {
 	margin: 0;
@@ -45,6 +46,11 @@ section.install li {
 	margin: 0.5rem;
 	border-radius: var(--roundedness);
 	border: var(--standard-line);
+}
+
+details.floaty a {
+	background-color: var(--accent-1);
+	color: var(--background-1);
 }
 
 img {
@@ -61,6 +67,8 @@ section.further-info a {
 
 section.further-info h2 { border-color: var(--text-2); }
 
+.floaty a:hover,
+.floaty a:focus,
 section.further-info a:hover,
 section.further-info a:focus {
 	color: var(--background-2);
@@ -69,8 +77,6 @@ section.further-info a:focus {
 }
 
 footer { padding-bottom: var(--spacing); }
-
-.vertical-spacer { display: none; }  /* don't need vertical-spacer in vertical mode */
 
 /*
  * Add more spacing and increase <h1> size when the screen is wide enough
