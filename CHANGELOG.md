@@ -1,4 +1,67 @@
-# Landmarks changelog
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [2.8.0](https://github.com/matatk/landmarks/compare/2.7.0...2.8.0) (2020-07-25)
+
+
+### Features
+
+* **DevTools:** Much clearer UI and more accessible definitions ([#363](https://github.com/matatk/landmarks/issues/363)) ([b15c614](https://github.com/matatk/landmarks/commit/b15c6146c039675cb0aabe9094353f2ac4ea936a))
+* Cycle betwixt multiple main regions ([#373](https://github.com/matatk/landmarks/issues/373)) ([0b8bcb8](https://github.com/matatk/landmarks/commit/0b8bcb8b43e92f5217785f6e1df946fab3a07673)), closes [#371](https://github.com/matatk/landmarks/issues/371)
+* New icons; Updated sizes and colour; New promotional image ([#362](https://github.com/matatk/landmarks/issues/362)) ([dbea8eb](https://github.com/matatk/landmarks/commit/dbea8eb8163fc5bffd12e72418ba990cd3643fa2)), closes [#183](https://github.com/matatk/landmarks/issues/183) [#186](https://github.com/matatk/landmarks/issues/186) [#184](https://github.com/matatk/landmarks/issues/184)
+
+
+### Documentation
+
+* Metadata updates across browsers ([#341](https://github.com/matatk/landmarks/issues/341)) ([b3612ac](https://github.com/matatk/landmarks/commit/b3612ac26058fbf330c17e7ad153d42fbc17e8bc))
+* **Help:** Clearer spacing around keyboard info ([#353](https://github.com/matatk/landmarks/issues/353)) ([aa05df7](https://github.com/matatk/landmarks/commit/aa05df74c2e69566b8554112d0d8e751b1f1f0b4)), closes [#335](https://github.com/matatk/landmarks/issues/335)
+* Release notes for 2.8.0 ([#377](https://github.com/matatk/landmarks/issues/377)) ([60f398e](https://github.com/matatk/landmarks/commit/60f398e497bee8c210b004fdae35d4805e729601))
+* Remove spurious link from 2.6.0 release notes ([#372](https://github.com/matatk/landmarks/issues/372)) ([e6a543e](https://github.com/matatk/landmarks/commit/e6a543e807d31ad7fbd76013a28ba7a5491ffc48)), closes [#369](https://github.com/matatk/landmarks/issues/369)
+* Update screengrabs ([#376](https://github.com/matatk/landmarks/issues/376)) ([49b5d00](https://github.com/matatk/landmarks/commit/49b5d00a81c37ac87f4c1f7aec28c6aba4ea718b)), closes [#118](https://github.com/matatk/landmarks/issues/118)
+
+
+### Chores
+
+* **Website:** Ignore locally-generated GitHub Pages kipple ([#356](https://github.com/matatk/landmarks/issues/356)) ([17a1b9c](https://github.com/matatk/landmarks/commit/17a1b9c76d26ee51ed4dfbd1d14765faa8296a6d))
+* Bump dependencies ([#375](https://github.com/matatk/landmarks/issues/375)) ([900bba5](https://github.com/matatk/landmarks/commit/900bba55fb5fb38db4177a9798721361a9f46ece))
+* Ignore all generated debugging traces ([#345](https://github.com/matatk/landmarks/issues/345)) ([c9badfe](https://github.com/matatk/landmarks/commit/c9badfea89ae7bcf848e46f65bf8e25baabc3bce))
+* Move to page-structural-semantics-scanner-tests 0.4 ([#346](https://github.com/matatk/landmarks/issues/346)) ([ee13fdb](https://github.com/matatk/landmarks/commit/ee13fdbb421e97dbc94083f2ee74b6245a131dd8))
+* Remove redundant writerOpts script; Renames ([#367](https://github.com/matatk/landmarks/issues/367)) ([aacec1d](https://github.com/matatk/landmarks/commit/aacec1d9a31f150bae212466576da53a67ba95d4))
+* Switch to standard-version; Bump dependencies ([#344](https://github.com/matatk/landmarks/issues/344)) ([59abc6c](https://github.com/matatk/landmarks/commit/59abc6c6c335206517eba4b0780dfb83453d9666))
+
+
+### Bug fixes
+
+* Check dependency tree for modifications when caching code ([#359](https://github.com/matatk/landmarks/issues/359)) ([70b2719](https://github.com/matatk/landmarks/commit/70b2719f5b408930408a7b646afb75ddcad7e52d))
+* **Options:** do not use aria-disabled for button ([#357](https://github.com/matatk/landmarks/issues/357)) ([748425c](https://github.com/matatk/landmarks/commit/748425c088df5902b486814c2cc50a2128849eac))
+* Clarify migration manager behaviour; Clean up tests and logging ([#347](https://github.com/matatk/landmarks/issues/347)) ([a72fece](https://github.com/matatk/landmarks/commit/a72fece3bd65fc905c1377247d8330453949e2a6))
+* Fix splash message colours and add landmark region ([#350](https://github.com/matatk/landmarks/issues/350)) ([068ec76](https://github.com/matatk/landmarks/commit/068ec76104f2c75873b30995c0fa2967e697997e))
+* Floating disclosure widget style ([#374](https://github.com/matatk/landmarks/issues/374)) ([91da089](https://github.com/matatk/landmarks/commit/91da0891e85a99c60806a3dc134e1f1d3af68df9))
+* **Profiling:** Correct the name of generated code ([#364](https://github.com/matatk/landmarks/issues/364)) ([7fcb074](https://github.com/matatk/landmarks/commit/7fcb0741b552d02aa7b187845ea28c74910a9552))
+* Ignore aria-hidden and inert landmarks ([#360](https://github.com/matatk/landmarks/issues/360)) ([9ccf0c2](https://github.com/matatk/landmarks/commit/9ccf0c2bfa57afb18953db9569afafdd46e7c2bf))
+* Include versionrc file for changelog generation ([#348](https://github.com/matatk/landmarks/issues/348)) ([5f56319](https://github.com/matatk/landmarks/commit/5f56319f1543b1ff35440661cb142775ae7804f2))
+* Refine text colour fix to account for warnings ([#358](https://github.com/matatk/landmarks/issues/358)) ([d6abc66](https://github.com/matatk/landmarks/commit/d6abc665dd0ab16c0dfcb5810268c44d7493241a))
+* Text colour in dark mode on Firefox ([#349](https://github.com/matatk/landmarks/issues/349)) ([728e02d](https://github.com/matatk/landmarks/commit/728e02d98cb415f5b1a62ac3f589f7cbbc750f7a))
+* Text colour problem with previous dark-mode tweak ([#354](https://github.com/matatk/landmarks/issues/354)) ([40aed35](https://github.com/matatk/landmarks/commit/40aed35365a18d8583de6569ed3489c5e110c554))
+
+
+### Tests
+
+* Use nyc for code coverage ([#366](https://github.com/matatk/landmarks/issues/366)) ([982859a](https://github.com/matatk/landmarks/commit/982859a6fee47f4d147a2726c86797a593ef993e))
+
+
+### Builds
+
+* Cache flattened scripts; Option to skip linting ([#355](https://github.com/matatk/landmarks/issues/355)) ([956e416](https://github.com/matatk/landmarks/commit/956e4163f017cb4ee12e234d6e2fa750672aa0ba)), closes [#351](https://github.com/matatk/landmarks/issues/351)
+* Fix logging logic error with cached PNG usage ([#361](https://github.com/matatk/landmarks/issues/361)) ([7b97583](https://github.com/matatk/landmarks/commit/7b9758364dc22651fa3234e334056d6e07b7391e))
+* Use yargs in profile script; Fix debug code cacheing ([#365](https://github.com/matatk/landmarks/issues/365)) ([751d406](https://github.com/matatk/landmarks/commit/751d4067721bbaa115d33948daa602102ee37eec))
+
+
+### Performance improvements
+
+* Bring SVG-to-PNG conversion back in-house :-) ([#352](https://github.com/matatk/landmarks/issues/352)) ([7f28c2d](https://github.com/matatk/landmarks/commit/7f28c2d2f2407ba2b49b8a3503d6bc7f6d610f3a))
+* Use sidebarAction.toggle() on Firefox ([#342](https://github.com/matatk/landmarks/issues/342)) ([f59e5fd](https://github.com/matatk/landmarks/commit/f59e5fd83677e26fa383c06231db4e94b548a3af))
 
 ## [2.7.0](https://github.com/matatk/landmarks/compare/2.6.0...2.7.0) (2020-02-11)
 
