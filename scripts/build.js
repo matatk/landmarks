@@ -20,7 +20,7 @@ const dependencyTree = require('dependency-tree')
 
 const packageJson = require(path.join('..', 'package.json'))
 const extName = packageJson.name
-const extVersion = packageJson.version
+let extVersion = packageJson.version  // can be overidden on command line
 const buildDir = 'build'
 const srcStaticDir = path.join('src', 'static')
 const srcAssembleDir = path.join('src', 'assemble')
@@ -85,6 +85,8 @@ let testMode = false	// are we building a test (alpha/beta) version?
 //
 // Utilities
 //
+
+const exampleTestRelease = "'2.1.0alpha1'"
 
 function doReplace(files, from, to, message) {
 	try {
@@ -540,9 +542,13 @@ async function main() {
 		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
-		.describe('test-release', "Build an experimental release (Chrome-only: a Firefox test release can be uploaded to the add-on's beta channel).")
+		.describe('test-release', `Build an experimental release (Chrome-only: a Firefox test release such as ${exampleTestRelease} can be uploaded to the add-on's beta channel).`)
 		.boolean('test-release')
 		.alias('test-release', 't')
+		.describe('release', 'Override release in manifest.json. This should only be used when making test releases.')
+		.string('release')
+		.nargs('release', 1)
+		.alias('release', 'r')
 		.describe('clean-only', "Don't build; just remove existing build directory and ZIP.")
 		.boolean('clean-only')
 		.alias('clean-only', 'c')
@@ -554,6 +560,8 @@ async function main() {
 		.alias('skip-linting', 'k')
 		.demandOption('browser')
 		.argv
+
+	if (argv.release) extVersion = argv.release
 
 	const browsers = argv.browser === 'all'
 		? validBrowsers
@@ -568,7 +576,7 @@ async function main() {
 
 	testMode = argv.testRelease === true
 	if (testMode && argv.browser !== 'chrome') {
-		error("Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as '2.1.0alpha1' can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.")
+		error(`Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as ${exampleTestRelease} can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.`)
 	}
 	const testModeMessage = testMode ? ' (test version)' : ''
 
