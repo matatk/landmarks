@@ -279,7 +279,7 @@ if (window !== window.top) {
 	console.log('viewport w h:', window.innerWidth, window.innerHeight)
 	console.log('document.hidden:', document.hidden)
 	console.log('frameElement:', window.frameElement)
-	console.log()
+	console.log('')
 }
 
 bootstrap()
