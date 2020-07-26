@@ -234,6 +234,7 @@ function observeMutationObserverAndFindLandmarks() {
 }
 
 function reflectPageVisibility() {
+	console.log('REFLECT PAGE VISIBILITY; top frame?', window === window.top)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)
@@ -277,6 +278,12 @@ if (window !== window.top) {
 	console.log('parent window frames', window.parent.frames.length)
 	console.log('contained frames', window.frames.length)
 	console.log('viewport w h:', window.innerWidth, window.innerHeight)
+	console.log('document.hidden:', document.hidden)
+	console.log('frameElement:', window.frameElement)
+	if (window.frameElement) {
+		const style = window.getComputedStyle(window.frameElement)
+		console.log('frameElement style.display:', style.display)
+	}
 } else {
 	console.log('content script starting in top frame')
 }
