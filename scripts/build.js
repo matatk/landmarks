@@ -86,8 +86,6 @@ let testMode = false	// are we building a test (alpha/beta) version?
 // Utilities
 //
 
-const exampleTestRelease = "'2.1.0alpha1'"
-
 function doReplace(files, from, to, message) {
 	try {
 		const results = replace.sync({
@@ -542,7 +540,7 @@ async function main() {
 		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
-		.describe('test-release', `Build an experimental release (Chrome-only: a Firefox test release such as ${exampleTestRelease} can be uploaded to the add-on's beta channel).`)
+		.describe('test-release', 'Build an experimental release, which is falgged as being a test version')
 		.boolean('test-release')
 		.alias('test-release', 't')
 		.describe('release', 'Override release in manifest.json. This should only be used when making test releases.')
@@ -575,9 +573,6 @@ async function main() {
 	const debugMode = argv.debug === true
 
 	testMode = argv.testRelease === true
-	if (testMode && argv.browser !== 'chrome') {
-		error(`Test build requested for browser(s) other than Chrome. This is not advisable: e.g. for Firefox, a version number such as ${exampleTestRelease} can be set instead and the extension uploaded to the beta channel. Only Chrome needs a separate extension listing for test versions.`)
-	}
 	const testModeMessage = testMode ? ' (test version)' : ''
 
 	for (const browser of browsers) {
