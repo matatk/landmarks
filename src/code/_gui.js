@@ -27,7 +27,7 @@ let port = null
 // can't run on that page, then the background script sends a null message, in
 // which case, let the user know.
 // FIXME: the null message may also mean simply 'reset for new page'
-function handleLandmarksMessage(data, frame) {
+function handleLandmarksMessage(data, title, frame) {
 	console.debug('handleLandmarksMessage():',
 		data === null ? data : data.length, frame)
 
@@ -50,12 +50,25 @@ function handleLandmarksMessage(data, frame) {
 			//       the background script oughta clear it...
 			removeChildNodes(display)
 
+			const heading = document.createElement('h1')
+			heading.innerText = (title !== null && title !== '')
+				? title
+				: 'window or frame with no title'
+			heading.style.fontSize = '1em'
+			display.appendChild(heading)
+
 			if (isTopLevelFrameOrDevTools) {
 				status.innerText = null
+
+				// Debugging
+				const para = document.createElement('p')
+				para.innerText = 'Top window. Check the console for info on any child frames.'
+				display.appendChild(para)
 			} else {
-				const heading = document.createElement('p')
-				heading.innerText = frame
-				display.appendChild(heading)
+				// Debugging
+				const para = document.createElement('p')
+				para.innerText = 'frame: ' + frame
+				display.appendChild(para)
 			}
 
 			makeLandmarksTree(data, display)
@@ -71,7 +84,7 @@ function handleLandmarksMessage(data, frame) {
 
 	const showAll = document.getElementById('show-all-label')
 	if (landmarksCounter.totalNumberOfLandmarks > 0) {
-		showAll.style.display = 'none'
+		showAll.style.display = 'none'  // FIXME sense? but it seems to work
 	} else {
 		delete showAll.style.display
 	}
@@ -290,6 +303,7 @@ function messageHandlerCore(message, sender) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(
 			message.data,
+			message.title,
 			sender.hasOwnProperty('frameId') ? sender.frameId : null)
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)

@@ -131,7 +131,8 @@ function checkFocusElement(callbackReturningElementInfo) {
 function sendLandmarks() {
 	browser.runtime.sendMessage({
 		name: 'landmarks',
-		data: landmarksFinder.allInfos()
+		data: landmarksFinder.allInfos(),
+		title: document.title
 	})
 }
 
@@ -234,7 +235,6 @@ function observeMutationObserverAndFindLandmarks() {
 }
 
 function reflectPageVisibility() {
-	console.log('REFLECT PAGE VISIBILITY; top frame?', window === window.top)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)
@@ -269,24 +269,17 @@ function bootstrap() {
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
-// Notes:
-// - Chroem will block these requests in file:// URLs even if the extension has permission to access file:// URLs.
-// - Cross-origin frames probably won't work? Need to test; some say that they should in extensions (but not the content itself).
 if (window !== window.top) {
 	console.log('content script starting in child frame')
-	console.log(window.name, window.location.href)
+	console.log('window.name:', window.name)
+	console.log('url:', window.location.href)
+	console.log('document.title:', document.title)
 	console.log('parent window frames', window.parent.frames.length)
 	console.log('contained frames', window.frames.length)
 	console.log('viewport w h:', window.innerWidth, window.innerHeight)
 	console.log('document.hidden:', document.hidden)
 	console.log('frameElement:', window.frameElement)
-	if (window.frameElement) {
-		const style = window.getComputedStyle(window.frameElement)
-		console.log('frameElement style.display:', style.display)
-	}
-} else {
-	console.log('content script starting in top frame')
+	console.log()
 }
-console.log('\n')
 
 bootstrap()
