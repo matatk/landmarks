@@ -29,3 +29,12 @@ export const dismissalStates =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
 		? Object.freeze({ dismissedSidebarNotAlone: false })
 		: null
+
+
+//
+// Update acknowledgement
+//
+
+export const defaultUpdateAcknowledged = Object.freeze({
+	updateAcknowledged: false
+})

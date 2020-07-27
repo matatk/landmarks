@@ -2,11 +2,12 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
-import { defaultInterfaceSettings } from './defaults'
+import { defaultInterfaceSettings, defaultUpdateAcknowledged } from './defaults'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
 const startupCode = []
+let updateAcknowledged = defaultUpdateAcknowledged.updateAcknowledged
 
 
 //
@@ -144,6 +145,10 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {
 			switchInterface(changes.interface.newValue)
 		}
+		if (changes.hasOwnProperty('updateAcknowledged')) {
+			updateAcknowledged = changes.updateAcknowledged.newValue
+			reflectUpdateAcknowledgement()
+		}
 	})
 }
 
@@ -180,10 +185,12 @@ browser.commands.onCommand.addListener(function(command) {
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
-	browser.browserAction.setBadgeText({
-		text: '',
-		tabId: details.tabId
-	})
+	if (updateAcknowledged) {
+		browser.browserAction.setBadgeText({
+			text: '',
+			tabId: details.tabId
+		})
+	}
 })
 
 browser.webNavigation.onCompleted.addListener(function(details) {
@@ -236,9 +243,23 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
+function reflectUpdateAcknowledgement() {
+	if (!updateAcknowledged) {
+		browser.browserAction.setBadgeText({ text: 'NEW' })
+	}
+}
+
+startupCode.push(function() {
+	browser.storage.sync.get(defaultUpdateAcknowledged, function(items) {
+		updateAcknowledged = items.updateAcknowledged
+		reflectUpdateAcknowledgement()
+	})
+})
+
 browser.runtime.onInstalled.addListener(function(details) {
-	if (details.reason === 'install' || details.reason === 'update') {
-		browser.tabs.create({ url: `help.html#!${details.reason}` })
+	if (details.reason === 'install') {
+		browser.tabs.create({ url: 'help.html#!install' })
+		browser.storage.sync.set({ updateAcknowledged: true })
 	}
 })
 
@@ -248,7 +269,9 @@ browser.runtime.onInstalled.addListener(function(details) {
 //
 
 function openHelpPage(openInSameTab) {
-	const helpPage = browser.runtime.getURL('help.html')
+	const helpPage = updateAcknowledged
+		? browser.runtime.getURL('help.html')
+		: browser.runtime.getURL('help.html') + '#!update'
 	if (openInSameTab) {
 		// Link added to Landmarks' home page should open in the same tab
 		browser.tabs.update({ url: helpPage })
@@ -261,17 +284,20 @@ function openHelpPage(openInSameTab) {
 			})
 		})
 	}
+	browser.storage.sync.set({ updateAcknowledged: true })
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			browser.browserAction.setBadgeText({
-				text: message.data.length <= 0
-					? '' : String(message.data.length),
-				tabId: sender.tab.id
-			})
+			if (updateAcknowledged) {
+				browser.browserAction.setBadgeText({
+					text: message.data.length <= 0
+						? '' : String(message.data.length),
+					tabId: sender.tab.id
+				})
+			}
 			sendToDevToolsForTab(sender.tab.id, message)
 			break
 		case 'get-devtools-state':
