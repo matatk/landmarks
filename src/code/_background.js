@@ -284,7 +284,9 @@ function openHelpPage(openInSameTab) {
 			})
 		})
 	}
-	browser.storage.sync.set({ updateAcknowledged: true })
+	if (!updateAcknowledged) {
+		browser.storage.sync.set({ updateAcknowledged: true })
+	}
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
