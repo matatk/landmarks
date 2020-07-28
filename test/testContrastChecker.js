@@ -1,6 +1,5 @@
-'use strict'
-const test = require('ava')
-const ContrastChecker = require('./generated-contrast-checker.js')
+import test from 'ava'
+import ContrastChecker from '../src/code/contrastChecker'
 
 const contrastChecker = new ContrastChecker()
 

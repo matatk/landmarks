@@ -5,12 +5,14 @@
     "node": true
   },
   "extends": "eslint:recommended",
-  "overrides": [{
-    "files": ["test/rollup.config.js"],
-    "parserOptions": {
-      "sourceType": "module"
+  "overrides": [
+    {
+      "files": ["test/test*.js"],
+      "parserOptions": {
+        "sourceType": "module"
+      }
     }
-  }],
+  ],
   "parserOptions": {
     "ecmaVersion": 2018
   },

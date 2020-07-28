@@ -1,7 +1,6 @@
 /* eslint-disable no-prototype-builtins */
-'use strict'
-const test = require('ava')
-const MigrationManager = require('./generated-migration-manager.js')
+import test from 'ava'
+import MigrationManager from '../src/code/migrationManager'
 
 // The purpose of the migration manager is to delete obsolete user settings, or
 // rename existing user settings to their current names. Landmarks ships with
