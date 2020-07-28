@@ -13,8 +13,8 @@
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
-    "pretest": "eslint . && rollup -c test/rollup.config.js",
-    "test": "npx nyc --exclude 'test/test*js' --reporter text --reporter html ava && npm run test:css",
+    "pretest": "eslint .",
+    "test": "npx nyc --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "version": "standard-version --tag-prefix="
   },
@@ -27,8 +27,10 @@
     "files": [
       "!test/generated-*.js",
       "!test/rollup.config.js"
-    ]
+    ],
+    "require": ["esm"]
   },
+  "nyc": { "require": ["esm"] },
   "devDependencies": {
     "addons-linter": "^2.1.0",
     "archiver-promise": "~1.0",
@@ -37,6 +39,7 @@
     "deepmerge": "~4.2",
     "dependency-tree": "^7.2.1",
     "eslint": "^7.5.0",
+    "esm": "^3.2.25",
     "fs-extra": "^9.0.1",
     "husky": "^4.2.5",
     "jsdom": "^16.3.0",

@@ -5,7 +5,6 @@ build
 meta/out-*.png
 landmarks-*.zip
 npm-debug.log
-generated-*.js
 trace--*.json
 times--*.json
 _site

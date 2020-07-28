@@ -1,8 +1,7 @@
-'use strict'
-const test = require('ava')
-const jsdom = require('jsdom')
-const pssst = require('page-structural-semantics-scanner-tests')
-const LandmarksFinder = require('./generated-landmarks-finder')
+import test from 'ava'
+import jsdom from 'jsdom'
+import pssst from 'page-structural-semantics-scanner-tests'
+import LandmarksFinder from '../src/code/landmarksFinder'
 
 const { JSDOM } = jsdom
 const checks = pssst.getFullPageTestsInline()
