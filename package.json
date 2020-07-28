@@ -23,7 +23,6 @@
       "pre-commit": "npm run build:all"
     }
   },
-  "esm": { "cjs": true },
   "ava": {
     "files": [
       "!test/generated-*.js",
