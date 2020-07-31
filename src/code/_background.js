@@ -2,12 +2,12 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
-import { defaultInterfaceSettings, defaultUpdateAcknowledged } from './defaults'
+import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
 const startupCode = []
-let updateAcknowledged = defaultUpdateAcknowledged.updateAcknowledged
+let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 
 
 //
@@ -145,8 +145,8 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {
 			switchInterface(changes.interface.newValue)
 		}
-		if (changes.hasOwnProperty('updateAcknowledged')) {
-			updateAcknowledged = changes.updateAcknowledged.newValue
+		if (changes.hasOwnProperty('dismissedUpdate')) {
+			dismissedUpdate = changes.dismissedUpdate.newValue
 			reflectUpdateAcknowledgement()
 		}
 	})
@@ -185,7 +185,7 @@ browser.commands.onCommand.addListener(function(command) {
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
-	if (updateAcknowledged) {
+	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({
 			text: '',
 			tabId: details.tabId
@@ -244,14 +244,14 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 //
 
 function reflectUpdateAcknowledgement() {
-	if (!updateAcknowledged) {
+	if (!dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: 'NEW' })
 	}
 }
 
 startupCode.push(function() {
-	browser.storage.sync.get(defaultUpdateAcknowledged, function(items) {
-		updateAcknowledged = items.updateAcknowledged
+	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
+		dismissedUpdate = items.dismissedUpdate
 		reflectUpdateAcknowledgement()
 	})
 })
@@ -259,7 +259,7 @@ startupCode.push(function() {
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install') {
 		browser.tabs.create({ url: 'help.html#!install' })
-		browser.storage.sync.set({ updateAcknowledged: true })
+		browser.storage.sync.set({ dismissedUpdate: true })
 	}
 })
 
@@ -269,7 +269,7 @@ browser.runtime.onInstalled.addListener(function(details) {
 //
 
 function openHelpPage(openInSameTab) {
-	const helpPage = updateAcknowledged
+	const helpPage = dismissedUpdate
 		? browser.runtime.getURL('help.html')
 		: browser.runtime.getURL('help.html') + '#!update'
 	if (openInSameTab) {
@@ -284,8 +284,8 @@ function openHelpPage(openInSameTab) {
 			})
 		})
 	}
-	if (!updateAcknowledged) {
-		browser.storage.sync.set({ updateAcknowledged: true })
+	if (!dismissedUpdate) {
+		browser.storage.sync.set({ dismissedUpdate: true })
 	}
 }
 
@@ -293,7 +293,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			if (updateAcknowledged) {
+			if (dismissedUpdate) {
 				browser.browserAction.setBadgeText({
 					text: message.data.length <= 0
 						? '' : String(message.data.length),

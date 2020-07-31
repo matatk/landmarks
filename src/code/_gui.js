@@ -3,7 +3,7 @@
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, dismissalStates } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates } from './defaults'
 import { isContentScriptablePage } from './isContent'
 
 let port = null
@@ -152,7 +152,7 @@ if (INTERFACE === 'sidebar') {
 	// sidebar to explain this to the user.
 
 	function showNote() {  // eslint-disable-line no-inner-declarations
-		browser.storage.sync.get(dismissalStates, function(items) {
+		browser.storage.sync.get(defaultDismissalStates, function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
 				document.getElementById('note').hidden = false
 			}

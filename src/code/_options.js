@@ -2,7 +2,7 @@
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate'
-import { defaultSettings, dismissalStates } from './defaults'
+import { defaultSettings, defaultDismissalStates } from './defaults'
 
 
 //
@@ -74,7 +74,7 @@ function updateResetDismissedMessagesButtonState() {
 	const button = document.getElementById('reset-messages')
 	const feedback = document.getElementById('reset-messages-feedback')
 
-	browser.storage.sync.get(dismissalStates, function(items) {
+	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in items) {
 			if (items[dismissalState] === true) {
 				button.dataset.someMessagesDismissed = true
@@ -93,14 +93,14 @@ function updateResetDismissedMessagesButtonState() {
 
 function resetMessages() {
 	if (this.dataset.someMessagesDismissed === String(true)) {
-		browser.storage.sync.set(dismissalStates)  // default values are false
+		browser.storage.sync.set(defaultDismissalStates)
 		document.getElementById('reset-messages-feedback')
 			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
 	}
 }
 
 function dismissalStateChanged(thingChanged) {
-	return dismissalStates.hasOwnProperty(thingChanged)
+	return defaultDismissalStates.hasOwnProperty(thingChanged)
 }
 
 function resetToDefaults() {
