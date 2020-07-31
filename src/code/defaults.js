@@ -25,7 +25,7 @@ export const defaultSettings =
 // Dismissal state of user interface messages
 //
 
-const defaultDismissedSidebarNotAlone = Object.freeze(
+export const defaultDismissedSidebarNotAlone = Object.freeze(
 	{ dismissedSidebarNotAlone: false })
 
 export const defaultDismissedUpdate = Object.freeze(

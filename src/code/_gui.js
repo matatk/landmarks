@@ -3,8 +3,41 @@
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, defaultDismissalStates } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+
+const sidebarNote = {
+	'dismissedSidebarNotAlone': {
+		id: 'note-ui',
+		cta: function() {
+			browser.runtime.openOptionsPage()
+		},
+		showOrHide: function(wasDismissed) {
+			console.log('showOrHide for UI note: dismissed?', wasDismissed)
+			// Whether to show the message depends on the interface too
+			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+				if (items.interface === 'popup' && !wasDismissed) {
+					showNote('note-ui')
+				} else {
+					hideNote('note-ui')
+				}
+			})
+		}
+	}
+}
+
+const updateNote = {
+	'dismissedUpdate': {
+		id: 'note-update',
+		cta: function() {
+			alert('update note thing activated')
+		}
+	}
+}
+
+const notes = (INTERFACE === 'sidebar')
+	? Object.assign({}, sidebarNote, updateNote)
+	: updateNote
 
 let port = null
 
@@ -142,71 +175,48 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 }
 
 
-if (INTERFACE === 'sidebar') {
-	//
-	// Sidebar - Live updates and Preferences note
-	//
+//
+// Notes
+//
 
-	// The sidebar can be open even if the user has chosen the pop-up as the
-	// primary GUI for Landmarks. In this case, a note can be created in the
-	// sidebar to explain this to the user.
+function showNote(id) {
+	console.log('showing', id)
+	document.getElementById(id).hidden = false
+}
 
-	function showNote() {  // eslint-disable-line no-inner-declarations
-		browser.storage.sync.get(defaultDismissalStates, function(items) {
+function hideNote(id) {
+	console.log('hiding', id)
+	document.getElementById(id).hidden = true
+}
+
+function showOrHideNote(note, dismissed) {
+	console.log('showOrHideNote():', note.id, dismissed)
+	if (note.showOrHide) {
+		note.showOrHide(dismissed)
+	} else if (dismissed) {
+		hideNote(note.id)
+	} else {
+		showNote(note.id)
+	}
+}
+
+// Sidebar-specific: handle the user changing their UI preference (the sidebar
+// may be open, so the note needs to be shown/hidden in real-time).
+function reflectInterfaceChange(ui) {
+	browser.storage.sync.get(
+		defaultDismissedSidebarNotAlone,
+		function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
-				document.getElementById('note').hidden = false
-			}
-		})
-	}
-
-	function hideNote() {  // eslint-disable-line no-inner-declarations
-		document.getElementById('note').hidden = true
-	}
-
-	document.getElementById('note-prefs').onclick = function() {
-		browser.runtime.openOptionsPage()
-	}
-
-	document.getElementById('note-dismiss').onclick = function() {
-		browser.storage.sync.set({
-			dismissedSidebarNotAlone: true
-		}, function() {
-			hideNote()
-		})
-	}
-
-	// Should we create the note in the sidebar when it opens?
-	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-		if (items.interface === 'popup') {
-			showNote()
-		}
-	})
-
-	browser.storage.onChanged.addListener(function(changes) {
-		// What if the sidebar is open and the user changes their preference?
-		if (changes.hasOwnProperty('interface')
-			&& changes.interface.newValue !== changes.interface.oldValue) {
-			switch (changes.interface.newValue) {
-				case 'sidebar': hideNote()
-					break
-				case 'popup': showNote()
-					break
-				default:
-					throw Error(`Unexpected interface type "${changes.interface.newValue}`)
-			}
-		}
-
-		// What if the user un-dismisses the message?
-		if (changes.hasOwnProperty('dismissedSidebarNotAlone')) {
-			browser.storage.sync.get('interface', function(items) {
-				if (items.interface === 'popup') {
-					if (changes.dismissedSidebarNotAlone.newValue === false) {
-						showNote()
-					}
+				switch (ui) {
+					case 'sidebar': hideNote('note-ui')
+						break
+					case 'popup': showNote('note-ui')
+						break
+					default:
+						throw Error(`Unexpected interface type "${ui}"`)
 				}
-			})
-		}
-	})
+			}
+		})
 }
 
 
@@ -342,3 +352,42 @@ function main() {
 }
 
 main()
+
+for (const [dismissalSetting, note] of Object.entries(notes)) {
+	console.log(`Setting up ${note.id}`)
+	const ctaId = `${note.id}-cta`
+	const dismissId = `${note.id}-dismiss`
+	document.getElementById(ctaId).addEventListener('click', note.cta)
+	document.getElementById(dismissId).addEventListener('click', function() {
+		browser.storage.sync.set({ [dismissalSetting]: true })
+	})
+}
+
+// FIXME DRY
+browser.storage.onChanged.addListener(function(changes) {
+	console.log('storage changed', changes)
+	if (INTERFACE === 'sidebar' && changes.hasOwnProperty('interface')) {
+		reflectInterfaceChange(changes.interface.newValue)
+	}
+
+	for (const dismissalState in defaultDismissalStates) {
+		if (changes.hasOwnProperty(dismissalState)) {
+			console.log('changed state', dismissalState)
+			const isDismissed = changes[dismissalState].newValue === true
+			const note = notes[dismissalState]
+			showOrHideNote(note, isDismissed)
+		}
+	}
+})
+
+// FIXME DRY
+browser.storage.sync.get(defaultDismissalStates, function(items) {
+	for (const dismissalState in defaultDismissalStates) {
+		if (items.hasOwnProperty(dismissalState)) {
+			console.log('startup state', dismissalState)
+			const isDismissed = items[dismissalState] === true
+			const note = notes[dismissalState]
+			showOrHideNote(note, isDismissed)
+		}
+	}
+})

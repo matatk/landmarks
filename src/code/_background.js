@@ -245,7 +245,7 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 
 function reflectUpdateAcknowledgement() {
 	if (!dismissedUpdate) {
-		browser.browserAction.setBadgeText({ text: 'NEW' })
+		browser.browserAction.setBadgeText({ text: 'NEW' })  // FIXME l10n
 	}
 }
 
