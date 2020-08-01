@@ -63,10 +63,7 @@ function setUpOptionHandlers() {
 		})
 	}
 
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		document.getElementById('reset-messages').onclick = resetMessages
-	}
-
+	document.getElementById('reset-messages').onclick = resetMessages
 	document.getElementById('reset-to-defaults').onclick = resetToDefaults
 }
 
@@ -124,15 +121,15 @@ function main() {
 			name: 'interface',
 			kind: 'radio'
 		})
-
-		updateResetDismissedMessagesButtonState()
-
-		browser.storage.onChanged.addListener(function(changes) {
-			if (Object.keys(changes).some(dismissalStateChanged)) {
-				updateResetDismissedMessagesButtonState()
-			}
-		})
 	}
+
+	updateResetDismissedMessagesButtonState()
+
+	browser.storage.onChanged.addListener(function(changes) {
+		if (Object.keys(changes).some(dismissalStateChanged)) {
+			updateResetDismissedMessagesButtonState()
+		}
+	})
 
 	translate()
 	restoreOptions()

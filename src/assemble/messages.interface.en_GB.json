@@ -19,18 +19,6 @@
     "message": "Landmarks will be shown in the sidebar, which can be opened via the toolbar button or shortcut key."
   },
 
-  "prefsResetMessages": {
-    "message": "Reinstate dismissed messages"
-  },
-
-  "prefsResetMessagesNone": {
-    "message": "No messages to reinstate."
-  },
-
-  "prefsResetMessagesDone": {
-    "message": "Help messages have been reinstated."
-  },
-
 
 
 

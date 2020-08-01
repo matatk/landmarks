@@ -92,6 +92,18 @@
     "message": "Reset settings to defaults"
   },
 
+  "prefsResetMessages": {
+    "message": "Reinstate dismissed messages"
+  },
+
+  "prefsResetMessagesNone": {
+    "message": "No messages to reinstate."
+  },
+
+  "prefsResetMessagesDone": {
+    "message": "Help messages have been reinstated."
+  },
+
 
 
 
