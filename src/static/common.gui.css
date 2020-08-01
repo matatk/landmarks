@@ -7,7 +7,32 @@ body { margin: 0; }
 	padding-top: 0;
 }
 
-.warning { margin-top: var(--spacing); }
+button {
+	/* Due to using browser styles, we need to override height in Firefox
+	 * https://github.com/matatk/landmarks/issues/149 */
+	height: auto;
+	text-align: center;  /* needed for Firefox due to using browser styles */
+}
+
+.warning {
+	/* The note is displayed as flexbox due to the general "warning" class, but
+	 * we want to display it vertically in the sidebar */
+	flex-direction: column;
+	margin-bottom: calc(var(--spacing) * 2);
+	margin-top: var(--spacing);
+}
+
+.warning > :first-child { margin-top: calc(var(--spacing) * 2); }
+.warning > * { margin-bottom: calc(var(--spacing) * 2); }
+.warning > :last-child { margin-left: 0; }  /* countermand common.css */
+
+.warning button {
+	width: 100%;
+	border-color: var(--background-1);
+	color: var(--background-1);
+	background-color: var(--accent-2);
+	font-weight: bold;
+}
 
 ul {
 	margin: 0;
@@ -19,13 +44,6 @@ ul ul { padding-left: 2rem; }
 li {
 	display: block;
 	margin-top: 0.5rem;
-}
-
-button {
-	/* Due to using browser styles, we need to override height in Firefox
-	 * https://github.com/matatk/landmarks/issues/149 */
-	height: auto;
-	text-align: center;  /* needed for Firefox due to using browser styles */
 }
 
 #show-all-label {
