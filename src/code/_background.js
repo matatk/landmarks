@@ -237,14 +237,16 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
-function reflectUpdateDismissalState(dismissed) {
+// The second parameter is only needed when messages are later un-dismissed, so
+// that we don't start modifying the badge again.
+function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
-	} else {
+	} else if (!doNotBadge) {
 		browser.browserAction.setBadgeText({ text: 'NEW' })  // FIXME l10n
 	}
 }
@@ -371,7 +373,12 @@ browser.storage.onChanged.addListener(function(changes) {
 	}
 
 	if (changes.hasOwnProperty('dismissedUpdate')) {
-		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
+		// Changing _to_ false means we've already dismissed and have since
+		// reset the messages, in which case we should not be badging the
+		// browserAction icon.
+		const dismissed = changes.dismissedUpdate.newValue
+		const doNotModifyBadge = dismissed === false ? true : false
+		reflectUpdateDismissalState(dismissed, doNotModifyBadge)
 	}
 })
 
