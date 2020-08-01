@@ -33,15 +33,12 @@
 
 
 
+
   "hintSidebarIsNotPrimary": {
     "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar."
   },
 
-  "hintSidebarIsNotPrimaryOptions": {
+  "hintSidebarIsNotPrimaryCTA": {
     "message": "Change preferences"
-  },
-
-  "hintDismiss": {
-    "message": "Dismiss note"
   }
 }
