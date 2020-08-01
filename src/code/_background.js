@@ -101,54 +101,45 @@ function sendDevToolsStateMessage(tabId, panelIsOpen) {
 }
 
 
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	//
-	// Sidebar handling
-	//
+//
+// Sidebar handling
+//
 
-	// If the user has elected to use the sidebar, the pop-up is disabled, and
-	// we will receive events, which we can then use to open the sidebar.
-	//
-	// Opera doesn't have open().
+// If the user has elected to use the sidebar, the pop-up is disabled, and we
+// will receive events, which we can then use to open the sidebar.
+//
+// Opera doesn't have open().
 
-	const sidebarToggle = () => browser.sidebarAction.toggle()
+// TODO check this gets terser'd out
+const sidebarToggle = () => browser.sidebarAction.toggle()
 
-	// eslint-disable-next-line no-inner-declarations
-	function switchInterface(mode) {
-		switch (mode) {
-			case 'sidebar':
-				browser.browserAction.setPopup({ popup: '' })
-				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.addListener(sidebarToggle)
-				}
-				break
-			case 'popup':
-				// On Firefox this could be set to null to return to the
-				// default popup. However Chrome/Opera doesn't support this.
-				browser.browserAction.setPopup({ popup: 'popup.html' })
-				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.removeListener(sidebarToggle)
-				}
-				break
-			default:
-				throw Error(`Invalid interface "${mode}" given`)
-		}
+// TODO check this gets terser'd out
+function switchInterface(mode) {
+	switch (mode) {
+		case 'sidebar':
+			browser.browserAction.setPopup({ popup: '' })
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.addListener(sidebarToggle)
+			}
+			break
+		case 'popup':
+			// On Firefox this could be set to null to return to the default
+			// popup. However Chrome/Opera doesn't support this.
+			browser.browserAction.setPopup({ popup: 'popup.html' })
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.removeListener(sidebarToggle)
+			}
+			break
+		default:
+			throw Error(`Invalid interface "${mode}" given`)
 	}
+}
 
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	startupCode.push(function() {
 		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 			switchInterface(items.interface)
 		})
-	})
-
-	browser.storage.onChanged.addListener(function(changes) {
-		if (changes.hasOwnProperty('interface')) {
-			switchInterface(changes.interface.newValue)
-		}
-		if (changes.hasOwnProperty('dismissedUpdate')) {
-			dismissedUpdate = changes.dismissedUpdate.newValue
-			reflectUpdateAcknowledgement()
-		}
 	})
 }
 
@@ -221,6 +212,8 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       only cause this to fire once. Could it be to do with
 //       <https://developer.chrome.com/extensions/background_pages#filters>?
 //       Or could it be because we're not checking if the state *was* updated?
+//
+// TODO: Wouldn't these changes be caught by mutation observervation?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
@@ -243,16 +236,20 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
-function reflectUpdateAcknowledgement() {
-	if (!dismissedUpdate) {
+function reflectUpdateDismissalState(dismissed) {
+	dismissedUpdate = dismissed
+	if (dismissedUpdate) {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			updateGUIs(tabs[0].id, tabs[0].url)
+		})
+	} else {
 		browser.browserAction.setBadgeText({ text: 'NEW' })  // FIXME l10n
 	}
 }
 
 startupCode.push(function() {
 	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
-		dismissedUpdate = items.dismissedUpdate
-		reflectUpdateAcknowledgement()
+		reflectUpdateDismissalState(items.dismissedUpdate)
 	})
 })
 
@@ -362,6 +359,19 @@ browser.tabs.query({}, function(tabs) {
 if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
+
+// Listen for UI or notification dismissal changes
+browser.storage.onChanged.addListener(function(changes) {
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (changes.hasOwnProperty('interface')) {
+			switchInterface(changes.interface.newValue)
+		}
+	}
+
+	if (changes.hasOwnProperty('dismissedUpdate')) {
+		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
+	}
+})
 
 const migrationManager = new MigrationManager({
 	1: function(settings) {
