@@ -275,5 +275,12 @@
 
   "hintWhatIsNewCTA": {
     "message": "What's new?"
+  },
+
+
+
+
+  "badgeNew": {
+    "message": "NEW"
   }
 }

@@ -247,7 +247,8 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
 	} else if (!doNotBadge) {
-		browser.browserAction.setBadgeText({ text: 'NEW' })  // FIXME l10n
+		browser.browserAction.setBadgeText(
+			{ text: browser.i18n.getMessage('badgeNew') })
 	}
 }
 
