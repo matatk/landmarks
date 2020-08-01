@@ -29,7 +29,7 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			alert('update note thing activated')
+			browser.runtime.sendMessage({ name: 'open-help' })
 		}
 	}
 }
