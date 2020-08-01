@@ -240,6 +240,7 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 function reflectUpdateDismissalState(dismissed) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
+		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
@@ -370,7 +371,12 @@ browser.storage.onChanged.addListener(function(changes) {
 	}
 
 	if (changes.hasOwnProperty('dismissedUpdate')) {
-		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
+		// If the user later resets dismissed messages, we don't want to start
+		// badging the browserAction again. The note will still be shown in the
+		// GUI by separate means.
+		if (changes.dismissedUpdate.newValue === true) {
+			reflectUpdateDismissalState(true)
+		}
 	}
 })
 

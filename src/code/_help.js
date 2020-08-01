@@ -15,9 +15,8 @@ function messageHandler(message) {
 }
 
 function includeVersionNumber() {
-	const manifest = browser.runtime.getManifest()
-	const version = manifest.version
-	document.getElementById('version').innerText = version
+	document.getElementById('version').innerText =
+		browser.runtime.getManifest().version
 }
 
 function reflectInstallOrUpdate() {

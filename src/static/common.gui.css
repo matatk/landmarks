@@ -14,6 +14,12 @@ button {
 	text-align: center;  /* needed for Firefox due to using browser styles */
 }
 
+/*
+ * Warning boxes - building on common.css
+ *
+ * These warnings are designed to have a paragraph followed by two buttons
+ */
+
 .warning {
 	/* The note is displayed as flexbox due to the general "warning" class, but
 	 * we want to display it vertically in the sidebar */
