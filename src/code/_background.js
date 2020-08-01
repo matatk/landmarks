@@ -109,11 +109,12 @@ function sendDevToolsStateMessage(tabId, panelIsOpen) {
 // will receive events, which we can then use to open the sidebar.
 //
 // Opera doesn't have open().
+//
+// These things are only referenced from within browser-conditional blocks, so
+// Terser removes them as appropriate.
 
-// TODO check this gets terser'd out
 const sidebarToggle = () => browser.sidebarAction.toggle()
 
-// TODO check this gets terser'd out
 function switchInterface(mode) {
 	switch (mode) {
 		case 'sidebar':
