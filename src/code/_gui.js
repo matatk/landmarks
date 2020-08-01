@@ -29,7 +29,9 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
+			// FIXME DRY
 			browser.runtime.sendMessage({ name: 'open-help' })
+			if (INTERFACE === 'popup') window.close()
 		}
 	}
 }

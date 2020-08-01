@@ -371,12 +371,7 @@ browser.storage.onChanged.addListener(function(changes) {
 	}
 
 	if (changes.hasOwnProperty('dismissedUpdate')) {
-		// If the user later resets dismissed messages, we don't want to start
-		// badging the browserAction again. The note will still be shown in the
-		// GUI by separate means.
-		if (changes.dismissedUpdate.newValue === true) {
-			reflectUpdateDismissalState(true)
-		}
+		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
 	}
 })
 
