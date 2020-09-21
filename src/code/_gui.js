@@ -229,7 +229,6 @@ function setupNotes() {
 	}
 
 	browser.storage.onChanged.addListener(function(changes) {
-		// TODO this probably leaves an anonymous code block too
 		if (INTERFACE === 'sidebar') {
 			if (changes.hasOwnProperty('interface')) {
 				reflectInterfaceChange(changes.interface.newValue)
