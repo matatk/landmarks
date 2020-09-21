@@ -261,7 +261,7 @@ startupCode.push(function() {
 browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install') {
 		browser.tabs.create({ url: 'help.html#!install' })
-		browser.storage.sync.set({ dismissedUpdate: true })
+		browser.storage.sync.set({ 'dismissedUpdate': true })
 	}
 })
 
@@ -287,7 +287,7 @@ function openHelpPage(openInSameTab) {
 		})
 	}
 	if (!dismissedUpdate) {
-		browser.storage.sync.set({ dismissedUpdate: true })
+		browser.storage.sync.set({ 'dismissedUpdate': true })
 	}
 }
 
