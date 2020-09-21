@@ -277,16 +277,16 @@
 
 
 
-  "hintDismiss": {
-    "message": "Dismiss note"
-  },
-
   "hintWhatIsNew": {
     "message": "Landmarks was updated to version"
   },
 
   "hintWhatIsNewCTA": {
     "message": "What's new?"
+  },
+
+  "hintWhatIsNewDismiss": {
+    "message": "Dismiss update note"
   },
 
 

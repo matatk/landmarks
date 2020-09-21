@@ -40,6 +40,10 @@ button {
 	font-weight: bold;
 }
 
+.warning + .warning button {
+	background-color: var(--accent-3);
+}
+
 ul {
 	margin: 0;
 	padding: 0;

@@ -5,6 +5,7 @@
 	--accent-1: #080;
 	--light-accent-1: #0805;
 	--accent-2: #ff6200;
+	--accent-3: #ff2f92;
 	--background-1: white;
 	--background-2: #ccc;
 	--text-1: #333;
@@ -35,6 +36,7 @@
 		--accent-1: #9f9;
 		--light-accent-1: #9f95;
 		--accent-2: #fa6;
+		--accent-3: #ff6eb3;
 		--background-1: #272727;
 		--background-2: #555;
 		--text-1: #ddd;
@@ -111,7 +113,7 @@ html {
 
 h1,
 h2 {
-	border-bottom: var(--standard-line);
+	border-bottom: var(--thickness) solid var(--accent-1);
 	color: var(--accent-1);
 }
 
@@ -164,6 +166,11 @@ details.floaty > div {
 	align-items: center;
 }
 
+.warning + .warning {
+	margin-top: var(--sibling-gap);
+	background-color: var(--accent-3);
+}
+
 .warning > .warning-symbol {
 	font-size: 2rem;
 	font-weight: bold;
@@ -184,4 +191,12 @@ details.floaty > div {
 .warning a:focus,
 .warning a:hover {
 	outline-color: var(--background-1);
+}
+
+.warning + .warning a:focus,
+.warning + .warning a:hover,
+.warning + .warning button:focus,
+.warning + .warning button:hover {
+	background-color: var(--background-1);
+	color: var(--accent-3);
 }

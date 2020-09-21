@@ -28,5 +28,9 @@
 
   "hintSidebarIsNotPrimaryCTA": {
     "message": "Change preferences"
+  },
+
+  "hintSidebarIsNotPrimaryDismiss": {
+    "message": "Dismiss UI note"
   }
 }
