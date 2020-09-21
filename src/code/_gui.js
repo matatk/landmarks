@@ -320,12 +320,11 @@ function handleMutationMessage(data) {
 // Start-up
 //
 
-// TODO check wording:
 // Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
-//       This is a bit hacky, as these browsers really aren't using it, so
-//       shouldn't really have it, but at least it keeps all the code here,
-//       rather than putting some separately in the build script.
+//       Keeping it in the GUI HTML but hiding it is hacky, as the browser
+//       really isn't using it, but at least it keeps all the code here, rather
+//       than putting some separately in the build script.
 function startupDevTools() {
 	document.getElementById('note-update').remove()
 	document.getElementById('links').remove()
