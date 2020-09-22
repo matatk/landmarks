@@ -2,11 +2,12 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
-import { defaultInterfaceSettings } from './defaults'
+import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
 const startupCode = []
+let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 
 
 //
@@ -100,50 +101,46 @@ function sendDevToolsStateMessage(tabId, panelIsOpen) {
 }
 
 
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	//
-	// Sidebar handling
-	//
+//
+// Sidebar handling
+//
 
-	// If the user has elected to use the sidebar, the pop-up is disabled, and
-	// we will receive events, which we can then use to open the sidebar.
-	//
-	// Opera doesn't have open().
+// If the user has elected to use the sidebar, the pop-up is disabled, and we
+// will receive events, which we can then use to open the sidebar.
+//
+// Opera doesn't have open().
+//
+// These things are only referenced from within browser-conditional blocks, so
+// Terser removes them as appropriate.
 
-	const sidebarToggle = () => browser.sidebarAction.toggle()
+const sidebarToggle = () => browser.sidebarAction.toggle()
 
-	// eslint-disable-next-line no-inner-declarations
-	function switchInterface(mode) {
-		switch (mode) {
-			case 'sidebar':
-				browser.browserAction.setPopup({ popup: '' })
-				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.addListener(sidebarToggle)
-				}
-				break
-			case 'popup':
-				// On Firefox this could be set to null to return to the
-				// default popup. However Chrome/Opera doesn't support this.
-				browser.browserAction.setPopup({ popup: 'popup.html' })
-				if (BROWSER === 'firefox') {
-					browser.browserAction.onClicked.removeListener(sidebarToggle)
-				}
-				break
-			default:
-				throw Error(`Invalid interface "${mode}" given`)
-		}
+function switchInterface(mode) {
+	switch (mode) {
+		case 'sidebar':
+			browser.browserAction.setPopup({ popup: '' })
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.addListener(sidebarToggle)
+			}
+			break
+		case 'popup':
+			// On Firefox this could be set to null to return to the default
+			// popup. However Chrome/Opera doesn't support this.
+			browser.browserAction.setPopup({ popup: 'popup.html' })
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.removeListener(sidebarToggle)
+			}
+			break
+		default:
+			throw Error(`Invalid interface "${mode}" given`)
 	}
+}
 
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	startupCode.push(function() {
 		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 			switchInterface(items.interface)
 		})
-	})
-
-	browser.storage.onChanged.addListener(function(changes) {
-		if (changes.hasOwnProperty('interface')) {
-			switchInterface(changes.interface.newValue)
-		}
 	})
 }
 
@@ -180,10 +177,12 @@ browser.commands.onCommand.addListener(function(command) {
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
-	browser.browserAction.setBadgeText({
-		text: '',
-		tabId: details.tabId
-	})
+	if (dismissedUpdate) {
+		browser.browserAction.setBadgeText({
+			text: '',
+			tabId: details.tabId
+		})
+	}
 })
 
 browser.webNavigation.onCompleted.addListener(function(details) {
@@ -214,6 +213,8 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       only cause this to fire once. Could it be to do with
 //       <https://developer.chrome.com/extensions/background_pages#filters>?
 //       Or could it be because we're not checking if the state *was* updated?
+//
+// TODO: Wouldn't these changes be caught by mutation observervation?
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
@@ -236,9 +237,31 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
+// The second parameter is only needed when messages are later un-dismissed, so
+// that we don't start modifying the badge again.
+function reflectUpdateDismissalState(dismissed, doNotBadge) {
+	dismissedUpdate = dismissed
+	if (dismissedUpdate) {
+		browser.browserAction.setBadgeText({ text: '' })
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			updateGUIs(tabs[0].id, tabs[0].url)
+		})
+	} else if (!doNotBadge) {
+		browser.browserAction.setBadgeText(
+			{ text: browser.i18n.getMessage('badgeNew') })
+	}
+}
+
+startupCode.push(function() {
+	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
+		reflectUpdateDismissalState(items.dismissedUpdate)
+	})
+})
+
 browser.runtime.onInstalled.addListener(function(details) {
-	if (details.reason === 'install' || details.reason === 'update') {
-		browser.tabs.create({ url: `help.html#!${details.reason}` })
+	if (details.reason === 'install') {
+		browser.tabs.create({ url: 'help.html#!install' })
+		browser.storage.sync.set({ 'dismissedUpdate': true })
 	}
 })
 
@@ -248,7 +271,9 @@ browser.runtime.onInstalled.addListener(function(details) {
 //
 
 function openHelpPage(openInSameTab) {
-	const helpPage = browser.runtime.getURL('help.html')
+	const helpPage = dismissedUpdate
+		? browser.runtime.getURL('help.html')
+		: browser.runtime.getURL('help.html') + '#!update'
 	if (openInSameTab) {
 		// Link added to Landmarks' home page should open in the same tab
 		browser.tabs.update({ url: helpPage })
@@ -261,17 +286,22 @@ function openHelpPage(openInSameTab) {
 			})
 		})
 	}
+	if (!dismissedUpdate) {
+		browser.storage.sync.set({ 'dismissedUpdate': true })
+	}
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			browser.browserAction.setBadgeText({
-				text: message.data.length <= 0
-					? '' : String(message.data.length),
-				tabId: sender.tab.id
-			})
+			if (dismissedUpdate) {
+				browser.browserAction.setBadgeText({
+					text: message.data.length <= 0
+						? '' : String(message.data.length),
+					tabId: sender.tab.id
+				})
+			}
 			sendToDevToolsForTab(sender.tab.id, message)
 			break
 		case 'get-devtools-state':
@@ -334,6 +364,24 @@ browser.tabs.query({}, function(tabs) {
 if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
+
+// Listen for UI or notification dismissal changes
+browser.storage.onChanged.addListener(function(changes) {
+	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (changes.hasOwnProperty('interface')) {
+			switchInterface(changes.interface.newValue)
+		}
+	}
+
+	if (changes.hasOwnProperty('dismissedUpdate')) {
+		// Changing _to_ false means we've already dismissed and have since
+		// reset the messages, in which case we should not be badging the
+		// browserAction icon.
+		const dismissed = changes.dismissedUpdate.newValue
+		const doNotModifyBadge = dismissed === false ? true : false
+		reflectUpdateDismissalState(dismissed, doNotModifyBadge)
+	}
+})
 
 const migrationManager = new MigrationManager({
 	1: function(settings) {

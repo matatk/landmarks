@@ -28,9 +28,15 @@
       "!test/generated-*.js",
       "!test/rollup.config.js"
     ],
-    "require": ["esm"]
+    "require": [
+      "esm"
+    ]
   },
-  "nyc": { "require": ["esm"] },
+  "nyc": {
+    "require": [
+      "esm"
+    ]
+  },
   "devDependencies": {
     "addons-linter": "^2.1.0",
     "archiver-promise": "~1.0",

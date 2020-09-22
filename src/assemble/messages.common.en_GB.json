@@ -92,6 +92,18 @@
     "message": "Reset settings to defaults"
   },
 
+  "prefsResetMessages": {
+    "message": "Reinstate dismissed messages"
+  },
+
+  "prefsResetMessagesNone": {
+    "message": "No messages to reinstate."
+  },
+
+  "prefsResetMessagesDone": {
+    "message": "Help messages have been reinstated."
+  },
+
 
 
 
@@ -260,5 +272,27 @@
 
   "statsDefine": {
     "message": "Define"
+  },
+
+
+
+
+  "hintWhatIsNew": {
+    "message": "Landmarks was updated to version"
+  },
+
+  "hintWhatIsNewCTA": {
+    "message": "What's new?"
+  },
+
+  "hintWhatIsNewDismiss": {
+    "message": "Dismiss update note"
+  },
+
+
+
+
+  "badgeNew": {
+    "message": "NEW"
   }
 }

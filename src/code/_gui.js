@@ -3,8 +3,42 @@
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, dismissalStates } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+
+const _sidebarNote = {
+	'dismissedSidebarNotAlone': {
+		id: 'note-ui',
+		cta: function() {
+			browser.runtime.openOptionsPage()
+		},
+		showOrHide: function(wasDismissed) {
+			// Whether to show the message depends on the interface too
+			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+				if (items.interface === 'popup' && !wasDismissed) {
+					showNote('note-ui')
+				} else {
+					hideNote('note-ui')
+				}
+			})
+		}
+	}
+}
+
+const _updateNote = {
+	'dismissedUpdate': {
+		id: 'note-update',
+		cta: function() {
+			// FIXME DRY
+			browser.runtime.sendMessage({ name: 'open-help' })
+			if (INTERFACE === 'popup') window.close()
+		}
+	}
+}
+
+const notes = (INTERFACE === 'sidebar')
+	? Object.assign({}, _sidebarNote, _updateNote)
+	: _updateNote
 
 let port = null
 
@@ -142,69 +176,79 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 }
 
 
-if (INTERFACE === 'sidebar') {
-	//
-	// Sidebar - Live updates and Preferences note
-	//
+//
+// Note wrangling
+//
 
-	// The sidebar can be open even if the user has chosen the pop-up as the
-	// primary GUI for Landmarks. In this case, a note can be created in the
-	// sidebar to explain this to the user.
+function showNote(id) {
+	document.getElementById(id).hidden = false
+}
 
-	function showNote() {  // eslint-disable-line no-inner-declarations
-		browser.storage.sync.get(dismissalStates, function(items) {
+function hideNote(id) {
+	document.getElementById(id).hidden = true
+}
+
+function showOrHideNote(note, dismissed) {
+	if (note.showOrHide) {
+		note.showOrHide(dismissed)
+	} else if (dismissed) {
+		hideNote(note.id)
+	} else {
+		showNote(note.id)
+	}
+}
+
+// Sidebar-specific: handle the user changing their UI preference (the sidebar
+// may be open, so the note needs to be shown/hidden in real-time).
+function reflectInterfaceChange(ui) {
+	browser.storage.sync.get(
+		defaultDismissedSidebarNotAlone,
+		function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
-				document.getElementById('note').hidden = false
+				switch (ui) {
+					case 'sidebar': hideNote('note-ui')
+						break
+					case 'popup': showNote('note-ui')
+						break
+					default:
+						throw Error(`Unexpected interface type "${ui}"`)
+				}
 			}
 		})
+}
+
+function setupNotes() {
+	for (const [dismissalSetting, note] of Object.entries(notes)) {
+		const ctaId = `${note.id}-cta`
+		const dismissId = `${note.id}-dismiss`
+		document.getElementById(ctaId).addEventListener('click', note.cta)
+		document.getElementById(dismissId).addEventListener(
+			'click', function() {
+				browser.storage.sync.set({ [dismissalSetting]: true })
+			})
 	}
 
-	function hideNote() {  // eslint-disable-line no-inner-declarations
-		document.getElementById('note').hidden = true
-	}
+	browser.storage.onChanged.addListener(function(changes) {
+		if (INTERFACE === 'sidebar') {
+			if (changes.hasOwnProperty('interface')) {
+				reflectInterfaceChange(changes.interface.newValue)
+			}
+		}
 
-	document.getElementById('note-prefs').onclick = function() {
-		browser.runtime.openOptionsPage()
-	}
-
-	document.getElementById('note-dismiss').onclick = function() {
-		browser.storage.sync.set({
-			dismissedSidebarNotAlone: true
-		}, function() {
-			hideNote()
-		})
-	}
-
-	// Should we create the note in the sidebar when it opens?
-	browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-		if (items.interface === 'popup') {
-			showNote()
+		for (const dismissalState in defaultDismissalStates) {
+			if (changes.hasOwnProperty(dismissalState)) {
+				showOrHideNote(
+					notes[dismissalState],
+					changes[dismissalState].newValue)
+			}
 		}
 	})
 
-	browser.storage.onChanged.addListener(function(changes) {
-		// What if the sidebar is open and the user changes their preference?
-		if (changes.hasOwnProperty('interface')
-			&& changes.interface.newValue !== changes.interface.oldValue) {
-			switch (changes.interface.newValue) {
-				case 'sidebar': hideNote()
-					break
-				case 'popup': showNote()
-					break
-				default:
-					throw Error(`Unexpected interface type "${changes.interface.newValue}`)
+	browser.storage.sync.get(defaultDismissalStates, function(items) {
+		for (const dismissalState in defaultDismissalStates) {
+			if (notes.hasOwnProperty(dismissalState)) {
+				showOrHideNote(notes[dismissalState], items[dismissalState])
 			}
-		}
-
-		// What if the user un-dismisses the message?
-		if (changes.hasOwnProperty('dismissedSidebarNotAlone')) {
-			browser.storage.sync.get('interface', function(items) {
-				if (items.interface === 'popup') {
-					if (changes.dismissedSidebarNotAlone.newValue === false) {
-						showNote()
-					}
-				}
-			})
 		}
 	})
 }
@@ -271,67 +315,83 @@ function handleMutationMessage(data) {
 	}
 }
 
-// When the pop-up (or sidebar) opens, translate the heading and grab and
-// process the list of page landmarks
+
 //
+// Start-up
+//
+
 // Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
-//       This is a bit hacky, as these browsers really aren't using it, so
-//       shouldn't really have it, but at least it keeps all the code here,
-//       rather than putting some separately in the build script.
+//       Keeping it in the GUI HTML but hiding it is hacky, as the browser
+//       really isn't using it, but at least it keeps all the code here, rather
+//       than putting some separately in the build script.
+function startupDevTools() {
+	document.getElementById('note-update').remove()
+	document.getElementById('links').remove()
+
+	port = browser.runtime.connect({ name: INTERFACE })
+	if (BROWSER !== 'firefox') {
+		// DevTools page doesn't get reloaded when the extension does
+		port.onDisconnect.addListener(function() {
+			document.getElementById('connection-error').hidden = false
+		})
+	}
+
+	port.onMessage.addListener(messageHandlerCore)
+
+	port.postMessage({
+		name: 'init',
+		tabId: browser.devtools.inspectedWindow.tabId
+	})
+
+	// The checking for if the page is scriptable is done at the other end.
+	send({ name: 'get-landmarks' })
+	send({ name: 'get-toggle-state' })
+	send({ name: 'get-mutation-info' })
+}
+
+function startupPopupOrSidebar() {
+	makeEventHandlers('help')
+	makeEventHandlers('settings')
+
+	document.getElementById('mutation-observation-station').remove()
+
+	// The message could be coming from any content script or other GUI, so
+	// it needs to be filtered. (The background script filters out messages
+	// for the DevTools panel.)
+	browser.runtime.onMessage.addListener(function(message, sender) {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			const activeTabId = tabs[0].id
+			if (!sender.tab || sender.tab.id === activeTabId) {
+				messageHandlerCore(message, sender)
+			}
+		})
+	})
+
+	// Most GUIs can check that they are running on a content-scriptable
+	// page (DevTools doesn't have access to browser.tabs).
+	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+		browser.tabs.get(tabs[0].id, function(tab) {
+			if (!isContentScriptablePage(tab.url)) {
+				handleLandmarksMessage(null)
+				return
+			}
+			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
+			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
+		})
+	})
+
+	document.getElementById('version').innerText =
+		browser.runtime.getManifest().version
+
+	setupNotes()
+}
+
 function main() {
 	if (INTERFACE === 'devtools') {
-		document.getElementById('links').remove()
-
-		port = browser.runtime.connect({ name: INTERFACE })
-		if (BROWSER !== 'firefox') {
-			// DevTools page doesn't get reloaded when the extension does
-			port.onDisconnect.addListener(function() {
-				document.getElementById('connection-error').hidden = false
-			})
-		}
-
-		port.onMessage.addListener(messageHandlerCore)
-
-		port.postMessage({
-			name: 'init',
-			tabId: browser.devtools.inspectedWindow.tabId
-		})
-
-		// The checking for if the page is scriptable is done at the other end.
-		send({ name: 'get-landmarks' })
-		send({ name: 'get-toggle-state' })
-		send({ name: 'get-mutation-info' })
+		startupDevTools()
 	} else {
-		makeEventHandlers('help')
-		makeEventHandlers('settings')
-
-		document.getElementById('mutation-observation-station').remove()
-
-		// The message could be coming from any content script or other GUI, so
-		// it needs to be filtered. (The background script filters out messages
-		// for the DevTools panel.)
-		browser.runtime.onMessage.addListener(function(message, sender) {
-			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				const activeTabId = tabs[0].id
-				if (!sender.tab || sender.tab.id === activeTabId) {
-					messageHandlerCore(message, sender)
-				}
-			})
-		})
-
-		// Most GUIs can check that they are running on a content-scriptable
-		// page (DevTools doesn't have access to browser.tabs).
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.get(tabs[0].id, function(tab) {
-				if (!isContentScriptablePage(tab.url)) {
-					handleLandmarksMessage(null)
-					return
-				}
-				browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
-				browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
-			})
-		})
+		startupPopupOrSidebar()
 	}
 
 	document.getElementById('show-all').addEventListener('change', function() {
@@ -342,3 +402,4 @@ function main() {
 }
 
 main()
+

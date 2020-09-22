@@ -11,16 +11,21 @@
 		<!-- devtools -->
 		<link rel="stylesheet" href="devtoolsPanel.css">
 		<!-- /devtools -->
-	</head>  <!-- FIXME: this gets aligned wrongly after the replace -->
+	</head>  <!-- TODO: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
 			<!-- ui -->
-			<div id="note" class="warning" hidden>
-				<p>Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar.</p>
-				<button id="note-prefs" data-message="hintSidebarIsNotPrimaryOptions"></button>
-				<button id="note-dismiss" data-message="hintDismiss"></button>
+			<div id="note-ui" class="warning" hidden>
+				<p data-message="hintSidebarIsNotPrimary"></p>
+				<button id="note-ui-cta" data-message="hintSidebarIsNotPrimaryCTA"></button>
+				<button id="note-ui-dismiss" data-message="hintSidebarIsNotPrimaryDismiss"></button>
 			</div>
 			<!-- /ui -->
+			<div id="note-update" class="warning" hidden>
+				<p><span data-message="hintWhatIsNew"></span> <span id="version"></span>.</p>
+				<button id="note-update-cta" data-message="hintWhatIsNewCTA"></button>
+				<button id="note-update-dismiss" data-message="hintWhatIsNewDismiss"></button>
+			</div>
 			<!-- devtools -->
 			<h1 data-message="extensionShortName"></h1>
 			<div id="connection-error" class="warning" hidden>

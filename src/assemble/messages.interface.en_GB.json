@@ -19,17 +19,6 @@
     "message": "Landmarks will be shown in the sidebar, which can be opened via the toolbar button or shortcut key."
   },
 
-  "prefsResetMessages": {
-    "message": "Reinstate dismissed messages"
-  },
-
-  "prefsResetMessagesNone": {
-    "message": "No messages to reinstate."
-  },
-
-  "prefsResetMessagesDone": {
-    "message": "Help messages have been reinstated."
-  },
 
 
 
@@ -37,11 +26,11 @@
     "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar."
   },
 
-  "hintSidebarIsNotPrimaryOptions": {
+  "hintSidebarIsNotPrimaryCTA": {
     "message": "Change preferences"
   },
 
-  "hintDismiss": {
-    "message": "Dismiss note"
+  "hintSidebarIsNotPrimaryDismiss": {
+    "message": "Dismiss UI note"
   }
 }
