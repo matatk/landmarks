@@ -1,6 +1,5 @@
-'use strict'
-const test = require('ava')
-const LandmarksCounter = require('./generated-landmarks-counter')
+import test from 'ava'
+import LandmarksCounter from '../src/code/landmarksCounter'
 
 test('no landmarks reported at startup', t => {
 	const landmarksCounter = new LandmarksCounter()
