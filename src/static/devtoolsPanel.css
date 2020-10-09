@@ -1,33 +1,17 @@
-html { height: 100%; }
-
-body {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-}
-
-#content { flex-grow: 1; }
-
-#mutation-observation-station {
-	padding-left: 0.5rem;
-	padding-right: 0.5rem;
-}
-
 h1 {
 	margin: 0;
 	font-size: 1rem;
 }
 
-summary > h1 { display: inline-block; }
-
-summary:hover > h1,
-details[open] summary h1 {
-	color: var(--background-1);
-	border-color: var(--background-1);
+#mutation-observation-station {
+	/* TODO: make custom properties for these, or use existing? */
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
 }
 
-details details { display: inline; }
-details details p { position: absolute; }
+details.floaty { display: inline; }
+details.floaty p { position: absolute; }
+
 summary.definition { list-style: none; }
 summary.definition::-webkit-details-marker { display: none; }
 
@@ -37,8 +21,4 @@ summary.definition::after {
 	margin: var(--top-padding);
 	padding-left: var(--top-padding);
 	padding-right: var(--top-padding);
-}
-
-@media screen and (orientation: landscape) {
-	body { flex-direction: row; }
 }
