@@ -362,6 +362,27 @@ function mergeMessages(browser) {
 			: {}
 	}
 
+	// Microsoft Partner Center has a linting bug whereby it fails to implement
+	// the conventional browser extension message look-up technique. Demo repo:
+	// https://github.com/matatk/partner-center-linting-bug
+	//
+	// An internal bug (Edge or Partner Center) was filed with ID 31045320
+	if (browser === 'edge') {
+		for (const locale of ['en_GB', 'en_US']) {
+			const destinationDir = builtLocaleDir(browser, locale)
+			const destinationFile = builtMessagesFile(browser, locale)
+			fse.ensureDirSync(destinationDir)
+			const fallbackMessagesJson = locale === 'en_GB'
+				? {}
+				: getMessagesOrEmpty('en_GB', 'common')
+			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
+			const merged = merge(fallbackMessagesJson, commonMessagesJson)
+			fs.writeFileSync(destinationFile, JSON.stringify(merged, null, 2))
+			ok(`messages.json written for Edge with workaround for ${locale}.`)
+		}
+		return
+	}
+
 	for (const locale of ['en_GB', 'en_US']) {
 		const destinationDir = builtLocaleDir(browser, locale)
 		const destinationFile = builtMessagesFile(browser, locale)
