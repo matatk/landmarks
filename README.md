@@ -1,7 +1,7 @@
 Landmarks
 =========
 
-[![Build Status](https://travis-ci.org/matatk/landmarks.svg?branch=master)](https://travis-ci.org/matatk/landmarks)
+![Build Status](https://github.com/matatk/landmarks/workflows/Build/badge.svg)
 
 This is a browser extension (for Firefox, Chrome, Opera and Edge) that enables navigation of WAI-ARIA landmarks, via the keyboard or a pop-up menu.
 
