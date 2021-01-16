@@ -561,7 +561,7 @@ async function main() {
 		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
-		.describe('test-release', 'Build an experimental release, which is falgged as being a test version')
+		.describe('test-release', 'Build an experimental release, which is flagged as being a test version')
 		.boolean('test-release')
 		.alias('test-release', 't')
 		.describe('release', 'Override release in manifest.json. This should only be used when making test releases.')
