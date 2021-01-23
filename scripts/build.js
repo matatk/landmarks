@@ -33,41 +33,55 @@ const validBrowsers = Object.freeze(['firefox', 'chrome', 'opera', 'edge'])
 const buildTargets = Object.freeze(validBrowsers.concat(['all']))
 
 const browserPngSizes = Object.freeze({
-	'firefox': [
-		// Global: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/icons
-		// Actions:
-		//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action#Choosing_icon_sizes
-		//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/sidebar_action
-		16,  // Toolbar/Sidebar
-		32,  // Toolbar/Sidebar
-		48,  // Extension
-		96   // Extension
-	],
-	'chrome': [
-		// Global: https://developer.chrome.com/extensions/manifest/icons
-		// Action: https://developer.chrome.com/extensions/browserAction#icon
-		16,  // Toolbar
-		24,  // Toolbar (suggested 1.5x)
-		32,  // Toolbar
-		48,  // Extension
-		128  // Extension
-	],
-	'opera': [
-		// Global: https://dev.opera.com/extensions/manifest/#icons
-		// Actions: https://dev.opera.com/extensions/browser-actions/
-		16,  // Extension
-		19,  // Toolbar/Action
-		38,  // Toolbar/Action
-		48,  // Extension
-		128  // Extension
-	],
-	'edge': [
-		// https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#extension-icons-setup
-		16,
-		32,
-		48,
-		128
-	]
+	'firefox': {
+		'internal': [
+			// Global: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/icons
+			// Actions:
+			//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action#Choosing_icon_sizes
+			//  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/sidebar_action
+			16,  // Toolbar/Sidebar
+			32,  // Toolbar/Sidebar
+			48,  // Extension
+			96   // Extension
+		]
+	},
+	'chrome': {
+		'internal': [
+			// Global: https://developer.chrome.com/extensions/manifest/icons
+			// Action: https://developer.chrome.com/extensions/browserAction#icon
+			16,  // Toolbar
+			24,  // Toolbar (suggested 1.5x)
+			32,  // Toolbar
+			48,  // Extension
+			128  // Extension
+		]
+	},
+	'opera': {
+		'internal': [
+			// Global: https://dev.opera.com/extensions/manifest/#icons
+			// Actions: https://dev.opera.com/extensions/browser-actions/
+			16,  // Extension
+			19,  // Toolbar/Action
+			38,  // Toolbar/Action
+			48,  // Extension
+			128  // Extension
+		],
+		'external': [
+			64   // Store
+		]
+	},
+	'edge': {
+		'internal': [
+			// https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#extension-icons-setup
+			16,
+			32,
+			48,
+			128
+		],
+		'external': [
+			300  // Store
+		]
+	}
 })
 
 const linters = Object.freeze({
@@ -494,21 +508,25 @@ async function getPngs(browser) {
 		return !fs.existsSync(pngPath) || isOlderThanSvg(pngPath)
 	}
 
-	for (const size of browserPngSizes[browser]) {
-		const fileName = `landmarks-${size}.png`
-		const cachedFileName = path.join(pngCacheDir, fileName)
-		const buildFileName = path.join(pathToBuild(browser), fileName)
+	for (const [key, sizes] of Object.entries(browserPngSizes[browser])) {
+		for (const size of sizes) {
+			const fileName = `landmarks-${size}.png`
+			const cachedFileName = path.join(pngCacheDir, fileName)
 
-		if (isPngAbsentOrOutdated(cachedFileName)) {
-			console.log(chalk.bold.blue(`Generating ${cachedFileName}...`))
-			await sharp(svgPath)
-				.resize(size, size)
-				.toFile(cachedFileName)
-		} else {
-			console.log(chalk.bold.blue(`Using cached ${fileName}`))
+			if (isPngAbsentOrOutdated(cachedFileName)) {
+				console.log(chalk.bold.blue(`Generating ${cachedFileName}...`))
+				await sharp(svgPath)
+					.resize(size, size)
+					.toFile(cachedFileName)
+			} else {
+				console.log(chalk.bold.blue(`Using cached ${fileName}`))
+			}
+
+			if (key === 'internal') {
+				const buildFileName = path.join(pathToBuild(browser), fileName)
+				fs.copyFileSync(cachedFileName, buildFileName)
+			}
 		}
-
-		fs.copyFileSync(cachedFileName, buildFileName)
 	}
 }
 
