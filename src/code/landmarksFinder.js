@@ -325,6 +325,61 @@ export default function LandmarksFinder(win, doc) {
 		return reversePath.reverse().join(' > ')
 	}
 
+	// TODO: experimental stuff for focus handling
+
+	function isFoundLandmark(element) {
+		for (const landmark of landmarks) {
+			if (landmark.element === element) {
+				return true
+			}
+		}
+		return false
+	}
+
+	function checkForLandmarks(element, skipSelf) {
+		if (!skipSelf) {
+			if (isFoundLandmark(element)) {
+				return element
+			}
+		}
+		for (const child of element.children) {
+			let found
+			if ((found = checkForLandmarks(child)) !== null) {
+				return found
+			}
+		}
+		return null
+	}
+
+	function tryToFind(current, skipSelf) {
+		let check = current
+		while (check) {
+			const selfAndChildren = checkForLandmarks(check, skipSelf)
+			skipSelf = false
+			if (selfAndChildren) return selfAndChildren
+
+			let sibling = check
+			while ((sibling = sibling.nextElementSibling) !== null) {
+				const siblingLandmark = checkForLandmarks(sibling)
+				if (siblingLandmark) return siblingLandmark
+			}
+
+			// FIXME: If <body> is a landmark it won't be found
+			check = current
+			do {
+				check = check.parentElement
+			} while (check.nextElementSibling === null && check !== doc.body)
+
+			check = check.nextElementSibling
+		}
+		return null
+	}
+
+	function getLandmarksIndex(element) {
+		const landmarkElements = landmarks.map(entry => entry.element)
+		return landmarkElements.indexOf(element)
+	}
+
 
 	//
 	// Public API
@@ -366,6 +421,13 @@ export default function LandmarksFinder(win, doc) {
 	// These all return elements and their related info
 
 	this.getNextLandmarkElementInfo = function() {
+		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+			const found = tryToFind(doc.activeElement, true)
+			const foundIndex = getLandmarksIndex(found)
+			if (found) {
+				return updateSelectedIndexAndReturnElementInfo(foundIndex)
+			}
+		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
