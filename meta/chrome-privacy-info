@@ -2,7 +2,7 @@ Single Purpose Description:
 Accessibility aid to help keyboard-only users navigate around pages. This may include people with motor control difficulties and/or RSI, for example.
 
 storage:
-Allows the user to have persistent settings, such as the length of time borders are displayed around landmark regions when navigating, their colour and the font size used in their labels.
+Allows the user to have persistent settings, such as the length of time borders are displayed around landmark regions when navigating, their colour and the font size used in their labels. Also used to track whether notifications presented in the UI have been acknowledged/dismissed.
 
 webNavigation:
 Lets the extension scan newly-loaded pages/SPA views for landmark regions, so the browser action can be badged with the number found, and the user knows if there are landmarks on each page. Without this, the user would have to manually activate the extension on every page they visit.
