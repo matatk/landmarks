@@ -11,3 +11,4 @@ _site
 .jekyll-metadata
 .nyc_output
 coverage
+scripts/rolledLandmarksFinder.js

@@ -1,7 +1,9 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
+
 const puppeteer = require('puppeteer')
+const rollup = require('rollup')
 const stats = require('stats-lite')
 
 const urls = Object.freeze({
@@ -47,7 +49,7 @@ function doLandmarkInsertionRuns(sites, landmarks, runs) {
 				for (let repetition = 0; repetition < landmarks; repetition++) {
 					console.log(`Repetition ${repetition}`)
 					await insertLandmark(page, repetition)
-					await page.waitFor(delayAfterInsertingLandmark)
+					await page.waitForTimeout(delayAfterInsertingLandmark)
 				}
 
 				await page.tracing.stop()
@@ -85,8 +87,22 @@ async function insertLandmark(page, repetition) {
 // Specific landmarksFinder test
 //
 
-function timeLandmarksFinding(sites, loops) {
-	const landmarksFinderPath = path.join('scripts', 'generated-landmarks-finder.js')
+async function rollLandmarksFinder() {
+	const outputPath = path.join('scripts', 'rolledLandmarksFinder.js')
+	const bundle = await rollup.rollup({
+		input: path.join('src', 'code', 'landmarksFinder.js')
+	})
+	await bundle.write({
+		file: outputPath,
+		format: 'cjs',
+		exports: 'default'
+	})
+	return outputPath
+}
+
+async function timeLandmarksFinding(sites, loops) {
+	const landmarksFinderPath = await rollLandmarksFinder()
+	console.log(landmarksFinderPath)
 	const results = {}
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
@@ -161,16 +177,16 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 		path: traceName,
 		screenshots: true
 	})
-	await page.waitFor(500)
+	await page.waitForTimeout(500)
 
 	console.log(`Clicking buttons (pause: ${pauseBetweenClicks})`)
 	for (const selector of selectors) {
 		await page.click(selector)
-		await page.waitFor(pauseBetweenClicks)
+		await page.waitForTimeout(pauseBetweenClicks)
 	}
 
 	console.log(`Waiting for ${postDelay} for page to settle`)
-	await page.waitFor(postDelay)
+	await page.waitForTimeout(postDelay)
 
 	console.log('Stopping tracing')
 	await page.tracing.stop()
@@ -201,7 +217,7 @@ function traceWithAndWithoutGuarding() {
 
 async function settle(page) {
 	console.log('Page loaded; settling...')
-	await page.waitFor(pageSettlingDelay)
+	await page.waitForTimeout(pageSettlingDelay)
 }
 
 function main() {
