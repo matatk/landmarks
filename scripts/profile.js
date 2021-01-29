@@ -120,6 +120,7 @@ async function timeLandmarksFinding(sites, loops) {
 			console.log(`Running landmark-finding code ${loops} times...`)
 			const durations = await page.evaluate(scanAndTallyDurations, loops)
 			results[site] = {
+				url: urls[site],
 				mean: stats.mean(durations),
 				standardDeviation: stats.stdev(durations)
 			}
