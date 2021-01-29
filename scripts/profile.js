@@ -88,21 +88,29 @@ async function insertLandmark(page, repetition) {
 //
 
 async function rollLandmarksFinder() {
+	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
 	const outputPath = path.join('scripts', 'rolledLandmarksFinder.js')
-	const bundle = await rollup.rollup({
-		input: path.join('src', 'code', 'landmarksFinder.js')
-	})
-	await bundle.write({
-		file: outputPath,
-		format: 'cjs',
-		exports: 'default'
-	})
+
+	const inputModified = fs.statSync(inputPath).mtime
+	const outputModified = fs.existsSync(outputPath)
+		? fs.statSync(outputPath).mtime
+		: null
+
+	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
+		console.log('Rolluping', inputPath, 'to', outputPath)
+		const bundle = await rollup.rollup({ input: inputPath })
+		await bundle.write({
+			file: outputPath,
+			format: 'cjs',
+			exports: 'default'
+		})
+	}
+
 	return outputPath
 }
 
 async function timeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await rollLandmarksFinder()
-	console.log(landmarksFinderPath)
 	const results = {}
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
@@ -158,7 +166,7 @@ function printAndSaveResults(results, loops) {
 		.replace(/:/, '')
 	const fileName = `times--${loops}--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
-	console.log(`${fileName} written to disk.`)
+	console.log(`${fileName} written.`)
 }
 
 
