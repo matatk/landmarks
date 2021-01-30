@@ -38,7 +38,7 @@ function doLandmarkInsertionRuns(sites, landmarks, runs) {
 
 			for (let run = 0; run < runs; run++) {
 				console.log(`Run ${run}`)
-				await page.goto(urls[site], { waitUntil: 'networkidle2' })
+				await goToAndSettle(page, urls[site])
 				await page.bringToFront()
 				await page.tracing.start({
 					path: `trace--${site}--${landmarks}--run${run}.json`,
@@ -97,14 +97,17 @@ async function doTimeLandmarksFinding(sites, loops) {
 			const page = await browser.newPage()
 
 			page.on('console', msg => console.log('>', msg.text()))
-			page.on('pageerror', error => { console.log(error.message) })
+			page.on('pageerror', error => {
+				console.log(error.message)
+			})
 			page.on('requestfailed', request => {
 				console.log(request.failure().errorText, request.url())
 			})
 
 			console.log()
 			console.log(`Loading ${urls[site]}...`)
-			await page.goto(urls[site], { waitUntil: 'networkidle2' })
+			await goToAndSettle(page, urls[site])
+			await page.waitForTimeout(5e3)
 			console.log('Injecting script...')
 			await page.addScriptTag({ path: landmarksFinderPath })
 
@@ -113,12 +116,12 @@ async function doTimeLandmarksFinding(sites, loops) {
 
 			fullResults['results'][site] = {
 				url: urls[site],
-				meanScanTime: stats.mean(pageResults.durations),
-				standardDeviation: stats.stdev(pageResults.durations)
+				meanScanTime: stats.mean(pageResults.scanDurations),
+				standardDeviation: stats.stdev(pageResults.scanDurations)
 			}
 
 			for (const [key, value] of Object.entries(pageResults)) {
-				if (key !== 'durations') {
+				if (key !== 'scanDurations') {
 					fullResults['results'][site][key] = value
 				}
 			}
@@ -156,27 +159,35 @@ function scanDurationsAndInfo(times) {
 	const interactiveElements = document.querySelectorAll(interactiveElementselector).length
 
 	const lf = new window.LandmarksFinder(window, document)
-	const durations = []
+	const scanDurations = []
 	for (let i = 0; i < times; i++) {
 		const start = window.performance.now()
 		lf.find()
 		const end = window.performance.now()
-		durations.push(end - start)
+		scanDurations.push(end - start)
 	}
 
 	return {
 		'numElements': elements,
 		'numInteractiveElements': interactiveElements,
-		'interactiveElementRatio': (interactiveElements / elements).toFixed(2),
-		'durations': durations,
+		'interactiveElementPercent': (interactiveElements / elements) * 100,
+		'scanDurations': scanDurations,
 		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
 
+function rounder(key, value) {
+	const roundKeys = new Set([
+		'meanScanTime',
+		'standardDeviation',
+		'interactiveElementPercent'])
+	if (roundKeys.has(key)) {
+		return Number(value.toPrecision(2))
+	}
+	return value
+}
+
 function printAndSaveResults(results) {
-	const rounder = (key, value) => key !== 'loops' && value.toPrecision
-		? Number(value.toPrecision(2))
-		: value
 	console.log()
 	console.log('Done.\nResults (times are in ms):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
@@ -220,7 +231,7 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
 
 	console.log(`Making ${traceName}`)
-	await page.goto(testUrl, { waitUntil: 'networkidle2' })
+	await goToAndSettle(page, testUrl)
 	await page.bringToFront()
 	await page.tracing.start({
 		path: traceName,
@@ -245,6 +256,14 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 //
 // Main and support
 //
+
+async function goToAndSettle(page, url) {
+	// The 'networkidle2' event should be the end of content loading, but found
+	// that on some pages an extra wait was needed, or the number of elements
+	// found on the page varied a lot.
+	await page.goto(url, { waitUntil: 'networkidle2' })
+	await page.waitForTimeout(4e3)
+}
 
 function main() {
 	let mode
