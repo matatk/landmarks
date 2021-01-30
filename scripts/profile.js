@@ -127,7 +127,7 @@ async function wrapLandmarksFinder() {
 		: null
 
 	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
-		console.log('Rolluping', wrapSourcePath, 'to', wrapOutputPath)
+		console.log('Wrapping', wrapSourcePath, 'as', wrapOutputPath)
 		const bundle = await rollup.rollup({ input: wrapSourcePath })
 		await bundle.write({
 			file: wrapOutputPath,
