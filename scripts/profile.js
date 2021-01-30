@@ -87,29 +87,7 @@ async function insertLandmark(page, repetition) {
 // Specific landmarksFinder test
 //
 
-async function wrapLandmarksFinder() {
-	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
-	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
-
-	const inputModified = fs.statSync(inputPath).mtime
-	const outputModified = fs.existsSync(outputPath)
-		? fs.statSync(outputPath).mtime
-		: null
-
-	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-		console.log('Rolluping', inputPath, 'to', outputPath)
-		const bundle = await rollup.rollup({ input: inputPath })
-		await bundle.write({
-			file: outputPath,
-			format: 'cjs',
-			exports: 'default'
-		})
-	}
-
-	return outputPath
-}
-
-async function timeLandmarksFinding(sites, loops) {
+async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
 	const results = {}
 
@@ -138,6 +116,28 @@ async function timeLandmarksFinding(sites, loops) {
 		await browser.close()
 		printAndSaveResults(results, loops)
 	})
+}
+
+async function wrapLandmarksFinder() {
+	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
+	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
+
+	const inputModified = fs.statSync(inputPath).mtime
+	const outputModified = fs.existsSync(outputPath)
+		? fs.statSync(outputPath).mtime
+		: null
+
+	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
+		console.log('Rolluping', inputPath, 'to', outputPath)
+		const bundle = await rollup.rollup({ input: inputPath })
+		await bundle.write({
+			file: outputPath,
+			format: 'cjs',
+			exports: 'default'
+		})
+	}
+
+	return outputPath
 }
 
 function scanAndTallyDurations(times) {
@@ -174,6 +174,24 @@ function printAndSaveResults(results, loops) {
 // Making a trace to test mutation guarding in the debug extension
 //
 
+function doTraceWithAndWithoutGuarding() {
+	console.log(`${debugBuildNote}\n`)
+	puppeteer.launch({
+		headless: false,  // needed to support extensions
+		args: [
+			'--disable-extensions-except=build/chrome/',
+			'--load-extension=build/chrome/'
+		]
+	}).then(async browser => {
+		const page = await browser.newPage()
+		await page.bringToFront()  // stops it getting stuck on Landmarks help
+		await singleRun(page, 'trace--no-guarding.json', 600, 0)
+		console.log()
+		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
+		await browser.close()
+	})
+}
+
 async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	const testPage = 'manual-test-injected-landmarks.html'
 	const testUrl = 'file://' + path.join(__dirname, '..', 'test', testPage)
@@ -199,24 +217,6 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 
 	console.log('Stopping tracing')
 	await page.tracing.stop()
-}
-
-function traceWithAndWithoutGuarding() {
-	console.log(`${debugBuildNote}\n`)
-	puppeteer.launch({
-		headless: false,  // needed to support extensions
-		args: [
-			'--disable-extensions-except=build/chrome/',
-			'--load-extension=build/chrome/'
-		]
-	}).then(async browser => {
-		const page = await browser.newPage()
-		await page.bringToFront()  // stops it getting stuck on Landmarks help
-		await singleRun(page, 'trace--no-guarding.json', 600, 0)
-		console.log()
-		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
-		await browser.close()
-	})
 }
 
 
@@ -296,10 +296,10 @@ function main() {
 			doLandmarkInsertionRuns(pages, argv.landmarks, argv.runs)
 			break
 		case 'time':
-			timeLandmarksFinding(pages, argv.repetitions)
+			doTimeLandmarksFinding(pages, argv.repetitions)
 			break
 		case 'guarding':
-			traceWithAndWithoutGuarding()
+			doTraceWithAndWithoutGuarding()
 	}
 }
 
