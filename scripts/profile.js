@@ -13,7 +13,7 @@ const urls = Object.freeze({
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
-const pageSettlingDelay = 2e3
+const pageSettlingDelay = 5e3
 const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
 const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
@@ -91,27 +91,41 @@ async function insertLandmark(page, repetition) {
 
 async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
-	const results = { 'meta': { 'loops': loops }, 'sites': {} }
+	const results = { meta: { loops: loops }, results: {} }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const site of sites) {
 			const page = await browser.newPage()
+
+			page.on('console', msg => console.log('>', msg.text()))
+			page.on('pageerror', error => {
+				console.log(error.message)
+			})
+			/*
+			page.on('response', response => {
+				console.log(response.status(), response.url())
+			})
+			*/
+			page.on('requestfailed', request => {
+				console.log(request.failure().errorText, request.url())
+			})
+
 			console.log()
 			console.log(`Loading ${urls[site]}...`)
 			await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
 			await settle(page)
 			console.log('Injecting script...')
-			await page.addScriptTag({
-				path: landmarksFinderPath
-			})
+			await page.addScriptTag({ path: landmarksFinderPath })
+
 			console.log(`Running landmark-finding code ${loops} times...`)
 			const durations = await page.evaluate(scanAndTallyDurations, loops)
-			results['sites'][site] = {
+			results['results'][site] = {
 				url: urls[site],
-				mean: stats.mean(durations),
+				meanScanTime: stats.mean(durations),
 				standardDeviation: stats.stdev(durations)
 			}
+
 			await page.close()
 		}
 
@@ -131,8 +145,8 @@ async function wrapLandmarksFinder() {
 		const bundle = await rollup.rollup({ input: wrapSourcePath })
 		await bundle.write({
 			file: wrapOutputPath,
-			format: 'cjs',
-			exports: 'default'
+			format: 'iife',
+			name: 'LandmarksFinder'
 		})
 	}
 
