@@ -91,7 +91,7 @@ async function insertLandmark(page, repetition) {
 
 async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
-	const results = { meta: { loops: loops }, results: {} }
+	const fullResults = { meta: { loops: loops }, results: {} }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
@@ -102,11 +102,9 @@ async function doTimeLandmarksFinding(sites, loops) {
 			page.on('pageerror', error => {
 				console.log(error.message)
 			})
-			/*
 			page.on('response', response => {
 				console.log(response.status(), response.url())
 			})
-			*/
 			page.on('requestfailed', request => {
 				console.log(request.failure().errorText, request.url())
 			})
@@ -119,18 +117,25 @@ async function doTimeLandmarksFinding(sites, loops) {
 			await page.addScriptTag({ path: landmarksFinderPath })
 
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const durations = await page.evaluate(scanAndTallyDurations, loops)
-			results['results'][site] = {
+			const pageResults = await page.evaluate(scanDurationsAndInfo, loops)
+
+			fullResults['results'][site] = {
 				url: urls[site],
-				meanScanTime: stats.mean(durations),
-				standardDeviation: stats.stdev(durations)
+				meanScanTime: stats.mean(pageResults.durations),
+				standardDeviation: stats.stdev(pageResults.durations)
+			}
+
+			for (const [key, value] of Object.entries(pageResults)) {
+				if (key !== 'durations') {
+					fullResults['results'][site][key] = value
+				}
 			}
 
 			await page.close()
 		}
 
 		await browser.close()
-		printAndSaveResults(results, loops)
+		printAndSaveResults(fullResults, loops)
 	})
 }
 
@@ -153,7 +158,11 @@ async function wrapLandmarksFinder() {
 	return wrapOutputPath
 }
 
-function scanAndTallyDurations(times) {
+function scanDurationsAndInfo(times) {
+	const interactiveElementselector = 'a[href], button, input, textarea'
+	const elements = document.querySelectorAll('*').length
+	const interactiveElements = document.querySelectorAll(interactiveElementselector).length
+
 	const lf = new window.LandmarksFinder(window, document)
 	const durations = []
 	for (let i = 0; i < times; i++) {
@@ -162,7 +171,13 @@ function scanAndTallyDurations(times) {
 		const end = window.performance.now()
 		durations.push(end - start)
 	}
-	return durations
+
+	return {
+		'numElements': elements,
+		'numInteractiveElements': interactiveElements,
+		'interactiveElementRatio': (interactiveElements / elements).toFixed(2),
+		'durations': durations
+	}
 }
 
 function printAndSaveResults(results) {
