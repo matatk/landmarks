@@ -87,7 +87,7 @@ async function insertLandmark(page, repetition) {
 // Specific landmarksFinder test
 //
 
-async function rollLandmarksFinder() {
+async function wrapLandmarksFinder() {
 	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
 	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
 
@@ -110,7 +110,7 @@ async function rollLandmarksFinder() {
 }
 
 async function timeLandmarksFinding(sites, loops) {
-	const landmarksFinderPath = await rollLandmarksFinder()
+	const landmarksFinderPath = await wrapLandmarksFinder()
 	const results = {}
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
