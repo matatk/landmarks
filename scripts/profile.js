@@ -155,7 +155,7 @@ function printAndSaveResults(results, loops) {
 	const rounder = (key, value) =>
 		value.toPrecision ? Number(value.toPrecision(2)) : value
 	console.log()
-	console.log('Done.\nResults (mean time in ms for one landmarks sweep):')
+	console.log('Done.\nResults (times are in ms):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
 	console.log(resultsJson)
 	const roughlyNow = new Date()
