@@ -89,7 +89,7 @@ async function insertLandmark(page, repetition) {
 
 async function rollLandmarksFinder() {
 	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
-	const outputPath = path.join('scripts', 'rolledLandmarksFinder.js')
+	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
 
 	const inputModified = fs.statSync(inputPath).mtime
 	const outputModified = fs.existsSync(outputPath)
