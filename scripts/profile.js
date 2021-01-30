@@ -91,7 +91,7 @@ async function insertLandmark(page, repetition) {
 
 async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
-	const results = {}
+	const results = { 'meta': { 'loops': loops }, 'sites': {} }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
@@ -107,7 +107,7 @@ async function doTimeLandmarksFinding(sites, loops) {
 			})
 			console.log(`Running landmark-finding code ${loops} times...`)
 			const durations = await page.evaluate(scanAndTallyDurations, loops)
-			results[site] = {
+			results['sites'][site] = {
 				url: urls[site],
 				mean: stats.mean(durations),
 				standardDeviation: stats.stdev(durations)
@@ -151,9 +151,10 @@ function scanAndTallyDurations(times) {
 	return durations
 }
 
-function printAndSaveResults(results, loops) {
-	const rounder = (key, value) =>
-		value.toPrecision ? Number(value.toPrecision(2)) : value
+function printAndSaveResults(results) {
+	const rounder = (key, value) => key !== 'loops' && value.toPrecision
+		? Number(value.toPrecision(2))
+		: value
 	console.log()
 	console.log('Done.\nResults (times are in ms):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
@@ -163,7 +164,7 @@ function printAndSaveResults(results, loops) {
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `times--${loops}--${roughlyNow}.json`
+	const fileName = `times--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
 	console.log(`${fileName} written.`)
 }
