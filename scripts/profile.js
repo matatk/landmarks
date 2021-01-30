@@ -14,6 +14,8 @@ const urls = Object.freeze({
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
 const pageSettlingDelay = 2e3
+const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
+const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
 
 
@@ -119,25 +121,22 @@ async function doTimeLandmarksFinding(sites, loops) {
 }
 
 async function wrapLandmarksFinder() {
-	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
-	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
-
-	const inputModified = fs.statSync(inputPath).mtime
-	const outputModified = fs.existsSync(outputPath)
-		? fs.statSync(outputPath).mtime
+	const inputModified = fs.statSync(wrapSourcePath).mtime
+	const outputModified = fs.existsSync(wrapOutputPath)
+		? fs.statSync(wrapOutputPath).mtime
 		: null
 
-	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-		console.log('Rolluping', inputPath, 'to', outputPath)
-		const bundle = await rollup.rollup({ input: inputPath })
+	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
+		console.log('Rolluping', wrapSourcePath, 'to', wrapOutputPath)
+		const bundle = await rollup.rollup({ input: wrapSourcePath })
 		await bundle.write({
-			file: outputPath,
+			file: wrapOutputPath,
 			format: 'cjs',
 			exports: 'default'
 		})
 	}
 
-	return outputPath
+	return wrapOutputPath
 }
 
 function scanAndTallyDurations(times) {
