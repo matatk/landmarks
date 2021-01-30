@@ -13,7 +13,6 @@ const urls = Object.freeze({
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
-const pageSettlingDelay = 5e3
 const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
 const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
@@ -39,13 +38,12 @@ function doLandmarkInsertionRuns(sites, landmarks, runs) {
 
 			for (let run = 0; run < runs; run++) {
 				console.log(`Run ${run}`)
-				await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
+				await page.goto(urls[site], { waitUntil: 'networkidle2' })
 				await page.bringToFront()
 				await page.tracing.start({
 					path: `trace--${site}--${landmarks}--run${run}.json`,
 					screenshots: true
 				})
-				await settle(page)
 
 				console.log('Adding landmarks stage (if applicable)...')
 				for (let repetition = 0; repetition < landmarks; repetition++) {
@@ -99,20 +97,14 @@ async function doTimeLandmarksFinding(sites, loops) {
 			const page = await browser.newPage()
 
 			page.on('console', msg => console.log('>', msg.text()))
-			page.on('pageerror', error => {
-				console.log(error.message)
-			})
-			page.on('response', response => {
-				console.log(response.status(), response.url())
-			})
+			page.on('pageerror', error => { console.log(error.message) })
 			page.on('requestfailed', request => {
 				console.log(request.failure().errorText, request.url())
 			})
 
 			console.log()
 			console.log(`Loading ${urls[site]}...`)
-			await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
-			await settle(page)
+			await page.goto(urls[site], { waitUntil: 'networkidle2' })
 			console.log('Injecting script...')
 			await page.addScriptTag({ path: landmarksFinderPath })
 
@@ -159,7 +151,7 @@ async function wrapLandmarksFinder() {
 }
 
 function scanDurationsAndInfo(times) {
-	const interactiveElementselector = 'a[href], button, input, textarea'
+	const interactiveElementselector = 'a[href], a[tabindex], button, div[tabindex], input, textarea'
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(interactiveElementselector).length
 
@@ -176,7 +168,8 @@ function scanDurationsAndInfo(times) {
 		'numElements': elements,
 		'numInteractiveElements': interactiveElements,
 		'interactiveElementRatio': (interactiveElements / elements).toFixed(2),
-		'durations': durations
+		'durations': durations,
+		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
 
@@ -227,7 +220,7 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
 
 	console.log(`Making ${traceName}`)
-	await page.goto(testUrl, { waitUntil: 'domcontentloaded' })
+	await page.goto(testUrl, { waitUntil: 'networkidle2' })
 	await page.bringToFront()
 	await page.tracing.start({
 		path: traceName,
@@ -252,11 +245,6 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 //
 // Main and support
 //
-
-async function settle(page) {
-	console.log('Page loaded; settling...')
-	await page.waitForTimeout(pageSettlingDelay)
-}
 
 function main() {
 	let mode
