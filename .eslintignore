@@ -1,3 +1,4 @@
 build/
 _site/
 generated-*.js
+scripts/wrappedLandmarksFinder.js

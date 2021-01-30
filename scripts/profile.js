@@ -13,7 +13,14 @@ const urls = Object.freeze({
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
 })
-const pageSettlingDelay = 2e3
+const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
+const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
+const pageSettleDelay = 4e3
+
+const roundKeys = new Set([
+	'meanScanTime',
+	'standardDeviation',
+	'interactiveElementPercent'])
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
 
 
@@ -37,13 +44,12 @@ function doLandmarkInsertionRuns(sites, landmarks, runs) {
 
 			for (let run = 0; run < runs; run++) {
 				console.log(`Run ${run}`)
-				await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
+				await goToAndSettle(page, urls[site])
 				await page.bringToFront()
 				await page.tracing.start({
 					path: `trace--${site}--${landmarks}--run${run}.json`,
 					screenshots: true
 				})
-				await settle(page)
 
 				console.log('Adding landmarks stage (if applicable)...')
 				for (let repetition = 0; repetition < landmarks; repetition++) {
@@ -87,76 +93,105 @@ async function insertLandmark(page, repetition) {
 // Specific landmarksFinder test
 //
 
-async function rollLandmarksFinder() {
-	const inputPath = path.join('src', 'code', 'landmarksFinder.js')
-	const outputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
-
-	const inputModified = fs.statSync(inputPath).mtime
-	const outputModified = fs.existsSync(outputPath)
-		? fs.statSync(outputPath).mtime
-		: null
-
-	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-		console.log('Rolluping', inputPath, 'to', outputPath)
-		const bundle = await rollup.rollup({ input: inputPath })
-		await bundle.write({
-			file: outputPath,
-			format: 'cjs',
-			exports: 'default'
-		})
-	}
-
-	return outputPath
-}
-
-async function timeLandmarksFinding(sites, loops) {
-	const landmarksFinderPath = await rollLandmarksFinder()
-	const results = {}
+async function doTimeLandmarksFinding(sites, loops) {
+	const landmarksFinderPath = await wrapLandmarksFinder()
+	const fullResults = { meta: { loops: loops }, results: {} }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const site of sites) {
 			const page = await browser.newPage()
+
+			page.on('console', msg => console.log('>', msg.text()))
+			page.on('pageerror', error => {
+				console.log(error.message)
+			})
+			page.on('requestfailed', request => {
+				console.log(request.failure().errorText, request.url())
+			})
+
 			console.log()
 			console.log(`Loading ${urls[site]}...`)
-			await page.goto(urls[site], { waitUntil: 'domcontentloaded' })
-			await settle(page)
+			await goToAndSettle(page, urls[site])
+			await page.waitForTimeout(5e3)
 			console.log('Injecting script...')
-			await page.addScriptTag({
-				path: landmarksFinderPath
-			})
+			await page.addScriptTag({ path: landmarksFinderPath })
+
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const durations = await page.evaluate(scanAndTallyDurations, loops)
-			results[site] = {
+			const pageResults = await page.evaluate(scanDurationsAndInfo, loops)
+
+			fullResults['results'][site] = {
 				url: urls[site],
-				mean: stats.mean(durations),
-				standardDeviation: stats.stdev(durations)
+				meanScanTime: stats.mean(pageResults.scanDurations),
+				standardDeviation: stats.stdev(pageResults.scanDurations)
 			}
+
+			for (const [key, value] of Object.entries(pageResults)) {
+				if (key !== 'scanDurations') {
+					fullResults['results'][site][key] = value
+				}
+			}
+
 			await page.close()
 		}
 
 		await browser.close()
-		printAndSaveResults(results, loops)
+		printAndSaveResults(fullResults, loops)
 	})
 }
 
-function scanAndTallyDurations(times) {
+async function wrapLandmarksFinder() {
+	const inputModified = fs.statSync(wrapSourcePath).mtime
+	const outputModified = fs.existsSync(wrapOutputPath)
+		? fs.statSync(wrapOutputPath).mtime
+		: null
+
+	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
+		console.log('Wrapping', wrapSourcePath, 'as', wrapOutputPath)
+		const bundle = await rollup.rollup({ input: wrapSourcePath })
+		await bundle.write({
+			file: wrapOutputPath,
+			format: 'iife',
+			name: 'LandmarksFinder'
+		})
+	}
+
+	return wrapOutputPath
+}
+
+function scanDurationsAndInfo(times) {
+	const interactiveElementselector = 'a[href], a[tabindex], button, div[tabindex], input, textarea'
+	const elements = document.querySelectorAll('*').length
+	const interactiveElements = document.querySelectorAll(interactiveElementselector).length
+
 	const lf = new window.LandmarksFinder(window, document)
-	const durations = []
+	const scanDurations = []
 	for (let i = 0; i < times; i++) {
 		const start = window.performance.now()
 		lf.find()
 		const end = window.performance.now()
-		durations.push(end - start)
+		scanDurations.push(end - start)
 	}
-	return durations
+
+	return {
+		'numElements': elements,
+		'numInteractiveElements': interactiveElements,
+		'interactiveElementPercent': (interactiveElements / elements) * 100,
+		'scanDurations': scanDurations,
+		'numLandmarks': lf.getNumberOfLandmarks()
+	}
 }
 
-function printAndSaveResults(results, loops) {
-	const rounder = (key, value) =>
-		value.toPrecision ? Number(value.toPrecision(2)) : value
+function rounder(key, value) {
+	if (roundKeys.has(key)) {
+		return Number(value.toPrecision(2))
+	}
+	return value
+}
+
+function printAndSaveResults(results) {
 	console.log()
-	console.log('Done.\nResults (mean time in ms for one landmarks sweep):')
+	console.log('Done.\nResults (times are in ms):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
 	console.log(resultsJson)
 	const roughlyNow = new Date()
@@ -164,7 +199,7 @@ function printAndSaveResults(results, loops) {
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `times--${loops}--${roughlyNow}.json`
+	const fileName = `times--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
 	console.log(`${fileName} written.`)
 }
@@ -174,13 +209,31 @@ function printAndSaveResults(results, loops) {
 // Making a trace to test mutation guarding in the debug extension
 //
 
+function doTraceWithAndWithoutGuarding() {
+	console.log(`${debugBuildNote}\n`)
+	puppeteer.launch({
+		headless: false,  // needed to support extensions
+		args: [
+			'--disable-extensions-except=build/chrome/',
+			'--load-extension=build/chrome/'
+		]
+	}).then(async browser => {
+		const page = await browser.newPage()
+		await page.bringToFront()  // stops it getting stuck on Landmarks help
+		await singleRun(page, 'trace--no-guarding.json', 600, 0)
+		console.log()
+		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
+		await browser.close()
+	})
+}
+
 async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	const testPage = 'manual-test-injected-landmarks.html'
 	const testUrl = 'file://' + path.join(__dirname, '..', 'test', testPage)
 	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
 
 	console.log(`Making ${traceName}`)
-	await page.goto(testUrl, { waitUntil: 'domcontentloaded' })
+	await goToAndSettle(page, testUrl)
 	await page.bringToFront()
 	await page.tracing.start({
 		path: traceName,
@@ -201,32 +254,18 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	await page.tracing.stop()
 }
 
-function traceWithAndWithoutGuarding() {
-	console.log(`${debugBuildNote}\n`)
-	puppeteer.launch({
-		headless: false,  // needed to support extensions
-		args: [
-			'--disable-extensions-except=build/chrome/',
-			'--load-extension=build/chrome/'
-		]
-	}).then(async browser => {
-		const page = await browser.newPage()
-		await page.bringToFront()  // stops it getting stuck on Landmarks help
-		await singleRun(page, 'trace--no-guarding.json', 600, 0)
-		console.log()
-		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
-		await browser.close()
-	})
-}
-
 
 //
 // Main and support
 //
 
-async function settle(page) {
+async function goToAndSettle(page, url) {
+	// The 'networkidle2' event should be the end of content loading, but found
+	// that on some pages an extra wait was needed, or the number of elements
+	// found on the page varied a lot.
+	await page.goto(url, { waitUntil: 'networkidle2' })
 	console.log('Page loaded; settling...')
-	await page.waitForTimeout(pageSettlingDelay)
+	await page.waitForTimeout(pageSettleDelay)
 }
 
 function main() {
@@ -296,10 +335,10 @@ function main() {
 			doLandmarkInsertionRuns(pages, argv.landmarks, argv.runs)
 			break
 		case 'time':
-			timeLandmarksFinding(pages, argv.repetitions)
+			doTimeLandmarksFinding(pages, argv.repetitions)
 			break
 		case 'guarding':
-			traceWithAndWithoutGuarding()
+			doTraceWithAndWithoutGuarding()
 	}
 }
 
