@@ -610,13 +610,14 @@ async function main() {
 	const action = isFullBuild ? 'Building' : 'Cleaning'
 	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
 	const debugMode = argv.debug === true
+	const debugMsg = debugMode ? ' (debug)' : ''
 
 	testMode = argv.testRelease === true
-	const testModeMessage = testMode ? ' (test version)' : ''
+	const testMsg = testMode ? ' (test)' : ''
 
 	for (const browser of browsers) {
 		console.log()
-		logStep(chalk.bold(`${action} for ${browser}${testModeMessage}`))
+		logStep(chalk.bold(`${action} for ${browser}${testMsg}${debugMsg}`))
 		clean(browser)
 		if (isFullBuild) {
 			copyStaticFiles(browser)
