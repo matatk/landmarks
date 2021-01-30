@@ -15,6 +15,12 @@ const urls = Object.freeze({
 })
 const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
 const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
+const pageSettleDelay = 4e3
+
+const roundKeys = new Set([
+	'meanScanTime',
+	'standardDeviation',
+	'interactiveElementPercent'])
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
 
 
@@ -177,10 +183,6 @@ function scanDurationsAndInfo(times) {
 }
 
 function rounder(key, value) {
-	const roundKeys = new Set([
-		'meanScanTime',
-		'standardDeviation',
-		'interactiveElementPercent'])
 	if (roundKeys.has(key)) {
 		return Number(value.toPrecision(2))
 	}
@@ -262,7 +264,8 @@ async function goToAndSettle(page, url) {
 	// that on some pages an extra wait was needed, or the number of elements
 	// found on the page varied a lot.
 	await page.goto(url, { waitUntil: 'networkidle2' })
-	await page.waitForTimeout(4e3)
+	console.log('Page loaded; settling...')
+	await page.waitForTimeout(pageSettleDelay)
 }
 
 function main() {
