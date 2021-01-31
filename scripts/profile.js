@@ -2,6 +2,7 @@
 const path = require('path')
 const fs = require('fs')
 
+const fse = require('fs-extra')
 const puppeteer = require('puppeteer')
 const rollup = require('rollup')
 const stats = require('stats-lite')
@@ -9,19 +10,33 @@ const stats = require('stats-lite')
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
-	ars: 'https://arstechnica.com',
+	ars: 'https://arstechnica.com',  // FIXME: trace doesn't work on cached page
 	bbcnews: 'https://www.bbc.co.uk/news',
-	googledoc: 'https://docs.google.com/document/d/1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs'
+	googledoc1: 'https://docs.google.com/document/d/\
+		1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs',
+	googledoc2: 'https://docs.google.com/document/d/\
+		1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE'
 })
-const wrapSourcePath = path.join('src', 'code', 'landmarksFinder.js')
-const wrapOutputPath = path.join('scripts', 'wrappedLandmarksFinder.js')
-const pageSettleDelay = 4e3
+const cacheDir = path.join(__dirname, 'profile-cache')
+const wrapSourcePath = path.join(
+	__dirname, '..', 'src', 'code', 'landmarksFinder.js')
+const wrapOutputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
+const pageSettleDelay = 4e3              // after loading a real page
+const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
+const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 
-const roundKeys = new Set([
-	'meanScanTime',
-	'standardDeviation',
-	'interactiveElementPercent'])
+const interactiveElementSelector =
+	'a[href], a[tabindex], button, div[tabindex], input, textarea'
+const roundTheseKeys = new Set([
+	'interactiveElementPercent',
+	'navMeanTimeMS',
+	'navStandardDeviation',
+	'scanMeanTimeMS',
+	'scanStandardDeviation'])
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
+
+let quiet = false
+let reallyQuiet = false
 
 
 //
@@ -29,8 +44,6 @@ const debugBuildNote = 'Remember to run this with a debug build of the extension
 //
 
 function doLandmarkInsertionRuns(sites, landmarks, runs) {
-	const delayAfterInsertingLandmark = 1e3
-
 	puppeteer.launch({
 		headless: false,  // needed to support extensions
 		args: [
@@ -39,17 +52,14 @@ function doLandmarkInsertionRuns(sites, landmarks, runs) {
 		]
 	}).then(async browser => {
 		for (const site of sites) {
-			console.log(`Tracing on ${urls[site]}...\n`)
-			const page = await browser.newPage()
+			console.log(`Tracing on ${site}...\n`)
+			const page = await pageSetUp(browser, true)
 
 			for (let run = 0; run < runs; run++) {
 				console.log(`Run ${run}`)
-				await goToAndSettle(page, urls[site])
-				await page.bringToFront()
-				await page.tracing.start({
-					path: `trace--${site}--${landmarks}--run${run}.json`,
-					screenshots: true
-				})
+				const traceName = `trace--${site}--${landmarks}--run${run}.json`
+				await load(page, site)
+				await startTracing(page, traceName)
 
 				console.log('Adding landmarks stage (if applicable)...')
 				for (let repetition = 0; repetition < landmarks; repetition++) {
@@ -90,48 +100,49 @@ async function insertLandmark(page, repetition) {
 
 
 //
-// Specific landmarksFinder test
+// Getting landmarksFinder timings directly
 //
 
 async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
-	const fullResults = { meta: { loops: loops }, results: {} }
+	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const site of sites) {
-			const page = await browser.newPage()
-
-			page.on('console', msg => console.log('>', msg.text()))
-			page.on('pageerror', error => {
-				console.log(error.message)
-			})
-			page.on('requestfailed', request => {
-				console.log(request.failure().errorText, request.url())
-			})
+			const page = await pageSetUp(browser, false)
+			const results = { 'url': urls[site] }
 
 			console.log()
-			console.log(`Loading ${urls[site]}...`)
-			await goToAndSettle(page, urls[site])
-			await page.waitForTimeout(5e3)
+			console.log(`Loading ${site}...`)
+			await load(page, site)
+
+			console.log('Counting elements...')
+			Object.assign(results, await page.evaluate(
+				elementCounts, interactiveElementSelector))
+
 			console.log('Injecting script...')
 			await page.addScriptTag({ path: landmarksFinderPath })
 
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const pageResults = await page.evaluate(scanDurationsAndInfo, loops)
+			const pageResults = await page.evaluate(scanForLandmarks, loops)
+			Object.assign(results, {
+				'scanMeanTimeMS': stats.mean(pageResults.scanDurations),
+				'scanStandardDeviation':
+					stats.stdev(pageResults.scanDurations)
+			})
+			delete pageResults.scanDurations
+			Object.assign(results, pageResults)
 
-			fullResults['results'][site] = {
-				url: urls[site],
-				meanScanTime: stats.mean(pageResults.scanDurations),
-				standardDeviation: stats.stdev(pageResults.scanDurations)
-			}
+			console.log(`Running landmark-navigating code ${loops} times...`)
+			const navDurations = await page.evaluate(
+				navigateLandmarks, loops, interactiveElementSelector)
+			Object.assign(results, {
+				'navMeanTimeMS': stats.mean(navDurations),
+				'navStandardDeviation': stats.stdev(navDurations)
+			})
 
-			for (const [key, value] of Object.entries(pageResults)) {
-				if (key !== 'scanDurations') {
-					fullResults['results'][site][key] = value
-				}
-			}
-
+			fullResults['results'][site] = results
 			await page.close()
 		}
 
@@ -147,7 +158,7 @@ async function wrapLandmarksFinder() {
 		: null
 
 	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
-		console.log('Wrapping', wrapSourcePath, 'as', wrapOutputPath)
+		console.log('Wrapping and caching', path.basename(wrapSourcePath))
 		const bundle = await rollup.rollup({ input: wrapSourcePath })
 		await bundle.write({
 			file: wrapOutputPath,
@@ -159,13 +170,22 @@ async function wrapLandmarksFinder() {
 	return wrapOutputPath
 }
 
-function scanDurationsAndInfo(times) {
-	const interactiveElementselector = 'a[href], a[tabindex], button, div[tabindex], input, textarea'
+function elementCounts(interactiveElementSelector) {
 	const elements = document.querySelectorAll('*').length
-	const interactiveElements = document.querySelectorAll(interactiveElementselector).length
+	const interactiveElements = document.querySelectorAll(
+		interactiveElementSelector).length
 
+	return {
+		'numElements': elements,
+		'numInteractiveElements': interactiveElements,
+		'interactiveElementPercent': (interactiveElements / elements) * 100,
+	}
+}
+
+function scanForLandmarks(times) {
 	const lf = new window.LandmarksFinder(window, document)
 	const scanDurations = []
+
 	for (let i = 0; i < times; i++) {
 		const start = window.performance.now()
 		lf.find()
@@ -174,16 +194,32 @@ function scanDurationsAndInfo(times) {
 	}
 
 	return {
-		'numElements': elements,
-		'numInteractiveElements': interactiveElements,
-		'interactiveElementPercent': (interactiveElements / elements) * 100,
 		'scanDurations': scanDurations,
 		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
 
+function navigateLandmarks(times, interactiveElementSelector) {
+	const lf = new window.LandmarksFinder(window, document)
+	const interactiveElements = document.querySelectorAll(
+		interactiveElementSelector)
+	const navigationDurations = []
+
+	for (let i = 0; i < times; i++) {
+		const element = interactiveElements[
+			Math.floor(Math.random() * interactiveElements.length)]
+		element.focus()
+		const start = window.performance.now()
+		lf.getNextLandmarkElementInfo()
+		const end = window.performance.now()
+		navigationDurations.push(end - start)
+	}
+
+	return navigationDurations
+}
+
 function rounder(key, value) {
-	if (roundKeys.has(key)) {
+	if (roundTheseKeys.has(key)) {
 		return Number(value.toPrecision(2))
 	}
 	return value
@@ -191,7 +227,7 @@ function rounder(key, value) {
 
 function printAndSaveResults(results) {
 	console.log()
-	console.log('Done.\nResults (times are in ms):')
+	console.log('Done.\nResults (times are in milliseconds):')
 	const resultsJson = JSON.stringify(results, rounder, 2)
 	console.log(resultsJson)
 	const roughlyNow = new Date()
@@ -218,8 +254,7 @@ function doTraceWithAndWithoutGuarding() {
 			'--load-extension=build/chrome/'
 		]
 	}).then(async browser => {
-		const page = await browser.newPage()
-		await page.bringToFront()  // stops it getting stuck on Landmarks help
+		const page = await pageSetUp(browser, true)
 		await singleRun(page, 'trace--no-guarding.json', 600, 0)
 		console.log()
 		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
@@ -234,12 +269,7 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 
 	console.log(`Making ${traceName}`)
 	await goToAndSettle(page, testUrl)
-	await page.bringToFront()
-	await page.tracing.start({
-		path: traceName,
-		screenshots: true
-	})
-	await page.waitForTimeout(500)
+	await startTracing(page, traceName)
 
 	console.log(`Clicking buttons (pause: ${pauseBetweenClicks})`)
 	for (const selector of selectors) {
@@ -259,10 +289,70 @@ async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 // Main and support
 //
 
+async function pageSetUp(browser, gui) {
+	const page = await browser.newPage()
+
+	if (!quiet) {
+		page.on('console', msg => console.log('>', msg.text()))
+		page.on('requestfailed', request => {
+			console.log(request.failure().errorText, request.url())
+		})
+	}
+	if (!reallyQuiet) {
+		page.on('pageerror', error => {
+			console.log(error.message)
+		})
+	}
+
+	if (gui) {
+		await page.waitForTimeout(guiDelayBeforeTabSwitch)
+		await page.bringToFront()
+	}
+
+	return page
+}
+
+async function startTracing(page, traceName) {
+	await page.tracing.start({
+		path: traceName,
+		screenshots: true
+	})
+	await page.waitForTimeout(500)  // TODO: needed?
+}
+
+async function load(page, site) {
+	const cachedPage = path.resolve(path.join(cacheDir, site + '.html'))
+	const url = urls[site]
+
+	if (fs.existsSync(cachedPage)) {
+		console.log(`Using cached ${cachedPage}`)
+
+		await page.setRequestInterception(true)
+		page.on('request', request => {
+			if (request.url().startsWith('http')) {
+				request.abort()
+			} else {
+				if (!request.url().startsWith('data:')) {
+					console.warn(`PERMITTING REQUEST: ${request.url()}`)
+				}
+				request.continue()
+			}
+		})
+
+		const html = fs.readFileSync(cachedPage, 'utf8')
+		await page.setContent(html)
+	} else {
+		console.log(`Fetching and caching ${site}`)
+		await goToAndSettle(page, url)
+		const html = await page.content()
+		fs.writeFileSync(cachedPage, html)
+	}
+}
+
 async function goToAndSettle(page, url) {
-	// The 'networkidle2' event should be the end of content loading, but found
-	// that on some pages an extra wait was needed, or the number of elements
-	// found on the page varied a lot.
+	// The 'networkidle2' event should be the end of content loading, but
+	// found that on some pages an extra wait was needed, or the number of
+	// elements found on the page varied a lot.
 	await page.goto(url, { waitUntil: 'networkidle2' })
 	console.log('Page loaded; settling...')
 	await page.waitForTimeout(pageSettleDelay)
@@ -279,6 +369,16 @@ function main() {
 	const epilogue = `Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n"all" can be specified to run the profile on each site.`
 
 	const argv = require('yargs')
+		.option('quiet', {
+			alias: 'q',
+			type: 'boolean',
+			description: "Don't print out browser console and request failed messages (do print errors)"
+		})
+		.option('really-quiet', {
+			alias: 'Q',
+			type: 'boolean',
+			description: "Don't print out any browser messages"
+		})
 		.command('trace <site> <landmarks> [runs]', 'Run the built extension on a page and create a performance trace', (yargs) => {
 			yargs
 				.positional('site', siteParameterDefinition)
@@ -329,6 +429,10 @@ function main() {
 		.argv
 
 	const pages = argv.site === 'all' ? Object.keys(urls) : [argv.site]
+
+	fse.ensureDirSync(cacheDir)
+	quiet = argv.reallyQuiet || argv.quiet
+	reallyQuiet = argv.reallyQuiet
 
 	switch (mode) {
 		case 'trace':
