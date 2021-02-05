@@ -5,11 +5,11 @@ const fs = require('fs')
 const archiver = require('archiver-promise')
 const chalk = require('chalk')
 const dependencyTree = require('dependency-tree')
-const esformatter = require('rollup-plugin-esformatter')
 const fse = require('fs-extra')
 const glob = require('glob')
 const merge = require('deepmerge')
 const { minify } = require('terser')
+const prettier = require('rollup-plugin-prettier')
 const replace = require('replace-in-file')
 const rollup = require('rollup')
 const sharp = require('sharp')
@@ -324,7 +324,9 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
-				plugins: [terser(makeTerserOptions(defines)), esformatter()]
+				plugins: [
+					terser(makeTerserOptions(defines)),
+					prettier({ parser: 'babel' })]
 			}
 
 			bundleOption.output = {
@@ -345,6 +347,7 @@ async function bundleCode(browser, debug) {
 	for (const options of bundleOptions) {
 		const bundle = await rollup.rollup(options.input)
 		await bundle.write(options.output)
+		await bundle.close()
 		const basename = path.basename(options.output.file)
 		const builtScript = path.join(pathToBuild(browser), basename)
 		fs.copyFileSync(options.output.file, builtScript)
