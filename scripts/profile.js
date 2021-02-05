@@ -10,7 +10,7 @@ const stats = require('stats-lite')
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
-	ars: 'https://arstechnica.com',  // FIXME: trace doesn't work on cached page
+	ars: 'https://arstechnica.com',
 	bbcnews: 'https://www.bbc.co.uk/news',
 	googledoc1: 'https://docs.google.com/document/d/\
 		1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs',
@@ -325,7 +325,7 @@ async function load(page, site) {
 	const url = urls[site]
 
 	if (fs.existsSync(cachedPage)) {
-		console.log(`Using cached ${cachedPage}`)
+		console.log(`Using cached ${path.basename(cachedPage)}`)
 
 		await page.setRequestInterception(true)
 		page.on('request', request => {
