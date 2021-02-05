@@ -329,42 +329,11 @@ export default function LandmarksFinder(win, doc) {
 
 	// TODO: experimental stuff for focus handling
 
-	function checkForLandmarks(element, skipSelf) {
-		if (!skipSelf) {
-			if (_landmarkElementsOnly.includes(element)) {
-				return element
-			}
+	function comparePosition(element) {
+		for (const landmark of _landmarkElementsOnly) {
+			const rels = element.compareDocumentPosition(landmark)
+			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return landmark
 		}
-		for (const child of element.children) {
-			let found
-			if ((found = checkForLandmarks(child)) !== null) {
-				return found
-			}
-		}
-		return null
-	}
-
-	function tryToFind(current, skipSelf) {
-		let check = current
-		while (check) {
-			const selfAndChildren = checkForLandmarks(check, skipSelf)
-			if (selfAndChildren) return selfAndChildren
-			skipSelf = false
-
-			let sibling = check
-			while ((sibling = sibling.nextElementSibling) !== null) {
-				const siblingLandmark = checkForLandmarks(sibling)
-				if (siblingLandmark) return siblingLandmark
-			}
-
-			// TODO: If <body> is a landmark it won't be found?
-			let next = check
-			do {
-				next = next.parentElement
-			} while (next !== doc.body && next.nextElementSibling === null)
-			check = next.nextElementSibling
-		}
-		return null
 	}
 
 
@@ -410,10 +379,10 @@ export default function LandmarksFinder(win, doc) {
 
 	this.getNextLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const found = tryToFind(doc.activeElement, true)
-			const foundIndex = _landmarkElementsOnly.indexOf(found)
+			const found = comparePosition(doc.activeElement)
 			if (found) {
-				return updateSelectedIndexAndReturnElementInfo(foundIndex)
+				const index = _landmarkElementsOnly.indexOf(found)
+				return updateSelectedIndexAndReturnElementInfo(index)
 			}
 		}
 		return updateSelectedIndexAndReturnElementInfo(
