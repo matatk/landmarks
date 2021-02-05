@@ -85,6 +85,7 @@ export default function LandmarksFinder(win, doc) {
 	//   selector: (string)                -- CSS selector path of element
 	//   element: (HTML*Element)           -- in-memory element
 
+	let _landmarkElementsOnly = []
 
 	//
 	// Keeping track of landmark navigation
@@ -150,6 +151,7 @@ export default function LandmarksFinder(win, doc) {
 				'element': element,
 				'selector': createSelector(element)
 			})
+			_landmarkElementsOnly.push(element)
 
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
@@ -327,18 +329,9 @@ export default function LandmarksFinder(win, doc) {
 
 	// TODO: experimental stuff for focus handling
 
-	function isFoundLandmark(element) {
-		for (const landmark of landmarks) {
-			if (landmark.element === element) {
-				return true
-			}
-		}
-		return false
-	}
-
 	function checkForLandmarks(element, skipSelf) {
 		if (!skipSelf) {
-			if (isFoundLandmark(element)) {
+			if (_landmarkElementsOnly.includes(element)) {
 				return element
 			}
 		}
@@ -355,8 +348,8 @@ export default function LandmarksFinder(win, doc) {
 		let check = current
 		while (check) {
 			const selfAndChildren = checkForLandmarks(check, skipSelf)
-			skipSelf = false
 			if (selfAndChildren) return selfAndChildren
+			skipSelf = false
 
 			let sibling = check
 			while ((sibling = sibling.nextElementSibling) !== null) {
@@ -364,20 +357,14 @@ export default function LandmarksFinder(win, doc) {
 				if (siblingLandmark) return siblingLandmark
 			}
 
-			// FIXME: If <body> is a landmark it won't be found
-			check = current
+			// TODO: If <body> is a landmark it won't be found?
+			let next = check
 			do {
-				check = check.parentElement
-			} while (check.nextElementSibling === null && check !== doc.body)
-
-			check = check.nextElementSibling
+				next = next.parentElement
+			} while (next !== doc.body && next.nextElementSibling === null)
+			check = next.nextElementSibling
 		}
 		return null
-	}
-
-	function getLandmarksIndex(element) {
-		const landmarkElements = landmarks.map(entry => entry.element)
-		return landmarkElements.indexOf(element)
 	}
 
 
@@ -387,6 +374,7 @@ export default function LandmarksFinder(win, doc) {
 
 	this.find = function() {
 		landmarks = []
+		_landmarkElementsOnly = []
 		mainElementIndices = []
 		mainIndexPointer = -1
 		currentlySelectedIndex = -1
@@ -423,7 +411,7 @@ export default function LandmarksFinder(win, doc) {
 	this.getNextLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
 			const found = tryToFind(doc.activeElement, true)
-			const foundIndex = getLandmarksIndex(found)
+			const foundIndex = _landmarkElementsOnly.indexOf(found)
 			if (found) {
 				return updateSelectedIndexAndReturnElementInfo(foundIndex)
 			}
