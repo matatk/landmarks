@@ -104,9 +104,9 @@ async function doTimeLandmarksFinding(sites, loops) {
 	let totalElements = 0
 	let totalInteractiveElements = 0
 	let totalLandmarks = 0
-	const allScanDurations = []
-	const allNavForwardDurations = []
-	const allNavBackwardDurations = []
+	const allScanTimes = []
+	const allNavForwardTimes = []
+	const allNavBackwardTimes = []
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
@@ -129,30 +129,30 @@ async function doTimeLandmarksFinding(sites, loops) {
 			totalLandmarks += results.numLandmarks
 
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const scanDurations = await page.evaluate(scanForLandmarks, loops)
+			const scanTimes = await page.evaluate(landmarkScan, loops)
 			Object.assign(results, {
-				'scanMeanTimeMS': stats.mean(scanDurations),
-				'scanStandardDeviation': stats.stdev(scanDurations)
+				'scanMeanTimeMS': stats.mean(scanTimes),
+				'scanStandardDeviation': stats.stdev(scanTimes)
 			})
-			Array.prototype.push.apply(allScanDurations, scanDurations)
+			Array.prototype.push.apply(allScanTimes, scanTimes)
 
-			console.log(`Running forward landmark-navigating code ${loops} times...`)
-			const navForwardDurations = await page.evaluate(
-				navigateLandmarksForward, loops, interactiveElementSelector)
+			console.log(`Running forward-navigating code ${loops} times...`)
+			const navForwardTimes = await page.evaluate(
+				landmarkNav, loops, interactiveElementSelector, 'forward')
 			Object.assign(results, {
-				'navForwardMeanTimeMS': stats.mean(navForwardDurations),
-				'navForwardStandardDeviation': stats.stdev(navForwardDurations)
+				'navForwardMeanTimeMS': stats.mean(navForwardTimes),
+				'navForwardStandardDeviation': stats.stdev(navForwardTimes)
 			})
-			Array.prototype.push.apply(allNavForwardDurations, navForwardDurations)
+			Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
 
-			console.log(`Running backward landmark-navigating code ${loops} times...`)
-			const navBackwardDurations = await page.evaluate(
-				navigateLandmarksBackward, loops, interactiveElementSelector)
+			console.log(`Running backward-navigating code ${loops} times...`)
+			const navBackwardTimes = await page.evaluate(
+				landmarkNav, loops, interactiveElementSelector, 'backward')
 			Object.assign(results, {
-				'navBackwardMeanTimeMS': stats.mean(navBackwardDurations),
-				'navBackwardStandardDeviation': stats.stdev(navBackwardDurations)
+				'navBackwardMeanTimeMS': stats.mean(navBackwardTimes),
+				'navBackwardStandardDeviation': stats.stdev(navBackwardTimes)
 			})
-			Array.prototype.push.apply(allNavBackwardDurations, navBackwardDurations)
+			Array.prototype.push.apply(allNavBackwardTimes, navBackwardTimes)
 
 			fullResults['results'][site] = results
 			await page.close()
@@ -165,12 +165,12 @@ async function doTimeLandmarksFinding(sites, loops) {
 				'interactiveElementPercent':
 					(totalInteractiveElements / totalElements) * 100,
 				'numLandmarks': totalLandmarks,
-				'scanMeanTimeMS': stats.mean(allScanDurations),
-				'scanStandardDeviation': stats.stdev(allScanDurations),
-				'navForwardMeanTimeMS': stats.mean(allNavForwardDurations),
-				'navForwardStandardDeviation': stats.stdev(allNavForwardDurations),
-				'navBackwardMeanTimeMS': stats.mean(allNavBackwardDurations),
-				'navBackwardStandardDeviation': stats.stdev(allNavBackwardDurations)
+				'scanMeanTimeMS': stats.mean(allScanTimes),
+				'scanStandardDeviation': stats.stdev(allScanTimes),
+				'navForwardMeanTimeMS': stats.mean(allNavForwardTimes),
+				'navForwardStandardDeviation': stats.stdev(allNavForwardTimes),
+				'navBackwardMeanTimeMS': stats.mean(allNavBackwardTimes),
+				'navBackwardStandardDeviation': stats.stdev(allNavBackwardTimes)
 			}
 		}
 
@@ -214,58 +214,44 @@ function elementCounts(interactiveElementSelector) {
 	}
 }
 
-function scanForLandmarks(times) {
+function landmarkScan(times) {
 	const lf = new window.LandmarksFinder(window, document)
-	const scanDurations = []
+	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
 		const start = window.performance.now()
 		lf.find()
 		const end = window.performance.now()
-		scanDurations.push(end - start)
+		scanTimes.push(end - start)
 	}
 
-	return scanDurations
+	return scanTimes
 }
 
-// FIXME: DRY
-function navigateLandmarksForward(times, interactiveElementSelector) {
+function landmarkNav(times, interactiveElementSelector, mode) {
 	const lf = new window.LandmarksFinder(window, document)
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector)
-	const navigationDurations = []
+	const navigationTimes = []
+	// Tests showed that indirectly calling the navigation function is between
+	// 3% and 8% slower than duplicating the code and calling it directly.
+	const navigationFunction = mode === 'forward'
+		? lf.getNextLandmarkElementInfo
+		: mode === 'backward'
+			? lf.getPreviousLandmarkElementInfo
+			: null
 
 	for (let i = 0; i < times; i++) {
 		const element = interactiveElements[
 			Math.floor(Math.random() * interactiveElements.length)]
 		element.focus()
 		const start = window.performance.now()
-		lf.getNextLandmarkElementInfo()
+		navigationFunction()
 		const end = window.performance.now()
-		navigationDurations.push(end - start)
+		navigationTimes.push(end - start)
 	}
 
-	return navigationDurations
-}
-
-// FIXME: DRY
-function navigateLandmarksBackward(times, interactiveElementSelector) {
-	const lf = new window.LandmarksFinder(window, document)
-	const interactiveElements = document.querySelectorAll(
-		interactiveElementSelector)
-	const navigationDurations = []
-
-	for (let i = 0; i < times; i++) {
-		const element = interactiveElements[
-			Math.floor(Math.random() * interactiveElements.length)]
-		element.focus()
-		const start = window.performance.now()
-		lf.getPreviousLandmarkElementInfo()
-		const end = window.performance.now()
-		navigationDurations.push(end - start)
-	}
-
-	return navigationDurations
+	return navigationTimes
 }
 
 function rounder(key, value) {
