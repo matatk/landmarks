@@ -27,12 +27,7 @@ const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 
 const interactiveElementSelector =
 	'a[href], a[tabindex], button, div[tabindex], input, textarea'
-const roundTheseKeys = new Set([
-	'interactiveElementPercent',
-	'navMeanTimeMS',
-	'navStandardDeviation',
-	'scanMeanTimeMS',
-	'scanStandardDeviation'])
+const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation']
 const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
 
 let quiet = false
@@ -117,29 +112,34 @@ async function doTimeLandmarksFinding(sites, loops) {
 			console.log(`Loading ${site}...`)
 			await load(page, site)
 
+			console.log('Injecting script...')
+			await page.addScriptTag({ path: landmarksFinderPath })
+
 			console.log('Counting elements...')
 			Object.assign(results, await page.evaluate(
 				elementCounts, interactiveElementSelector))
 
-			console.log('Injecting script...')
-			await page.addScriptTag({ path: landmarksFinderPath })
-
 			console.log(`Running landmark-finding code ${loops} times...`)
-			const pageResults = await page.evaluate(scanForLandmarks, loops)
+			const scanDurations = await page.evaluate(scanForLandmarks, loops)
 			Object.assign(results, {
-				'scanMeanTimeMS': stats.mean(pageResults.scanDurations),
-				'scanStandardDeviation':
-					stats.stdev(pageResults.scanDurations)
+				'scanMeanTimeMS': stats.mean(scanDurations),
+				'scanStandardDeviation': stats.stdev(scanDurations)
 			})
-			delete pageResults.scanDurations
-			Object.assign(results, pageResults)
 
-			console.log(`Running landmark-navigating code ${loops} times...`)
-			const navDurations = await page.evaluate(
-				navigateLandmarks, loops, interactiveElementSelector)
+			console.log(`Running forward landmark-navigating code ${loops} times...`)
+			const navForwardDurations = await page.evaluate(
+				navigateLandmarksForward, loops, interactiveElementSelector)
 			Object.assign(results, {
-				'navMeanTimeMS': stats.mean(navDurations),
-				'navStandardDeviation': stats.stdev(navDurations)
+				'navForwardMeanTimeMS': stats.mean(navForwardDurations),
+				'navForwardStandardDeviation': stats.stdev(navForwardDurations)
+			})
+
+			console.log(`Running backward landmark-navigating code ${loops} times...`)
+			const navBackwardDurations = await page.evaluate(
+				navigateLandmarksBackward, loops, interactiveElementSelector)
+			Object.assign(results, {
+				'navBackwardMeanTimeMS': stats.mean(navBackwardDurations),
+				'navBackwardStandardDeviation': stats.stdev(navBackwardDurations)
 			})
 
 			fullResults['results'][site] = results
@@ -175,10 +175,14 @@ function elementCounts(interactiveElementSelector) {
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector).length
 
+	const lf = new window.LandmarksFinder(window, document)
+	lf.find()
+
 	return {
 		'numElements': elements,
 		'numInteractiveElements': interactiveElements,
 		'interactiveElementPercent': (interactiveElements / elements) * 100,
+		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
 
@@ -193,13 +197,11 @@ function scanForLandmarks(times) {
 		scanDurations.push(end - start)
 	}
 
-	return {
-		'scanDurations': scanDurations,
-		'numLandmarks': lf.getNumberOfLandmarks()
-	}
+	return scanDurations
 }
 
-function navigateLandmarks(times, interactiveElementSelector) {
+// FIXME: DRY
+function navigateLandmarksForward(times, interactiveElementSelector) {
 	const lf = new window.LandmarksFinder(window, document)
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector)
@@ -218,9 +220,31 @@ function navigateLandmarks(times, interactiveElementSelector) {
 	return navigationDurations
 }
 
+// FIXME: DRY
+function navigateLandmarksBackward(times, interactiveElementSelector) {
+	const lf = new window.LandmarksFinder(window, document)
+	const interactiveElements = document.querySelectorAll(
+		interactiveElementSelector)
+	const navigationDurations = []
+
+	for (let i = 0; i < times; i++) {
+		const element = interactiveElements[
+			Math.floor(Math.random() * interactiveElements.length)]
+		element.focus()
+		const start = window.performance.now()
+		lf.getPreviousLandmarkElementInfo()
+		const end = window.performance.now()
+		navigationDurations.push(end - start)
+	}
+
+	return navigationDurations
+}
+
 function rounder(key, value) {
-	if (roundTheseKeys.has(key)) {
-		return Number(value.toPrecision(2))
+	for (const ending of roundKeysThatEndWith) {
+		if (key.endsWith(ending)) {
+			return Number(value.toPrecision(2))
+		}
 	}
 	return value
 }
