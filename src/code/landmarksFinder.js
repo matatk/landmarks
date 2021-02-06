@@ -85,7 +85,6 @@ export default function LandmarksFinder(win, doc) {
 	//   selector: (string)                -- CSS selector path of element
 	//   element: (HTML*Element)           -- in-memory element
 
-	let _landmarkElementsOnly = []
 
 	//
 	// Keeping track of landmark navigation
@@ -151,7 +150,6 @@ export default function LandmarksFinder(win, doc) {
 				'element': element,
 				'selector': createSelector(element)
 			})
-			_landmarkElementsOnly.push(element)
 
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
@@ -327,13 +325,27 @@ export default function LandmarksFinder(win, doc) {
 		return reversePath.reverse().join(' > ')
 	}
 
-	// TODO: experimental stuff for focus handling
 
-	function comparePosition(element) {
-		for (const landmark of _landmarkElementsOnly) {
-			const rels = element.compareDocumentPosition(landmark)
-			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return landmark
+	//
+	// Support for finding next landmark from focused element
+	//
+
+	function getIndexOfNextLandmarkAfter(element) {
+		for (const [index, landmark] of landmarks.entries()) {
+			const rels = element.compareDocumentPosition(landmark.element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return index
 		}
+		return null
+	}
+
+	function getIndexOfPreviousLandmarkAfter(element) {
+		for (let i = landmarks.length - 1; i >= 0; i--) {
+			const rels = element.compareDocumentPosition(landmarks[i].element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & Node.DOCUMENT_POSITION_PRECEDING) return i
+		}
+		return null
 	}
 
 
@@ -343,7 +355,6 @@ export default function LandmarksFinder(win, doc) {
 
 	this.find = function() {
 		landmarks = []
-		_landmarkElementsOnly = []
 		mainElementIndices = []
 		mainIndexPointer = -1
 		currentlySelectedIndex = -1
@@ -379,17 +390,18 @@ export default function LandmarksFinder(win, doc) {
 
 	this.getNextLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const found = comparePosition(doc.activeElement)
-			if (found) {
-				const index = _landmarkElementsOnly.indexOf(found)
-				return updateSelectedIndexAndReturnElementInfo(index)
-			}
+			const index = getIndexOfNextLandmarkAfter(doc.activeElement)
+			if (index) return updateSelectedIndexAndReturnElementInfo(index)
 		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
 	this.getPreviousLandmarkElementInfo = function() {
+		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+			const index = getIndexOfPreviousLandmarkAfter(doc.activeElement)
+			if (index) return updateSelectedIndexAndReturnElementInfo(index)
+		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
