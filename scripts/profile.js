@@ -10,12 +10,16 @@ const stats = require('stats-lite')
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
+	amazonproduct: 'https://www.amazon.co.uk/'
+		+ 'Ridleys-Corny-Classic-Provide-Laughs/dp/B07DX65CP1',
 	ars: 'https://arstechnica.com',
 	bbcnews: 'https://www.bbc.co.uk/news',
-	googledoc1: 'https://docs.google.com/document/d/\
-		1GPFzG-d47qsD1QjkCCel4-Gol6v34qduFMIhBsGUSTs',
-	googledoc2: 'https://docs.google.com/document/d/\
-		1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE'
+	bbcnewsarticle: 'https://www.bbc.co.uk/news/technology-53093613',
+	bbcnewsstory: 'https://www.bbc.co.uk/news/resources/idt-sh/'
+		+ 'dundee_the_city_with_grand_designs',
+	googledoc: 'https://docs.google.com/document/d/'
+		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
+	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 const cacheDir = path.join(__dirname, 'profile-cache')
 const wrapSourcePath = path.join(
