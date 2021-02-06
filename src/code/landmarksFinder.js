@@ -327,6 +327,29 @@ export default function LandmarksFinder(win, doc) {
 
 
 	//
+	// Support for finding next landmark from focused element
+	//
+
+	function getIndexOfNextLandmarkAfter(element) {
+		for (let i = 0; i < landmarks.length; i++) {
+			const rels = element.compareDocumentPosition(landmarks[i].element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return i
+		}
+		return null
+	}
+
+	function getIndexOfPreviousLandmarkAfter(element) {
+		for (let i = landmarks.length - 1; i >= 0; i--) {
+			const rels = element.compareDocumentPosition(landmarks[i].element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & Node.DOCUMENT_POSITION_PRECEDING) return i
+		}
+		return null
+	}
+
+
+	//
 	// Public API
 	//
 
@@ -366,11 +389,23 @@ export default function LandmarksFinder(win, doc) {
 	// These all return elements and their related info
 
 	this.getNextLandmarkElementInfo = function() {
+		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+			const index = getIndexOfNextLandmarkAfter(doc.activeElement)
+			if (index !== null) {
+				return updateSelectedIndexAndReturnElementInfo(index)
+			}
+		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
 	this.getPreviousLandmarkElementInfo = function() {
+		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+			const index = getIndexOfPreviousLandmarkAfter(doc.activeElement)
+			if (index !== null) {
+				return updateSelectedIndexAndReturnElementInfo(index)
+			}
+		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)

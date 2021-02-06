@@ -61,7 +61,7 @@ function messageHandler(message) {
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
 			checkAndUpdateOutdatedResults()
-			if (thereMustBeLandmarks()) {
+			if (checkThereAreLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
 					borderDrawer.replaceCurrentBordersWithElements(
@@ -109,7 +109,7 @@ function checkAndUpdateOutdatedResults() {
 	return false
 }
 
-function thereMustBeLandmarks() {
+function checkThereAreLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound'))
 		return false
@@ -118,7 +118,7 @@ function thereMustBeLandmarks() {
 }
 
 function checkFocusElement(callbackReturningElementInfo) {
-	if (thereMustBeLandmarks()) {
+	if (checkThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
 }

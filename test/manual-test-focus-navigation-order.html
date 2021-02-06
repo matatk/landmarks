@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Focus and navigation order test</title>
+		<style>
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0.5rem;
+	padding-top: 0;
+}
+
+header, nav, main, aside, footer, section {
+	border: 0.15rem solid black;
+	margin-top: 0.5rem;
+	padding: 0.5rem;
+}
+
+.content {
+	flex-grow: 1;
+	display: flex;
+}
+
+nav { width: 20vw; }
+
+main {
+	flex-grow: 1;
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+}
+
+aside { width: 30vw; }
+
+button {
+	font-size: inherit;
+	background: #757575;
+	color: white;
+	border: 0;
+	padding: 0.25rem;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+}
+
+:focus {
+	outline: 0.25rem solid green;
+	outline-offset: 0.15rem;
+}
+
+.test-area {
+	background: lightgray;
+	padding: 1rem;
+}
+.test-area + .test-area { margin-top: 1rem; }
+
+.test-unbalancer {
+	padding: 1rem;
+	margin-top: 1rem;
+	border: 0.15rem dashed black;
+}
+.test-unbalancer p { margin-top: 0; }
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>Focus and navigation order test</h1>
+		</header>
+
+		<p>This is outside of all landmarks. By the way, a green outline is applied to things that have the focus. And here's <a href="#">a link outwith all landmarks</a>.</p>
+
+		<div class="content">
+			<nav aria-labelledby="nav-title">
+				<h2 id="nav-title">Navigation</h2>
+				<ul>
+					<li><a href="#">Home</a></li>
+					<li><a href="#">News</a></li>
+					<li><a href="#">About</a></li>
+					<li><a href="#">Contact</a></li>
+				</ul>
+			</nav>
+			<main>
+				<h2>Main</h2>
+				<p>Navigating between landmarks focuses the landmark, so pressing <kbd>Tab</kbd> picks up from the current landmark. Navigating between landmarks in turn should pick up from where the focus is.</p>
+
+				<div class="test-area">
+					<section aria-labelledby="title-1">
+						<h2 id="title-1">Nested landmark 1</h2>
+						<p>This is in a nested landmark.</p>
+						<button>Action 1</button>
+					</section>
+
+					<p>This isn't in a nested landmark.</p>
+					<button id="targ">Action 2</button>
+
+					<section aria-labelledby="title-2">
+						<h2 id="title-2">Nested landmark 2</h2>
+						<p>This is in a nested landmark.</p>
+						<button>Action 3</button>
+					</section>
+				</div>
+
+				<div class="test-area">
+					<section aria-labelledby="title-a">
+						<h2 id="title-a">Nested landmark A</h2>
+						<p>This is in a nested landmark.</p>
+						<button>Action A</button>
+					</section>
+
+					<p>This isn't in a nested landmark.</p>
+					<button>Action B</button>
+
+					<div class="test-unbalancer">
+						<p>A <code>&lt;div&gt;</code>! :-)</p>
+						<section aria-labelledby="title-b">
+							<h2 id="title-b">Nested landmark B</h2>
+							<p>This is in a nested landmark.</p>
+							<button>Action C</button>
+						</section>
+					</div>
+				</div>
+			</main>
+
+			<aside aria-labelledby="aside-title">
+				<h2 id="aside-title">Aside</h2>
+				<p>Hello.</p>
+				<button id="frag">Focus &quot;Action 2&quot; button</button>
+			</aside>
+		</div>
+
+		<footer>
+			<p>Footer.</p>
+			<p><a href="#">Site map</a></p>
+		</footer>
+
+		<script>
+			document.getElementById('frag').onclick = function() {
+				document.getElementById('targ').focus();
+			};
+		</script>
+	</body>
+</html>
