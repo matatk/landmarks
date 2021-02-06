@@ -391,7 +391,9 @@ export default function LandmarksFinder(win, doc) {
 	this.getNextLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
 			const index = getIndexOfNextLandmarkAfter(doc.activeElement)
-			if (index) return updateSelectedIndexAndReturnElementInfo(index)
+			if (index !== null) {
+				return updateSelectedIndexAndReturnElementInfo(index)
+			}
 		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
@@ -400,7 +402,9 @@ export default function LandmarksFinder(win, doc) {
 	this.getPreviousLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
 			const index = getIndexOfPreviousLandmarkAfter(doc.activeElement)
-			if (index) return updateSelectedIndexAndReturnElementInfo(index)
+			if (index !== null) {
+				return updateSelectedIndexAndReturnElementInfo(index)
+			}
 		}
 		return updateSelectedIndexAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
