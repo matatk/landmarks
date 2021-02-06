@@ -27,8 +27,10 @@ const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 
 const interactiveElementSelector =
 	'a[href], a[tabindex], button, div[tabindex], input, textarea'
-const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation']
-const debugBuildNote = 'Remember to run this with a debug build of the extension (i.e. `node scripts/build.js --debug --browser chrome`).'
+const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
+const debugBuildNote =
+	'Remember to run this with a debug build of the extension (i.e. '
+	+ '`node scripts/build.js --debug --browser chrome`).'
 
 let quiet = false
 let reallyQuiet = false
@@ -98,7 +100,7 @@ async function insertLandmark(page, repetition) {
 // Getting landmarksFinder timings directly
 //
 
-async function doTimeLandmarksFinding(sites, loops) {
+async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
 	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
 	let totalElements = 0
@@ -106,7 +108,7 @@ async function doTimeLandmarksFinding(sites, loops) {
 	let totalLandmarks = 0
 	const allScanTimes = []
 	const allNavForwardTimes = []
-	const allNavBackwardTimes = []
+	const allNavBackTimes = []
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
@@ -128,49 +130,61 @@ async function doTimeLandmarksFinding(sites, loops) {
 			totalInteractiveElements += results.numInteractiveElements
 			totalLandmarks += results.numLandmarks
 
-			console.log(`Running landmark-finding code ${loops} times...`)
-			const scanTimes = await page.evaluate(landmarkScan, loops)
-			Object.assign(results, {
-				'scanMeanTimeMS': stats.mean(scanTimes),
-				'scanStandardDeviation': stats.stdev(scanTimes)
-			})
-			Array.prototype.push.apply(allScanTimes, scanTimes)
+			if (doScan) {
+				console.log(`Running landmark-finding code ${loops} times...`)
+				const scanTimes = await page.evaluate(landmarkScan, loops)
+				Object.assign(results, {
+					'scanMeanTimeMS': stats.mean(scanTimes),
+					'scanDeviation': stats.stdev(scanTimes)
+				})
+				Array.prototype.push.apply(allScanTimes, scanTimes)
+			}
 
-			console.log(`Running forward-navigating code ${loops} times...`)
-			const navForwardTimes = await page.evaluate(
-				landmarkNav, loops, interactiveElementSelector, 'forward')
-			Object.assign(results, {
-				'navForwardMeanTimeMS': stats.mean(navForwardTimes),
-				'navForwardStandardDeviation': stats.stdev(navForwardTimes)
-			})
-			Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
+			if (doFocus) {
+				console.log(`Running forward-nav code ${loops} times...`)
+				const navForwardTimes = await page.evaluate(
+					landmarkNav, loops, interactiveElementSelector, 'forward')
+				Object.assign(results, {
+					'navForwardMeanTimeMS': stats.mean(navForwardTimes),
+					'navForwardDeviation': stats.stdev(navForwardTimes)
+				})
+				Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
 
-			console.log(`Running backward-navigating code ${loops} times...`)
-			const navBackwardTimes = await page.evaluate(
-				landmarkNav, loops, interactiveElementSelector, 'backward')
-			Object.assign(results, {
-				'navBackwardMeanTimeMS': stats.mean(navBackwardTimes),
-				'navBackwardStandardDeviation': stats.stdev(navBackwardTimes)
-			})
-			Array.prototype.push.apply(allNavBackwardTimes, navBackwardTimes)
+				console.log(`Running Back-nav code ${loops} times...`)
+				const navBackTimes = await page.evaluate(
+					landmarkNav, loops, interactiveElementSelector, 'back')
+				Object.assign(results, {
+					'navBackMeanTimeMS': stats.mean(navBackTimes),
+					'navBackDeviation': stats.stdev(navBackTimes)
+				})
+				Array.prototype.push.apply(allNavBackTimes, navBackTimes)
+			}
 
 			fullResults['results'][site] = results
 			await page.close()
 		}
 
 		if (sites.length > 1) {
-			fullResults['combined'] = {
-				'numElements': totalElements,
-				'numInteractiveElements': totalInteractiveElements,
-				'interactiveElementPercent':
-					(totalInteractiveElements / totalElements) * 100,
-				'numLandmarks': totalLandmarks,
-				'scanMeanTimeMS': stats.mean(allScanTimes),
-				'scanStandardDeviation': stats.stdev(allScanTimes),
-				'navForwardMeanTimeMS': stats.mean(allNavForwardTimes),
-				'navForwardStandardDeviation': stats.stdev(allNavForwardTimes),
-				'navBackwardMeanTimeMS': stats.mean(allNavBackwardTimes),
-				'navBackwardStandardDeviation': stats.stdev(allNavBackwardTimes)
+			fullResults['combined'] = {}
+			const combined = fullResults['combined']
+
+			combined.numElements = totalElements
+			combined.numInteractiveElements = totalInteractiveElements
+			combined.interactiveElementsPercent =
+				(totalInteractiveElements / totalElements) * 100
+			combined.numLandmarks = totalLandmarks
+			combined.LandmarksPerPage = totalLandmarks / sites.length
+
+			if (doScan) {
+				combined.scanMeanTimeMS = stats.mean(allScanTimes)
+				combined.scanDeviation = stats.stdev(allScanTimes)
+			}
+
+			if (doFocus) {
+				combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
+				combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
+				combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
+				combined.navBackDeviation = stats.stdev(allNavBackTimes)
 			}
 		}
 
@@ -209,7 +223,7 @@ function elementCounts(interactiveElementSelector) {
 	return {
 		'numElements': elements,
 		'numInteractiveElements': interactiveElements,
-		'interactiveElementPercent': (interactiveElements / elements) * 100,
+		'interactiveElementsPercent': (interactiveElements / elements) * 100,
 		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
@@ -237,7 +251,7 @@ function landmarkNav(times, interactiveElementSelector, mode) {
 	// 3% and 8% slower than duplicating the code and calling it directly.
 	const navigationFunction = mode === 'forward'
 		? lf.getNextLandmarkElementInfo
-		: mode === 'backward'
+		: mode === 'back'
 			? lf.getPreviousLandmarkElementInfo
 			: null
 
@@ -404,62 +418,110 @@ function main() {
 		choices: ['all'].concat(Object.keys(urls))
 	}
 
-	const epilogue = `Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n"all" can be specified to run the profile on each site.`
+	const epilogue =
+		`Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n`
+		+ '"all" can be specified to run the profile on each site.'
 
 	const argv = require('yargs')
 		.option('quiet', {
 			alias: 'q',
 			type: 'boolean',
-			description: "Don't print out browser console and request failed messages (do print errors)"
+			description:
+				"Don't print out browser console and request failed messages "
+				+ '(do print errors)'
 		})
 		.option('really-quiet', {
 			alias: 'Q',
 			type: 'boolean',
-			description: "Don't print out any browser messages"
+			description:
+				"Don't print out any browser messages (except unhandled "
+				+ 'exceptions)'
 		})
-		.command('trace <site> <landmarks> [runs]', 'Run the built extension on a page and create a performance trace', (yargs) => {
-			yargs
-				.positional('site', siteParameterDefinition)
-				.positional('landmarks', {
-					describe: 'number of landmarks to insert (there is a pause between each)',
-					type: 'number'
-				})
-				.coerce('landmarks', function(landmarks) {
-					if (landmarks < 0) throw new Error("Can't insert a negative number of landmarks")
-					return landmarks
-				})
-				.positional('runs', {
-					describe: 'number of separate tracing runs to make (recommend keeping this at one)',
-					type: 'number',
-					default: 1
-				})
-				.coerce('runs', function(runs) {
-					if (runs < 1) throw new Error("Can't make less than one run")
-					return runs
-				})
-				.epilogue(epilogue)
-		}, () => {
-			mode = 'trace'
-		})
-		.command('time <site> [repetitions]', 'Runs only the LandmarksFinder code on a page', (yargs) => {
-			yargs
-				.positional('site', siteParameterDefinition)
-				.positional('repetitions', {
-					describe: 'number of separate tracing repetitions to make',
-					type: 'number',
-					default: 100
-				})
-				.coerce('repetitions', function(repetitions) {
-					if (repetitions < 1) throw new Error("Can't make less than one run")
-					return repetitions
-				})
-				.epilogue(epilogue)
-		}, () => {
-			mode = 'time'
-		})
-		.command('guarding', `Make a trace both with and without triggering mutation guarding. ${debugBuildNote}`, () => {}, () => {
-			mode = 'guarding'
-		})
+		.command(
+			'trace <site> <landmarks> [runs]',
+			'Run the built extension on a page and create a performance trace',
+			yargs => {
+				yargs
+					.positional('site', siteParameterDefinition)
+					.positional('landmarks', {
+						describe:
+							'number of landmarks to insert (there is a pause '
+							+ 'between each)',
+						type: 'number'
+					})
+					.coerce('landmarks', function(landmarks) {
+						if (landmarks < 0) {
+							throw new Error(
+								"Can't insert a negative number of landmarks")
+						}
+						return landmarks
+					})
+					.positional('runs', {
+						describe:
+							'number of separate tracing runs to make '
+							+ '(recommend keeping this at one)',
+						type: 'number',
+						default: 1
+					})
+					.coerce('runs', function(runs) {
+						if (runs < 1) {
+							throw new Error("Can't make less than one run")
+						}
+						return runs
+					})
+					.epilogue(epilogue)
+			}, () => {
+				mode = 'trace'
+			})
+		.command(
+			'time <site> [repetitions]',
+			'Runs only the LandmarksFinder code on a page',
+			yargs => {
+				yargs
+					.option('scan', {
+						alias: 's',
+						type: 'boolean',
+						description: 'Time scanning for landmarks'
+					})
+					.option('focus', {
+						alias: 'f',
+						type: 'boolean',
+						description:
+							'Time focusing the next and previous landmark'
+					})
+					.check(argv => {
+						if (argv.scan || argv.focus) {
+							return true
+						}
+						throw new Error(
+							'You must request at least one of the timing tests;'
+							+ ' check the help for details.')
+					})
+					.positional('site', siteParameterDefinition)
+					.positional('repetitions', {
+						describe:
+							'number of separate tracing repetitions to make',
+						type: 'number',
+						default: 100
+					})
+					.coerce('repetitions', function(repetitions) {
+						if (repetitions < 1) {
+							throw new Error("Can't make less than one run")
+						}
+						return repetitions
+					})
+					.epilogue(epilogue)
+			}, () => {
+				mode = 'time'
+			})
+		.command(
+			'guarding',
+			'Make a trace both with and without triggering mutation guarding. '
+				+ debugBuildNote,
+			() => {},
+			() => {
+				mode = 'guarding'
+			})
 		.help()
 		.alias('help', 'h')
 		.demandCommand(1, 'You must specify a command')
@@ -477,7 +539,8 @@ function main() {
 			doLandmarkInsertionRuns(pages, argv.landmarks, argv.runs)
 			break
 		case 'time':
-			doTimeLandmarksFinding(pages, argv.repetitions)
+			doTimeLandmarksFinding(
+				pages, argv.repetitions, argv.scan, argv.focus)
 			break
 		case 'guarding':
 			doTraceWithAndWithoutGuarding()
