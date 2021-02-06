@@ -101,6 +101,12 @@ async function insertLandmark(page, repetition) {
 async function doTimeLandmarksFinding(sites, loops) {
 	const landmarksFinderPath = await wrapLandmarksFinder()
 	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
+	let totalElements = 0
+	let totalInteractiveElements = 0
+	let totalLandmarks = 0
+	const allScanDurations = []
+	const allNavForwardDurations = []
+	const allNavBackwardDurations = []
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
@@ -118,6 +124,9 @@ async function doTimeLandmarksFinding(sites, loops) {
 			console.log('Counting elements...')
 			Object.assign(results, await page.evaluate(
 				elementCounts, interactiveElementSelector))
+			totalElements += results.numElements
+			totalInteractiveElements += results.numInteractiveElements
+			totalLandmarks += results.numLandmarks
 
 			console.log(`Running landmark-finding code ${loops} times...`)
 			const scanDurations = await page.evaluate(scanForLandmarks, loops)
@@ -125,6 +134,7 @@ async function doTimeLandmarksFinding(sites, loops) {
 				'scanMeanTimeMS': stats.mean(scanDurations),
 				'scanStandardDeviation': stats.stdev(scanDurations)
 			})
+			Array.prototype.push.apply(allScanDurations, scanDurations)
 
 			console.log(`Running forward landmark-navigating code ${loops} times...`)
 			const navForwardDurations = await page.evaluate(
@@ -133,6 +143,7 @@ async function doTimeLandmarksFinding(sites, loops) {
 				'navForwardMeanTimeMS': stats.mean(navForwardDurations),
 				'navForwardStandardDeviation': stats.stdev(navForwardDurations)
 			})
+			Array.prototype.push.apply(allNavForwardDurations, navForwardDurations)
 
 			console.log(`Running backward landmark-navigating code ${loops} times...`)
 			const navBackwardDurations = await page.evaluate(
@@ -141,9 +152,26 @@ async function doTimeLandmarksFinding(sites, loops) {
 				'navBackwardMeanTimeMS': stats.mean(navBackwardDurations),
 				'navBackwardStandardDeviation': stats.stdev(navBackwardDurations)
 			})
+			Array.prototype.push.apply(allNavBackwardDurations, navBackwardDurations)
 
 			fullResults['results'][site] = results
 			await page.close()
+		}
+
+		if (sites.length > 1) {
+			fullResults['combined'] = {
+				'numElements': totalElements,
+				'numInteractiveElements': totalInteractiveElements,
+				'interactiveElementPercent':
+					(totalInteractiveElements / totalElements) * 100,
+				'numLandmarks': totalLandmarks,
+				'scanMeanTimeMS': stats.mean(allScanDurations),
+				'scanStandardDeviation': stats.stdev(allScanDurations),
+				'navForwardMeanTimeMS': stats.mean(allNavForwardDurations),
+				'navForwardStandardDeviation': stats.stdev(allNavForwardDurations),
+				'navBackwardMeanTimeMS': stats.mean(allNavBackwardDurations),
+				'navBackwardStandardDeviation': stats.stdev(allNavBackwardDurations)
+			}
 		}
 
 		await browser.close()
