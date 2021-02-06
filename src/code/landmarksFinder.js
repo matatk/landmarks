@@ -331,10 +331,10 @@ export default function LandmarksFinder(win, doc) {
 	//
 
 	function getIndexOfNextLandmarkAfter(element) {
-		for (const [index, landmark] of landmarks.entries()) {
-			const rels = element.compareDocumentPosition(landmark.element)
+		for (let i = 0; i < landmarks.length; i++) {
+			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return index
+			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
 		return null
 	}
