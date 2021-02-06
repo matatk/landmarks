@@ -169,6 +169,7 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 			const combined = fullResults['combined']
 
 			combined.numElements = totalElements
+			combined.elementsPerPage = totalElements / sites.length
 			combined.numInteractiveElements = totalInteractiveElements
 			combined.interactiveElementsPercent =
 				(totalInteractiveElements / totalElements) * 100
