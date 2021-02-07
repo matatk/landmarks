@@ -1,17 +1,19 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
-const fse = require('fs-extra')
-const chalk = require('chalk')
-const merge = require('deepmerge')
+
 const archiver = require('archiver-promise')
-const replace = require('replace-in-file')
-const glob = require('glob')
-const rollup = require('rollup')
-const terser = require('rollup-plugin-terser').terser
-const esformatter = require('rollup-plugin-esformatter')
-const sharp = require('sharp')
+const chalk = require('chalk')
 const dependencyTree = require('dependency-tree')
+const esformatter = require('rollup-plugin-esformatter')
+const fse = require('fs-extra')
+const glob = require('glob')
+const merge = require('deepmerge')
+const { minify } = require('terser')
+const replace = require('replace-in-file')
+const rollup = require('rollup')
+const sharp = require('sharp')
+const terser = require('rollup-plugin-terser').terser
 
 
 //
@@ -175,6 +177,30 @@ function builtMessagesFile(browser, locale) {
 }
 
 
+function makeTerserOptions(globals) {
+	return {
+		mangle: false,
+		compress: {
+			defaults: false,
+			global_defs: globals, // eslint-disable-line camelcase
+			conditionals: true,
+			dead_code: true,      // eslint-disable-line camelcase
+			evaluate: true,
+			side_effects: true,   // eslint-disable-line camelcase
+			switches: true,
+			unused: true,
+			passes: 2  // expand env vars; compresses their code
+		},
+		output: {
+			beautify: true,
+			braces: true,
+			comments: true
+			// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
+		}
+	}
+}
+
+
 //
 // Build Steps
 //
@@ -184,6 +210,35 @@ function clean(browser) {
 
 	fse.removeSync(pathToBuild(browser))
 	fse.removeSync(zipFileName(browser))
+}
+
+
+async function makeLandmarksFinders() {
+	logStep('Creating the two landmarkFinder code versions')
+	const sourceName = '_landmarksFinder.js'
+	const sourcePath = path.join(srcAssembleDir, sourceName)
+
+	for (const mode of ['standard', 'developer']) {
+		const titleCaseMode = mode.charAt(0).toUpperCase() + mode.substr(1)
+		const cachedName = `landmarksFinder${titleCaseMode}.js`
+		const cachedPath = path.join(srcCodeDir, cachedName)
+		const cachedScriptExists = fs.existsSync(cachedPath)
+		const cachedScriptModified = cachedScriptExists
+			? fs.statSync(cachedPath).mtime
+			: null
+		const sourceModified = fs.statSync(sourcePath).mtime
+
+		if (!cachedScriptExists || sourceModified > cachedScriptModified) {
+			console.log(chalk.bold.blue(
+				`Bundling ${sourceName} as ${cachedName}...`))
+			const source = fs.readFileSync(sourcePath, 'utf8')
+			const result = await minify(
+				source, makeTerserOptions({ MODE: mode }))
+			fs.writeFileSync(cachedPath, result.code)
+		} else {
+			console.log(chalk.bold.blue(`Using cached ${cachedName}`))
+		}
+	}
 }
 
 
@@ -269,27 +324,7 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
-				plugins: [terser({
-					mangle: false,
-					compress: {
-						defaults: false,
-						global_defs: defines, // eslint-disable-line camelcase
-						conditionals: true,
-						dead_code: true,      // eslint-disable-line camelcase
-						evaluate: true,
-						side_effects: true,   // eslint-disable-line camelcase
-						switches: true,
-						unused: true,
-						passes: 2  // expand env vars; compresses their code
-					},
-					output: {
-						beautify: true,
-						braces: true,
-						comments: true
-						// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
-					}
-				}),
-				esformatter()]
+				plugins: [terser(makeTerserOptions(defines)), esformatter()]
 			}
 
 			bundleOption.output = {
@@ -573,9 +608,12 @@ async function lintFirefox() {
 
 async function main() {
 	const argv = require('yargs')
-		.usage('Usage: $0 --browser <browser> [other options]')
+		.usage('Usage: $0 {--pre-process|--browser <browser>} [other options]')
 		.help('help')
 		.alias('help', 'h')
+		.boolean('pre-process')
+		.alias('pre-process', 'p')
+		.describe('pre-process', 'Generate code that requires pre-processing to create (i.e. the LandmarksFinder variants)')
 		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
@@ -595,16 +633,23 @@ async function main() {
 		.describe('skip-linting', "Don't run linters (if applicable) - makes the build process quicker")
 		.boolean('skip-linting')
 		.alias('skip-linting', 'k')
-		.demandOption('browser')
+		.check(argv => {
+			if (!argv.browser && !argv.preProcess) {
+				throw new Error('You must request either a browser build or pre-processing')
+			}
+			return true
+		})
 		.argv
 
 	if (argv.release) extVersion = argv.release
 
-	const browsers = argv.browser === 'all'
-		? validBrowsers
-		: Array.isArray(argv.browser)
-			? argv.browser
-			: [argv.browser]
+	const browsers = argv.browser
+		? argv.browser === 'all'
+			? validBrowsers
+			: Array.isArray(argv.browser)
+				? argv.browser
+				: [argv.browser]
+		: null
 
 	const isFullBuild = argv.cleanOnly !== true
 	const action = isFullBuild ? 'Building' : 'Cleaning'
@@ -614,6 +659,10 @@ async function main() {
 
 	testMode = argv.testRelease === true
 	const testMsg = testMode ? ' (test)' : ''
+
+	console.log()
+	await makeLandmarksFinders()
+	if (!browsers) return
 
 	for (const browser of browsers) {
 		console.log()

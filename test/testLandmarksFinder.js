@@ -1,7 +1,7 @@
 import test from 'ava'
 import jsdom from 'jsdom'
 import pssst from 'page-structural-semantics-scanner-tests'
-import LandmarksFinder from '../src/code/landmarksFinder'
+import LandmarksFinder from '../src/code/landmarksFinderStandard'
 
 const { JSDOM } = jsdom
 const checks = pssst.getFullPageTestsInline()

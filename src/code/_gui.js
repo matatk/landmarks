@@ -116,6 +116,18 @@ function makeLandmarksTree(landmarks, container) {
 		item.appendChild(button)
 
 		if (INTERFACE === 'devtools') {
+			if (landmark.error) {
+				const details = document.createElement('details')
+				details.setAttribute('class', 'floaty')
+				const summary = document.createElement('summary')
+				summary.setAttribute('class', 'definition')
+				const para = document.createElement('p')
+				para.appendChild(document.createTextNode(landmark.error))
+				details.appendChild(summary)
+				details.appendChild(para)
+				item.appendChild(details)
+			}
+
 			const inspectButton = makeSymbolButton(
 				function() {
 					const inspectorCall = "inspect(document.querySelector('"

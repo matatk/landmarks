@@ -1,12 +1,14 @@
 import './compatibility'
-import LandmarksFinder from './landmarksFinder'
+import LandmarksFinderStandard from './landmarksFinderStandard'
+// import LandmarksFinderDeveloper from './landmarksFinder.developer'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
 
-const landmarksFinder = new LandmarksFinder(window, document)
+const landmarksFinderStandard = new LandmarksFinderStandard(window, document)
+const landmarksFinder = landmarksFinderStandard
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
