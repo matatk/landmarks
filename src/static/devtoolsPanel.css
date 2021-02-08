@@ -22,3 +22,5 @@ summary.definition::after {
 	padding-left: var(--top-padding);
 	padding-right: var(--top-padding);
 }
+
+summary.definition.lint-warning::after { content: "⚠️"; }

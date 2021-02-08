@@ -85,6 +85,8 @@ export default function LandmarksFinder(win, doc) {
 	//   selector: (string)                -- CSS selector path of element
 	//   element: (HTML*Element)           -- in-memory element
 
+	const _unlabelledLandmarkRoles = MODE === 'developer' ? new Map() : null
+
 
 	//
 	// Keeping track of landmark navigation
@@ -148,8 +150,17 @@ export default function LandmarksFinder(win, doc) {
 				'roleDescription': getRoleDescription(element),
 				'label': label,
 				'element': element,
-				'selector': createSelector(element)
+				'selector': createSelector(element),
 			})
+			if (MODE === 'developer') {
+				landmarks[landmarks.length - 1].error = null
+				if (!label) {
+					if (!_unlabelledLandmarkRoles.has(role)) {
+						_unlabelledLandmarkRoles.set(role, [])
+					}
+					_unlabelledLandmarkRoles.get(role).push(element)
+				}
+			}
 
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
@@ -354,11 +365,29 @@ export default function LandmarksFinder(win, doc) {
 	//
 
 	this.find = function() {
+		if (MODE === 'developer') _unlabelledLandmarkRoles.clear()
+
 		landmarks = []
 		mainElementIndices = []
 		mainIndexPointer = -1
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
+
+		if (MODE === 'developer') {
+			const _unlabelledLandmarkErrors = new Map()
+			for (const [role, elements] of _unlabelledLandmarkRoles.entries()) {
+				if (elements.length > 1) {
+					for (const element of elements) {
+						_unlabelledLandmarkErrors.set(element, `Duplicate unlabelled landmark with role "${role}"`)
+					}
+				}
+			}
+			for (const landmark of landmarks) {
+				if (_unlabelledLandmarkErrors.has(landmark.element)) {
+					landmark.error = _unlabelledLandmarkErrors.get(landmark.element)
+				}
+			}
+		}
 	}
 
 	this.getNumberOfLandmarks = function() {
@@ -366,24 +395,15 @@ export default function LandmarksFinder(win, doc) {
 	}
 
 	this.allInfos = function() {
-		return landmarks.map(landmark => ({
-			depth: landmark.depth,
-			role: landmark.role,
-			roleDescription: landmark.roleDescription,
-			label: landmark.label,
-			selector: landmark.selector
-		}))
+		return landmarks.map(landmark => {
+			// eslint-disable-next-line no-unused-vars
+			const { element, ...info } = landmark
+			return info
+		})
 	}
 
 	this.allElementsInfos = function() {
-		return landmarks.map(landmark => ({
-			element: landmark.element,
-			depth: landmark.depth,
-			role: landmark.role,
-			roleDescription: landmark.roleDescription,
-			label: landmark.label,
-			selector: landmark.selector
-		}))
+		return landmarks.slice()
 	}
 
 	// These all return elements and their related info

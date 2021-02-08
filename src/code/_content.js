@@ -1,12 +1,15 @@
 import './compatibility'
-import LandmarksFinder from './landmarksFinder'
+import LandmarksFinderStandard from './landmarksFinderStandard'
+import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
 
-const landmarksFinder = new LandmarksFinder(window, document)
+const landmarksFinderStandard = new LandmarksFinderStandard(window, document)
+const landmarksFinderDeveloper = new LandmarksFinderDeveloper(window, document)
+let landmarksFinder = landmarksFinderStandard
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
@@ -71,7 +74,7 @@ function messageHandler(message) {
 					elementFocuser.manageBorders(true)
 				}
 			}
-			// eslint-disable-next-line no-fallthrough
+			// eslint-disable-this-line no-fallthrough
 		case 'get-toggle-state':
 			browser.runtime.sendMessage({
 				name: 'toggle-state-is',
@@ -93,8 +96,12 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
+				landmarksFinder = landmarksFinderDeveloper
+				landmarksFinder.find()
 				msr.beVerbose()
 			} else {
+				landmarksFinder = landmarksFinderStandard
+				landmarksFinder.find()
 				msr.beQuiet()
 			}
 	}
