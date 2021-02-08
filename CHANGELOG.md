@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/matatk/landmarks/compare/2.8.0...2.9.0) (2021-02-08)
+
+
+### Features
+
+* First steps in linting ([#410](https://github.com/matatk/landmarks/issues/410)) ([16181a5](https://github.com/matatk/landmarks/commit/16181a5b60bc464f21aaf53fb36083c96fd98ab1))
+* Move DevTools UI to the DOM Inspector panel ([#392](https://github.com/matatk/landmarks/issues/392)) ([be81c50](https://github.com/matatk/landmarks/commit/be81c501a60db48674ee83bf09f1edf709c7e2a2))
+* Navigate from focused element ([#409](https://github.com/matatk/landmarks/issues/409)) ([227790b](https://github.com/matatk/landmarks/commit/227790b54724f7a74cabee148742e368f6f44d7c)), closes [#395](https://github.com/matatk/landmarks/issues/395)
+* Softer update notification ([#388](https://github.com/matatk/landmarks/issues/388)) ([f3453f1](https://github.com/matatk/landmarks/commit/f3453f16cb25ee64e5bf0037d6cd041252e6d961)), closes [#310](https://github.com/matatk/landmarks/issues/310)
+
+
+### Tests
+
+* Use the ES modules directly ([#385](https://github.com/matatk/landmarks/issues/385)) ([20683b2](https://github.com/matatk/landmarks/commit/20683b223cc64ebae2173ca264c79aca1534c576)), closes [/github.com/avajs/ava/issues/2417#issuecomment-596189267](https://github.com/matatk//github.com/avajs/ava/issues/2417/issues/issuecomment-596189267)
+
+
+### Continuous integrations
+
+* Remove Travis config; update badge ([#397](https://github.com/matatk/landmarks/issues/397)) ([7b98f73](https://github.com/matatk/landmarks/commit/7b98f7337017bf83b478634e335f206e6b3e19d4))
+* Use GitHub Actions ([e6437dd](https://github.com/matatk/landmarks/commit/e6437dd2d1a8e26a53a17c8499251996e52d99d6))
+
+
+### Builds
+
+* Generate extra (marketing) icon sizes ([#403](https://github.com/matatk/landmarks/issues/403)) ([02d7ee6](https://github.com/matatk/landmarks/commit/02d7ee6b1b3da1dcbbb43952e8ad7cd14ce81d11)), closes [#380](https://github.com/matatk/landmarks/issues/380)
+* **Test versions:** Simplify test versions ([#383](https://github.com/matatk/landmarks/issues/383)) ([3e08100](https://github.com/matatk/landmarks/commit/3e081004df610ba4339c4790db2ed55f6855b857))
+
+
+### Bug fixes
+
+* **Profiling:** Get the timing part working again ([#406](https://github.com/matatk/landmarks/issues/406)) ([a2d120c](https://github.com/matatk/landmarks/commit/a2d120c5f46d34c2bae02a1cd60d7a46aa1b18b4)), closes [#385](https://github.com/matatk/landmarks/issues/385)
+* Typo in build script ([#399](https://github.com/matatk/landmarks/issues/399)) ([dbcecfd](https://github.com/matatk/landmarks/commit/dbcecfdb2e63ab19ffa90b6663340ac53805e2ec))
+* Use concrete branch name for Actions workflow ([b6b7b50](https://github.com/matatk/landmarks/commit/b6b7b5001281d5706fdeda23d523c7b3481924fc))
+* Work around Partner Center linting bug ([#398](https://github.com/matatk/landmarks/issues/398)) ([627c29c](https://github.com/matatk/landmarks/commit/627c29ce31a6ef164d11253e7bf9604f7ef7ad53))
+
+
+### Performance improvements
+
+* **Profiling:** Cache sites; Test focus-based navigation; Add test sites ([#408](https://github.com/matatk/landmarks/issues/408)) ([6e4532c](https://github.com/matatk/landmarks/commit/6e4532c7c7028ba84d42356cb1c6dd995ce2658e)), closes [#395](https://github.com/matatk/landmarks/issues/395)
+* **Profiling:** Record more timing info ([#407](https://github.com/matatk/landmarks/issues/407)) ([73dfc05](https://github.com/matatk/landmarks/commit/73dfc058b5678d4b95d441703d1017d641d193ca))
+
+
+### Chores
+
+* Bump dependencies ([#390](https://github.com/matatk/landmarks/issues/390)) ([a0c0a62](https://github.com/matatk/landmarks/commit/a0c0a62cb5d63aed8eee21b4e2239f75be55ffe6))
+* Bump dependencies ([#411](https://github.com/matatk/landmarks/issues/411)) ([e614493](https://github.com/matatk/landmarks/commit/e614493851d07408ba635c1de6f846091ca46aa8))
+* Bump dependency ([#391](https://github.com/matatk/landmarks/issues/391)) ([376039f](https://github.com/matatk/landmarks/commit/376039f79cbd2f3dd509a9637180207039e3cc0a))
+
+
+### Documentation
+
+* Add tracking notifications to Storage API uses ([#401](https://github.com/matatk/landmarks/issues/401)) ([8363000](https://github.com/matatk/landmarks/commit/83630001ea5964d781b2e239c9c0778eb187f1fc)), closes [#386](https://github.com/matatk/landmarks/issues/386)
+* Fix link to the changelog ([#402](https://github.com/matatk/landmarks/issues/402)) ([123803b](https://github.com/matatk/landmarks/commit/123803bbafc65f51a226932d70be83307f6fcf51)), closes [#379](https://github.com/matatk/landmarks/issues/379)
+* Update help content for 2.9.0 ([#412](https://github.com/matatk/landmarks/issues/412)) ([b592fb8](https://github.com/matatk/landmarks/commit/b592fb8a7783ede6af8ae88bb2bab8a19cd907bb))
+* **Metadata:** Add justification for storage permission ([#382](https://github.com/matatk/landmarks/issues/382)) ([b66710c](https://github.com/matatk/landmarks/commit/b66710cb0e79c51f0d8be7211be7ab67df0fa819)), closes [#381](https://github.com/matatk/landmarks/issues/381)
+
 ## [2.8.0](https://github.com/matatk/landmarks/compare/2.7.0...2.8.0) (2020-07-25)
 
 
