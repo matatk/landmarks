@@ -153,7 +153,7 @@ export default function LandmarksFinder(win, doc) {
 				'selector': createSelector(element),
 			})
 			if (MODE === 'developer') {
-				landmarks[-1].error = null
+				landmarks[landmarks.length - 1].error = null
 				if (!label) {
 					if (!_unlabelledLandmarkRoles.has(role)) {
 						_unlabelledLandmarkRoles.set(role, [])
