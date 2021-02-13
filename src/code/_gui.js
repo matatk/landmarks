@@ -367,8 +367,6 @@ function startupPopupOrSidebar() {
 	makeEventHandlers('help')
 	makeEventHandlers('settings')
 
-	document.getElementById('mutation-observation-station').remove()
-
 	// The message could be coming from any content script or other GUI, so
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)
