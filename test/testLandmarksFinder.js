@@ -1,7 +1,8 @@
 import test from 'ava'
 import jsdom from 'jsdom'
 import pssst from 'page-structural-semantics-scanner-tests'
-import LandmarksFinder from '../src/code/landmarksFinderStandard'
+import LandmarksFinderStandard from '../src/code/landmarksFinderStandard'
+import LandmarksFinderDeveloper from '../src/code/landmarksFinderDeveloper'
 
 const { JSDOM } = jsdom
 const checks = pssst.getFullPageTestsInline()
@@ -98,18 +99,38 @@ test('expectation conversion from test suite to Landmarks format', t => {
 
 
 //
-// Check the LandmarksFinder
+// Check the LandmarksFinders
 //
 
-for (const check of Object.values(checks)) {
-	test(check.meta.name, t => {
-		const dom = new JSDOM(check.fixture)
-		const lf = new LandmarksFinder(dom.window, dom.window.document)
-		lf.find()
-		const landmarksFinderResult = lf.allInfos()
-		const convertedExpectation = convertExpectation(check.expected)
-		t.deepEqual(landmarksFinderResult, convertedExpectation)
+function testSpecificLandmarksFinder(Scanner, scannerName, postProcesor) {
+	for (const check of Object.values(checks)) {
+		test(scannerName + ': ' + check.meta.name, t => {
+			const dom = new JSDOM(check.fixture)
+			const lf = new Scanner(dom.window, dom.window.document)
+			lf.find()
+			const landmarksFinderResult = postProcesor
+				? postProcesor(lf.allInfos())
+				: lf.allInfos()
+			const convertedExpectation = convertExpectation(check.expected)
+			t.deepEqual(landmarksFinderResult, convertedExpectation)
+		})
+	}
+}
+
+function removeErrors(landmarks) {
+	return landmarks.map(landmark => {
+		// eslint-disable-next-line no-unused-vars
+		const { error, ...info } = landmark
+		return info
 	})
+}
+
+const runs = [
+	[ LandmarksFinderStandard, 'Standard', null ],
+	[ LandmarksFinderDeveloper, 'Developer', removeErrors ]]
+
+for (const [scanner, name, postProcesor] of runs) {
+	testSpecificLandmarksFinder(scanner, name, postProcesor)
 }
 
 
