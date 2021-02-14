@@ -339,9 +339,6 @@ function handleMutationMessage(data) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
-	document.getElementById('note-update').remove()
-	document.getElementById('links').remove()
-
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
 		// DevTools page doesn't get reloaded when the extension does

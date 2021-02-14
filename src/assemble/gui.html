@@ -3,29 +3,33 @@
 	<head>
 		<meta charset="UTF-8">
 		<title></title>
+		<!-- popup-and-sidebar -->
 		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" href="common.gui.css">
-		<!-- ui -->
+		<!-- sidebar -->
 		<link rel="stylesheet" href="sidebar.css">
-		<!-- /ui -->
+		<!-- /sidebar -->
+		<!-- /popup-and-sidebar -->
 		<!-- devtools -->
 		<link rel="stylesheet" href="devtoolsPanel.css">
 		<!-- /devtools -->
 	</head>  <!-- TODO: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
-			<!-- ui -->
+			<!-- popup-and-sidebar -->
+			<!-- sidebar -->
 			<div id="note-ui" class="warning" hidden>
 				<p data-message="hintSidebarIsNotPrimary"></p>
 				<button id="note-ui-cta" data-message="hintSidebarIsNotPrimaryCTA"></button>
 				<button id="note-ui-dismiss" data-message="hintSidebarIsNotPrimaryDismiss"></button>
 			</div>
-			<!-- /ui -->
+			<!-- /sidebar -->
 			<div id="note-update" class="warning" hidden>
 				<p><span data-message="hintWhatIsNew"></span> <span id="version"></span>.</p>
 				<button id="note-update-cta" data-message="hintWhatIsNewCTA"></button>
 				<button id="note-update-dismiss" data-message="hintWhatIsNewDismiss"></button>
 			</div>
+			<!-- /popup-and-sidebar -->
 			<!-- devtools -->
 			<h1 data-message="extensionShortName"></h1>
 			<div id="connection-error" class="warning" hidden>
@@ -40,10 +44,12 @@
 			</label>
 		</div>
 
-		<div id="links"> <!-- removed in DevTools panel -->
+		<!-- popup-and-sidebar -->
+		<div id="links">
 			<button id="help" data-message="popupHelpButton"></button>
 			<button id="settings" data-message="popupPreferencesButton"></button>
 		</div>
+		<!-- /popup-and-sidebar -->
 
 		<!-- devtools -->
 		<div id="mutation-observation-station">

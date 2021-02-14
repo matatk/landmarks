@@ -1,26 +1,63 @@
+* { box-sizing: border-box; }
+
+body {
+	font-family: sans-serif;
+	margin: 0;
+}
+
+body > div > * {
+	padding: 0.5rem;
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+}
+
 h1 {
 	margin: 0;
 	font-size: 1rem;
+	background: lightgray;
 }
 
-#mutation-observation-station {
-	/* TODO: make custom properties for these, or use existing? */
-	padding-left: 0.5rem;
-	padding-right: 0.5rem;
+ul {
+	margin: 0;
+	padding: 0;
+}
+
+ul ul { padding-left: 2rem; }
+
+li {
+	display: block;
+	margin-top: 0.15rem;
+}
+
+#show-all-label { margin-top: 0.25rem; }
+
+#mutation-observation-station { margin-top: 0.5rem; }
+
+details[open] > summary { border: 1px solid gray; }
+
+details > p {
+	margin: 0;
+	padding: 0.5rem;
+	background-color: white;
+	border: 1px solid gray;
 }
 
 details.floaty { display: inline; }
 details.floaty p { position: absolute; }
-
 summary.definition { list-style: none; }
 summary.definition::-webkit-details-marker { display: none; }
-
-summary.definition::after {
-	content: "?";
-	border: var(--standard-control-line);
-	margin: var(--top-padding);
-	padding-left: var(--top-padding);
-	padding-right: var(--top-padding);
-}
-
+summary.definition::after { content: "?"; }
 summary.definition.lint-warning::after { content: "⚠️"; }
+
+/* FIXME: DRY with common.css —- it's still in there because common.css is also
+ * used on the home page */
+.visually-hidden {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0 !important;
+	border: 0 !important;
+	height: 1px !important;
+	width: 1px !important;
+	overflow: hidden;
+	white-space: nowrap;
+}
