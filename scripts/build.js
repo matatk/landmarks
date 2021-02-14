@@ -489,8 +489,6 @@ function mergeManifest(browser) {
 		path.join(pathToBuild(browser), 'manifest.json'),
 		JSON.stringify(merged, null, 2)
 	)
-
-	ok(`manifest.json written for ${browser}.`)
 }
 
 
@@ -590,10 +588,14 @@ async function makeZip(browser) {
 }
 
 
-async function lintFirefox() {
+async function lintFirefox(lintFolderInsteadOfZip) {
+	logStep('Linting ' + (lintFolderInsteadOfZip ? 'build folder' : 'ZIP file'))
+	const path = lintFolderInsteadOfZip
+		? pathToBuild('firefox')
+		: zipFileName('firefox')
 	const linter = require('addons-linter').createInstance({
 		config: {
-			_: [zipFileName('firefox')],
+			_: [path],
 			logLevel: process.env.VERBOSE ? 'debug' : 'fatal',
 		}
 	})
@@ -632,7 +634,10 @@ async function main() {
 		.alias('debug', 'd')
 		.describe('skip-linting', "Don't run linters (if applicable) - makes the build process quicker")
 		.boolean('skip-linting')
-		.alias('skip-linting', 'k')
+		.alias('skip-linting', 'L')
+		.describe('skip-zipping', "Don't create the zip archive (for when running locally only)")
+		.boolean('skip-zipping')
+		.alias('skip-zipping', 'Z')
 		.check(argv => {
 			if (!argv.browser && !argv.preProcess) {
 				throw new Error('You must request either a browser build or pre-processing')
@@ -679,9 +684,11 @@ async function main() {
 			if (testMode) {
 				renameTestVersion(browser)
 			}
-			await makeZip(browser)
+			if (!argv.skipZipping) {
+				await makeZip(browser)
+			}
 			if (!argv.skipLinting && browser in linters) {
-				await linters[browser]()
+				await linters[browser](argv.skipZipping)
 			}
 		}
 	}
