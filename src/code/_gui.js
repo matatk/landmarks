@@ -116,19 +116,6 @@ function makeLandmarksTree(landmarks, container) {
 		item.appendChild(button)
 
 		if (INTERFACE === 'devtools') {
-			if (landmark.error) {
-				const details = document.createElement('details')
-				details.setAttribute('class', 'floaty')
-				const summary = document.createElement('summary')
-				summary.setAttribute('class', 'definition lint-warning')
-				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
-				const para = document.createElement('p')
-				para.appendChild(document.createTextNode(landmark.error))
-				details.appendChild(summary)
-				details.appendChild(para)
-				item.appendChild(details)
-			}
-
 			const inspectButton = makeSymbolButton(
 				function() {
 					const inspectorCall = "inspect(document.querySelector('"
@@ -141,6 +128,19 @@ function makeLandmarksTree(landmarks, container) {
 				landmarkName(landmark))
 			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
+
+			if (landmark.error) {
+				const details = document.createElement('details')
+				details.setAttribute('class', 'floaty')
+				const summary = document.createElement('summary')
+				summary.setAttribute('class', 'definition lint-warning')
+				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
+				const para = document.createElement('p')
+				para.appendChild(document.createTextNode(landmark.error))
+				details.appendChild(summary)
+				details.appendChild(para)
+				item.appendChild(details)
+			}
 		}
 
 		base.appendChild(item)  // add to current base
