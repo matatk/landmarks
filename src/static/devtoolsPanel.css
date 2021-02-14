@@ -1,3 +1,19 @@
+@-moz-document url-prefix() {
+	/* Hacks for Firefox */
+
+	/* The font is not resizable on Firefox, and by default it's
+	   significantly bigger than the other panels' font. Doing this to fit in,
+	   on the assumption that people using magnifiers will have to zoom the
+	   whole screen anyway :-S. */
+	html { font-size: 12px; }
+
+	/* The buttons and summaries are aligned differently. */
+	summary {
+		position: relative;
+		top: -1px;
+	}
+}
+
 html {
 	--text: black;
 	--bkg: white;
@@ -30,6 +46,7 @@ button {
 	background-color: unset;
 }
 
+/* Everything that's content is within one of the two main sections */
 body > div > * {
 	padding: var(--big-padding);
 	padding-top: var(--padding);
@@ -59,36 +76,29 @@ li {
 
 p { margin-top: 0; }
 
+details { display: inline; }
+
 details > p {
 	margin: 0;
+	margin-left: var(--padding);
 	padding: var(--padding);
 	background-color: var(--bkg);
 	border: var(--border);
+	position: absolute;
 }
-
-details.floaty { display: inline; }
-details.floaty p { position: absolute; }
-
-summary.definition { list-style: none; }  /* for disclosure symbol in Firefox */
-summary.definition::-webkit-details-marker { display: none; }
-summary.definition::after { content: "?"; }
-summary.definition.lint-warning::after { content: "⚠️"; }
 
 button,
 summary {
 	border: var(--border);
 	padding: var(--padding);
-	line-height: 1rem; /* for the glyphs */
+	line-height: 1rem;  /* for the glyphs */
 }
 
-/* Note: Hack for Firefox, as it positions/aligns the buttons and summary
-         differently; can't think what else I can do here. */
-@-moz-document url-prefix() {
-	summary {
-		position: relative;
-		top: -2px;
-	}
-}
+summary { list-style: none; }  /* for disclosure symbol in Firefox */
+summary::-webkit-details-marker { display: none; }
+
+summary.definition::after { content: "?"; }
+summary.lint-warning::after { content: "⚠️"; }
 
 button + button,
 button + details > summary { margin-left: var(--big-padding); }
@@ -105,7 +115,10 @@ dd {
 	margin-bottom: var(--spacing);
 }
 
-dt { width: 33%; }
+dt {
+	align-self: center;
+	width: 33%;
+}
 
 dd {
 	margin-left: auto;

@@ -131,9 +131,8 @@ function makeLandmarksTree(landmarks, container) {
 
 			if (landmark.error) {
 				const details = document.createElement('details')
-				details.setAttribute('class', 'floaty')
 				const summary = document.createElement('summary')
-				summary.setAttribute('class', 'definition lint-warning')
+				summary.setAttribute('class', 'lint-warning')
 				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
 				const para = document.createElement('p')
 				para.appendChild(document.createTextNode(landmark.error))
