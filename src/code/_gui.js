@@ -326,9 +326,7 @@ function handleMutationMessage(data) {
 }
 
 function reflectDevToolsTheme(themeName) {
-	console.log('reflectDevToolsTheme:', themeName)
 	document.documentElement.classList = `theme-${themeName}`
-	console.log(document.documentElement.classList)
 }
 
 
