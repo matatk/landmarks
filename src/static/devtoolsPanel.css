@@ -1,3 +1,10 @@
+:root {
+	--border: 1px solid gray;
+	--spacing: 0.15rem;
+	--x-padding: 0.25rem;
+	--y-padding: 0.5rem;
+}
+
 * { box-sizing: border-box; }
 html { font-size: 85%; }  /* to match other panels */
 
@@ -7,15 +14,16 @@ body {
 }
 
 body > div > * {
-	padding: 0.5rem;
-	padding-top: 0.25rem;
-	padding-bottom: 0.25rem;
+	padding: var(--x-padding);
+	padding-top: var(--y-padding);
+	padding-bottom: var(--y-padding);
 }
 
 h1 {
 	margin: 0;
 	font-size: 1rem;
-	background: lightgray;
+	background: #eee;
+	border-bottom: var(--border);
 }
 
 ul {
@@ -27,34 +35,34 @@ ul ul { padding-left: 2rem; }
 
 li {
 	display: block;
-	margin-top: 0.15rem;
+	margin-top: var(--spacing);
 }
 
 button { font-size: inherit; }
 
-#show-all-label { margin-top: 0.25rem; }
+#show-all-label { margin-top: var(--y-padding); }
 
-#mutation-observation-station { margin-top: 0.5rem; }
+#mutation-observation-station { margin-top: var(--x-padding); }
 
 p { margin-top: 0; }
 
 details > p {
 	margin: 0;
-	padding: 0.5rem;
+	padding: var(--x-padding);
 	background-color: white;
-	border: 1px solid gray;
+	border: var(--border);
 }
 
 details.floaty { display: inline; }
 details.floaty p { position: absolute; }
-summary { border: 1px solid gray; }
+summary { border: var(--border); }
 summary.definition { list-style: none; }
 summary.definition::-webkit-details-marker { display: none; }
 summary.definition.lint-warning::after { content: "⚠️"; }
 
 summary.definition::after {
 	content: "?";
-	padding: 0.25rem;
+	padding: var(--y-padding);
 }
 
 dl {
@@ -63,9 +71,10 @@ dl {
 	margin: 0;
 }
 
-dt, dd {
-	margin-top: 0.15rem;
-	margin-bottom: 0.15rem;
+dt,
+dd {
+	margin-top: var(--spacing);
+	margin-bottom: var(--spacing);
 }
 
 dt { width: 33%; }
