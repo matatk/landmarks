@@ -1,5 +1,3 @@
-* { box-sizing: border-box; }
-
 html {
 	--text: black;
 	--bkg: white;
@@ -30,7 +28,6 @@ button {
 	font-size: inherit;
 	color: var(--text);
 	background-color: unset;
-	border: var(--border);
 }
 
 body > div > * {
@@ -54,7 +51,7 @@ ul ul { padding-left: 2rem; }
 
 li {
 	display: block;
-	margin-top: var(--spacing);
+	margin-top: var(--padding);
 }
 
 #show-all-label,
@@ -72,17 +69,29 @@ details > p {
 details.floaty { display: inline; }
 details.floaty p { position: absolute; }
 
-summary { border: var(--border); }
-
-summary.definition { list-style: none; }  /* for Firefox */
+summary.definition { list-style: none; }  /* for disclosure symbol in Firefox */
 summary.definition::-webkit-details-marker { display: none; }
+summary.definition::after { content: "?"; }
+summary.definition.lint-warning::after { content: "⚠️"; }
 
-summary.definition::after {
-	content: "?";
-	padding: var(--big-padding);
+button,
+summary {
+	border: var(--border);
+	padding: var(--padding);
+	line-height: 1rem; /* for the glyphs */
 }
 
-summary.definition.lint-warning::after { content: "⚠️"; }
+/* Note: Hack for Firefox, as it positions/aligns the buttons and summary
+         differently; can't think what else I can do here. */
+@-moz-document url-prefix() {
+	summary {
+		position: relative;
+		top: -2px;
+	}
+}
+
+button + button,
+button + details > summary { margin-left: var(--big-padding); }
 
 dl {
 	display: flex;

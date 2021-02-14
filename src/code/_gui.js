@@ -181,8 +181,6 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	button.appendChild(document.createTextNode(symbol ? symbol : name))
 	if (symbol) {
 		button.setAttribute('aria-label', name + ' ' + context)
-		button.style.border = 'none'
-		button.style.background = 'none'
 	}
 	button.onclick = onClick
 	return button
