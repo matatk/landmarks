@@ -352,13 +352,8 @@ async function bundleCode(browser, debug) {
 }
 
 
-function removeUIstuff(file) {
-	removeStuff('UI', 'ui', file)
-}
-
-
-function removeDevToolsStuff(file) {
-	removeStuff('DevTools', 'devtools', file)
+function removeSidebarStuff(file) {
+	removeStuff('sidebar', 'sidebar', file)
 }
 
 
@@ -370,7 +365,7 @@ function copyStaticFiles(browser) {
 	fse.copySync(srcStaticDir, pathToBuild(browser), { filter: skipDots })
 
 	if (browser === 'chrome' || browser === 'edge') {
-		removeUIstuff(path.join(pathToBuild(browser), 'options.html'))
+		removeSidebarStuff(path.join(pathToBuild(browser), 'options.html'))
 		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
 }
@@ -379,7 +374,7 @@ function copyStaticFiles(browser) {
 function copyGuiFiles(browser) {
 	logStep('Copying root GUI HTML to create the popup and other bits')
 
-	function copyOneGuiFile(destination, doUIRemove, doDevToolsRemove) {
+	function copyOneGuiFile(destination, isSidebar, isDevTools) {
 		const destHtml = path.join(pathToBuild(browser), `${destination}.html`)
 		fs.copyFileSync(path.join(srcAssembleDir, 'gui.html'), destHtml)
 		doReplace(
@@ -387,15 +382,22 @@ function copyGuiFiles(browser) {
 			'GUIJS',
 			`${destination}.js`,
 			`Referenced ${destination} code`)
-		if (doUIRemove) removeUIstuff(destHtml)
-		if (doDevToolsRemove) removeDevToolsStuff(destHtml)
+
+		// The general gui.html file is organised such that non-DevTools stuff
+		// is always wrapped in a popup-and-sidebar block.
+		if (isDevTools) {
+			removeStuff('pop-up and sidebar', 'popup-and-sidebar', destHtml)
+		} else {
+			removeStuff('DevTools', 'devtools', destHtml)
+			if (!isSidebar) removeSidebarStuff(destHtml)
+		}
 	}
 
-	copyOneGuiFile('popup', true, true)
-	copyOneGuiFile('devtoolsPanel', true, false)
+	copyOneGuiFile('popup', false, false)
+	copyOneGuiFile('devtoolsPanel', false, true)
 
 	if (browser === 'firefox' || browser === 'opera') {
-		copyOneGuiFile('sidebar', false, true)
+		copyOneGuiFile('sidebar', true, false)
 	}
 }
 

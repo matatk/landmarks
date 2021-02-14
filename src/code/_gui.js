@@ -116,19 +116,6 @@ function makeLandmarksTree(landmarks, container) {
 		item.appendChild(button)
 
 		if (INTERFACE === 'devtools') {
-			if (landmark.error) {
-				const details = document.createElement('details')
-				details.setAttribute('class', 'floaty')
-				const summary = document.createElement('summary')
-				summary.setAttribute('class', 'definition lint-warning')
-				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
-				const para = document.createElement('p')
-				para.appendChild(document.createTextNode(landmark.error))
-				details.appendChild(summary)
-				details.appendChild(para)
-				item.appendChild(details)
-			}
-
 			const inspectButton = makeSymbolButton(
 				function() {
 					const inspectorCall = "inspect(document.querySelector('"
@@ -141,6 +128,18 @@ function makeLandmarksTree(landmarks, container) {
 				landmarkName(landmark))
 			inspectButton.title = landmark.selector
 			item.appendChild(inspectButton)
+
+			if (landmark.error) {
+				const details = document.createElement('details')
+				const summary = document.createElement('summary')
+				summary.setAttribute('class', 'lint-warning')
+				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
+				const para = document.createElement('p')
+				para.appendChild(document.createTextNode(landmark.error))
+				details.appendChild(summary)
+				details.appendChild(para)
+				item.appendChild(details)
+			}
 		}
 
 		base.appendChild(item)  // add to current base
@@ -181,8 +180,6 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	button.appendChild(document.createTextNode(symbol ? symbol : name))
 	if (symbol) {
 		button.setAttribute('aria-label', name + ' ' + context)
-		button.style.border = 'none'
-		button.style.background = 'none'
 	}
 	button.onclick = onClick
 	return button
@@ -328,6 +325,10 @@ function handleMutationMessage(data) {
 	}
 }
 
+function reflectDevToolsTheme(themeName) {
+	document.documentElement.classList = `theme-${themeName}`
+}
+
 
 //
 // Start-up
@@ -339,8 +340,7 @@ function handleMutationMessage(data) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
-	document.getElementById('note-update').remove()
-	document.getElementById('links').remove()
+	reflectDevToolsTheme(browser.devtools.panels.themeName)
 
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
@@ -348,6 +348,9 @@ function startupDevTools() {
 		port.onDisconnect.addListener(function() {
 			document.getElementById('connection-error').hidden = false
 		})
+	} else {
+		browser.devtools.panels.onThemeChanged.addListener(
+			reflectDevToolsTheme)
 	}
 
 	port.onMessage.addListener(messageHandlerCore)
@@ -366,8 +369,6 @@ function startupDevTools() {
 function startupPopupOrSidebar() {
 	makeEventHandlers('help')
 	makeEventHandlers('settings')
-
-	document.getElementById('mutation-observation-station').remove()
 
 	// The message could be coming from any content script or other GUI, so
 	// it needs to be filtered. (The background script filters out messages

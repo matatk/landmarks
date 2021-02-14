@@ -1,26 +1,142 @@
+@-moz-document url-prefix() {
+	/* Hacks for Firefox */
+
+	/* The font is not resizable on Firefox—whilst the text size on other
+	   panels does grow when zooming, I've never managed to make this work
+	   here. Not sure if it's me or Firefox's in-built CSS.
+
+	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
+	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
+	html { font-size: 12px; }
+	body { background-color: var(--bkg); }
+
+	summary {
+		position: relative;
+		top: -1px;
+	}
+
+	details > p { z-index: 42; }
+}
+
+html {
+	--text: black;
+	--bkg: white;
+	--thin-accent: gray;
+	--thick-accent: #eee;
+
+	/* Shared */
+	--border: 1px solid var(--thin-accent);
+	--spacing: 0.15rem;
+	--padding: 0.25rem;
+	--big-padding: 0.5rem;
+}
+
+html.theme-dark {
+	--text: white;
+	--bkg: black;
+	--thin-accent: #6b6b6b;
+	--thick-accent: #444;
+}
+
+body {
+	font-family: sans-serif;
+	margin: 0;
+	color: var(--text);
+}
+
+button {
+	font-size: inherit;
+	color: var(--text);
+	background-color: unset;
+}
+
+/* Everything that's content is within one of the two main sections */
+body > div > * {
+	padding: var(--big-padding);
+	padding-top: var(--padding);
+	padding-bottom: var(--padding);
+}
+
 h1 {
 	margin: 0;
 	font-size: 1rem;
+	background: var(--thick-accent);
 }
 
-#mutation-observation-station {
-	/* TODO: make custom properties for these, or use existing? */
-	padding-left: 0.5rem;
-	padding-right: 0.5rem;
+ul {
+	margin: 0;
+	padding: 0;
 }
 
-details.floaty { display: inline; }
-details.floaty p { position: absolute; }
+ul ul { padding-left: 2rem; }
 
-summary.definition { list-style: none; }
-summary.definition::-webkit-details-marker { display: none; }
-
-summary.definition::after {
-	content: "?";
-	border: var(--standard-control-line);
-	margin: var(--top-padding);
-	padding-left: var(--top-padding);
-	padding-right: var(--top-padding);
+li {
+	display: block;
+	margin-top: var(--padding);
 }
 
-summary.definition.lint-warning::after { content: "⚠️"; }
+#show-all-label,
+#mutation-observation-station { margin-top: var(--big-padding); }
+
+p { margin-top: 0; }
+
+details { display: inline; }
+
+details > p {
+	margin: 0;
+	padding: var(--padding);
+	background-color: var(--bkg);
+	border: var(--border);
+	position: absolute;
+}
+
+button,
+summary {
+	border: var(--border);
+	padding: var(--padding);
+	line-height: 1rem;  /* for the glyphs */
+}
+
+summary { list-style: none; }  /* for disclosure symbol in Firefox */
+summary::-webkit-details-marker { display: none; }
+
+summary.definition::after { content: "?"; }
+summary.lint-warning::after { content: "⚠️"; }
+
+button + button,
+button + details > summary { margin-left: var(--big-padding); }
+
+dl {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0;
+}
+
+dt,
+dd {
+	margin-top: var(--spacing);
+	margin-bottom: var(--spacing);
+}
+
+dt {
+	align-self: center;
+	width: 33%;
+}
+
+dd {
+	margin-left: auto;
+	width: 66%;
+}
+
+/* FIXME: DRY with common.css —- it's still in there because common.css is also
+ * used on the home page */
+.visually-hidden {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0 !important;
+	border: 0 !important;
+	height: 1px !important;
+	width: 1px !important;
+	overflow: hidden;
+	white-space: nowrap;
+}

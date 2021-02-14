@@ -3,29 +3,33 @@
 	<head>
 		<meta charset="UTF-8">
 		<title></title>
+		<!-- popup-and-sidebar -->
 		<link rel="stylesheet" href="common.css">
 		<link rel="stylesheet" href="common.gui.css">
-		<!-- ui -->
+		<!-- sidebar -->
 		<link rel="stylesheet" href="sidebar.css">
-		<!-- /ui -->
+		<!-- /sidebar -->
+		<!-- /popup-and-sidebar -->
 		<!-- devtools -->
 		<link rel="stylesheet" href="devtoolsPanel.css">
 		<!-- /devtools -->
 	</head>  <!-- TODO: this gets aligned wrongly after the replace -->
 	<body>
 		<div id="content">
-			<!-- ui -->
+			<!-- popup-and-sidebar -->
+			<!-- sidebar -->
 			<div id="note-ui" class="warning" hidden>
 				<p data-message="hintSidebarIsNotPrimary"></p>
 				<button id="note-ui-cta" data-message="hintSidebarIsNotPrimaryCTA"></button>
 				<button id="note-ui-dismiss" data-message="hintSidebarIsNotPrimaryDismiss"></button>
 			</div>
-			<!-- /ui -->
+			<!-- /sidebar -->
 			<div id="note-update" class="warning" hidden>
 				<p><span data-message="hintWhatIsNew"></span> <span id="version"></span>.</p>
 				<button id="note-update-cta" data-message="hintWhatIsNewCTA"></button>
 				<button id="note-update-dismiss" data-message="hintWhatIsNewDismiss"></button>
 			</div>
+			<!-- /popup-and-sidebar -->
 			<!-- devtools -->
 			<h1 data-message="extensionShortName"></h1>
 			<div id="connection-error" class="warning" hidden>
@@ -40,18 +44,21 @@
 			</label>
 		</div>
 
-		<div id="links"> <!-- removed in DevTools panel -->
+		<!-- popup-and-sidebar -->
+		<div id="links">
 			<button id="help" data-message="popupHelpButton"></button>
 			<button id="settings" data-message="popupPreferencesButton"></button>
 		</div>
+		<!-- /popup-and-sidebar -->
 
-		<div id="mutation-observation-station"> <!-- only in DevTools -->
+		<!-- devtools -->
+		<div id="mutation-observation-station">
 			<h1 data-message="statsHeading"></h1>
 			<dl>
 				<dt id="statsMutationsTerm" data-message="statsMutationsTerm"></dt>
 				<dd>
 					<span id="mutations">0</span>
-					<details class="floaty">
+					<details>
 						<summary class="definition" aria-labelledby="define-statsMutationsTerm statsMutationsTerm">
 							<span id="define-statsMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
 						</summary>
@@ -62,7 +69,7 @@
 				<dt id="statsCheckedMutationsTerm" data-message="statsCheckedMutationsTerm"></dt>
 				<dd>
 					<span id="checks">0</span>
-					<details class="floaty">
+					<details>
 						<summary class="definition" aria-labelledby="define-statsCheckedMutationsTerm statsCheckedMutationsTerm">
 							<span id="define-statsCheckedMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
 						</summary>
@@ -73,7 +80,7 @@
 				<dt id="statsScansTerm" data-message="statsScansTerm"></dt></dt>
 			<dd>
 				<span id="scans">0</span>
-				<details class="floaty">
+				<details>
 					<summary class="definition" aria-labelledby="define-statsScansTerm statsScansTerm">
 						<span id="define-statsScansTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -84,7 +91,7 @@
 			<dt id="statsPauseTerm" data-message="statsPauseTerm"></dt>
 			<dd>
 				<span id="pause">&mdash;</span>ms
-				<details class="floaty">
+				<details>
 					<summary class="definition" aria-labelledby="define-statsPauseTerm statsPauseTerm">
 						<span id="define-statsPauseTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -95,7 +102,7 @@
 			<dt id="statsDurationTerm" data-message="statsDurationTerm"></dt>
 			<dd>
 				<span id="duration">&mdash;</span>ms
-				<details class="floaty">
+				<details>
 					<summary class="definition" aria-labelledby="define-statsDurationTerm statsDurationTerm">
 						<span id="define-statsDurationTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -103,7 +110,9 @@
 				</details>
 			</dd>
 			</dl>
+			<p data-message="statsInfo"></p>
 		</div>
+		<!-- /devtools -->
 
 		<script src="GUIJS"></script>
 	</body>

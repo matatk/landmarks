@@ -226,6 +226,10 @@
     "message": "Warning: This DevTools frame has become disconnected, probably due to the extension being reloaded. You'll need to reload this frame (e.g. via its context menu) for it to recieve updates again."
   },
 
+  "statsInfo": {
+    "message": "This info relates to how the extension is scanning the page for landmarks. When DevTools is open, the page will be scanned using the more detailed and slightly slower \"developer\" version of the scanner."
+  },
+
   "statsHeading": {
     "message": "Mutation information"
   },
@@ -239,7 +243,7 @@
   },
 
   "statsCheckedMutationsTerm": {
-    "message": "Checked Mutations:"
+    "message": "Checked mutations:"
   },
 
   "statsCheckedMutationsDefinition": {
