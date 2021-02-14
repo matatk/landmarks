@@ -1,4 +1,5 @@
 * { box-sizing: border-box; }
+html { font-size: 85%; }  /* to match other panels */
 
 body {
 	font-family: sans-serif;
@@ -29,11 +30,13 @@ li {
 	margin-top: 0.15rem;
 }
 
+button { font-size: inherit; }
+
 #show-all-label { margin-top: 0.25rem; }
 
 #mutation-observation-station { margin-top: 0.5rem; }
 
-details[open] > summary { border: 1px solid gray; }
+p { margin-top: 0; }
 
 details > p {
 	margin: 0;
@@ -44,10 +47,33 @@ details > p {
 
 details.floaty { display: inline; }
 details.floaty p { position: absolute; }
+summary { border: 1px solid gray; }
 summary.definition { list-style: none; }
 summary.definition::-webkit-details-marker { display: none; }
-summary.definition::after { content: "?"; }
 summary.definition.lint-warning::after { content: "⚠️"; }
+
+summary.definition::after {
+	content: "?";
+	padding: 0.25rem;
+}
+
+dl {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0;
+}
+
+dt, dd {
+	margin-top: 0.15rem;
+	margin-bottom: 0.15rem;
+}
+
+dt { width: 33%; }
+
+dd {
+	margin-left: auto;
+	width: 66%;
+}
 
 /* FIXME: DRY with common.css —- it's still in there because common.css is also
  * used on the home page */
