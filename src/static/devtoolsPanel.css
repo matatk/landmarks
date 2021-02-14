@@ -1,29 +1,48 @@
-:root {
-	--border: 1px solid gray;
+* { box-sizing: border-box; }
+
+html {
+	--text: black;
+	--bkg: white;
+	--thin-accent: gray;
+	--thick-accent: #eee;
+
+	/* Shared */
+	--border: 1px solid var(--thin-accent);
 	--spacing: 0.15rem;
-	--x-padding: 0.25rem;
-	--y-padding: 0.5rem;
+	--padding: 0.25rem;
+	--big-padding: 0.5rem;
 }
 
-* { box-sizing: border-box; }
-html { font-size: 85%; }  /* to match other panels */
+html.theme-dark {
+	--text: white;
+	--bkg: black;
+	--thin-accent: #6b6b6b;
+	--thick-accent: #444;
+}
 
 body {
 	font-family: sans-serif;
 	margin: 0;
+	color: var(--text);
+}
+
+button {
+	font-size: inherit;
+	color: var(--text);
+	background-color: unset;
+	border: var(--border);
 }
 
 body > div > * {
-	padding: var(--x-padding);
-	padding-top: var(--y-padding);
-	padding-bottom: var(--y-padding);
+	padding: var(--big-padding);
+	padding-top: var(--padding);
+	padding-bottom: var(--padding);
 }
 
 h1 {
 	margin: 0;
 	font-size: 1rem;
-	background: #eee;
-	border-bottom: var(--border);
+	background: var(--thick-accent);
 }
 
 ul {
@@ -38,32 +57,32 @@ li {
 	margin-top: var(--spacing);
 }
 
-button { font-size: inherit; }
-
-#show-all-label { margin-top: var(--y-padding); }
-
-#mutation-observation-station { margin-top: var(--x-padding); }
+#show-all-label,
+#mutation-observation-station { margin-top: var(--big-padding); }
 
 p { margin-top: 0; }
 
 details > p {
 	margin: 0;
-	padding: var(--x-padding);
-	background-color: white;
+	padding: var(--padding);
+	background-color: var(--bkg);
 	border: var(--border);
 }
 
 details.floaty { display: inline; }
 details.floaty p { position: absolute; }
+
 summary { border: var(--border); }
-summary.definition { list-style: none; }
+
+summary.definition { list-style: none; }  /* for Firefox */
 summary.definition::-webkit-details-marker { display: none; }
-summary.definition.lint-warning::after { content: "⚠️"; }
 
 summary.definition::after {
 	content: "?";
-	padding: var(--y-padding);
+	padding: var(--big-padding);
 }
+
+summary.definition.lint-warning::after { content: "⚠️"; }
 
 dl {
 	display: flex;

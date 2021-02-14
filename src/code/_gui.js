@@ -339,6 +339,10 @@ function handleMutationMessage(data) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
+	// TODO: onChanged for Firefox
+	document.documentElement.classList =
+		`theme-${browser.devtools.panels.themeName}`
+
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
 		// DevTools page doesn't get reloaded when the extension does
