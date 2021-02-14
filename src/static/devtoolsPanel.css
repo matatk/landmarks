@@ -8,16 +8,14 @@
 	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
 	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
 	html { font-size: 12px; }
+	body { background-color: var(--bkg); }
 
-	/* The buttons and summaries are aligned differently. */
 	summary {
 		position: relative;
 		top: -1px;
 	}
 
-	body {
-		background-color: var(--bkg);
-	}
+	details > p { z-index: 42; }
 }
 
 html {
@@ -86,7 +84,6 @@ details { display: inline; }
 
 details > p {
 	margin: 0;
-	margin-left: var(--padding);
 	padding: var(--padding);
 	background-color: var(--bkg);
 	border: var(--border);
