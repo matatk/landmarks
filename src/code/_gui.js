@@ -325,6 +325,12 @@ function handleMutationMessage(data) {
 	}
 }
 
+function reflectDevToolsTheme(themeName) {
+	console.log('reflectDevToolsTheme:', themeName)
+	document.documentElement.classList = `theme-${themeName}`
+	console.log(document.documentElement.classList)
+}
+
 
 //
 // Start-up
@@ -336,9 +342,7 @@ function handleMutationMessage(data) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
-	// TODO: onChanged for Firefox
-	document.documentElement.classList =
-		`theme-${browser.devtools.panels.themeName}`
+	reflectDevToolsTheme(browser.devtools.panels.themeName)
 
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
@@ -346,6 +350,9 @@ function startupDevTools() {
 		port.onDisconnect.addListener(function() {
 			document.getElementById('connection-error').hidden = false
 		})
+	} else {
+		browser.devtools.panels.onThemeChanged.addListener(
+			reflectDevToolsTheme)
 	}
 
 	port.onMessage.addListener(messageHandlerCore)

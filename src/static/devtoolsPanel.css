@@ -12,6 +12,10 @@
 		position: relative;
 		top: -1px;
 	}
+
+	body {
+		background-color: var(--bkg);
+	}
 }
 
 html {
