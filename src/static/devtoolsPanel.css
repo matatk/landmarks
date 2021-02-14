@@ -1,10 +1,12 @@
 @-moz-document url-prefix() {
 	/* Hacks for Firefox */
 
-	/* The font is not resizable on Firefox, and by default it's
-	   significantly bigger than the other panels' font. Doing this to fit in,
-	   on the assumption that people using magnifiers will have to zoom the
-	   whole screen anyway :-S. */
+	/* The font is not resizable on Firefox—whilst the text size on other
+	   panels does grow when zooming, I've never managed to make this work
+	   here. Not sure if it's me or Firefox's in-built CSS.
+
+	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
+	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
 	html { font-size: 12px; }
 
 	/* The buttons and summaries are aligned differently. */
