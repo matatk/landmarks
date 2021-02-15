@@ -116,29 +116,9 @@ function makeLandmarksTree(landmarks, container) {
 		item.appendChild(button)
 
 		if (INTERFACE === 'devtools') {
-			const inspectButton = makeSymbolButton(
-				function() {
-					const inspectorCall = "inspect(document.querySelector('"
-						+ landmark.selector  // comes from our own code
-						+ "'))"
-					browser.devtools.inspectedWindow.eval(inspectorCall)
-				},
-				'inspectButtonName',
-				'🔍',
-				landmarkName(landmark))
-			inspectButton.title = landmark.selector
-			item.appendChild(inspectButton)
-
-			if (landmark.error) {
-				const details = document.createElement('details')
-				const summary = document.createElement('summary')
-				summary.setAttribute('class', 'lint-warning')
-				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
-				const para = document.createElement('p')
-				para.appendChild(document.createTextNode(landmark.error))
-				details.appendChild(summary)
-				details.appendChild(para)
-				item.appendChild(details)
+			addInspectButton(item, landmark)
+			if (landmark.warnings.length > 0) {
+				addElementWarnings(item, landmark, landmark.warnings)
 			}
 		}
 
@@ -150,6 +130,32 @@ function makeLandmarksTree(landmarks, container) {
 	})
 
 	container.appendChild(root)
+}
+
+function addInspectButton(root, landmark) {
+	const inspectButton = makeSymbolButton(
+		function() {
+			const inspectorCall = "inspect(document.querySelector('"
+				+ landmark.selector  // comes from our own code
+				+ "'))"
+			browser.devtools.inspectedWindow.eval(inspectorCall)
+		},
+		'inspectButtonName',
+		'🔍',  // TODO: Move to CSS
+		landmarkName(landmark))
+	inspectButton.title = landmark.selector
+	root.appendChild(inspectButton)
+}
+
+function addElementWarnings(root, landmark, array) {
+	const details = document.createElement('details')
+	const summary = document.createElement('summary')
+	summary.setAttribute('class', 'lint-warning')
+	summary.setAttribute('aria-label',
+		`Warning for ${landmark.role}`)  // FIXME: localise
+	details.appendChild(summary)
+	makeWarnings(details, array)
+	root.appendChild(details)
 }
 
 // Remove all nodes contained within a node
@@ -183,6 +189,39 @@ function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
 	}
 	button.onclick = onClick
 	return button
+}
+
+
+//
+// Showing page warnings in DevTools
+//
+
+function handlePageWarningsMessage(warnings) {
+	const container = document.getElementById('page-warnings-container')
+	const root = document.getElementById('page-warnings')
+	container.hidden = warnings.length === 0
+	removeChildNodes(root)
+	makeWarnings(root, warnings)
+}
+
+function makeWarnings(root, warningKeys) {
+	if (warningKeys.length > 1) {
+		const list = document.createElement('ul')
+		for (const warningKey of warningKeys) {
+			const item = document.createElement('li')
+			const para = document.createElement('p')
+			para.appendChild(
+				document.createTextNode(browser.i18n.getMessage(warningKey)))
+			item.appendChild(para)
+			list.appendChild(item)
+		}
+		root.appendChild(list)
+	} else {
+		const para = document.createElement('p')
+		para.appendChild(
+			document.createTextNode(browser.i18n.getMessage(warningKeys[0])))
+		root.appendChild(para)
+	}
 }
 
 
@@ -298,10 +337,13 @@ function send(message) {
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
+		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
 		handleMutationMessage(message.data)
+	} else if (INTERFACE === 'devtools' && message.name === 'page-warnings') {
+		handlePageWarningsMessage(message.data)
 	}
 }
 
@@ -416,4 +458,3 @@ function main() {
 }
 
 main()
-

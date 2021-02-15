@@ -15,6 +15,17 @@
 		<!-- /devtools -->
 	</head>  <!-- TODO: this gets aligned wrongly after the replace -->
 	<body>
+		<!-- devtools -->
+		<div id="connection-error" class="warning" hidden>
+			<p data-message="devToolsConnectionError"></p>
+		</div>
+
+		<div id="page-warnings-container" hidden>
+			<h1 data-message="lintPageWarnings"></h1>
+			<div id="page-warnings"></div>
+		</div>
+		<!-- /devtools -->
+
 		<div id="content">
 			<!-- popup-and-sidebar -->
 			<!-- sidebar -->
@@ -32,11 +43,7 @@
 			<!-- /popup-and-sidebar -->
 			<!-- devtools -->
 			<h1 data-message="extensionShortName"></h1>
-			<div id="connection-error" class="warning" hidden>
-				<p data-message="devToolsConnectionError"></p>
-			</div>
 			<!-- /devtools -->
-
 			<div id="landmarks"></div>
 
 			<label id="show-all-label" data-message="popupShowAllLandmarks">

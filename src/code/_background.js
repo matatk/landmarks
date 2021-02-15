@@ -65,6 +65,7 @@ function devtoolsListenerMaker(port) {
 			case 'focus-landmark':
 			case 'toggle-all-landmarks':
 			case 'get-mutation-info':
+			case 'get-page-warnings':
 				// The DevTools panel can't check if it's on a scriptable
 				// page, so we do that here. Other GUIs check themselves.
 				browser.tabs.get(message.from, function(tab) {
@@ -343,6 +344,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			})
 			break
 		case 'mutation-info':
+		case 'page-warnings':
 			sendToDevToolsForTab(sender.tab.id, message)
 	}
 })

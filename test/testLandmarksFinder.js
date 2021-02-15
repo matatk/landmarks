@@ -117,17 +117,17 @@ function testSpecificLandmarksFinder(Scanner, scannerName, postProcesor) {
 	}
 }
 
-function removeErrors(landmarks) {
+function removeWarnings(landmarks) {
 	return landmarks.map(landmark => {
 		// eslint-disable-next-line no-unused-vars
-		const { error, ...info } = landmark
+		const { warnings, ...info } = landmark
 		return info
 	})
 }
 
 const runs = [
 	[ LandmarksFinderStandard, 'Standard', null ],
-	[ LandmarksFinderDeveloper, 'Developer', removeErrors ]]
+	[ LandmarksFinderDeveloper, 'Developer', removeWarnings ]]
 
 for (const [scanner, name, postProcesor] of runs) {
 	testSpecificLandmarksFinder(scanner, name, postProcesor)

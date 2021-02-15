@@ -298,5 +298,28 @@
 
   "badgeNew": {
     "message": "NEW"
+  },
+
+
+
+
+  "lintPageWarnings": {
+    "message": "Page warnings"
+  },
+
+  "lintNoMain": {
+    "message": "No main element/region."
+  },
+
+  "lintManyMains": {
+    "message": "More than one main element/region."
+  },
+
+  "lintManyVisibleMainElements": {
+    "message": "More than one visible <main> element."
+  },
+
+  "lintDuplicateUnlabelled": {
+    "message": "Duplicate unlabelled landmark with this role."
   }
 }

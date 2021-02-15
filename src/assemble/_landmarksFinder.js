@@ -78,14 +78,18 @@ export default function LandmarksFinder(win, doc) {
 
 	let landmarks = []
 	// Each member of this array is an object of the form:
-	//   depth: (int)                      -- indicates nesting of landmarks
-	//   role: (string)                    -- the ARIA role
-	//   roleDescription: (string | null)  -- custom role description
-	//   label: (string | null)            -- associated label
-	//   selector: (string)                -- CSS selector path of element
-	//   element: (HTML*Element)           -- in-memory element
+	//   depth: (int)                     -- indicates nesting of landmarks
+	//   role: (string)                   -- the ARIA role
+	//   roleDescription: (string | null) -- custom role description
+	//   label: (string | null)           -- associated label
+	//   selector: (string)               -- CSS selector path of element
+	//   element: (HTML*Element)          -- in-memory element
+	// and, in developer mode...
+	//   warnings: [string]               -- list of warnings about this element
 
-	const _unlabelledLandmarkRoles = MODE === 'developer' ? new Map() : null
+	let _pageWarnings = MODE === 'developer' ? [] : null
+	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
+	let _visibleMainElements = MODE === 'developer' ? [] : null
 
 
 	//
@@ -152,13 +156,21 @@ export default function LandmarksFinder(win, doc) {
 				'element': element,
 				'selector': createSelector(element),
 			})
+
 			if (MODE === 'developer') {
-				landmarks[landmarks.length - 1].error = null
+				landmarks[landmarks.length - 1].warnings = []
+
 				if (!label) {
-					if (!_unlabelledLandmarkRoles.has(role)) {
-						_unlabelledLandmarkRoles.set(role, [])
+					if (!_unlabelledRoleElements.has(role)) {
+						_unlabelledRoleElements.set(role, [])
 					}
-					_unlabelledLandmarkRoles.get(role).push(element)
+					_unlabelledRoleElements.get(role).push(element)
+				}
+
+				if (role === 'main'
+					&& explicitRole === false
+					&& !isVisuallyHidden(element)) {
+					_visibleMainElements.push(element)
 				}
 			}
 
@@ -338,6 +350,48 @@ export default function LandmarksFinder(win, doc) {
 
 
 	//
+	// Developer mode-specific checks
+	//
+
+	function developerModeChecks() {
+		const _duplicateUnlabelledWarnings = getDuplicateUnlabelledWarnings()
+
+		if (mainElementIndices.length === 0) {
+			_pageWarnings.push('lintNoMain')
+		}
+
+		if (mainElementIndices.length > 1) {
+			_pageWarnings.push('lintManyMains')
+		}
+
+		for (const landmark of landmarks) {
+			if (_visibleMainElements.length > 1
+				&& _visibleMainElements.includes(landmark.element)) {
+				landmark.warnings.push('lintManyVisibleMainElements')
+			}
+
+			if (_duplicateUnlabelledWarnings.has(landmark.element)) {
+				landmark.warnings.push(
+					_duplicateUnlabelledWarnings.get(landmark.element))
+			}
+		}
+	}
+
+	function getDuplicateUnlabelledWarnings() {
+		const _duplicateUnlabelledWarnings = new Map()
+		for (const elements of _unlabelledRoleElements.values()) {
+			if (elements.length > 1) {
+				for (const element of elements) {
+					_duplicateUnlabelledWarnings.set(
+						element, 'lintDuplicateUnlabelled')
+				}
+			}
+		}
+		return _duplicateUnlabelledWarnings
+	}
+
+
+	//
 	// Support for finding next landmark from focused element
 	//
 
@@ -365,7 +419,11 @@ export default function LandmarksFinder(win, doc) {
 	//
 
 	this.find = function() {
-		if (MODE === 'developer') _unlabelledLandmarkRoles.clear()
+		if (MODE === 'developer') {
+			_pageWarnings = []
+			_unlabelledRoleElements.clear()
+			_visibleMainElements = []
+		}
 
 		landmarks = []
 		mainElementIndices = []
@@ -373,21 +431,7 @@ export default function LandmarksFinder(win, doc) {
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
-		if (MODE === 'developer') {
-			const _unlabelledLandmarkErrors = new Map()
-			for (const [role, elements] of _unlabelledLandmarkRoles.entries()) {
-				if (elements.length > 1) {
-					for (const element of elements) {
-						_unlabelledLandmarkErrors.set(element, `Duplicate unlabelled landmark with role "${role}"`)
-					}
-				}
-			}
-			for (const landmark of landmarks) {
-				if (_unlabelledLandmarkErrors.has(landmark.element)) {
-					landmark.error = _unlabelledLandmarkErrors.get(landmark.element)
-				}
-			}
-		}
+		if (MODE === 'developer') developerModeChecks()
 	}
 
 	this.getNumberOfLandmarks = function() {
@@ -404,6 +448,12 @@ export default function LandmarksFinder(win, doc) {
 
 	this.allElementsInfos = function() {
 		return landmarks.slice()
+	}
+
+	if (MODE === 'developer') {
+		this.pageResults = function() {
+			return _pageWarnings
+		}
 	}
 
 	// These all return elements and their related info

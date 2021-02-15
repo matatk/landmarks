@@ -23,6 +23,7 @@ html {
 	--bkg: white;
 	--thin-accent: gray;
 	--thick-accent: #eee;
+	--danger: #e00;
 
 	/* Shared */
 	--border: 1px solid var(--thin-accent);
@@ -36,6 +37,7 @@ html.theme-dark {
 	--bkg: black;
 	--thin-accent: #6b6b6b;
 	--thick-accent: #444;
+	--danger: red;
 }
 
 body {
@@ -50,17 +52,21 @@ button {
 	background-color: unset;
 }
 
-/* Everything that's content is within one of the two main sections */
+/* Each content/UI section is in a separate top-level <div> */
+body > div:not(:last-child) { padding-bottom: var(--big-padding); }
+
+/* Horizontal padding for everything in a section */
 body > div > * {
-	padding: var(--big-padding);
-	padding-top: var(--padding);
-	padding-bottom: var(--padding);
+	padding-left: var(--padding);
+	padding-right: var(--padding);
 }
 
 h1 {
 	margin: 0;
 	font-size: 1rem;
 	background: var(--thick-accent);
+	padding-top: var(--spacing);
+	padding-bottom: var(--spacing);
 }
 
 ul {
@@ -70,15 +76,11 @@ ul {
 
 ul ul { padding-left: 2rem; }
 
-li {
+li,
+p {
 	display: block;
 	margin-top: var(--padding);
 }
-
-#show-all-label,
-#mutation-observation-station { margin-top: var(--big-padding); }
-
-p { margin-top: 0; }
 
 details { display: inline; }
 
@@ -90,42 +92,41 @@ details > p {
 	position: absolute;
 }
 
+/* Less-than-standard margin becuase the container already has some */
+p:last-child { margin-bottom: var(--padding); }
+
 button,
 summary {
 	border: var(--border);
 	padding: var(--padding);
-	line-height: 1rem;  /* for the glyphs */
+	line-height: 1rem;  /* force glyphs to not be too big */
 }
 
 summary { list-style: none; }  /* for disclosure symbol in Firefox */
 summary::-webkit-details-marker { display: none; }
-
-summary.definition::after { content: "?"; }
+summary.definition::after { content: "ℹ️"; }
 summary.lint-warning::after { content: "⚠️"; }
 
 button + button,
 button + details > summary { margin-left: var(--big-padding); }
 
 dl {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: max-content auto;
 	margin: 0;
 }
 
 dt,
 dd {
+	align-self: center;
 	margin-top: var(--spacing);
 	margin-bottom: var(--spacing);
 }
 
-dt {
-	align-self: center;
-	width: 33%;
-}
-
-dd {
-	margin-left: auto;
-	width: 66%;
+/* DevTools connection error (when the extension is reloaded on Chrome et al) */
+div.warning > p {
+	border: 0.15em solid var(--danger);
+	padding: 1rem;
 }
 
 /* FIXME: DRY with common.css —- it's still in there because common.css is also

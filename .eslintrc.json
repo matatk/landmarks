@@ -1,23 +1,50 @@
 {
+  "extends": "eslint:recommended",
   "env": {
     "browser": true,
     "es6": true,
     "node": true
   },
-  "extends": "eslint:recommended",
-  "overrides": [
-    {
-      "files": ["test/test*.js"],
-      "parserOptions": {
-        "sourceType": "module"
-      }
-    }
-  ],
   "parserOptions": {
     "ecmaVersion": 2018
   },
   "reportUnusedDisableDirectives": true,
   "root": true,
+  "overrides": [
+    {
+      "files": ["src/**/*.js"],
+      "env": {
+        "browser": true,
+        "node": false
+      }
+    },
+    {
+      "files": ["src/code/*.js", "src/static/*.js"],
+      "globals": {
+        "browser": "readonly"
+      }
+    },
+    {
+      "files": ["src/assemble/*.js"],
+      "globals": {
+        "MODE": "readonly"
+      }
+    },
+    {
+      "files": ["src/code/*.js"],
+      "globals": {
+        "BROWSER": "readonly",
+        "INTERFACE": "readonly",
+        "DEBUG": "readonly"
+      }
+    },
+    {
+      "files": ["src/assemble/*.js", "src/code/*.js", "test/test*.js"],
+      "parserOptions": {
+        "sourceType": "module"
+      }
+    }
+  ],
   "rules": {
     "block-scoped-var": "error",
     "brace-style": "error",
