@@ -51,6 +51,7 @@ button {
 	color: var(--text);
 	background-color: unset;
 }
+button.examine::after { content: "🔍"; }
 
 /* Each content/UI section is in a separate top-level <div> */
 body > div:not(:last-child) { padding-bottom: var(--big-padding); }

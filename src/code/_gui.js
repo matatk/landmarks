@@ -108,7 +108,7 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		const button = makeButtonAlreadyTranslated(
+		const button = makeButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
 			},
@@ -133,15 +133,15 @@ function makeLandmarksTree(landmarks, container) {
 }
 
 function addInspectButton(root, landmark) {
-	const inspectButton = makeSymbolButton(
+	const inspectButton = makeButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
 				+ landmark.selector  // comes from our own code
 				+ "'))"
 			browser.devtools.inspectedWindow.eval(inspectorCall)
 		},
-		'inspectButtonName',
-		'🔍',  // TODO: Move to CSS
+		browser.i18n.getMessage('inspectButtonName'),
+		'examine',
 		landmarkName(landmark))
 	inspectButton.title = landmark.selector
 	root.appendChild(inspectButton)
@@ -173,21 +173,15 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeSymbolButton(onClick, nameMessage, symbol, context) {
-	return makeButtonAlreadyTranslated(
-		onClick,
-		browser.i18n.getMessage(nameMessage),
-		symbol,
-		context)
-}
-
-function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
+function makeButton(onClick, text, cssClass, context) {
 	const button = document.createElement('button')
-	button.appendChild(document.createTextNode(symbol ? symbol : name))
-	if (symbol) {
-		button.setAttribute('aria-label', name + ' ' + context)
+	if (cssClass && context) {
+		button.className = cssClass
+		button.setAttribute('aria-label', text + ' ' + context)
+	} else {
+		button.appendChild(document.createTextNode(text))
 	}
-	button.onclick = onClick
+	button.addEventListener('click', onClick)
 	return button
 }
 
