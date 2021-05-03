@@ -149,6 +149,7 @@ function addInspectButton(root, landmark) {
 
 function addElementWarnings(root, landmark, array) {
 	const details = document.createElement('details')
+	details.className = 'tooltip'
 	const summary = document.createElement('summary')
 	summary.setAttribute('class', 'lint-warning')
 	summary.setAttribute('aria-label',

@@ -20,10 +20,10 @@
 			<p data-message="devToolsConnectionError"></p>
 		</div>
 
-		<div id="page-warnings-container" hidden>
-			<h1 data-message="lintPageWarnings"></h1>
+		<details class="department" id="page-warnings-container" open hidden>
+			<summary><h1 data-message="lintPageWarnings"></h1></summary>
 			<div id="page-warnings"></div>
-		</div>
+		</details>
 		<!-- /devtools -->
 
 		<div id="content">
@@ -41,14 +41,24 @@
 				<button id="note-update-dismiss" data-message="hintWhatIsNewDismiss"></button>
 			</div>
 			<!-- /popup-and-sidebar -->
+
 			<!-- devtools -->
-			<h1 data-message="extensionShortName"></h1>
+			<details class="department" open>
+				<summary><h1 data-message="extensionShortName"></h1></summary>
+				<div id="landmarks"></div>
+
+				<label id="show-all-label" data-message="popupShowAllLandmarks">
+					<input type="checkbox" id="show-all">
+				</label>
+			</details>
 			<!-- /devtools -->
+			<!-- popup-and-sidebar -->
 			<div id="landmarks"></div>
 
 			<label id="show-all-label" data-message="popupShowAllLandmarks">
 				<input type="checkbox" id="show-all">
 			</label>
+			<!-- /popup-and-sidebar -->
 		</div>
 
 		<!-- popup-and-sidebar -->
@@ -59,13 +69,18 @@
 		<!-- /popup-and-sidebar -->
 
 		<!-- devtools -->
-		<div id="mutation-observation-station">
-			<h1 data-message="statsHeading"></h1>
+		<details class="department">
+			<summary><h1>About Warnings</h1></summary>
+			<p>Warnings given above are not always <a href="https://www.w3.org/WAI/standards-guidelines/wcag/" target="_blank">Web Content Accessibility Guidelines (WCAG)</a> failures, but are UX suggestions based on best practice.</p>
+		</details>
+
+		<details class="department" id="mutation-observation-station">
+			<summary><h1 data-message="statsHeading"></h1></summary>
 			<dl>
 				<dt id="statsMutationsTerm" data-message="statsMutationsTerm"></dt>
 				<dd>
 					<span id="mutations">0</span>
-					<details>
+					<details class="tooltip">
 						<summary class="definition" aria-labelledby="define-statsMutationsTerm statsMutationsTerm">
 							<span id="define-statsMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
 						</summary>
@@ -76,7 +91,7 @@
 				<dt id="statsCheckedMutationsTerm" data-message="statsCheckedMutationsTerm"></dt>
 				<dd>
 					<span id="checks">0</span>
-					<details>
+					<details class="tooltip">
 						<summary class="definition" aria-labelledby="define-statsCheckedMutationsTerm statsCheckedMutationsTerm">
 							<span id="define-statsCheckedMutationsTerm" data-message="statsDefine" class="visually-hidden"></span>
 						</summary>
@@ -87,7 +102,7 @@
 				<dt id="statsScansTerm" data-message="statsScansTerm"></dt></dt>
 			<dd>
 				<span id="scans">0</span>
-				<details>
+				<details class="tooltip">
 					<summary class="definition" aria-labelledby="define-statsScansTerm statsScansTerm">
 						<span id="define-statsScansTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -98,7 +113,7 @@
 			<dt id="statsPauseTerm" data-message="statsPauseTerm"></dt>
 			<dd>
 				<span id="pause">&mdash;</span>ms
-				<details>
+				<details class="tooltip">
 					<summary class="definition" aria-labelledby="define-statsPauseTerm statsPauseTerm">
 						<span id="define-statsPauseTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -109,7 +124,7 @@
 			<dt id="statsDurationTerm" data-message="statsDurationTerm"></dt>
 			<dd>
 				<span id="duration">&mdash;</span>ms
-				<details>
+				<details class="tooltip">
 					<summary class="definition" aria-labelledby="define-statsDurationTerm statsDurationTerm">
 						<span id="define-statsDurationTerm" data-message="statsDefine" class="visually-hidden"></span>
 					</summary>
@@ -118,7 +133,7 @@
 			</dd>
 			</dl>
 			<p data-message="statsInfo"></p>
-		</div>
+		</details>
 		<!-- /devtools -->
 
 		<script src="GUIJS"></script>

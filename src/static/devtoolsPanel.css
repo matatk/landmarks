@@ -1,3 +1,9 @@
+/* FIXME "spacing" here is 0.15rem but "spacing" in common.gui is 0.25 */
+
+/* FIXME: in Firefox there's a slightly bigger gap before the last */
+
+/* FIXME no hover effects */
+
 @-moz-document url-prefix() {
 	/* Hacks for Firefox */
 
@@ -8,14 +14,8 @@
 	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
 	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
 	html { font-size: 12px; }
+
 	body { background-color: var(--bkg); }
-
-	summary {
-		position: relative;
-		top: -1px;
-	}
-
-	details > p { z-index: 42; }
 }
 
 html {
@@ -24,8 +24,9 @@ html {
 	--thin-accent: gray;
 	--thick-accent: #eee;
 	--danger: #e00;
+	--link: blue;
 
-	/* Shared */
+	/* Shared across themes */
 	--border: 1px solid var(--thin-accent);
 	--spacing: 0.15rem;
 	--padding: 0.25rem;
@@ -38,6 +39,7 @@ html.theme-dark {
 	--thin-accent: #6b6b6b;
 	--thick-accent: #444;
 	--danger: red;
+	--link: #88f;
 }
 
 body {
@@ -53,21 +55,32 @@ button {
 }
 button.examine::after { content: "🔍"; }
 
-/* Each content/UI section is in a separate top-level <div> */
-body > div:not(:last-child) { padding-bottom: var(--big-padding); }
-
-/* Horizontal padding for everything in a section */
-body > div > * {
+/* Ensure some vertical padding between sections, and horizontal padding for
+ * their contents. The DevTools panel contains only things that are warings or
+ * grouped expandable content. */
+.warning,
+details.department > :not(summary) {
 	padding-left: var(--padding);
 	padding-right: var(--padding);
 }
 
+/* A small gap between them makes them look better when collapsed. */
+details.department { margin-bottom: var(--spacing); }
+
+#show-all-label {
+	display: block;
+	margin: var(--padding) 0;
+}
+
+details.department > summary { background: var(--thick-accent); }
+
 h1 {
-	margin: 0;
+	display: inline-block;
 	font-size: 1rem;
-	background: var(--thick-accent);
+	margin: 0;
 	padding-top: var(--spacing);
 	padding-bottom: var(--spacing);
+	padding-left: var(--padding);
 }
 
 ul {
@@ -83,9 +96,16 @@ p {
 	margin-top: var(--padding);
 }
 
-details { display: inline; }
+button,
+details.tooltip > summary {
+	border: var(--border);
+	padding: var(--padding);
+	line-height: 1rem;  /* force glyphs to not be too big */
+}
 
-details > p {
+details.tooltip { display: inline; }
+
+details.tooltip > p {
 	margin: 0;
 	padding: var(--padding);
 	background-color: var(--bkg);
@@ -93,23 +113,13 @@ details > p {
 	position: absolute;
 }
 
-/* Less-than-standard margin becuase the container already has some */
-p:last-child { margin-bottom: var(--padding); }
-
-button,
-summary {
-	border: var(--border);
-	padding: var(--padding);
-	line-height: 1rem;  /* force glyphs to not be too big */
-}
-
-summary { list-style: none; }  /* for disclosure symbol in Firefox */
-summary::-webkit-details-marker { display: none; }
-summary.definition::after { content: "ℹ️"; }
-summary.lint-warning::after { content: "⚠️"; }
+details.tooltip > summary { list-style: none; }  /* for disclosure symbol in Firefox */
+details.tooltip > summary::-webkit-details-marker { display: none; }
+details.tooltip > summary.definition::after { content: "ℹ️"; }
+details.tooltip > summary.lint-warning::after { content: "⚠️"; }
 
 button + button,
-button + details > summary { margin-left: var(--big-padding); }
+button + details.tooltip > summary { margin-left: var(--big-padding); }
 
 dl {
 	display: grid;
@@ -129,6 +139,8 @@ div.warning > p {
 	border: 0.15em solid var(--danger);
 	padding: 1rem;
 }
+
+a { color: var(--link); }
 
 /* FIXME: DRY with common.css —- it's still in there because common.css is also
  * used on the home page */
