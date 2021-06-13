@@ -29,10 +29,16 @@ function sendToDevToolsForTab(tabId, message) {
 }
 
 function updateGUIs(tabId, url) {
+	console.log('bkg: updateGUIs()')
 	if (isContentScriptablePage(url)) {
+		console.log('bkg: updateGUIs(): asking for landmarks')
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
+		console.log(browser.runtime.lastError)
+		console.log('bkg: updateGUIs(): asking for toggle state')
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
+		console.log(browser.runtime.lastError)
 	} else {
+		console.log('bkg: updateGUIs(): non-scriptable page')
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -47,6 +53,7 @@ function devtoolsListenerMaker(port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
 	return function(message) {
+		console.log('dev:', message.name)
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
@@ -189,6 +196,7 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
 	checkBrowserActionState(details.tabId, details.url)
+	console.log('bkg: web navigation completed')
 	updateGUIs(details.tabId, details.url)
 })
 
@@ -225,6 +233,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
+		console.log('bkg: tab activated')
 		updateGUIs(tab.id, tab.url)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
@@ -245,6 +254,7 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			console.log('bkg: update dismissed')
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
 	} else if (!doNotBadge) {
@@ -293,6 +303,7 @@ function openHelpPage(openInSameTab) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
+	console.log('ext:', message.name)
 	switch (message.name) {
 		// Content
 		case 'landmarks':
@@ -340,6 +351,8 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+				// TODO: Got an "Error handling response: TypeError: Cannot
+				//       read property 'id' of undefined" in Chrome once:
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
 			break

@@ -117,8 +117,16 @@ function makeLandmarksTree(landmarks, container) {
 
 		if (INTERFACE === 'devtools') {
 			addInspectButton(item, landmark)
-			if (landmark.warnings.length > 0) {
-				addElementWarnings(item, landmark, landmark.warnings)
+
+			// NOTE: When the content script first starts, it assumes that
+			//       DevTools aren't open.
+			// TODO: fix this so it does what's apt
+			if (landmark.hasOwnProperty('warnings')) {
+				if (landmark.warnings.length > 0) {
+					addElementWarnings(item, landmark, landmark.warnings)
+				}
+			} else {
+				send({ name: 'x-no-warnings-for-' + landmark.role })
 			}
 		}
 
@@ -336,7 +344,10 @@ function send(message) {
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
-		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
+		if (INTERFACE === 'devtools') {
+			send({ name: 'x-got-landmarks-sending-get-page-warnings' })
+			send({ name: 'get-page-warnings' })
+		}
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
@@ -445,6 +456,7 @@ function startupPopupOrSidebar() {
 function main() {
 	if (INTERFACE === 'devtools') {
 		startupDevTools()
+		send({ name: 'x-devtools-startup' })
 	} else {
 		startupPopupOrSidebar()
 	}

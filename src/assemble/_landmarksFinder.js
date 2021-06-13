@@ -113,7 +113,7 @@ export default function LandmarksFinder(win, doc) {
 			role: landmarks[index].role,
 			roleDescription: landmarks[index].roleDescription,
 			label: landmarks[index].label
-			// No need to send the selector this time
+			// No need to send the selector or warnings
 		}
 	}
 

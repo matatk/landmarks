@@ -16,8 +16,8 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
-const outOfDateTime = 2e3
-const observerReconnectionGrace = 1e3
+const outOfDateTime = 2e3              // consider landmarks stale after this
+const observerReconnectionGrace = 1e3  // wait after page becomes visible again
 let observer = null
 let observerReconnectionTimer = null
 
@@ -30,7 +30,13 @@ function messageHandler(message) {
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
+			browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request' })
+			if (!checkAndUpdateOutdatedResults()) {
+				browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request-already-up-to-date-so-just-sending-landmarks-as-is' })
+				sendLandmarks()
+			} else {
+				browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request-refreshed-and-sent-newly-found-landmarks' })
+			}
 			break
 		case 'focus-landmark':
 			// Triggered by activating an item in a GUI, or indirectly via one
@@ -96,12 +102,22 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				landmarksFinder = landmarksFinderDeveloper
-				landmarksFinder.find()
+				browser.runtime.sendMessage({ name: 'x-content-change-to-dev' })
+				if (landmarksFinder !== landmarksFinderDeveloper) {
+					landmarksFinder = landmarksFinderDeveloper
+					landmarksFinder.find()
+				} else {
+					browser.runtime.sendMessage({ name: 'x-was-already-dev' })
+				}
 				msr.beVerbose()
 			} else {
-				landmarksFinder = landmarksFinderStandard
-				landmarksFinder.find()
+				browser.runtime.sendMessage({ name: 'x-content-change-to-std' })
+				if (landmarksFinder !== landmarksFinderStandard) {
+					landmarksFinder = landmarksFinderStandard
+					landmarksFinder.find()
+				} else {
+					browser.runtime.sendMessage({ name: 'x-was-already-std' })
+				}
 				msr.beQuiet()
 			}
 			break
@@ -142,6 +158,7 @@ function checkFocusElement(callbackReturningElementInfo) {
 //
 
 function sendLandmarks() {
+	browser.runtime.sendMessage({ name: 'x-sendLandmarks' })
 	browser.runtime.sendMessage({
 		name: 'landmarks',
 		data: landmarksFinder.allInfos()
@@ -150,6 +167,7 @@ function sendLandmarks() {
 
 function findLandmarksAndUpdateExtension() {
 	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
+	browser.runtime.sendMessage({ name: 'x-found-landmarks' })
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
@@ -247,6 +265,7 @@ function observeMutationObserverAndFindLandmarks() {
 }
 
 function reflectPageVisibility() {
+	browser.runtime.sendMessage({ name: 'x-doc-hidden-' + document.hidden })
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)
@@ -262,6 +281,7 @@ function reflectPageVisibility() {
 }
 
 function bootstrap() {
+	browser.runtime.sendMessage({ name: 'x-content-script-BOOTING' })
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
@@ -274,11 +294,18 @@ function bootstrap() {
 	}
 
 	// At the start, the ElementFocuser is always managing borders
-	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
+	// TODO: Background script will ask for this after webNavigation
+	// browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
+
 	createMutationObserver()
-	observeMutationObserverAndFindLandmarks()
+	browser.runtime.sendMessage({ name: 'x-content-script-observing' })
+	// TODO: Background script will ask for this after webNavigation
+	// observeMutationObserverAndFindLandmarks()
+	observeMutationObserver()
+
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	browser.runtime.sendMessage({ name: 'x-content-script-booted' })
 }
 
 bootstrap()
