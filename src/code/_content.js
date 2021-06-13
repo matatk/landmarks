@@ -298,16 +298,9 @@ function bootstrap() {
 			})
 	}
 
-	// At the start, the ElementFocuser is always managing borders
-	// TODO: Background script will ask for this after webNavigation
-	// browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
-
 	createMutationObserver()
-	debugSend('content-script-observing')
-	// TODO: Background script will ask for this after webNavigation
-	// observeMutationObserverAndFindLandmarks()
 	observeMutationObserver()
-
+	debugSend('content-script-observing')
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	debugSend('content-script-booted')
