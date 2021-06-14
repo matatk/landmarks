@@ -1,6 +1,7 @@
 import './compatibility'
 
-browser.devtools.panels.create(
+browser.devtools.panels.elements.createSidebarPane(
 	'Landmarks',
-	'landmarks-32.png',
-	'dummyDevToolsPanel.html')
+	function(sidebarPane) {
+		sidebarPane.setPage('devtoolsPanel.html')
+	})
