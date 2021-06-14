@@ -21,6 +21,6 @@ jobs:
         restore-keys:
           node-
     - name: Install dependencies
-      run: npm install
+      run: npm ci
     - name: Test and build
       run: npm run build:all
