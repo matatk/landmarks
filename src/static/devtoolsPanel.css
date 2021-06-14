@@ -8,25 +8,21 @@
 	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
 	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
 	html { font-size: 12px; }
+
 	body { background-color: var(--bkg); }
-
-	summary {
-		position: relative;
-		top: -1px;
-	}
-
-	details > p { z-index: 42; }
 }
 
 html {
 	--text: black;
 	--bkg: white;
 	--thin-accent: gray;
-	--thick-accent: #eee;
+	--thick-accent: #ccc;
+	--danger: #e00;
+	--link: blue;
 
-	/* Shared */
+	/* Shared across themes */
 	--border: 1px solid var(--thin-accent);
-	--spacing: 0.15rem;
+	--small-spacing: 0.15rem;
 	--padding: 0.25rem;
 	--big-padding: 0.5rem;
 }
@@ -36,31 +32,52 @@ html.theme-dark {
 	--bkg: black;
 	--thin-accent: #6b6b6b;
 	--thick-accent: #444;
+	--danger: red;
+	--link: #88f;
 }
 
 body {
 	font-family: sans-serif;
 	margin: 0;
 	color: var(--text);
+	line-height: 1.2;
 }
+
+a { color: var(--link); }
 
 button {
 	font-size: inherit;
 	color: var(--text);
 	background-color: unset;
 }
+button.examine::after { content: "🔍"; }
 
-/* Everything that's content is within one of the two main sections */
-body > div > * {
-	padding: var(--big-padding);
-	padding-top: var(--padding);
-	padding-bottom: var(--padding);
+/* Ensure some vertical padding between sections, and horizontal padding for
+ * their contents. The DevTools panel contains only things that are warings or
+ * grouped expandable content. */
+.warning,
+details.department > :not(summary) {
+	padding-left: var(--padding);
+	padding-right: var(--padding);
 }
 
+/* A small gap between them makes them look better when collapsed. */
+details.department { margin-bottom: var(--small-spacing); }
+
+#show-all-label {
+	display: block;
+	margin: var(--padding) 0;
+}
+
+details.department > summary { background: var(--thick-accent); }
+
 h1 {
-	margin: 0;
+	display: inline-block;
 	font-size: 1rem;
-	background: var(--thick-accent);
+	margin: 0;
+	padding-top: var(--small-spacing);
+	padding-bottom: var(--small-spacing);
+	padding-left: var(--padding);
 }
 
 ul {
@@ -70,19 +87,34 @@ ul {
 
 ul ul { padding-left: 2rem; }
 
-li {
+li,
+p {
 	display: block;
 	margin-top: var(--padding);
 }
 
-#show-all-label,
-#mutation-observation-station { margin-top: var(--big-padding); }
+button,
+details.tooltip > summary {
+	border: var(--border);
+	padding: var(--padding);
+	line-height: 1rem;  /* force glyphs to not be too big */
+}
 
-p { margin-top: 0; }
+details.tooltip > summary { list-style: none; }  /* for disclosure symbol in Firefox */
 
-details { display: inline; }
+button + button,
+button + details.tooltip > summary { margin-left: var(--big-padding); }
 
-details > p {
+/* Focus styles are left to the browser, as defaults are good these days */
+button:hover,
+label:hover,
+a:hover {
+	background-color: var(--thick-accent);
+}
+
+details.tooltip { display: inline; }
+
+details.tooltip > p {
 	margin: 0;
 	padding: var(--padding);
 	background-color: var(--bkg);
@@ -90,42 +122,27 @@ details > p {
 	position: absolute;
 }
 
-button,
-summary {
-	border: var(--border);
-	padding: var(--padding);
-	line-height: 1rem;  /* for the glyphs */
-}
-
-summary { list-style: none; }  /* for disclosure symbol in Firefox */
-summary::-webkit-details-marker { display: none; }
-
-summary.definition::after { content: "?"; }
-summary.lint-warning::after { content: "⚠️"; }
-
-button + button,
-button + details > summary { margin-left: var(--big-padding); }
+details.tooltip > summary::-webkit-details-marker { display: none; }
+details.tooltip > summary.definition::after { content: "ℹ️"; }
+details.tooltip > summary.lint-warning::after { content: "⚠️"; }
 
 dl {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: max-content auto;
 	margin: 0;
 }
 
 dt,
 dd {
-	margin-top: var(--spacing);
-	margin-bottom: var(--spacing);
-}
-
-dt {
 	align-self: center;
-	width: 33%;
+	margin-top: var(--small-spacing);
+	margin-bottom: var(--small-spacing);
 }
 
-dd {
-	margin-left: auto;
-	width: 66%;
+/* DevTools connection error (when the extension is reloaded on Chrome et al) */
+div.warning > p {
+	border: 0.15em solid var(--danger);
+	padding: 1rem;
 }
 
 /* FIXME: DRY with common.css —- it's still in there because common.css is also

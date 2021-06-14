@@ -108,7 +108,7 @@ function makeLandmarksTree(landmarks, container) {
 
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		const button = makeButtonAlreadyTranslated(
+		const button = makeButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
 			},
@@ -116,29 +116,9 @@ function makeLandmarksTree(landmarks, container) {
 		item.appendChild(button)
 
 		if (INTERFACE === 'devtools') {
-			const inspectButton = makeSymbolButton(
-				function() {
-					const inspectorCall = "inspect(document.querySelector('"
-						+ landmark.selector  // comes from our own code
-						+ "'))"
-					browser.devtools.inspectedWindow.eval(inspectorCall)
-				},
-				'inspectButtonName',
-				'🔍',
-				landmarkName(landmark))
-			inspectButton.title = landmark.selector
-			item.appendChild(inspectButton)
-
-			if (landmark.error) {
-				const details = document.createElement('details')
-				const summary = document.createElement('summary')
-				summary.setAttribute('class', 'lint-warning')
-				summary.setAttribute('aria-label', `Warning for ${landmark.role}`)
-				const para = document.createElement('p')
-				para.appendChild(document.createTextNode(landmark.error))
-				details.appendChild(summary)
-				details.appendChild(para)
-				item.appendChild(details)
+			addInspectButton(item, landmark)
+			if (landmark.warnings.length > 0) {
+				addElementWarnings(item, landmark, landmark.warnings)
 			}
 		}
 
@@ -150,6 +130,33 @@ function makeLandmarksTree(landmarks, container) {
 	})
 
 	container.appendChild(root)
+}
+
+function addInspectButton(root, landmark) {
+	const inspectButton = makeButton(
+		function() {
+			const inspectorCall = "inspect(document.querySelector('"
+				+ landmark.selector  // comes from our own code
+				+ "'))"
+			browser.devtools.inspectedWindow.eval(inspectorCall)
+		},
+		browser.i18n.getMessage('inspectButtonName'),
+		'examine',
+		landmarkName(landmark))
+	inspectButton.title = landmark.selector
+	root.appendChild(inspectButton)
+}
+
+function addElementWarnings(root, landmark, array) {
+	const details = document.createElement('details')
+	details.className = 'tooltip'
+	const summary = document.createElement('summary')
+	summary.setAttribute('class', 'lint-warning')
+	summary.setAttribute('aria-label',
+		`Warning for ${landmark.role}`)  // FIXME: localise
+	details.appendChild(summary)
+	makeWarnings(details, array)
+	root.appendChild(details)
 }
 
 // Remove all nodes contained within a node
@@ -167,22 +174,49 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeSymbolButton(onClick, nameMessage, symbol, context) {
-	return makeButtonAlreadyTranslated(
-		onClick,
-		browser.i18n.getMessage(nameMessage),
-		symbol,
-		context)
+function makeButton(onClick, text, cssClass, context) {
+	const button = document.createElement('button')
+	if (cssClass && context) {
+		button.className = cssClass
+		button.setAttribute('aria-label', text + ' ' + context)
+	} else {
+		button.appendChild(document.createTextNode(text))
+	}
+	button.addEventListener('click', onClick)
+	return button
 }
 
-function makeButtonAlreadyTranslated(onClick, name, symbol, context) {
-	const button = document.createElement('button')
-	button.appendChild(document.createTextNode(symbol ? symbol : name))
-	if (symbol) {
-		button.setAttribute('aria-label', name + ' ' + context)
+
+//
+// Showing page warnings in DevTools
+//
+
+function handlePageWarningsMessage(warnings) {
+	const container = document.getElementById('page-warnings-container')
+	const root = document.getElementById('page-warnings')
+	container.hidden = warnings.length === 0
+	removeChildNodes(root)
+	makeWarnings(root, warnings)
+}
+
+function makeWarnings(root, warningKeys) {
+	if (warningKeys.length > 1) {
+		const list = document.createElement('ul')
+		for (const warningKey of warningKeys) {
+			const item = document.createElement('li')
+			const para = document.createElement('p')
+			para.appendChild(
+				document.createTextNode(browser.i18n.getMessage(warningKey)))
+			item.appendChild(para)
+			list.appendChild(item)
+		}
+		root.appendChild(list)
+	} else {
+		const para = document.createElement('p')
+		para.appendChild(
+			document.createTextNode(browser.i18n.getMessage(warningKeys[0])))
+		root.appendChild(para)
 	}
-	button.onclick = onClick
-	return button
 }
 
 
@@ -298,10 +332,13 @@ function send(message) {
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
+		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
 		handleMutationMessage(message.data)
+	} else if (INTERFACE === 'devtools' && message.name === 'page-warnings') {
+		handlePageWarningsMessage(message.data)
 	}
 }
 
@@ -416,4 +453,3 @@ function main() {
 }
 
 main()
-

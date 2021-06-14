@@ -104,6 +104,12 @@ function messageHandler(message) {
 				landmarksFinder.find()
 				msr.beQuiet()
 			}
+			break
+		case 'get-page-warnings':
+			browser.runtime.sendMessage({
+				name: 'page-warnings',
+				data: landmarksFinder.pageResults()
+			})
 	}
 }
 
