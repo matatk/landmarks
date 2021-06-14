@@ -1,9 +1,3 @@
-/* FIXME "spacing" here is 0.15rem but "spacing" in common.gui is 0.25 */
-
-/* FIXME: in Firefox there's a slightly bigger gap before the last */
-
-/* FIXME no hover effects */
-
 @-moz-document url-prefix() {
 	/* Hacks for Firefox */
 
@@ -22,13 +16,13 @@ html {
 	--text: black;
 	--bkg: white;
 	--thin-accent: gray;
-	--thick-accent: #eee;
+	--thick-accent: #ccc;
 	--danger: #e00;
 	--link: blue;
 
 	/* Shared across themes */
 	--border: 1px solid var(--thin-accent);
-	--spacing: 0.15rem;
+	--small-spacing: 0.15rem;
 	--padding: 0.25rem;
 	--big-padding: 0.5rem;
 }
@@ -46,7 +40,10 @@ body {
 	font-family: sans-serif;
 	margin: 0;
 	color: var(--text);
+	line-height: 1.2;
 }
+
+a { color: var(--link); }
 
 button {
 	font-size: inherit;
@@ -65,7 +62,7 @@ details.department > :not(summary) {
 }
 
 /* A small gap between them makes them look better when collapsed. */
-details.department { margin-bottom: var(--spacing); }
+details.department { margin-bottom: var(--small-spacing); }
 
 #show-all-label {
 	display: block;
@@ -78,8 +75,8 @@ h1 {
 	display: inline-block;
 	font-size: 1rem;
 	margin: 0;
-	padding-top: var(--spacing);
-	padding-bottom: var(--spacing);
+	padding-top: var(--small-spacing);
+	padding-bottom: var(--small-spacing);
 	padding-left: var(--padding);
 }
 
@@ -103,6 +100,18 @@ details.tooltip > summary {
 	line-height: 1rem;  /* force glyphs to not be too big */
 }
 
+details.tooltip > summary { list-style: none; }  /* for disclosure symbol in Firefox */
+
+button + button,
+button + details.tooltip > summary { margin-left: var(--big-padding); }
+
+/* Focus styles are left to the browser, as defaults are good these days */
+button:hover,
+label:hover,
+a:hover {
+	background-color: var(--thick-accent);
+}
+
 details.tooltip { display: inline; }
 
 details.tooltip > p {
@@ -113,13 +122,9 @@ details.tooltip > p {
 	position: absolute;
 }
 
-details.tooltip > summary { list-style: none; }  /* for disclosure symbol in Firefox */
 details.tooltip > summary::-webkit-details-marker { display: none; }
 details.tooltip > summary.definition::after { content: "ℹ️"; }
 details.tooltip > summary.lint-warning::after { content: "⚠️"; }
-
-button + button,
-button + details.tooltip > summary { margin-left: var(--big-padding); }
 
 dl {
 	display: grid;
@@ -130,8 +135,8 @@ dl {
 dt,
 dd {
 	align-self: center;
-	margin-top: var(--spacing);
-	margin-bottom: var(--spacing);
+	margin-top: var(--small-spacing);
+	margin-bottom: var(--small-spacing);
 }
 
 /* DevTools connection error (when the extension is reloaded on Chrome et al) */
@@ -139,8 +144,6 @@ div.warning > p {
 	border: 0.15em solid var(--danger);
 	padding: 1rem;
 }
-
-a { color: var(--link); }
 
 /* FIXME: DRY with common.css —- it's still in there because common.css is also
  * used on the home page */
