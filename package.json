@@ -16,12 +16,8 @@
     "pretest": "node scripts/build.js --pre-process && eslint .",
     "test": "npx nyc --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "version": "standard-version --tag-prefix="
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build:all"
-    }
+    "version": "standard-version --tag-prefix=",
+    "prepare": "husky install"
   },
   "ava": {
     "files": [
