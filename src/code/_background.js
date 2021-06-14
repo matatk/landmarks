@@ -14,6 +14,11 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
+// This is stripped by the build script when not in debug mode
+function debugLog(message, domain) {
+	console.log((domain ? domain : 'bkg') + ': ' + message)
+}
+
 function checkBrowserActionState(tabId, url) {
 	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
@@ -29,16 +34,14 @@ function sendToDevToolsForTab(tabId, message) {
 }
 
 function updateGUIs(tabId, url) {
-	console.log('bkg: updateGUIs()')
+	debugLog('updateGUIs()')
 	if (isContentScriptablePage(url)) {
-		console.log('bkg: updateGUIs(): asking for landmarks')
+		debugLog('updateGUIs(): asking for landmarks')
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
-		console.log(browser.runtime.lastError)
-		console.log('bkg: updateGUIs(): asking for toggle state')
+		debugLog('updateGUIs(): asking for toggle state')
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
-		console.log(browser.runtime.lastError)
 	} else {
-		console.log('bkg: updateGUIs(): non-scriptable page')
+		debugLog('updateGUIs(): non-scriptable page')
 		browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -53,7 +56,7 @@ function devtoolsListenerMaker(port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
 	return function(message) {
-		console.log('dev:', message.name)
+		debugLog(message.name, 'dev')
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
@@ -196,7 +199,7 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
 	checkBrowserActionState(details.tabId, details.url)
-	console.log('bkg: web navigation completed')
+	debugLog('web navigation completed')
 	updateGUIs(details.tabId, details.url)
 })
 
@@ -233,7 +236,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		console.log('bkg: tab activated')
+		debugLog('tab activated')
 		updateGUIs(tab.id, tab.url)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
@@ -254,7 +257,7 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			console.log('bkg: update dismissed')
+			debugLog('update dismissed')
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
 	} else if (!doNotBadge) {
@@ -303,7 +306,7 @@ function openHelpPage(openInSameTab) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
-	console.log('ext:', message.name)
+	debugLog(message.name, 'ext')
 	switch (message.name) {
 		// Content
 		case 'landmarks':

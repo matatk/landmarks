@@ -30,12 +30,12 @@ function messageHandler(message) {
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request' })
+			debugSend('servicing-get-landmarks-request')
 			if (!checkAndUpdateOutdatedResults()) {
-				browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request-already-up-to-date-so-just-sending-landmarks-as-is' })
+				debugSend('servicing-get-landmarks-request-already-up-to-date-so-just-sending-landmarks-as-is')
 				sendLandmarks()
 			} else {
-				browser.runtime.sendMessage({ name: 'x-servicing-get-landmarks-request-refreshed-and-sent-newly-found-landmarks' })
+				debugSend('servicing-get-landmarks-request-refreshed-and-sent-newly-found-landmarks')
 			}
 			break
 		case 'focus-landmark':
@@ -102,21 +102,21 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				browser.runtime.sendMessage({ name: 'x-content-change-to-dev' })
+				debugSend('content-change-to-dev')
 				if (landmarksFinder !== landmarksFinderDeveloper) {
 					landmarksFinder = landmarksFinderDeveloper
 					landmarksFinder.find()
 				} else {
-					browser.runtime.sendMessage({ name: 'x-was-already-dev' })
+					debugSend('content-was-already-dev')
 				}
 				msr.beVerbose()
 			} else {
-				browser.runtime.sendMessage({ name: 'x-content-change-to-std' })
+				debugSend('content-change-to-standard')
 				if (landmarksFinder !== landmarksFinderStandard) {
 					landmarksFinder = landmarksFinderStandard
 					landmarksFinder.find()
 				} else {
-					browser.runtime.sendMessage({ name: 'x-was-already-std' })
+					debugSend('content-was-already-standard')
 				}
 				msr.beQuiet()
 			}
@@ -152,13 +152,18 @@ function checkFocusElement(callbackReturningElementInfo) {
 	}
 }
 
+// This is stripped by the build script when not in debug mode
+function debugSend(messageName) {
+	browser.runtime.sendMessage({ name: messageName })
+}
+
 
 //
 // Finding landmarks
 //
 
 function sendLandmarks() {
-	browser.runtime.sendMessage({ name: 'x-sendLandmarks' })
+	debugSend('sendLandmarks')
 	browser.runtime.sendMessage({
 		name: 'landmarks',
 		data: landmarksFinder.allInfos()
@@ -167,7 +172,7 @@ function sendLandmarks() {
 
 function findLandmarksAndUpdateExtension() {
 	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
-	browser.runtime.sendMessage({ name: 'x-found-landmarks' })
+	debugSend('found-landmarks')
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
@@ -265,7 +270,7 @@ function observeMutationObserverAndFindLandmarks() {
 }
 
 function reflectPageVisibility() {
-	browser.runtime.sendMessage({ name: 'x-doc-hidden-' + document.hidden })
+	debugSend('doc-hidden-' + document.hidden)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)
@@ -281,7 +286,7 @@ function reflectPageVisibility() {
 }
 
 function bootstrap() {
-	browser.runtime.sendMessage({ name: 'x-content-script-BOOTING' })
+	debugSend('content-script-BOOTING')
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
@@ -298,14 +303,14 @@ function bootstrap() {
 	// browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
 
 	createMutationObserver()
-	browser.runtime.sendMessage({ name: 'x-content-script-observing' })
+	debugSend('content-script-observing')
 	// TODO: Background script will ask for this after webNavigation
 	// observeMutationObserverAndFindLandmarks()
 	observeMutationObserver()
 
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	browser.runtime.sendMessage({ name: 'x-content-script-booted' })
+	debugSend('content-script-booted')
 }
 
 bootstrap()

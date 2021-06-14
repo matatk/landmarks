@@ -118,15 +118,16 @@ function makeLandmarksTree(landmarks, container) {
 		if (INTERFACE === 'devtools') {
 			addInspectButton(item, landmark)
 
-			// NOTE: When the content script first starts, it assumes that
-			//       DevTools aren't open.
-			// TODO: fix this so it does what's apt
+			// TODO: When the content script first starts, it assumes that
+			//       DevTools aren't open. The background script will request a
+			//       GUI update and whilst unlikely, this might happen before
+			//       the content script has learnt that DevTools are open.
 			if (landmark.hasOwnProperty('warnings')) {
 				if (landmark.warnings.length > 0) {
 					addElementWarnings(item, landmark, landmark.warnings)
 				}
 			} else {
-				send({ name: 'x-no-warnings-for-' + landmark.role })
+				debugSend('no-warnings-for-' + landmark.role)
 			}
 		}
 
@@ -341,11 +342,16 @@ function send(message) {
 	}
 }
 
+// This is stripped by the build script when not in debug mode
+function debugSend(messageName) {
+	send({ name: messageName })
+}
+
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
 		if (INTERFACE === 'devtools') {
-			send({ name: 'x-got-landmarks-sending-get-page-warnings' })
+			debugSend('got-landmarks-sending-get-page-warnings')
 			send({ name: 'get-page-warnings' })
 		}
 	} else if (message.name === 'toggle-state-is') {
@@ -456,7 +462,7 @@ function startupPopupOrSidebar() {
 function main() {
 	if (INTERFACE === 'devtools') {
 		startupDevTools()
-		send({ name: 'x-devtools-startup' })
+		debugSend('devtools-startup')
 	} else {
 		startupPopupOrSidebar()
 	}
