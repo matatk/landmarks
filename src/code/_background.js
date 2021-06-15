@@ -56,8 +56,10 @@ function updateGUIs(tabId, url) {
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
 		debugLog('updateGUIs(): non-scriptable page')
-		browser.runtime.sendMessage({ name: 'landmarks', data: null })
-		// DevTools panel doesn't need updating, as it maintains state
+		if (BROWSER !== 'firefox') {
+			browser.runtime.sendMessage({ name: 'landmarks', data: null })
+			// DevTools panel doesn't need updating, as it maintains state
+		}
 	}
 }
 
@@ -74,22 +76,8 @@ function devtoolsListenerMaker(port) {
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
-				// FIXME: Chrome doesn't like this; the tab no longer exists if
-				//        we closed the tab (as opposed to the DevTools?)
-				//        I get
-				//        Unchecked runtime.lastError: No tab with id: 2
-				//        and
-				//        TypeError: Cannot read property 'url' of undefined
-				//        (on the isContentScriptablePage line).
-				port.onDisconnect.addListener(function() {
-					browser.tabs.get(message.tabId, function(tab) {
-						// FIXME: check for lasterror here
-						if (isContentScriptablePage(tab.url)) {
-							sendDevToolsStateMessage(tab.id, false)
-						}
-					})
-					delete devtoolsConnections[message.tabId]
-				})
+				port.onDisconnect.addListener(
+					devtoolsDisconnectMaker(message.tabId))
 				sendDevToolsStateMessage(message.tabId, true)
 				break
 			case 'get-landmarks':
@@ -111,6 +99,19 @@ function devtoolsListenerMaker(port) {
 					}
 				})
 		}
+	}
+}
+
+function devtoolsDisconnectMaker(tabId) {
+	return function() {
+		browser.tabs.get(tabId, function(tab) {
+			if (!browser.runtime.lastError) {  // check tab was not closed
+				if (isContentScriptablePage(tab.url)) {
+					sendDevToolsStateMessage(tab.id, false)
+				}
+			}
+		})
+		delete devtoolsConnections[tabId]
 	}
 }
 
@@ -242,6 +243,8 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       only sends a short message to the content script, I've removed the
 //       'same URL' filtering.
 //
+// TODO: Check both of the below now the messaging has been streamlined:
+//
 // TODO: In some circumstances (most GitHub transitions, this fires two times
 //       on Firefox and three times on Chrome. For YouTube, some transitions
 //       only cause this to fire once. Could it be to do with
@@ -256,12 +259,11 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
-// TODO: Remove this setTimeout and wrapping hack for Chrome 91 in future
-//       https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
-// TODO: Could we just use page visibility? No because unscriptable pages? In which case, in _that_ event handler, don't find landmarks immediately?
 function handleTabActivation(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		if (browser.runtime.lastError && browser.runtime.lastError.message === 'Tabs cannot be edited right now (user may be dragging a tab).') {
+		if (BROWSER !== 'firefox' && browser.runtime.lastError && browser.runtime.lastError.message === 'Tabs cannot be edited right now (user may be dragging a tab).') {
+			// TODO: Remove this setTimeout hack for Chrome 91 in future
+			//       https://crbug.com/1213925
 			debugLog(`tab ${activeTabInfo.tabId} activated; using timeout for Chrome 91 bug`)
 			setTimeout(() => handleTabActivation(activeTabInfo), 500)
 		} else {
@@ -272,8 +274,9 @@ function handleTabActivation(activeTabInfo) {
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
 	//       that page, and sends the null landmarks message, which appears
-	//       briefly before the content script sends back the actual landmarks.
-	// FIXME: will the content script now send anything?
+	//       briefly before the DOM load event causes webNavigation.onCompleted
+	//       to fire and the content script is asked for and sends back the
+	//       actual landmarks.
 }
 browser.tabs.onActivated.addListener(handleTabActivation)
 
@@ -387,7 +390,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
 				// FIXME: Got an "Error handling response: TypeError: Cannot
-				//        read property 'id' of undefined" in Chrome once:
+				//        read property 'id' of undefined" in Chrome here:
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
 			break

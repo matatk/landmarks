@@ -1,5 +1,5 @@
-// FIXME: when reconnecting to the observer, do we scan?
-// FIXME: how to ensure scan on page startup (have set pauseHandler to 0 now; is that going to cause more redundant scans?)
+// FIXME: do we need to ensure scan on page startup?
+// FIXME: need to store when the last scan was, not tie to pauseHandler
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
@@ -18,7 +18,6 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
-// FIXME: outOfDateTime seems to couple content script and pH implementation
 const outOfDateTime = 2e3              // consider landmarks stale after this
 const observerReconnectionGrace = 1e3  // wait after page becomes visible again
 let observer = null
@@ -273,6 +272,7 @@ function observeMutationObserverAndFindLandmarks() {
 	msr.sendMutationUpdate()
 }
 
+// FIXME should we NOT scan for landmarks here because when the navigation is completed, history state updated or tab activated, the background script will ask for them anyway?
 function reflectPageVisibility() {
 	debugSend('doc hidden? ' + document.hidden)
 	if (document.hidden) {
@@ -284,10 +284,6 @@ function reflectPageVisibility() {
 	} else {
 		// The user may be switching rapidly through tabs, so we have a grace
 		// period before reconnecting to the observer.
-		// FIXME: Use _this_ instead of background script onActivated check?
-		// FIXME: what about non-scriptable pages?
-		// FIXME: how about just not finding landmarks immediately here?
-		// FIXME: need to store when last landmarks were scanned, not tie to pauseHandler
 		observerReconnectionTimer = setTimeout(function() {
 			observeMutationObserverAndFindLandmarks()
 			observerReconnectionTimer = null
