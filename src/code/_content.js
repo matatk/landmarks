@@ -266,13 +266,6 @@ function observeMutationObserver() {
 	})
 }
 
-function observeMutationObserverAndFindLandmarks() {
-	observeMutationObserver()
-	findLandmarksAndUpdateExtension()
-	msr.sendMutationUpdate()
-}
-
-// FIXME should we NOT scan for landmarks here because when the navigation is completed, history state updated or tab activated, the background script will ask for them anyway?
 function reflectPageVisibility() {
 	debugSend('doc hidden? ' + document.hidden)
 	if (document.hidden) {
@@ -285,7 +278,7 @@ function reflectPageVisibility() {
 		// The user may be switching rapidly through tabs, so we have a grace
 		// period before reconnecting to the observer.
 		observerReconnectionTimer = setTimeout(function() {
-			observeMutationObserverAndFindLandmarks()
+			observeMutationObserver()
 			observerReconnectionTimer = null
 		}, observerReconnectionGrace)
 	}
