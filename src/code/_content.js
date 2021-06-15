@@ -1,3 +1,5 @@
+// FIXME: when reconnecting to the observer, do we scan?
+// FIXME: how to ensure scan on page startup (have set pauseHandler to 0 now; is that going to cause more redundant scans?)
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
@@ -16,6 +18,7 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
+// FIXME: outOfDateTime seems to couple content script and pH implementation
 const outOfDateTime = 2e3              // consider landmarks stale after this
 const observerReconnectionGrace = 1e3  // wait after page becomes visible again
 let observer = null
@@ -27,15 +30,15 @@ let observerReconnectionTimer = null
 //
 
 function messageHandler(message) {
+	debugSend(`received: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			debugSend('servicing-get-landmarks-request')
 			if (!checkAndUpdateOutdatedResults()) {
-				debugSend('servicing-get-landmarks-request-already-up-to-date-so-just-sending-landmarks-as-is')
+				debugSend('landmarks up-to-date; sending')
 				sendLandmarks()
 			} else {
-				debugSend('servicing-get-landmarks-request-refreshed-and-sent-newly-found-landmarks')
+				debugSend('landmarks refreshed and sent')
 			}
 			break
 		case 'focus-landmark':
@@ -102,21 +105,21 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				debugSend('content-change-to-dev')
 				if (landmarksFinder !== landmarksFinderDeveloper) {
+					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
 					landmarksFinder.find()
 				} else {
-					debugSend('content-was-already-dev')
+					debugSend('scanner was already dev')
 				}
 				msr.beVerbose()
 			} else {
-				debugSend('content-change-to-standard')
 				if (landmarksFinder !== landmarksFinderStandard) {
+					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
 					landmarksFinder.find()
 				} else {
-					debugSend('content-was-already-standard')
+					debugSend('scanner was already standard')
 				}
 				msr.beQuiet()
 			}
@@ -163,7 +166,6 @@ function debugSend(messageName) {
 //
 
 function sendLandmarks() {
-	debugSend('sendLandmarks')
 	browser.runtime.sendMessage({
 		name: 'landmarks',
 		data: landmarksFinder.allInfos()
@@ -172,7 +174,7 @@ function sendLandmarks() {
 
 function findLandmarksAndUpdateExtension() {
 	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
-	debugSend('found-landmarks')
+	debugSend('finding landmarks')
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
@@ -238,12 +240,14 @@ function createMutationObserver() {
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
+					debugSend('scanning due to mutation; pause time: ' + pauseHandler.getPauseTime())
 					findLandmarksAndUpdateExtension()
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
+				debugSend('scheduled scan; pause time: ' + pauseHandler.getPauseTime())
 				findLandmarksAndUpdateExtension()
 				msr.sendMutationUpdate()
 			})
@@ -270,7 +274,7 @@ function observeMutationObserverAndFindLandmarks() {
 }
 
 function reflectPageVisibility() {
-	debugSend('doc-hidden-' + document.hidden)
+	debugSend('doc hidden? ' + document.hidden)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)
@@ -278,6 +282,12 @@ function reflectPageVisibility() {
 		}
 		observer.disconnect()
 	} else {
+		// The user may be switching rapidly through tabs, so we have a grace
+		// period before reconnecting to the observer.
+		// FIXME: Use _this_ instead of background script onActivated check?
+		// FIXME: what about non-scriptable pages?
+		// FIXME: how about just not finding landmarks immediately here?
+		// FIXME: need to store when last landmarks were scanned, not tie to pauseHandler
 		observerReconnectionTimer = setTimeout(function() {
 			observeMutationObserverAndFindLandmarks()
 			observerReconnectionTimer = null
@@ -286,7 +296,7 @@ function reflectPageVisibility() {
 }
 
 function bootstrap() {
-	debugSend('content-script-BOOTING')
+	debugSend(`booting - ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
@@ -300,10 +310,10 @@ function bootstrap() {
 
 	createMutationObserver()
 	observeMutationObserver()
-	debugSend('content-script-observing')
+	debugSend('started observing for the first time')
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	debugSend('content-script-booted')
+	debugSend('booted')
 }
 
 bootstrap()

@@ -127,7 +127,7 @@ function makeLandmarksTree(landmarks, container) {
 					addElementWarnings(item, landmark, landmark.warnings)
 				}
 			} else {
-				debugSend('no-warnings-for-' + landmark.role)
+				debugSend('no warnings for ' + landmark.role)
 			}
 		}
 
@@ -344,14 +344,13 @@ function send(message) {
 
 // This is stripped by the build script when not in debug mode
 function debugSend(messageName) {
-	send({ name: messageName })
+	send({ name: INTERFACE + ': ' + messageName })
 }
 
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
 		if (INTERFACE === 'devtools') {
-			debugSend('got-landmarks-sending-get-page-warnings')
 			send({ name: 'get-page-warnings' })
 		}
 	} else if (message.name === 'toggle-state-is') {
@@ -462,7 +461,6 @@ function startupPopupOrSidebar() {
 function main() {
 	if (INTERFACE === 'devtools') {
 		startupDevTools()
-		debugSend('devtools-startup')
 	} else {
 		startupPopupOrSidebar()
 	}
@@ -472,6 +470,7 @@ function main() {
 	})
 
 	translate()
+	debugSend('started up')
 }
 
 main()

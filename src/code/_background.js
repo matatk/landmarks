@@ -15,8 +15,24 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 //
 
 // This is stripped by the build script when not in debug mode
-function debugLog(message, domain) {
-	console.log((domain ? domain : 'bkg') + ': ' + message)
+function debugLog(message, domainOrSender) {
+	// The sendedr can be
+	// - purposely unset
+	// - a string (set by us, also used for messages from DevTools)
+	// - a browser tab (if it came via a message)
+	let domain
+	if (domainOrSender) {
+		if (typeof domainOrSender === 'string') {
+			domain = domainOrSender
+		} else if (domainOrSender.tab) {
+			domain = String(domainOrSender.tab.id).padStart(3, ' ')
+		} else {
+			throw new Error('Not expecting to RX messages from extension')
+		}
+	} else {
+		domain = 'bkg'
+	}
+	console.log(domain + ': ' + message)
 }
 
 function checkBrowserActionState(tabId, url) {
@@ -34,11 +50,9 @@ function sendToDevToolsForTab(tabId, message) {
 }
 
 function updateGUIs(tabId, url) {
-	debugLog('updateGUIs()')
 	if (isContentScriptablePage(url)) {
-		debugLog('updateGUIs(): asking for landmarks')
+		debugLog('updateGUIs(): requesting landmarks and toggle state')
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
-		debugLog('updateGUIs(): asking for toggle state')
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
 		debugLog('updateGUIs(): non-scriptable page')
@@ -60,8 +74,16 @@ function devtoolsListenerMaker(port) {
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
+				// FIXME: Chrome doesn't like this; the tab no longer exists if
+				//        we closed the tab (as opposed to the DevTools?)
+				//        I get
+				//        Unchecked runtime.lastError: No tab with id: 2
+				//        and
+				//        TypeError: Cannot read property 'url' of undefined
+				//        (on the isContentScriptablePage line).
 				port.onDisconnect.addListener(function() {
 					browser.tabs.get(message.tabId, function(tab) {
+						// FIXME: check for lasterror here
 						if (isContentScriptablePage(tab.url)) {
 							sendDevToolsStateMessage(tab.id, false)
 						}
@@ -234,16 +256,26 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
-browser.tabs.onActivated.addListener(function(activeTabInfo) {
+// TODO: Remove this setTimeout and wrapping hack for Chrome 91 in future
+//       https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
+// TODO: Could we just use page visibility? No because unscriptable pages? In which case, in _that_ event handler, don't find landmarks immediately?
+function handleTabActivation(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		debugLog('tab activated')
-		updateGUIs(tab.id, tab.url)
+		if (browser.runtime.lastError && browser.runtime.lastError.message === 'Tabs cannot be edited right now (user may be dragging a tab).') {
+			debugLog(`tab ${activeTabInfo.tabId} activated; using timeout for Chrome 91 bug`)
+			setTimeout(() => handleTabActivation(activeTabInfo), 500)
+		} else {
+			debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+			updateGUIs(tab.id, tab.url)
+		}
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
 	//       that page, and sends the null landmarks message, which appears
 	//       briefly before the content script sends back the actual landmarks.
-})
+	// FIXME: will the content script now send anything?
+}
+browser.tabs.onActivated.addListener(handleTabActivation)
 
 
 //
@@ -306,7 +338,7 @@ function openHelpPage(openInSameTab) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
-	debugLog(message.name, 'ext')
+	debugLog(message.name, sender)
 	switch (message.name) {
 		// Content
 		case 'landmarks':
@@ -354,8 +386,8 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				// TODO: Got an "Error handling response: TypeError: Cannot
-				//       read property 'id' of undefined" in Chrome once:
+				// FIXME: Got an "Error handling response: TypeError: Cannot
+				//        read property 'id' of undefined" in Chrome once:
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
 			break
