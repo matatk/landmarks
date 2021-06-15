@@ -193,10 +193,14 @@ function makeButton(onClick, text, cssClass, context) {
 
 function handlePageWarningsMessage(warnings) {
 	const container = document.getElementById('page-warnings-container')
-	const root = document.getElementById('page-warnings')
-	container.hidden = warnings.length === 0
-	removeChildNodes(root)
-	makeWarnings(root, warnings)
+	if (warnings.length === 0) {
+		container.hidden = true
+	} else {
+		const root = document.getElementById('page-warnings')
+		removeChildNodes(root)
+		makeWarnings(root, warnings)
+		container.hidden = false
+	}
 }
 
 function makeWarnings(root, warningKeys) {
