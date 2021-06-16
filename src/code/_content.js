@@ -300,6 +300,7 @@ function bootstrap() {
 	createMutationObserver()
 	observeMutationObserver()
 	debugSend('started observing for the first time')
+	reflectPageVisibility()
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	debugSend('booted')
