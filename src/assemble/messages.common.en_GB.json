@@ -250,12 +250,20 @@
     "message": "Mutations that Landmarks has tested to see if they are relevant."
   },
 
-  "statsScansTerm": {
-    "message": "Scans:"
+  "statsMutationScansTerm": {
+    "message": "Mutation scans:"
   },
 
-  "statsScansDefinition": {
-    "message": "Number of times the page has been scanned for landmarks."
+  "statsMutationScansDefinition": {
+    "message": "Number of times the page has been scanned for landmarks due to mutations."
+  },
+
+  "statsNonMutationScansTerm": {
+    "message": "Non-mutation scans:"
+  },
+
+  "statsNonMutationScansDefinition": {
+    "message": "Number of times the page has been scanned for landmarks for other reasons (e.g. page load/history API)."
   },
 
   "statsPauseTerm": {

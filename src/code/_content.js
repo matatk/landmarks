@@ -1,4 +1,3 @@
-// FIXME: do we need to ensure scan on page startup?
 // FIXME: need to store when the last scan was, not tie to pauseHandler
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
@@ -99,7 +98,7 @@ function messageHandler(message) {
 			msr.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
-			findLandmarksAndUpdateExtension()
+			findLandmarksAndSend(msr.incrementNonMutationScans)
 			msr.sendAllUpdates()
 			break
 		case 'devtools-state':
@@ -107,7 +106,7 @@ function messageHandler(message) {
 				if (landmarksFinder !== landmarksFinderDeveloper) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
-					landmarksFinder.find()
+					findLandmarks(() => {})
 				} else {
 					debugSend('scanner was already dev')
 				}
@@ -116,7 +115,7 @@ function messageHandler(message) {
 				if (landmarksFinder !== landmarksFinderStandard) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
-					landmarksFinder.find()
+					findLandmarks(() => {})
 				} else {
 					debugSend('scanner was already standard')
 				}
@@ -133,7 +132,7 @@ function messageHandler(message) {
 
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		findLandmarksAndUpdateExtension()
+		findLandmarksAndSend(msr.incrementNonMutationScans)
 		msr.sendMutationUpdate()
 		return true
 	}
@@ -171,20 +170,27 @@ function sendLandmarks() {
 	})
 }
 
-function findLandmarksAndUpdateExtension() {
-	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
+function findLandmarks(counterIncrementFunction) {
+	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
 	debugSend('finding landmarks')
+
 	const start = performance.now()
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
-	msr.incrementMutationScans()
-	sendLandmarks()
+
+	counterIncrementFunction()
+
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
 		borderDrawer.replaceCurrentBordersWithElements(
 			landmarksFinder.allElementsInfos())
 	}
+}
+
+function findLandmarksAndSend(counterIncrementFunction) {
+	findLandmarks(counterIncrementFunction)
+	sendLandmarks()
 }
 
 
@@ -240,14 +246,14 @@ function createMutationObserver() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
 					debugSend('scanning due to mutation; pause time: ' + pauseHandler.getPauseTime())
-					findLandmarksAndUpdateExtension()
+					findLandmarksAndSend(msr.incrementMutationScans)
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
 				debugSend('scheduled scan; pause time: ' + pauseHandler.getPauseTime())
-				findLandmarksAndUpdateExtension()
+				findLandmarksAndSend(msr.incrementNonMutationScans)
 				msr.sendMutationUpdate()
 			})
 
@@ -297,9 +303,13 @@ function bootstrap() {
 			})
 	}
 
+	debugSend('initial scan')
+	findLandmarks(msr.incrementNonMutationScans)
+
 	createMutationObserver()
 	observeMutationObserver()
 	debugSend('started observing for the first time')
+
 	reflectPageVisibility()
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
