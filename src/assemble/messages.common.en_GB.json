@@ -247,7 +247,7 @@
   },
 
   "statsCheckedMutationsDefinition": {
-    "message": "Mutations that Landmarks has tested to see if they are relevant."
+    "message": "Mutations that Landmarks has tested to see if they are relevant (mutations that happen during a pause in scanning are ignored)."
   },
 
   "statsMutationScansTerm": {
@@ -263,7 +263,7 @@
   },
 
   "statsNonMutationScansDefinition": {
-    "message": "Number of times the page has been scanned for landmarks for other reasons (e.g. page load/history API)."
+    "message": "Number of times the page has been scanned for landmarks for other reasons, such as: page load; use of History API; user command whilst scanning is paused due to prior mutations."
   },
 
   "statsPauseTerm": {
@@ -271,7 +271,7 @@
   },
 
   "statsPauseDefinition": {
-    "message": "Time during which subsequent changes to the page will be ignored."
+    "message": "Time window during which subsequent changes to the page will be ignored."
   },
 
   "statsDurationTerm": {
