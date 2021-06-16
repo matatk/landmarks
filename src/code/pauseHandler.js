@@ -83,7 +83,7 @@ export default function PauseHandler(pauseTimeHook) {
 		}
 	}
 
-	this.getPauseTime = function() {
-		return pause
+	this.isPaused = function() {
+		return decreasePauseTimeout !== null
 	}
 }

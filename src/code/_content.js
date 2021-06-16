@@ -17,10 +17,11 @@ const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 
-const outOfDateTime = 2e3              // consider landmarks stale after this
 const observerReconnectionGrace = 1e3  // wait after page becomes visible again
 let observer = null
 let observerReconnectionTimer = null
+
+const noop = () => {}
 
 
 //
@@ -33,10 +34,7 @@ function messageHandler(message) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
 			if (!checkAndUpdateOutdatedResults()) {
-				debugSend('landmarks up-to-date; sending')
 				sendLandmarks()
-			} else {
-				debugSend('landmarks refreshed and sent')
 			}
 			break
 		case 'focus-landmark':
@@ -98,15 +96,16 @@ function messageHandler(message) {
 			msr.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
-			findLandmarksAndSend(msr.incrementNonMutationScans)
-			msr.sendAllUpdates()
+			findLandmarksAndSend(
+				// TODO: this willl send the non-mutation message twice
+				msr.incrementNonMutationScans, msr.sendAllUpdates)
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
 				if (landmarksFinder !== landmarksFinderDeveloper) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
-					findLandmarks(() => {})
+					findLandmarks(noop, noop)
 				} else {
 					debugSend('scanner was already dev')
 				}
@@ -115,7 +114,7 @@ function messageHandler(message) {
 				if (landmarksFinder !== landmarksFinderStandard) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
-					findLandmarks(() => {})
+					findLandmarks(noop, noop)
 				} else {
 					debugSend('scanner was already standard')
 				}
@@ -131,11 +130,14 @@ function messageHandler(message) {
 }
 
 function checkAndUpdateOutdatedResults() {
-	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		findLandmarksAndSend(msr.incrementNonMutationScans)
-		msr.sendMutationUpdate()
+	if (pauseHandler.isPaused()) {
+		debugSend('paused - re-finding landmarks')
+		findLandmarksAndSend(
+			msr.incrementNonMutationScans,
+			noop)  // it already calls the send function
 		return true
 	}
+	debugSend('not paused - landmarks are up-to-date')
 	return false
 }
 
@@ -170,7 +172,7 @@ function sendLandmarks() {
 	})
 }
 
-function findLandmarks(counterIncrementFunction) {
+function findLandmarks(counterIncrementFunction, updateSendFunction) {
 	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
 	debugSend('finding landmarks')
 
@@ -179,6 +181,7 @@ function findLandmarks(counterIncrementFunction) {
 	msr.setLastScanDuration(performance.now() - start)
 
 	counterIncrementFunction()
+	updateSendFunction()
 
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
@@ -188,8 +191,8 @@ function findLandmarks(counterIncrementFunction) {
 	}
 }
 
-function findLandmarksAndSend(counterIncrementFunction) {
-	findLandmarks(counterIncrementFunction)
+function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
+	findLandmarks(counterIncrementFunction, updateSendFunction)
 	sendLandmarks()
 }
 
@@ -245,16 +248,16 @@ function createMutationObserver() {
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					debugSend('scanning due to mutation; pause time: ' + pauseHandler.getPauseTime())
-					findLandmarksAndSend(msr.incrementMutationScans)
+					debugSend('scanning due to mutation')
+					findLandmarksAndSend(msr.incrementMutationScans, noop)
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
-				debugSend('scheduled scan; pause time: ' + pauseHandler.getPauseTime())
-				findLandmarksAndSend(msr.incrementNonMutationScans)
-				msr.sendMutationUpdate()
+				debugSend('scheduled scan')
+				findLandmarksAndSend(
+					msr.incrementMutationScans, msr.sendMutationUpdate)
 			})
 
 		msr.sendMutationUpdate()
@@ -304,7 +307,9 @@ function bootstrap() {
 	}
 
 	debugSend('initial scan')
-	findLandmarks(msr.incrementNonMutationScans)
+	findLandmarks(
+		msr.incrementNonMutationScans,
+		noop) // it already calls the send function
 
 	createMutationObserver()
 	observeMutationObserver()

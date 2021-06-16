@@ -105,6 +105,8 @@ export default function LandmarksFinder(win, doc) {
 	let currentlySelectedElement
 
 	function updateSelectedIndexAndReturnElementInfo(index) {
+		// TODO: is this check needed? If so, isn't an index check? Where?
+		//       There are checks done in the content script too.
 		if (landmarks.length === 0) return
 		currentlySelectedIndex = index
 		currentlySelectedElement = landmarks[index].element
