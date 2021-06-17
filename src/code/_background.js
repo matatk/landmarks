@@ -35,7 +35,7 @@ function debugLog(message, domainOrSender) {
 	console.log(domain + ': ' + message)
 }
 
-function checkBrowserActionState(tabId, url) {
+function setBrowserActionState(tabId, url) {
 	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
 	} else {
@@ -55,6 +55,7 @@ function updateGUIs(tabId, url) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
+		// FIXME this _is_ needed on Firefox?
 		debugLog('updateGUIs(): non-scriptable page')
 		if (BROWSER !== 'firefox') {
 			browser.runtime.sendMessage({ name: 'landmarks', data: null })
@@ -202,9 +203,8 @@ browser.commands.onCommand.addListener(function(command) {
 // Navigation and tab activation events
 //
 
-// Listen for URL change events on all tabs and disable the browser action if
-// the URL does not start with 'http://' or 'https://' (or 'file://', for
-// local pages).
+// Listen for URL change events on all tabs and enable/disable the browser
+// action according to whether the page will not allow content scripts.
 //
 // Note: This used to be wrapped in a query for the active tab, but on browser
 //       startup, URL changes are going on in all tabs.
@@ -221,7 +221,8 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
-	checkBrowserActionState(details.tabId, details.url)
+	setBrowserActionState(details.tabId, details.url)
+	// FIXME remove?
 	debugLog('web navigation completed')
 	updateGUIs(details.tabId, details.url)
 })
@@ -271,7 +272,7 @@ function handleTabActivation(activeTabInfo) {
 			updateGUIs(tab.id, tab.url)
 		}
 	})
-	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
+	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
 	//       that page, and sends the null landmarks message, which appears
 	//       briefly before the DOM load event causes webNavigation.onCompleted
@@ -292,6 +293,7 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			// FIXME remove?
 			debugLog('update dismissed')
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
@@ -410,7 +412,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // not done by default on Chrome or Firefox.
 browser.tabs.query({}, function(tabs) {
 	for (const i in tabs) {
-		checkBrowserActionState(tabs[i].id, tabs[i].url)
+		setBrowserActionState(tabs[i].id, tabs[i].url)
 	}
 })
 
