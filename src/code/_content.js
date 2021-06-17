@@ -29,7 +29,8 @@ const noop = () => {}
 //
 
 function messageHandler(message) {
-	debugSend(`received: ${message.name}`)
+	// TODO check this is removed properly in normal builds
+	if (message.name !== 'debug') debugSend(`got: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -156,8 +157,10 @@ function checkFocusElement(callbackReturningElementInfo) {
 }
 
 // This is stripped by the build script when not in debug mode
-function debugSend(messageName) {
-	browser.runtime.sendMessage({ name: messageName })
+function debugSend(what) {
+	// When sending from a contenet script, the tab's ID will be noted by the
+	// background script, so no need to specify a 'from' key here.
+	browser.runtime.sendMessage({ name: 'debug', info: what })
 }
 
 
@@ -276,7 +279,7 @@ function observeMutationObserver() {
 }
 
 function reflectPageVisibility() {
-	debugSend('doc hidden? ' + document.hidden)
+	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
 			clearTimeout(observerReconnectionTimer)

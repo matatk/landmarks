@@ -343,8 +343,15 @@ function send(message) {
 }
 
 // This is stripped by the build script when not in debug mode
-function debugSend(messageName) {
-	send({ name: INTERFACE + ': ' + messageName })
+function debugSend(what) {
+	const message = { name: 'debug', info: what }
+	if (INTERFACE === 'devtools') {
+		message.from = browser.devtools.inspectedWindow.tabId + '-devtools'
+		port.postMessage(message)
+	} else {
+		message.from = INTERFACE
+		browser.runtime.sendMessage(message)
+	}
 }
 
 function messageHandlerCore(message) {
@@ -427,6 +434,7 @@ function startupPopupOrSidebar() {
 	makeEventHandlers('help')
 	makeEventHandlers('settings')
 
+	// TODO: needed any more?
 	// The message could be coming from any content script or other GUI, so
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)

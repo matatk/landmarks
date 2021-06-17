@@ -15,24 +15,22 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 //
 
 // This is stripped by the build script when not in debug mode
-function debugLog(message, domainOrSender) {
-	// The sendedr can be
-	// - purposely unset
-	// - a string (set by us, also used for messages from DevTools)
-	// - a browser tab (if it came via a message)
-	let domain
-	if (domainOrSender) {
-		if (typeof domainOrSender === 'string') {
-			domain = domainOrSender
-		} else if (domainOrSender.tab) {
-			domain = String(domainOrSender.tab.id).padStart(3, ' ')
+function debugLog(thing, sender) {
+	if (typeof thing === 'string') {  // Debug message from this script
+		console.log('bkg:', thing)
+	} else if (thing.name === 'debug') {  // Debug message from another script
+		if (sender && sender.tab) {
+			console.log(`${sender.tab.id}: ${thing.info}`)
+		} else if (thing.from) {
+			console.log(`${thing.from}: ${thing.info}`)
 		} else {
-			throw new Error('Not expecting to RX messages from extension')
+			console.log(`extpage: ${thing.info}`)
 		}
+	} else if (sender && sender.tab) {  // A general message from somewhere
+		console.log(`rx: ${sender.tab.id}: ${thing.name}`)
 	} else {
-		domain = 'bkg'
+		console.log(`rx: ${thing.name}`)
 	}
-	console.log(domain + ': ' + message)
 }
 
 function setBrowserActionState(tabId, url) {
@@ -55,12 +53,15 @@ function updateGUIs(tabId, url) {
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
-		// FIXME this _is_ needed on Firefox?
 		debugLog('updateGUIs(): non-scriptable page')
-		if (BROWSER !== 'firefox') {
-			browser.runtime.sendMessage({ name: 'landmarks', data: null })
-			// DevTools panel doesn't need updating, as it maintains state
+		if (BROWSER === 'firefox' || BROWSER === 'opera') {
+			browser.runtime.sendMessage({ name: 'landmarks', data: null }, function() {
+				if (browser.runtime.lastError) {
+					// noop
+				}
+			})
 		}
+		// DevTools panel doesn't need updating, as it maintains state
 	}
 }
 
@@ -73,7 +74,7 @@ function devtoolsListenerMaker(port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
 	return function(message) {
-		debugLog(message.name, 'dev')
+		debugLog(message)
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
@@ -293,8 +294,6 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			// FIXME remove?
-			debugLog('update dismissed')
 			updateGUIs(tabs[0].id, tabs[0].url)
 		})
 	} else if (!doNotBadge) {
@@ -343,7 +342,7 @@ function openHelpPage(openInSameTab) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
-	debugLog(message.name, sender)
+	debugLog(message, sender)
 	switch (message.name) {
 		// Content
 		case 'landmarks':
