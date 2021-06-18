@@ -99,7 +99,7 @@ function messageHandler(message) {
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndSend(
-				// TODO: this willl send the non-mutation message twice
+				// FIXME: this willl send the non-mutation message twice
 				msr.incrementNonMutationScans, msr.sendAllUpdates)
 			break
 		case 'devtools-state':
@@ -108,8 +108,6 @@ function messageHandler(message) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
 					findLandmarks(noop, noop)
-				} else {
-					debugSend('scanner was already dev')
 				}
 				msr.beVerbose()
 			} else {
@@ -117,8 +115,6 @@ function messageHandler(message) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
 					findLandmarks(noop, noop)
-				} else {
-					debugSend('scanner was already standard')
 				}
 				msr.beQuiet()
 			}
@@ -283,18 +279,14 @@ function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
-			debugSend('clearing reconnection timer')
 			clearTimeout(observerReconnectionTimer)
 			observerReconnectionTimer = null
 		}
-		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
 		// The user may be switching rapidly through tabs, so we have a grace
 		// period before reconnecting to the observer.
-		debugSend('starting reconnection timer')
 		observerReconnectionTimer = setTimeout(function() {
-			debugSend('starting to observe')
 			observeMutationObserver()
 			observerReconnectionTimer = null
 		}, observerReconnectionGrace)
@@ -314,28 +306,18 @@ function bootstrap() {
 			})
 	}
 
-	debugSend('initial scan')
-	findLandmarks(
-		msr.incrementNonMutationScans,
-		noop) // it already calls the send function
-
-	debugSend('creating observer')
+	findLandmarks(msr.incrementNonMutationScans, noop)  // it will send anyway
 	createMutationObserver()
 
-	// On browser load (i.e. if we are currently invisible) DevTools will never
-	// count as being open.
+	// On browser load (i.e. if we are currently invisible) there's no need to
+	// connect to the observer, and DevTools will never register as being open.
 	if (!document.hidden) {
 		observeMutationObserver()
-		debugSend('visible: started observing for first time')
-		debugSend('visible: asking about devtools')
 		browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	} else {
-		debugSend('hidden: not starting to observe')
-		debugSend('hidden: not asking about devtools')
 	}
 
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
-	debugSend('booted')
+	debugSend(`booted - ${window.location}`)
 }
 
 bootstrap()

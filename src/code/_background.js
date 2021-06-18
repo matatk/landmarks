@@ -244,7 +244,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //       only sends a short message to the content script, I've removed the
 //       'same URL' filtering.
 //
-// TODO: Check both of the below now the messaging has been streamlined:
+// FIXME: Check both of the below now the messaging has been streamlined:
 //
 // TODO: In some circumstances (most GitHub transitions, this fires two times
 //       on Firefox and three times on Chrome. For YouTube, some transitions
