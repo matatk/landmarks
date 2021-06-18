@@ -347,7 +347,7 @@ function send(message) {
 function debugSend(what) {
 	const message = { name: 'debug', info: what }
 	if (INTERFACE === 'devtools') {
-		message.from = browser.devtools.inspectedWindow.tabId + '-devtools'
+		message.from = `devtools ${browser.devtools.inspectedWindow.tabId}`
 		port.postMessage(message)
 	} else {
 		message.from = INTERFACE

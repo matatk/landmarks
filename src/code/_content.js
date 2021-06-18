@@ -321,16 +321,20 @@ function bootstrap() {
 
 	debugSend('creating observer')
 	createMutationObserver()
+
+	// On browser load (i.e. if we are currently invisible) DevTools will never
+	// count as being open.
 	if (!document.hidden) {
 		observeMutationObserver()
 		debugSend('visible: started observing for first time')
+		debugSend('visible: asking about devtools')
+		browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	} else {
 		debugSend('hidden: not starting to observe')
+		debugSend('hidden: not asking about devtools')
 	}
 
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
-	// TODO: On Firefox, DevTools will never be open on startup - check others.
-	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	debugSend('booted')
 }
 
