@@ -1,6 +1,6 @@
-// FIXME: send only number of landmarks after a mutation?
-// FIXME: we _have_ to get the devtools-state message, so why not only start
-//        observing and scanning after that?
+// TODO: we _have_ to get the devtools-state message, so why not only start
+//       observing and scanning after that? Always checking state vs. not
+//       wasting a scan whe the DevTools are already open.
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
