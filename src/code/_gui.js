@@ -118,6 +118,7 @@ function makeLandmarksTree(landmarks, container) {
 		if (INTERFACE === 'devtools') {
 			addInspectButton(item, landmark)
 
+			// FIXME: issue?
 			// TODO: When the content script first starts, it assumes that
 			//       DevTools aren't open. The background script will request a
 			//       GUI update and whilst unlikely, this might happen before

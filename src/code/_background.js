@@ -223,8 +223,7 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
 	setBrowserActionState(details.tabId, details.url)
-	// FIXME remove?
-	debugLog('web navigation completed')
+	debugLog('navigation completed')
 	updateGUIs(details.tabId, details.url)
 })
 
@@ -257,6 +256,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
+		debugLog(`tab ${details.tabId} history state updated`)
 		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
 })

@@ -1,4 +1,5 @@
-// FIXME: need to store when the last scan was, not tie to pauseHandler
+// FIXME: need to store whether we're awaiting a scheduled scan? or does isPaused already handle this?
+// FIXME: send only number of landmarks after a mutation?
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
@@ -314,11 +315,15 @@ function bootstrap() {
 		msr.incrementNonMutationScans,
 		noop) // it already calls the send function
 
+	debugSend('creating observer')
 	createMutationObserver()
-	observeMutationObserver()
-	debugSend('started observing for the first time')
+	if (!document.hidden) {
+		observeMutationObserver()
+		debugSend('visible: started observing for first time')
+	} else {
+		debugSend('hidden: not starting to observe')
+	}
 
-	reflectPageVisibility()
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	debugSend('booted')

@@ -191,6 +191,10 @@ export default function LandmarksFinder(win, doc) {
 			parentLandmark = element
 		}
 
+		// One just one page I've seen an error here in Chrome (91) which seems
+		// to be a bug, because only one HTMLElement was returned; not an
+		// HTMLCollection. Checking for this would cause a slowdown, so
+		// ignoring for now.
 		for (const elementChild of element.children) {
 			getLandmarks(elementChild, depth, parentLandmark)
 		}
