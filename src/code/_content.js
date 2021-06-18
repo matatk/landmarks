@@ -283,14 +283,18 @@ function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		if (observerReconnectionTimer) {
+			debugSend('clearing reconnection timer')
 			clearTimeout(observerReconnectionTimer)
 			observerReconnectionTimer = null
 		}
+		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
 		// The user may be switching rapidly through tabs, so we have a grace
 		// period before reconnecting to the observer.
+		debugSend('starting reconnection timer')
 		observerReconnectionTimer = setTimeout(function() {
+			debugSend('starting to observe')
 			observeMutationObserver()
 			observerReconnectionTimer = null
 		}, observerReconnectionGrace)
@@ -325,6 +329,7 @@ function bootstrap() {
 	}
 
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
+	// TODO: On Firefox, DevTools will never be open on startup - check others.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	debugSend('booted')
 }

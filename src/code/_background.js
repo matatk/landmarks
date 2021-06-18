@@ -27,9 +27,9 @@ function debugLog(thing, sender) {
 			console.log(`extpage: ${thing.info}`)
 		}
 	} else if (sender && sender.tab) {  // A general message from somewhere
-		console.log(`rx: ${sender.tab.id}: ${thing.name}`)
+		console.log(`bkg: rx: ${sender.tab.id}: ${thing.name}`)
 	} else {
-		console.log(`rx: ${thing.name}`)
+		console.log(`bkg: rx: ${thing.name}`)
 	}
 }
 
@@ -223,7 +223,7 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
 	setBrowserActionState(details.tabId, details.url)
-	debugLog('navigation completed')
+	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
 	updateGUIs(details.tabId, details.url)
 })
 
@@ -256,7 +256,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
-		debugLog(`tab ${details.tabId} history state updated`)
+		debugLog(`tab ${details.tabId} history - ${details.url}`)
 		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
 })
