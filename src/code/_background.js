@@ -14,7 +14,6 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
-// This is stripped by the build script when not in debug mode
 function debugLog(thing, sender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
@@ -102,10 +101,7 @@ function devtoolsListenerMaker(port) {
 					if (isContentScriptablePage(tab.url)) {
 						browser.tabs.sendMessage(tab.id, message)
 					} else {
-						port.postMessage({
-							name: 'landmarks',
-							data: null
-						})
+						port.postMessage({ name: 'landmarks', data: null })
 					}
 				})
 		}
@@ -212,9 +208,7 @@ browser.commands.onCommand.addListener(function(command) {
 // Navigation and tab activation events
 //
 
-// TODO: Needed?
-// Listen for URL change events on all tabs and enable/disable the browser
-// action according to whether the page will not allow content scripts.
+// Stop the user from being able to trigger the browser action during page load.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
@@ -257,7 +251,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
-	if (isContentScriptablePage(details.url)) {
+	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 		debugLog(`tab ${details.tabId} history - ${details.url}`)
 		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
@@ -350,8 +344,9 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'landmarks':
 			if (dismissedUpdate) {
 				browser.browserAction.setBadgeText({
-					text: message.data.length <= 0
-						? '' : String(message.data.length),
+					text: message.data.length === 0
+						? ''
+						: String(message.data.length),
 					tabId: sender.tab.id
 				})
 			}
@@ -408,10 +403,6 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // Actions when the extension starts up
 //
 
-// TODO: clear up comment; also is this actually going to be effective?
-// When the extension is loaded, if it's loaded into a page that is not an
-// HTTP(S) page, then we need to disable the browser action button.  This is
-// not done by default on Chrome or Firefox.
 browser.tabs.query({}, function(tabs) {
 	for (const i in tabs) {
 		setBrowserActionState(tabs[i].id, tabs[i].url)
@@ -422,7 +413,6 @@ if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
 
-// Listen for UI or notification dismissal changes
 browser.storage.onChanged.addListener(function(changes) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {
