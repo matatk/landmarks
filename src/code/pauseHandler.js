@@ -1,7 +1,3 @@
-// FIXME: Are landmarks up-to-date at end of pause really? How does this tie in
-//        with the scheduled task?
-// FIXME: if we come to run the scheduled task but are still paused, shouldn't
-//        we drop it? (If the user asks for landmarks they'll be updated.)
 export default function PauseHandler(pauseTimeHook) {
 	//
 	// Constants
@@ -97,7 +93,7 @@ export default function PauseHandler(pauseTimeHook) {
 	}
 
 	this.isPaused = function() {
-		return decreasePauseTimeout !== null
+		return pause > minPause
 	}
 
 	this.reset = function() {

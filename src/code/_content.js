@@ -1,6 +1,6 @@
-// FIXME: need to store whether we're awaiting a scheduled scan? or does
-//        isPaused already handle this?
 // FIXME: send only number of landmarks after a mutation?
+// FIXME: we _have_ to get the devtools-state message, so why not only start
+//        observing and scanning after that?
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
@@ -126,13 +126,13 @@ function messageHandler(message) {
 
 function checkAndUpdateOutdatedResults() {
 	if (pauseHandler.isPaused()) {
-		debugSend('paused - re-finding landmarks')
+		debugSend('out-of-date: re-finding landmarks')
 		findLandmarksAndSend(
 			msr.incrementNonMutationScans,
 			noop)  // it already calls the send function
 		return true
 	}
-	debugSend('not paused - landmarks are up-to-date')
+	debugSend('landmarks are up-to-date')
 	return false
 }
 
@@ -150,7 +150,6 @@ function checkFocusElement(callbackReturningElementInfo) {
 	}
 }
 
-// This is stripped by the build script when not in debug mode
 function debugSend(what) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
