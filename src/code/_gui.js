@@ -358,9 +358,7 @@ function debugSend(what) {
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.data)
-		if (INTERFACE === 'devtools') {
-			send({ name: 'get-page-warnings' })
-		}
+		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
@@ -435,7 +433,7 @@ function startupPopupOrSidebar() {
 	makeEventHandlers('help')
 	makeEventHandlers('settings')
 
-	// TODO: needed any more?
+	// FIXME: needed any more?
 	// The message could be coming from any content script or other GUI, so
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)

@@ -1,4 +1,5 @@
-// FIXME: need to store whether we're awaiting a scheduled scan? or does isPaused already handle this?
+// FIXME: need to store whether we're awaiting a scheduled scan? or does
+//        isPaused already handle this?
 // FIXME: send only number of landmarks after a mutation?
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
@@ -17,12 +18,9 @@ const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
-
-const observerReconnectionGrace = 1e3  // wait after page becomes visible again
-let observer = null
-let observerReconnectionTimer = null
-
 const noop = () => {}
+
+let observer = null
 
 
 //
@@ -31,13 +29,11 @@ const noop = () => {}
 
 function messageHandler(message) {
 	// TODO check this is removed properly in normal builds
-	if (message.name !== 'debug') debugSend(`got: ${message.name}`)
+	if (message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			if (!checkAndUpdateOutdatedResults()) {
-				sendLandmarks()
-			}
+			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by activating an item in a GUI, or indirectly via one
@@ -96,10 +92,11 @@ function messageHandler(message) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			msr.reset()
+			pauseHandler.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
 			findLandmarksAndSend(
-				// FIXME: this willl send the non-mutation message twice
+				// TODO: this willl send the non-mutation message twice
 				msr.incrementNonMutationScans, msr.sendAllUpdates)
 			break
 		case 'devtools-state':
@@ -264,7 +261,8 @@ function createMutationObserver() {
 	})
 }
 
-function observeMutationObserver() {
+function scanAndObserve() {
+	findLandmarks(msr.incrementNonMutationScans, noop)  // it will send anyway
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -278,18 +276,9 @@ function observeMutationObserver() {
 function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
-		if (observerReconnectionTimer) {
-			clearTimeout(observerReconnectionTimer)
-			observerReconnectionTimer = null
-		}
 		observer.disconnect()
 	} else {
-		// The user may be switching rapidly through tabs, so we have a grace
-		// period before reconnecting to the observer.
-		observerReconnectionTimer = setTimeout(function() {
-			observeMutationObserver()
-			observerReconnectionTimer = null
-		}, observerReconnectionGrace)
+		scanAndObserve()
 	}
 }
 
@@ -306,18 +295,16 @@ function bootstrap() {
 			})
 	}
 
-	findLandmarks(msr.incrementNonMutationScans, noop)  // it will send anyway
 	createMutationObserver()
 
 	// On browser load (i.e. if we are currently invisible) there's no need to
-	// connect to the observer, and DevTools will never register as being open.
+	// scan and observe, and DevTools will never register as being open.
 	if (!document.hidden) {
-		observeMutationObserver()
+		scanAndObserve()
 		browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	}
 
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
-	debugSend(`booted - ${window.location}`)
 }
 
 bootstrap()

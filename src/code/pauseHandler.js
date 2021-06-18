@@ -1,3 +1,7 @@
+// FIXME: Are landmarks up-to-date at end of pause really? How does this tie in
+//        with the scheduled task?
+// FIXME: if we come to run the scheduled task but are still paused, shouldn't
+//        we drop it? (If the user asks for landmarks they'll be updated.)
 export default function PauseHandler(pauseTimeHook) {
 	//
 	// Constants
@@ -16,6 +20,7 @@ export default function PauseHandler(pauseTimeHook) {
 
 	let pause = minPause
 	let lastEvent = Date.now()
+	let scheduledTaskTimeout = null
 	let decreasePauseTimeout = null
 	let haveIncreasedPauseAndScheduledTask = false
 	pauseTimeHook(pause)
@@ -51,11 +56,19 @@ export default function PauseHandler(pauseTimeHook) {
 		pauseTimeHook(pause)
 	}
 
-	function stopDecreasingPause() {
-		if (decreasePauseTimeout) {
-			clearTimeout(decreasePauseTimeout)
-			decreasePauseTimeout = null
+	function ceaseTimeout(timeout) {
+		if (timeout) {
+			clearTimeout(timeout)
+			timeout = null
 		}
+	}
+
+	function stopDecreasingPause() {
+		ceaseTimeout(decreasePauseTimeout)
+	}
+
+	function cancelScheduledTask() {
+		ceaseTimeout(scheduledTaskTimeout)
 	}
 
 
@@ -63,7 +76,7 @@ export default function PauseHandler(pauseTimeHook) {
 	// Public API
 	//
 
-	// TODO would this be more efficient if tasks specified at init?
+	// TODO: would this be more efficient if tasks specified at init?
 	this.run = function(ignoreCheck, guardedTask, scheduledTask) {
 		if (ignoreCheck()) return
 
@@ -74,7 +87,7 @@ export default function PauseHandler(pauseTimeHook) {
 		} else if (!haveIncreasedPauseAndScheduledTask) {
 			increasePause()
 			if (DEBUG) console.timeStamp(`Scheduling task in: ${pause}`)
-			setTimeout(() => {
+			scheduledTaskTimeout = setTimeout(() => {
 				scheduledTask()
 				decreasePause()
 				haveIncreasedPauseAndScheduledTask = false
@@ -85,5 +98,11 @@ export default function PauseHandler(pauseTimeHook) {
 
 	this.isPaused = function() {
 		return decreasePauseTimeout !== null
+	}
+
+	this.reset = function() {
+		cancelScheduledTask()
+		stopDecreasingPause()
+		pause = minPause
 	}
 }

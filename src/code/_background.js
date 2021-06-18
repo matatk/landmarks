@@ -16,20 +16,28 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 
 // This is stripped by the build script when not in debug mode
 function debugLog(thing, sender) {
-	if (typeof thing === 'string') {  // Debug message from this script
+	if (typeof thing === 'string') {
+		// Debug message from this script
 		console.log('bkg:', thing)
-	} else if (thing.name === 'debug') {  // Debug message from another script
+	} else if (thing.name === 'debug') {
+		// Debug message from somewhere
 		if (sender && sender.tab) {
 			console.log(`${sender.tab.id}: ${thing.info}`)
 		} else if (thing.from) {
 			console.log(`${thing.from}: ${thing.info}`)
 		} else {
-			console.log(`extpage: ${thing.info}`)
+			console.log(`extension page: ${thing.info}`)
 		}
-	} else if (sender && sender.tab) {  // A general message from somewhere
-		console.log(`bkg: rx: ${sender.tab.id}: ${thing.name}`)
 	} else {
-		console.log(`bkg: rx: ${thing.name}`)
+		// A general message from somewhere
+		// eslint-disable-next-line no-lonely-if
+		if (sender && sender.tab) {
+			console.log(`bkg: rx: ${sender.tab.id}: ${thing.name}`)
+		} else if (thing.from) {
+			console.log(`bkg: rx: devtools ${thing.from}: ${thing.name}`)
+		} else {
+			console.log(`bkg: rx: (from somewhere): ${thing.name}`)
+		}
 	}
 }
 
@@ -204,11 +212,9 @@ browser.commands.onCommand.addListener(function(command) {
 // Navigation and tab activation events
 //
 
+// TODO: Needed?
 // Listen for URL change events on all tabs and enable/disable the browser
 // action according to whether the page will not allow content scripts.
-//
-// Note: This used to be wrapped in a query for the active tab, but on browser
-//       startup, URL changes are going on in all tabs.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
@@ -227,32 +233,28 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 	updateGUIs(details.tabId, details.url)
 })
 
-// If the page uses 'single-page app' techniques to load in new components --
-// as YouTube and GitHub do -- then the landmarks can change. We assume that if
-// the structure of the page is changing so much that it is effectively a new
-// page, then the developer would've followed best practice and used the
-// History API to update the URL of the page, so that this 'new' page can be
-// recognised as such and be bookmarked by the user. Therefore we monitor for
-// use of the History API to trigger a new search for landmarks on the page.
+// If the page uses single-page app techniques to load in new components—as
+// YouTube and GitHub do—then the landmarks can change. We assume that if the
+// structure of the page is changing so much that it is effectively a new page,
+// then the developer would've followed best practice and used the History API
+// to update the URL of the page, so that this 'new' page can be recognised as
+// such and be bookmarked by the user. Therefore we monitor for use of the
+// History API to trigger a new search for landmarks on the page.
 //
 // Thanks: http://stackoverflow.com/a/36818991/1485308
 //
-// Note: The original code had a fliter such that this would only fire if the
-//       URLs of the current tab and the details object matched. This seems to
-//       work very well on most pages, but I noticed at least one case where it
-//       did not (moving to a repo's Graphs page on GitHub). Seeing as this
-//       only sends a short message to the content script, I've removed the
-//       'same URL' filtering.
-//
-// FIXME: Check both of the below now the messaging has been streamlined:
-//
-// TODO: In some circumstances (most GitHub transitions, this fires two times
-//       on Firefox and three times on Chrome. For YouTube, some transitions
-//       only cause this to fire once. Could it be to do with
-//       <https://developer.chrome.com/extensions/background_pages#filters>?
-//       Or could it be because we're not checking if the state *was* updated?
-//
-// TODO: Wouldn't these changes be caught by mutation observervation?
+// Note:
+// - GitHub repo-exploring transitions: this fires two times on Firefox (with
+//   both URL fields the same) and three times on Chrome (with some URL fields
+//   being the start URL and some being the finishing URL).
+// - YouTube transitions from playing to suggested video: this only fires once,
+//   with the new URL.
+// - The original code had a fliter such that this would only fire if the URLs
+//   of the current tab and the details object matched. This seems to work very
+//   well on most pages, but I noticed at least one case where it did not
+//   (moving to a repo's Graphs page on GitHub). Seeing as this only sends a
+//   short message to the content script, I've removed the 'same URL'
+//   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {
@@ -406,6 +408,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // Actions when the extension starts up
 //
 
+// TODO: clear up comment; also is this actually going to be effective?
 // When the extension is loaded, if it's loaded into a page that is not an
 // HTTP(S) page, then we need to disable the browser action button.  This is
 // not done by default on Chrome or Firefox.
