@@ -29,7 +29,6 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			// FIXME DRY
 			browser.runtime.sendMessage({ name: 'open-help' })
 			if (INTERFACE === 'popup') window.close()
 		}
@@ -118,11 +117,11 @@ function makeLandmarksTree(landmarks, container) {
 		if (INTERFACE === 'devtools') {
 			addInspectButton(item, landmark)
 
-			// FIXME: issue?
-			// TODO: When the content script first starts, it assumes that
-			//       DevTools aren't open. The background script will request a
-			//       GUI update and whilst unlikely, this might happen before
-			//       the content script has learnt that DevTools are open.
+			// TODO: come back to this check; can we make it not needed?
+			// When the content script first starts, it assumes that DevTools
+			// aren't open. The background script will request a GUI update and
+			// whilst unlikely, this might happen before the content script has
+			// learnt that DevTools are open.
 			if (landmark.hasOwnProperty('warnings')) {
 				if (landmark.warnings.length > 0) {
 					addElementWarnings(item, landmark, landmark.warnings)
@@ -329,7 +328,7 @@ function makeEventHandlers(linkName) {
 	})
 }
 
-// TODO this leaves an anonymous code block in the devtools script
+// TODO: this leaves an anonymous code block in the devtools script
 function send(message) {
 	if (INTERFACE === 'devtools') {
 		const messageWithTabId = Object.assign({}, message, {
@@ -343,7 +342,6 @@ function send(message) {
 	}
 }
 
-// This is stripped by the build script when not in debug mode
 function debugSend(what) {
 	const message = { name: 'debug', info: what }
 	if (INTERFACE === 'devtools') {
@@ -433,7 +431,6 @@ function startupPopupOrSidebar() {
 	makeEventHandlers('help')
 	makeEventHandlers('settings')
 
-	// FIXME: needed any more?
 	// The message could be coming from any content script or other GUI, so
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)
