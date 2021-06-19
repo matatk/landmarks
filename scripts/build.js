@@ -326,10 +326,7 @@ async function bundleCode(browser, debug) {
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
 				plugins: debug
-					? [
-						terser(makeTerserOptions(defines)),
-						esformatter()
-					]
+					? [ terser(makeTerserOptions(defines)), esformatter() ]
 					: [
 						strip({ functions: ['debugSend', 'debugLog'] }),
 						terser(makeTerserOptions(defines)),

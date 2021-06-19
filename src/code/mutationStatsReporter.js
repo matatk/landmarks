@@ -1,4 +1,5 @@
-// TODO: make this like the mutation observer—disconnect when DevTools isn't open?
+// TODO: make this like the mutation observer—disconnect when DevTools isn't
+//       open? (Would need to manage expectations in that case.)
 export default function MutationStatsReporter() {
 	let totalMutations = 0
 	let checkedMutations = 0

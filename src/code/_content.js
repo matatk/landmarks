@@ -28,8 +28,7 @@ let observer = null
 //
 
 function messageHandler(message) {
-	// TODO check this is removed properly in normal builds
-	if (message.name !== 'debug') debugSend(`rx: ${message.name}`)
+	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
