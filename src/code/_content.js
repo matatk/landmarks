@@ -20,6 +20,7 @@ const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer = null
 let observer = null
 let landmarksFinder = null
+let haveScannedForLandmarks = false
 
 
 //
@@ -96,6 +97,7 @@ function messageHandler(message) {
 			findLandmarksAndSend(
 				// TODO: this willl send the non-mutation message twice
 				msr.incrementNonMutationScans, msr.sendAllUpdates)
+			// haveScannedForLandmarks will be set to true now anyway
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
@@ -132,8 +134,8 @@ function messageHandler(message) {
 
 function doUpdateOutdatedResults() {
 	let outOfDate = false
-	if (observerReconnectionScanTimer !== null) {
-		debugSend('out-of-date: waiting to start observing')
+	if (observerReconnectionScanTimer !== null && !haveScannedForLandmarks) {
+		debugSend('out-of-date: no scan yet + waiting to observe')
 		cancelObserverReconnectionScan()
 		observeMutations()
 		outOfDate = true
@@ -190,6 +192,7 @@ function findLandmarks(counterIncrementFunction, updateSendFunction) {
 
 	const start = performance.now()
 	landmarksFinder.find()
+	if (!haveScannedForLandmarks) haveScannedForLandmarks = true
 	msr.setLastScanDuration(performance.now() - start)
 
 	counterIncrementFunction()
