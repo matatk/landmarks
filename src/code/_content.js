@@ -33,7 +33,7 @@ function messageHandler(message) {
 		case 'get-landmarks':
 			// TODO: investigate this
 			if (landmarksFinder === null) {
-				console.error('landmarksFinder is null')
+				console.error('landmarksFinder is null - ' + window.location)
 				debugSend('landmarksFinder is null')
 			}
 			// A GUI is requesting the list of landmarks on the page
@@ -111,7 +111,7 @@ function messageHandler(message) {
 					landmarksFinder = landmarksFinderDeveloper
 				} else {
 					// TODO: Remove eventually
-					console.error('Landmarks: already using dev scanner')
+					console.error('Landmarks: already using dev scanner - ' + window.location)
 				}
 				msr.beVerbose()
 			} else {
@@ -120,7 +120,7 @@ function messageHandler(message) {
 					landmarksFinder = landmarksFinderStandard
 				} else {
 					// TODO: Remove eventually
-					console.error('Landmarks: already using standard scanner')
+					console.error('Landmarks: already using standard scanner - ' + window.location)
 				}
 				msr.beQuiet()
 			}
