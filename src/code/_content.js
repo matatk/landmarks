@@ -31,6 +31,11 @@ function messageHandler(message) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
+			// TODO: investigate this
+			if (landmarksFinder === null) {
+				console.error('landmarksFinder is null')
+				debugSend('landmarksFinder is null')
+			}
 			// A GUI is requesting the list of landmarks on the page
 			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
