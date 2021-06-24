@@ -290,7 +290,7 @@ function observeMutations() {
 
 function cancelObserverReconnectionScan() {
 	if (observerReconnectionScanTimer) {
-		debugSend('cancelling scheduled scan and reconnection')
+		debugSend('cancelling scheduled observing and scan')
 		clearTimeout(observerReconnectionScanTimer)
 		observerReconnectionScanTimer = null
 	}
@@ -305,8 +305,8 @@ function reflectPageVisibility() {
 	} else {
 		debugSend('starting reconnection timer')
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('scheduled scanning')
-			findLandmarks(
+			debugSend('scheduled observing and scan')
+			findLandmarksAndSend(
 				msr.incrementNonMutationScans, noop)  // it will send anyway
 			observeMutations()
 			observerReconnectionScanTimer = null
