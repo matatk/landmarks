@@ -1,6 +1,3 @@
-// TODO: we _have_ to get the devtools-state message, so why not only start
-//       observing and scanning after that? Always checking state vs. not
-//       wasting a scan whe the DevTools are already open.
 import './compatibility'
 import LandmarksFinderStandard from './landmarksFinderStandard'
 import LandmarksFinderDeveloper from './landmarksFinderDeveloper'
@@ -12,7 +9,6 @@ import MutationStatsReporter from './mutationStatsReporter'
 
 const landmarksFinderStandard = new LandmarksFinderStandard(window, document)
 const landmarksFinderDeveloper = new LandmarksFinderDeveloper(window, document)
-let landmarksFinder = landmarksFinderStandard
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
@@ -20,7 +16,10 @@ const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
 const noop = () => {}
 
+const observerReconnectionGrace = 2e3  // wait after page becomes visible again
+let observerReconnectionAndScanTimer = null
 let observer = null
+let landmarksFinder = null
 
 
 //
@@ -28,7 +27,7 @@ let observer = null
 //
 
 function messageHandler(message) {
-	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
+	if (DEBUG) debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -103,16 +102,18 @@ function messageHandler(message) {
 				if (landmarksFinder !== landmarksFinderDeveloper) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
-					findLandmarks(noop, noop)
 				}
 				msr.beVerbose()
 			} else {
 				if (landmarksFinder !== landmarksFinderStandard) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
-					findLandmarks(noop, noop)
 				}
 				msr.beQuiet()
+			}
+			if (!document.hidden) {
+				debugSend('doc visible; also scanning')
+				findLandmarks(noop, noop)
 			}
 			break
 		case 'get-page-warnings':
@@ -123,9 +124,21 @@ function messageHandler(message) {
 	}
 }
 
+// TODO: Sense of return value
 function checkAndUpdateOutdatedResults() {
+	let outOfDate = false
+	if (observerReconnectionAndScanTimer !== null) {
+		debugSend('out-of-date: waiting to start observing')
+		cancelObserverReconnectionAndScan()
+		// FIXME: still need to reconnect to observer!
+		outOfDate = true
+	}
 	if (pauseHandler.isPaused()) {
-		debugSend('out-of-date: re-finding landmarks')
+		debugSend('out-of-date: scanning pause > default')
+		outOfDate = true
+	}
+
+	if (outOfDate === true) {
 		findLandmarksAndSend(
 			msr.incrementNonMutationScans,
 			noop)  // it already calls the send function
@@ -135,6 +148,7 @@ function checkAndUpdateOutdatedResults() {
 	return false
 }
 
+// TODO: rename to imply GUI?
 function checkThereAreLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound'))
@@ -143,6 +157,7 @@ function checkThereAreLandmarks() {
 	return true
 }
 
+// TODO: rename to imply GUI?
 function checkFocusElement(callbackReturningElementInfo) {
 	if (checkThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
@@ -260,6 +275,7 @@ function createMutationObserver() {
 }
 
 function scanAndObserve() {
+	debugSend('scanning and observing')
 	findLandmarks(msr.incrementNonMutationScans, noop)  // it will send anyway
 	observer.observe(document, {
 		attributes: true,
@@ -271,17 +287,31 @@ function scanAndObserve() {
 	})
 }
 
+function cancelObserverReconnectionAndScan() {
+	if (observerReconnectionAndScanTimer) {
+		debugSend('cancelling scheduled scan and reconnection')
+		clearTimeout(observerReconnectionAndScanTimer)
+		observerReconnectionAndScanTimer = null
+	}
+}
+
 function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
+		cancelObserverReconnectionAndScan()
+		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
-		scanAndObserve()
+		debugSend('starting reconnection timer')
+		observerReconnectionAndScanTimer = setTimeout(function() {
+			scanAndObserve()
+			observerReconnectionAndScanTimer = null
+		}, observerReconnectionGrace)
 	}
 }
 
 function bootstrap() {
-	debugSend(`booting - ${window.location}`)
+	debugSend(`starting - ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
@@ -294,14 +324,9 @@ function bootstrap() {
 	}
 
 	createMutationObserver()
-
-	// On browser load (i.e. if we are currently invisible) there's no need to
-	// scan and observe, and DevTools will never register as being open.
-	if (!document.hidden) {
-		scanAndObserve()
-		browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	}
-
+	// Requesting the DevTools' state will eventually cause the correct scanner
+	// to be set, and the document to be scanned, if visible.
+	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 }
 

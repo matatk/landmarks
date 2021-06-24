@@ -31,11 +31,11 @@ function debugLog(thing, sender) {
 		// A general message from somewhere
 		// eslint-disable-next-line no-lonely-if
 		if (sender && sender.tab) {
-			console.log(`bkg: rx: ${sender.tab.id}: ${thing.name}`)
+			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
 		} else if (thing.from) {
-			console.log(`bkg: rx: devtools ${thing.from}: ${thing.name}`)
+			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
 		} else {
-			console.log(`bkg: rx: (from somewhere): ${thing.name}`)
+			console.log(`bkg: rx from somewhere: ${thing.name}`)
 		}
 	}
 }
