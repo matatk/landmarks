@@ -308,7 +308,7 @@ function reflectPageVisibility() {
 	} else {
 		debugSend('starting reconnection timer')
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('scheduled observing and scan')
+			debugSend('performing scheduled observing and scan')
 			findLandmarksAndSend(
 				msr.incrementNonMutationScans, noop)  // it will send anyway
 			observeMutations()
