@@ -17,7 +17,7 @@ const pauseHandler = new PauseHandler(msr.setPauseTime)
 const noop = () => {}
 
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
-let observerReconnectionAndScanTimer = null
+let observerReconnectionScanTimer = null
 let observer = null
 let landmarksFinder = null
 
@@ -27,33 +27,33 @@ let landmarksFinder = null
 //
 
 function messageHandler(message) {
-	if (DEBUG) debugSend(`rx: ${message.name}`)
+	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
+			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(() =>
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(() =>
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(landmarksFinder.getNextLandmarkElementInfo)
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(landmarksFinder.getNextLandmarkElementInfo)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(
 				landmarksFinder.getPreviousLandmarkElementInfo)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
+			doUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
@@ -64,8 +64,8 @@ function messageHandler(message) {
 		}
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			if (checkThereAreLandmarks()) {
+			doUpdateOutdatedResults()
+			if (guiCheckThereAreLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
 					borderDrawer.replaceCurrentBordersWithElements(
@@ -102,12 +102,16 @@ function messageHandler(message) {
 				if (landmarksFinder !== landmarksFinderDeveloper) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
+				} else {
+					throw new Error('Was already dev scanner')
 				}
 				msr.beVerbose()
 			} else {
 				if (landmarksFinder !== landmarksFinderStandard) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
+				} else {
+					throw new Error('Was already standard scanner')
 				}
 				msr.beQuiet()
 			}
@@ -124,16 +128,14 @@ function messageHandler(message) {
 	}
 }
 
-// TODO: Sense of return value
-function checkAndUpdateOutdatedResults() {
+function doUpdateOutdatedResults() {
 	let outOfDate = false
-	if (observerReconnectionAndScanTimer !== null) {
+	if (observerReconnectionScanTimer !== null) {
 		debugSend('out-of-date: waiting to start observing')
-		cancelObserverReconnectionAndScan()
-		// FIXME: still need to reconnect to observer!
+		cancelObserverReconnectionScan()
+		observeMutations()
 		outOfDate = true
-	}
-	if (pauseHandler.isPaused()) {
+	} else if (pauseHandler.isPaused()) {
 		debugSend('out-of-date: scanning pause > default')
 		outOfDate = true
 	}
@@ -148,8 +150,7 @@ function checkAndUpdateOutdatedResults() {
 	return false
 }
 
-// TODO: rename to imply GUI?
-function checkThereAreLandmarks() {
+function guiCheckThereAreLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound'))
 		return false
@@ -157,9 +158,8 @@ function checkThereAreLandmarks() {
 	return true
 }
 
-// TODO: rename to imply GUI?
-function checkFocusElement(callbackReturningElementInfo) {
-	if (checkThereAreLandmarks()) {
+function guiCheckFocusElement(callbackReturningElementInfo) {
+	if (guiCheckThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
 }
@@ -274,9 +274,8 @@ function createMutationObserver() {
 	})
 }
 
-function scanAndObserve() {
-	debugSend('scanning and observing')
-	findLandmarks(msr.incrementNonMutationScans, noop)  // it will send anyway
+function observeMutations() {
+	debugSend('observing mutations')
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -287,25 +286,28 @@ function scanAndObserve() {
 	})
 }
 
-function cancelObserverReconnectionAndScan() {
-	if (observerReconnectionAndScanTimer) {
+function cancelObserverReconnectionScan() {
+	if (observerReconnectionScanTimer) {
 		debugSend('cancelling scheduled scan and reconnection')
-		clearTimeout(observerReconnectionAndScanTimer)
-		observerReconnectionAndScanTimer = null
+		clearTimeout(observerReconnectionScanTimer)
+		observerReconnectionScanTimer = null
 	}
 }
 
 function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
-		cancelObserverReconnectionAndScan()
+		cancelObserverReconnectionScan()
 		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
 		debugSend('starting reconnection timer')
-		observerReconnectionAndScanTimer = setTimeout(function() {
-			scanAndObserve()
-			observerReconnectionAndScanTimer = null
+		observerReconnectionScanTimer = setTimeout(function() {
+			debugSend('scheduled scanning')
+			findLandmarks(
+				msr.incrementNonMutationScans, noop)  // it will send anyway
+			observeMutations()
+			observerReconnectionScanTimer = null
 		}, observerReconnectionGrace)
 	}
 }
