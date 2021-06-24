@@ -103,7 +103,8 @@ function messageHandler(message) {
 					debugSend('change scanner to dev')
 					landmarksFinder = landmarksFinderDeveloper
 				} else {
-					throw new Error('Was already dev scanner')
+					// TODO: Remove eventually
+					console.error('Landmarks: already using dev scanner')
 				}
 				msr.beVerbose()
 			} else {
@@ -111,7 +112,8 @@ function messageHandler(message) {
 					debugSend('change scanner to standard')
 					landmarksFinder = landmarksFinderStandard
 				} else {
-					throw new Error('Was already standard scanner')
+					// TODO: Remove eventually
+					console.error('Landmarks: already using standard scanner')
 				}
 				msr.beQuiet()
 			}
