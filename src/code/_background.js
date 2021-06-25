@@ -257,17 +257,10 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
-function handleTabActivation(activeTabInfo) {
+browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		if (BROWSER !== 'firefox' && browser.runtime.lastError && browser.runtime.lastError.message === 'Tabs cannot be edited right now (user may be dragging a tab).') {
-			// FIXME: Remove this setTimeout hack for Chrome 91 in future
-			//        https://crbug.com/1213925
-			debugLog(`tab ${activeTabInfo.tabId} activated; using timeout for Chrome 91 bug`)
-			setTimeout(() => handleTabActivation(activeTabInfo), 500)
-		} else {
-			debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-			updateGUIs(tab.id, tab.url)
-		}
+		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+		updateGUIs(tab.id, tab.url)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
@@ -275,8 +268,7 @@ function handleTabActivation(activeTabInfo) {
 	//       briefly before the DOM load event causes webNavigation.onCompleted
 	//       to fire and the content script is asked for and sends back the
 	//       actual landmarks.
-}
-browser.tabs.onActivated.addListener(handleTabActivation)
+})
 
 
 //
