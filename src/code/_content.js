@@ -106,23 +106,13 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				if (landmarksFinder !== landmarksFinderDeveloper) {
-					debugSend('change scanner to dev')
-					landmarksFinder = landmarksFinderDeveloper
-				} else {
-					// TODO: Remove eventually
-					console.error('Landmarks: already using dev scanner - ' + window.location)
-				}
+				changeScannerTo(landmarksFinderDeveloper, 'developer')
 				msr.beVerbose()
-			} else {
-				if (landmarksFinder !== landmarksFinderStandard) {
-					debugSend('change scanner to standard')
-					landmarksFinder = landmarksFinderStandard
-				} else {
-					// TODO: Remove eventually
-					console.error('Landmarks: already using standard scanner - ' + window.location)
-				}
+			} else if (message.state === 'closed') {
+				changeScannerTo(landmarksFinderStandard, 'standard')
 				msr.beQuiet()
+			} else {
+				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
 				debugSend('doc visible; also scanning')
@@ -170,6 +160,17 @@ function guiCheckThereAreLandmarks() {
 function guiCheckFocusElement(callbackReturningElementInfo) {
 	if (guiCheckThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
+	}
+}
+
+function changeScannerTo(scanner, name) {
+	if (landmarksFinder !== scanner) {
+		debugSend(`change scanner to ${name}`)
+		landmarksFinder = scanner
+	} else {
+		// TODO: Remove eventually
+		console.error(`Landmarks: already using ${name} scanner - `
+			+ window.location)
 	}
 }
 
