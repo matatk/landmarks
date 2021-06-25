@@ -129,7 +129,7 @@ browser.runtime.onConnect.addListener(function(port) {
 		case 'disconnect-checker':  // Used on Chrome and Opera
 			break
 		default:
-			throw Error(`Unkown connection type ${port.name}`)
+			throw Error(`Unkown connection type "${port.name}".`)
 	}
 })
 
@@ -172,7 +172,7 @@ function switchInterface(mode) {
 			}
 			break
 		default:
-			throw Error(`Invalid interface "${mode}" given`)
+			throw Error(`Invalid interface "${mode}" given.`)
 	}
 }
 

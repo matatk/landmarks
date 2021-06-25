@@ -268,7 +268,7 @@ function reflectInterfaceChange(ui) {
 					case 'popup': showNote('note-ui')
 						break
 					default:
-						throw Error(`Unexpected interface type "${ui}"`)
+						throw Error(`Unexpected interface type "${ui}".`)
 				}
 			}
 		})
@@ -376,7 +376,7 @@ function handleToggleStateMessage(state) {
 			box.checked = true
 			break
 		default:
-			throw Error(`Unexpected toggle state ${state} given.`)
+			throw Error(`Unexpected toggle state "${state}" given.`)
 	}
 }
 

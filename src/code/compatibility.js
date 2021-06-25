@@ -7,5 +7,5 @@ switch (BROWSER) {
 		window.browser = window.chrome
 		break
 	default:
-		throw Error(`Landmarks: invalid browser ${BROWSER} given.`)
+		throw Error(`Invalid browser "${BROWSER}" given.`)
 }
