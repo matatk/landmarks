@@ -260,8 +260,8 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 function handleTabActivation(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
 		if (BROWSER !== 'firefox' && browser.runtime.lastError && browser.runtime.lastError.message === 'Tabs cannot be edited right now (user may be dragging a tab).') {
-			// TODO: Remove this setTimeout hack for Chrome 91 in future
-			//       https://crbug.com/1213925
+			// FIXME: Remove this setTimeout hack for Chrome 91 in future
+			//        https://crbug.com/1213925
 			debugLog(`tab ${activeTabInfo.tabId} activated; using timeout for Chrome 91 bug`)
 			setTimeout(() => handleTabActivation(activeTabInfo), 500)
 		} else {
