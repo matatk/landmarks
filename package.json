@@ -34,6 +34,7 @@
     ]
   },
   "devDependencies": {
+    "@rollup/plugin-strip": "^2.0.1",
     "addons-linter": "^3.7.0",
     "archiver-promise": "~1.0",
     "ava": "^3.15.0",

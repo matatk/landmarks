@@ -17,8 +17,9 @@ echo "    <browser> <browser> d"
 echo "    <browser> d"
 echo
 echo "You may want to run the following first"
-echo "    node scripts/build.js --browser all --debug"
-echo "    node scripts/build.js --browser all"
+echo "    node scripts/build.js [--skip-linting] --skip-zipping --browser all --debug"
+echo "    node scripts/build.js [--skip-linting] --skip-zipping --browser all"
+echo
 
 if [ ! "$1" ] || [ ! "$2" ]; then
 	echo "Missing first or second arg"

@@ -13,6 +13,7 @@ const { minify } = require('terser')
 const replace = require('replace-in-file')
 const rollup = require('rollup')
 const sharp = require('sharp')
+const strip = require('@rollup/plugin-strip')
 const terser = require('rollup-plugin-terser').terser
 
 
@@ -324,7 +325,13 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
-				plugins: [terser(makeTerserOptions(defines)), esformatter()]
+				plugins: debug
+					? [ terser(makeTerserOptions(defines)), esformatter() ]
+					: [
+						strip({ functions: ['debugSend', 'debugLog'] }),
+						terser(makeTerserOptions(defines)),
+						esformatter()
+					]
 			}
 
 			bundleOption.output = {

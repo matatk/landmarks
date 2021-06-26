@@ -1,7 +1,10 @@
+// TODO: make this like the mutation observer—disconnect when DevTools isn't
+//       open? (Would need to manage expectations in that case.)
 export default function MutationStatsReporter() {
 	let totalMutations = 0
 	let checkedMutations = 0
 	let mutationScans = 0
+	let nonMutationScans = 0
 	let pauseTime = null
 	let lastScanDuration = null
 
@@ -16,6 +19,7 @@ export default function MutationStatsReporter() {
 		totalMutations = 0
 		checkedMutations = 0
 		mutationScans = 0
+		nonMutationScans = 0
 		pauseTime = null
 		lastScanDuration = null
 	}
@@ -41,6 +45,11 @@ export default function MutationStatsReporter() {
 		mutationScans += 1
 	}
 
+	this.incrementNonMutationScans = function() {
+		nonMutationScans += 1
+		if (!quiet) _sendNonMutationScansUpdate()
+	}
+
 	this.setPauseTime = function(time) {
 		pauseTime = time
 		if (!quiet) _sendPauseTimeUpdate()
@@ -50,6 +59,11 @@ export default function MutationStatsReporter() {
 		lastScanDuration = Math.round(duration)  // Chrome is precise
 		if (!quiet) _sendDurationUpdate()
 	}
+
+	// Only these two public send methods are exposed because the mutation info
+	// update consists of three things that are sent after each mutation, check
+	// and possible scan. Also quite high-traffic perhaps, so cutting down on
+	// the times this info is sent is important.
 
 	this.sendMutationUpdate = function() {
 		if (!quiet) _sendMutationUpdate()
@@ -69,7 +83,15 @@ export default function MutationStatsReporter() {
 			name: 'mutation-info', data: {
 				'mutations': totalMutations,
 				'checks': checkedMutations,
-				'scans': mutationScans
+				'mutationScans': mutationScans
+			}
+		})
+	}
+
+	function _sendNonMutationScansUpdate() {
+		browser.runtime.sendMessage({
+			name: 'mutation-info', data: {
+				'nonMutationScans': nonMutationScans
 			}
 		})
 	}
@@ -92,6 +114,7 @@ export default function MutationStatsReporter() {
 
 	function _sendAllUpdates() {
 		_sendMutationUpdate()
+		_sendNonMutationScansUpdate()
 		_sendPauseTimeUpdate()
 		_sendDurationUpdate()
 	}

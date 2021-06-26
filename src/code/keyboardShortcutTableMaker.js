@@ -44,7 +44,7 @@ function makeHTML(structure, root) {
 				}
 				break
 			default:
-				throw Error(`Unexpected structure key ${key} encountered.`)
+				throw Error(`Unexpected structure key "${key}" encountered.`)
 		}
 	}
 

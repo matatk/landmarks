@@ -3,6 +3,7 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
+import { withActiveTab, withAllTabs } from './withTabs'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
@@ -14,7 +15,33 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
-function checkBrowserActionState(tabId, url) {
+function debugLog(thing, sender) {
+	if (typeof thing === 'string') {
+		// Debug message from this script
+		console.log('bkg:', thing)
+	} else if (thing.name === 'debug') {
+		// Debug message from somewhere
+		if (sender && sender.tab) {
+			console.log(`${sender.tab.id}: ${thing.info}`)
+		} else if (thing.from) {
+			console.log(`${thing.from}: ${thing.info}`)
+		} else {
+			console.log(`extension page: ${thing.info}`)
+		}
+	} else {
+		// A general message from somewhere
+		// eslint-disable-next-line no-lonely-if
+		if (sender && sender.tab) {
+			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
+		} else if (thing.from) {
+			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
+		} else {
+			console.log(`bkg: rx from somewhere: ${thing.name}`)
+		}
+	}
+}
+
+function setBrowserActionState(tabId, url) {
 	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
 	} else {
@@ -30,10 +57,18 @@ function sendToDevToolsForTab(tabId, message) {
 
 function updateGUIs(tabId, url) {
 	if (isContentScriptablePage(url)) {
+		debugLog('updateGUIs(): requesting landmarks and toggle state')
 		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
 		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
 	} else {
-		browser.runtime.sendMessage({ name: 'landmarks', data: null })
+		debugLog('updateGUIs(): non-scriptable page')
+		if (BROWSER === 'firefox' || BROWSER === 'opera') {
+			browser.runtime.sendMessage({ name: 'landmarks', data: null }, function() {
+				if (browser.runtime.lastError) {
+					// noop
+				}
+			})
+		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
 }
@@ -47,17 +82,12 @@ function devtoolsListenerMaker(port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
 	return function(message) {
+		debugLog(message)
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.tabId] = port
-				port.onDisconnect.addListener(function() {
-					browser.tabs.get(message.tabId, function(tab) {
-						if (isContentScriptablePage(tab.url)) {
-							sendDevToolsStateMessage(tab.id, false)
-						}
-					})
-					delete devtoolsConnections[message.tabId]
-				})
+				port.onDisconnect.addListener(
+					devtoolsDisconnectMaker(message.tabId))
 				sendDevToolsStateMessage(message.tabId, true)
 				break
 			case 'get-landmarks':
@@ -72,13 +102,23 @@ function devtoolsListenerMaker(port) {
 					if (isContentScriptablePage(tab.url)) {
 						browser.tabs.sendMessage(tab.id, message)
 					} else {
-						port.postMessage({
-							name: 'landmarks',
-							data: null
-						})
+						port.postMessage({ name: 'landmarks', data: null })
 					}
 				})
 		}
+	}
+}
+
+function devtoolsDisconnectMaker(tabId) {
+	return function() {
+		browser.tabs.get(tabId, function(tab) {
+			if (!browser.runtime.lastError) {  // check tab was not closed
+				if (isContentScriptablePage(tab.url)) {
+					sendDevToolsStateMessage(tab.id, false)
+				}
+			}
+		})
+		delete devtoolsConnections[tabId]
 	}
 }
 
@@ -90,7 +130,7 @@ browser.runtime.onConnect.addListener(function(port) {
 		case 'disconnect-checker':  // Used on Chrome and Opera
 			break
 		default:
-			throw Error(`Unkown connection type ${port.name}`)
+			throw Error(`Unkown connection type "${port.name}".`)
 	}
 })
 
@@ -133,7 +173,7 @@ function switchInterface(mode) {
 			}
 			break
 		default:
-			throw Error(`Invalid interface "${mode}" given`)
+			throw Error(`Invalid interface "${mode}" given.`)
 	}
 }
 
@@ -156,9 +196,9 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
-			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				if (isContentScriptablePage(tabs[0].url)) {
-					browser.tabs.sendMessage(tabs[0].id, { name: command })
+			withActiveTab(tab => {
+				if (isContentScriptablePage(tab.url)) {
+					browser.tabs.sendMessage(tab.id, { name: command })
 				}
 			})
 	}
@@ -169,12 +209,7 @@ browser.commands.onCommand.addListener(function(command) {
 // Navigation and tab activation events
 //
 
-// Listen for URL change events on all tabs and disable the browser action if
-// the URL does not start with 'http://' or 'https://' (or 'file://', for
-// local pages).
-//
-// Note: This used to be wrapped in a query for the active tab, but on browser
-//       startup, URL changes are going on in all tabs.
+// Stop the user from being able to trigger the browser action during page load.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
 	browser.browserAction.disable(details.tabId)
@@ -188,49 +223,52 @@ browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 
 browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId > 0) return
-	checkBrowserActionState(details.tabId, details.url)
+	setBrowserActionState(details.tabId, details.url)
+	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
 	updateGUIs(details.tabId, details.url)
 })
 
-// If the page uses 'single-page app' techniques to load in new components --
-// as YouTube and GitHub do -- then the landmarks can change. We assume that if
-// the structure of the page is changing so much that it is effectively a new
-// page, then the developer would've followed best practice and used the
-// History API to update the URL of the page, so that this 'new' page can be
-// recognised as such and be bookmarked by the user. Therefore we monitor for
-// use of the History API to trigger a new search for landmarks on the page.
+// If the page uses single-page app techniques to load in new components—as
+// YouTube and GitHub do—then the landmarks can change. We assume that if the
+// structure of the page is changing so much that it is effectively a new page,
+// then the developer would've followed best practice and used the History API
+// to update the URL of the page, so that this 'new' page can be recognised as
+// such and be bookmarked by the user. Therefore we monitor for use of the
+// History API to trigger a new search for landmarks on the page.
 //
 // Thanks: http://stackoverflow.com/a/36818991/1485308
 //
-// Note: The original code had a fliter such that this would only fire if the
-//       URLs of the current tab and the details object matched. This seems to
-//       work very well on most pages, but I noticed at least one case where it
-//       did not (moving to a repo's Graphs page on GitHub). Seeing as this
-//       only sends a short message to the content script, I've removed the
-//       'same URL' filtering.
-//
-// TODO: In some circumstances (most GitHub transitions, this fires two times
-//       on Firefox and three times on Chrome. For YouTube, some transitions
-//       only cause this to fire once. Could it be to do with
-//       <https://developer.chrome.com/extensions/background_pages#filters>?
-//       Or could it be because we're not checking if the state *was* updated?
-//
-// TODO: Wouldn't these changes be caught by mutation observervation?
+// Note:
+// - GitHub repo-exploring transitions: this fires two times on Firefox (with
+//   both URL fields the same) and three times on Chrome (with some URL fields
+//   being the start URL and some being the finishing URL).
+// - YouTube transitions from playing to suggested video: this only fires once,
+//   with the new URL.
+// - The original code had a fliter such that this would only fire if the URLs
+//   of the current tab and the details object matched. This seems to work very
+//   well on most pages, but I noticed at least one case where it did not
+//   (moving to a repo's Graphs page on GitHub). Seeing as this only sends a
+//   short message to the content script, I've removed the 'same URL'
+//   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
-	if (isContentScriptablePage(details.url)) {
+	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
+		debugLog(`tab ${details.tabId} history - ${details.url}`)
 		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
 	}
 })
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
+		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
 		updateGUIs(tab.id, tab.url)
 	})
-	// Note: on Firefox, if the tab hasn't started loading yet, it's URL comes
+	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
 	//       that page, and sends the null landmarks message, which appears
-	//       briefly before the content script sends back the actual landmarks.
+	//       briefly before the DOM load event causes webNavigation.onCompleted
+	//       to fire and the content script is asked for and sends back the
+	//       actual landmarks.
 })
 
 
@@ -244,9 +282,7 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			updateGUIs(tabs[0].id, tabs[0].url)
-		})
+		withActiveTab(tab => updateGUIs(tab.id, tab.url))
 	} else if (!doNotBadge) {
 		browser.browserAction.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
@@ -280,12 +316,8 @@ function openHelpPage(openInSameTab) {
 		browser.tabs.update({ url: helpPage })
 	} else {
 		// When opened from GUIs, it should open in a new tab
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.create({
-				url: helpPage,
-				openerTabId: tabs[0].id
-			})
-		})
+		withActiveTab(tab =>
+			browser.tabs.create({ url: helpPage, openerTabId: tab.id }))
 	}
 	if (!dismissedUpdate) {
 		browser.storage.sync.set({ 'dismissedUpdate': true })
@@ -293,13 +325,15 @@ function openHelpPage(openInSameTab) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender) {
+	debugLog(message, sender)
 	switch (message.name) {
 		// Content
 		case 'landmarks':
 			if (dismissedUpdate) {
 				browser.browserAction.setBadgeText({
-					text: message.data.length <= 0
-						? '' : String(message.data.length),
+					text: message.data.length === 0
+						? ''
+						: String(message.data.length),
 					tabId: sender.tab.id
 				})
 			}
@@ -339,9 +373,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
-			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				sendToDevToolsForTab(tabs[0].id, message)
-			})
+			withActiveTab(tab => sendToDevToolsForTab(tab.id, message))
 			break
 		case 'mutation-info':
 		case 'page-warnings':
@@ -354,12 +386,9 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // Actions when the extension starts up
 //
 
-// When the extension is loaded, if it's loaded into a page that is not an
-// HTTP(S) page, then we need to disable the browser action button.  This is
-// not done by default on Chrome or Firefox.
-browser.tabs.query({}, function(tabs) {
+withAllTabs(function(tabs) {
 	for (const i in tabs) {
-		checkBrowserActionState(tabs[i].id, tabs[i].url)
+		setBrowserActionState(tabs[i].id, tabs[i].url)
 	}
 })
 
@@ -367,7 +396,6 @@ if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
 
-// Listen for UI or notification dismissal changes
 browser.storage.onChanged.addListener(function(changes) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {

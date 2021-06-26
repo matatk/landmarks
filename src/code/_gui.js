@@ -5,6 +5,7 @@ import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+import { withActiveTab } from './withTabs'
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -29,7 +30,6 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			// FIXME DRY
 			browser.runtime.sendMessage({ name: 'open-help' })
 			if (INTERFACE === 'popup') window.close()
 		}
@@ -117,8 +117,18 @@ function makeLandmarksTree(landmarks, container) {
 
 		if (INTERFACE === 'devtools') {
 			addInspectButton(item, landmark)
-			if (landmark.warnings.length > 0) {
-				addElementWarnings(item, landmark, landmark.warnings)
+
+			// TODO: come back to this check; can we make it not needed?
+			// When the content script first starts, it assumes that DevTools
+			// aren't open. The background script will request a GUI update and
+			// whilst unlikely, this might happen before the content script has
+			// learnt that DevTools are open.
+			if (landmark.hasOwnProperty('warnings')) {
+				if (landmark.warnings.length > 0) {
+					addElementWarnings(item, landmark, landmark.warnings)
+				}
+			} else {
+				debugSend('no warnings for ' + landmark.role)
 			}
 		}
 
@@ -259,7 +269,7 @@ function reflectInterfaceChange(ui) {
 					case 'popup': showNote('note-ui')
 						break
 					default:
-						throw Error(`Unexpected interface type "${ui}"`)
+						throw Error(`Unexpected interface type "${ui}".`)
 				}
 			}
 		})
@@ -319,7 +329,7 @@ function makeEventHandlers(linkName) {
 	})
 }
 
-// TODO this leaves an anonymous code block in the devtools script
+// TODO: this leaves an anonymous code block in the devtools script
 function send(message) {
 	if (INTERFACE === 'devtools') {
 		const messageWithTabId = Object.assign({}, message, {
@@ -327,9 +337,18 @@ function send(message) {
 		})
 		port.postMessage(messageWithTabId)
 	} else {
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.sendMessage(tabs[0].id, message)
-		})
+		withActiveTab(tab => browser.tabs.sendMessage(tab.id, message))
+	}
+}
+
+function debugSend(what) {
+	const message = { name: 'debug', info: what }
+	if (INTERFACE === 'devtools') {
+		message.from = `devtools ${browser.devtools.inspectedWindow.tabId}`
+		port.postMessage(message)
+	} else {
+		message.from = INTERFACE
+		browser.runtime.sendMessage(message)
 	}
 }
 
@@ -356,7 +375,7 @@ function handleToggleStateMessage(state) {
 			box.checked = true
 			break
 		default:
-			throw Error(`Unexpected toggle state ${state} given.`)
+			throw Error(`Unexpected toggle state "${state}" given.`)
 	}
 }
 
@@ -415,8 +434,8 @@ function startupPopupOrSidebar() {
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)
 	browser.runtime.onMessage.addListener(function(message, sender) {
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			const activeTabId = tabs[0].id
+		withActiveTab(tab => {
+			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
 				messageHandlerCore(message, sender)
 			}
@@ -425,16 +444,15 @@ function startupPopupOrSidebar() {
 
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
-	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-		browser.tabs.get(tabs[0].id, function(tab) {
+	withActiveTab(tab =>
+		browser.tabs.get(tab.id, function(tab) {
 			if (!isContentScriptablePage(tab.url)) {
 				handleLandmarksMessage(null)
 				return
 			}
 			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
 			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
-		})
-	})
+		}))
 
 	document.getElementById('version').innerText =
 		browser.runtime.getManifest().version
@@ -454,6 +472,7 @@ function main() {
 	})
 
 	translate()
+	debugSend('started up')
 }
 
 main()

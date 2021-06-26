@@ -9,17 +9,18 @@ import MutationStatsReporter from './mutationStatsReporter'
 
 const landmarksFinderStandard = new LandmarksFinderStandard(window, document)
 const landmarksFinderDeveloper = new LandmarksFinderDeveloper(window, document)
-let landmarksFinder = landmarksFinderStandard
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler(msr.setPauseTime)
+const noop = () => {}
 
-const outOfDateTime = 2e3
-const observerReconnectionGrace = 1e3
+const observerReconnectionGrace = 2e3  // wait after page becomes visible again
+let observerReconnectionScanTimer = null
 let observer = null
-let observerReconnectionTimer = null
+let landmarksFinder = landmarksFinderStandard  // just in case
+let haveScannedForLandmarks = false
 
 
 //
@@ -27,32 +28,33 @@ let observerReconnectionTimer = null
 //
 
 function messageHandler(message) {
+	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
-			if (!checkAndUpdateOutdatedResults()) sendLandmarks()
+			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
 		case 'focus-landmark':
 			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(() =>
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(() =>
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(landmarksFinder.getNextLandmarkElementInfo)
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(landmarksFinder.getNextLandmarkElementInfo)
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			checkFocusElement(
+			doUpdateOutdatedResults()
+			guiCheckFocusElement(
 				landmarksFinder.getPreviousLandmarkElementInfo)
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
+			doUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
 			if (mainElementInfo) {
 				elementFocuser.focusElement(mainElementInfo)
@@ -63,8 +65,8 @@ function messageHandler(message) {
 		}
 		case 'toggle-all-landmarks':
 			// Triggered by keyboard shortcut
-			checkAndUpdateOutdatedResults()
-			if (checkThereAreLandmarks()) {
+			doUpdateOutdatedResults()
+			if (guiCheckThereAreLandmarks()) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
 					borderDrawer.replaceCurrentBordersWithElements(
@@ -89,20 +91,29 @@ function messageHandler(message) {
 			// this happens, we should treat it as a new page, and fetch
 			// landmarks again when asked.
 			msr.reset()
+			pauseHandler.reset()
 			elementFocuser.clear()
 			borderDrawer.removeAllBorders()
-			findLandmarksAndUpdateExtension()
-			msr.sendAllUpdates()
+			findLandmarksAndSend(
+				// TODO: this willl send the non-mutation message twice
+				msr.incrementNonMutationScans, msr.sendAllUpdates)
+			// haveScannedForLandmarks will be set to true now anyway
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
+				debugSend('change scanner to dev')
 				landmarksFinder = landmarksFinderDeveloper
-				landmarksFinder.find()
 				msr.beVerbose()
-			} else {
+			} else if (message.state === 'closed') {
+				debugSend('change scanner to std')
 				landmarksFinder = landmarksFinderStandard
-				landmarksFinder.find()
 				msr.beQuiet()
+			} else {
+				throw Error(`Invalid DevTools state "${message.state}".`)
+			}
+			if (!document.hidden) {
+				debugSend('doc visible; also scanning')
+				findLandmarks(noop, noop)
 			}
 			break
 		case 'get-page-warnings':
@@ -113,16 +124,29 @@ function messageHandler(message) {
 	}
 }
 
-function checkAndUpdateOutdatedResults() {
-	if (pauseHandler.getPauseTime() > outOfDateTime) {
-		findLandmarksAndUpdateExtension()
-		msr.sendMutationUpdate()
+function doUpdateOutdatedResults() {
+	let outOfDate = false
+	if (observerReconnectionScanTimer !== null && !haveScannedForLandmarks) {
+		debugSend('out-of-date: no scan yet + waiting to observe')
+		cancelObserverReconnectionScan()
+		observeMutations()
+		outOfDate = true
+	} else if (pauseHandler.isPaused()) {
+		debugSend('out-of-date: scanning pause > default')
+		outOfDate = true
+	}
+
+	if (outOfDate === true) {
+		findLandmarksAndSend(
+			msr.incrementNonMutationScans,
+			noop)  // it already calls the send function
 		return true
 	}
+	debugSend('landmarks are up-to-date')
 	return false
 }
 
-function checkThereAreLandmarks() {
+function guiCheckThereAreLandmarks() {
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound'))
 		return false
@@ -130,10 +154,16 @@ function checkThereAreLandmarks() {
 	return true
 }
 
-function checkFocusElement(callbackReturningElementInfo) {
-	if (checkThereAreLandmarks()) {
+function guiCheckFocusElement(callbackReturningElementInfo) {
+	if (guiCheckThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
+}
+
+function debugSend(what) {
+	// When sending from a contenet script, the tab's ID will be noted by the
+	// background script, so no need to specify a 'from' key here.
+	browser.runtime.sendMessage({ name: 'debug', info: what })
 }
 
 
@@ -148,19 +178,29 @@ function sendLandmarks() {
 	})
 }
 
-function findLandmarksAndUpdateExtension() {
-	if (DEBUG) console.timeStamp(`findLandmarksAndUpdateExtension() on ${window.location.href}`)
+function findLandmarks(counterIncrementFunction, updateSendFunction) {
+	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
+	debugSend('finding landmarks')
+
 	const start = performance.now()
 	landmarksFinder.find()
+	if (!haveScannedForLandmarks) haveScannedForLandmarks = true
 	msr.setLastScanDuration(performance.now() - start)
-	msr.incrementMutationScans()
-	sendLandmarks()
+
+	counterIncrementFunction()
+	updateSendFunction()
+
 	elementFocuser.refreshFocusedElement()
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
 		borderDrawer.replaceCurrentBordersWithElements(
 			landmarksFinder.allElementsInfos())
 	}
+}
+
+function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
+	findLandmarks(counterIncrementFunction, updateSendFunction)
+	sendLandmarks()
 }
 
 
@@ -215,21 +255,24 @@ function createMutationObserver() {
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					findLandmarksAndUpdateExtension()
+					debugSend('scanning due to mutation')
+					findLandmarksAndSend(msr.incrementMutationScans, noop)
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
-				findLandmarksAndUpdateExtension()
-				msr.sendMutationUpdate()
+				debugSend('scheduled scan')
+				findLandmarksAndSend(
+					msr.incrementMutationScans, msr.sendMutationUpdate)
 			})
 
 		msr.sendMutationUpdate()
 	})
 }
 
-function observeMutationObserver() {
+function observeMutations() {
+	debugSend('observing mutations')
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -240,28 +283,34 @@ function observeMutationObserver() {
 	})
 }
 
-function observeMutationObserverAndFindLandmarks() {
-	observeMutationObserver()
-	findLandmarksAndUpdateExtension()
-	msr.sendMutationUpdate()
+function cancelObserverReconnectionScan() {
+	if (observerReconnectionScanTimer) {
+		debugSend('cancelling scheduled observing and scan')
+		clearTimeout(observerReconnectionScanTimer)
+		observerReconnectionScanTimer = null
+	}
 }
 
 function reflectPageVisibility() {
+	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
-		if (observerReconnectionTimer) {
-			clearTimeout(observerReconnectionTimer)
-			observerReconnectionTimer = null
-		}
+		cancelObserverReconnectionScan()
+		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
-		observerReconnectionTimer = setTimeout(function() {
-			observeMutationObserverAndFindLandmarks()
-			observerReconnectionTimer = null
+		debugSend('starting reconnection timer')
+		observerReconnectionScanTimer = setTimeout(function() {
+			debugSend('performing scheduled observing and scan')
+			findLandmarksAndSend(
+				msr.incrementNonMutationScans, noop)  // it will send anyway
+			observeMutations()
+			observerReconnectionScanTimer = null
 		}, observerReconnectionGrace)
 	}
 }
 
 function bootstrap() {
+	debugSend(`starting - ${window.location}`)
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
@@ -273,12 +322,11 @@ function bootstrap() {
 			})
 	}
 
-	// At the start, the ElementFocuser is always managing borders
-	browser.runtime.sendMessage({ name: 'toggle-state-is', data: 'selected' })
 	createMutationObserver()
-	observeMutationObserverAndFindLandmarks()
-	document.addEventListener('visibilitychange', reflectPageVisibility, false)
+	// Requesting the DevTools' state will eventually cause the correct scanner
+	// to be set, and the document to be scanned, if visible.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 }
 
 bootstrap()

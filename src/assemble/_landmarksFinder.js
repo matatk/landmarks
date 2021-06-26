@@ -105,6 +105,8 @@ export default function LandmarksFinder(win, doc) {
 	let currentlySelectedElement
 
 	function updateSelectedIndexAndReturnElementInfo(index) {
+		// TODO: Don't need an index check, as we trust the source. Does that
+		//       mean we also don't need the length check?
 		if (landmarks.length === 0) return
 		currentlySelectedIndex = index
 		currentlySelectedElement = landmarks[index].element
@@ -113,7 +115,7 @@ export default function LandmarksFinder(win, doc) {
 			role: landmarks[index].role,
 			roleDescription: landmarks[index].roleDescription,
 			label: landmarks[index].label
-			// No need to send the selector this time
+			// No need to send the selector or warnings
 		}
 	}
 
@@ -189,6 +191,10 @@ export default function LandmarksFinder(win, doc) {
 			parentLandmark = element
 		}
 
+		// One just one page I've seen an error here in Chrome (91) which seems
+		// to be a bug, because only one HTMLElement was returned; not an
+		// HTMLCollection. Checking for this would cause a slowdown, so
+		// ignoring for now.
 		for (const elementChild of element.children) {
 			getLandmarks(elementChild, depth, parentLandmark)
 		}
