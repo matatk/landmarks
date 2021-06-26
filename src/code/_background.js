@@ -58,16 +58,15 @@ function sendToDevToolsForTab(tabId, message) {
 function updateGUIs(tabId, url) {
 	if (isContentScriptablePage(url)) {
 		debugLog('updateGUIs(): requesting landmarks and toggle state')
-		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
-		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
+		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' }, () =>
+			browser.runtime.lastError)  // not loaded yet; it'll talk to us
+		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' }, () =>
+			browser.runtime.lastError)  // not loaded yet; it'll talk to us
 	} else {
 		debugLog('updateGUIs(): non-scriptable page')
 		if (BROWSER === 'firefox' || BROWSER === 'opera') {
-			browser.runtime.sendMessage({ name: 'landmarks', data: null }, function() {
-				if (browser.runtime.lastError) {
-					// noop
-				}
-			})
+			browser.runtime.sendMessage({ name: 'landmarks', data: null }, () =>
+				browser.runtime.lastError)  // noop
 		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -254,7 +253,10 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
+		// Testing in Firefox and Chrome indicates the content script not being
+		// loaded yet error can occur here too.
+		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' }, () =>
+			browser.runtime.lastError)
 	}
 })
 
