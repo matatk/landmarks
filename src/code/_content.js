@@ -19,7 +19,7 @@ const noop = () => {}
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer = null
 let observer = null
-let landmarksFinder = null
+let landmarksFinder = landmarksFinderStandard  // just in case
 let haveScannedForLandmarks = false
 
 
@@ -31,11 +31,6 @@ function messageHandler(message) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
-			// FIXME: investigate this
-			if (landmarksFinder === null) {
-				console.error('landmarksFinder is null - ' + window.location)
-				debugSend('landmarksFinder is null')
-			}
 			// A GUI is requesting the list of landmarks on the page
 			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
@@ -106,10 +101,12 @@ function messageHandler(message) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				changeScannerTo(landmarksFinderDeveloper, 'developer')
+				debugSend('change scanner to dev')
+				landmarksFinder = landmarksFinderDeveloper
 				msr.beVerbose()
 			} else if (message.state === 'closed') {
-				changeScannerTo(landmarksFinderStandard, 'standard')
+				debugSend('change scanner to std')
+				landmarksFinder = landmarksFinderStandard
 				msr.beQuiet()
 			} else {
 				throw Error(`Invalid DevTools state "${message.state}".`)
@@ -160,17 +157,6 @@ function guiCheckThereAreLandmarks() {
 function guiCheckFocusElement(callbackReturningElementInfo) {
 	if (guiCheckThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
-	}
-}
-
-function changeScannerTo(scanner, name) {
-	if (landmarksFinder !== scanner) {
-		debugSend(`change scanner to ${name}`)
-		landmarksFinder = scanner
-	} else {
-		// TODO: Remove eventually
-		console.error(`Landmarks: already using ${name} scanner - `
-			+ window.location)
 	}
 }
 
