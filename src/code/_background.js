@@ -66,11 +66,11 @@ function wrappedSendToTab(id, message) {
 
 function updateGUIs(tabId, url) {
 	if (isContentScriptablePage(url)) {
-		debugLog('updateGUIs(): requesting landmarks and toggle state')
+		debugLog(`update UI for ${tabId}: requesting info`)
 		wrappedSendToTab(tabId, { name: 'get-landmarks' })
 		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
 	} else {
-		debugLog('updateGUIs(): non-scriptable page')
+		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera') {
 			browser.runtime.sendMessage(
 				{ name: 'landmarks', data: null }, () =>
