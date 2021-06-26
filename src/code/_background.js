@@ -3,6 +3,7 @@ import './compatibility'
 import contentScriptInjector from './contentScriptInjector'
 import { isContentScriptablePage } from './isContent'
 import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
+import { withActiveTab, withAllTabs } from './withTabs'
 import MigrationManager from './migrationManager'
 
 const devtoolsConnections = {}
@@ -195,9 +196,9 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'prev-landmark':
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
-			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				if (isContentScriptablePage(tabs[0].url)) {
-					browser.tabs.sendMessage(tabs[0].id, { name: command })
+			withActiveTab(tab => {
+				if (isContentScriptablePage(tab.url)) {
+					browser.tabs.sendMessage(tab.id, { name: command })
 				}
 			})
 	}
@@ -281,9 +282,7 @@ function reflectUpdateDismissalState(dismissed, doNotBadge) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			updateGUIs(tabs[0].id, tabs[0].url)
-		})
+		withActiveTab(tab => updateGUIs(tab.id, tab.url))
 	} else if (!doNotBadge) {
 		browser.browserAction.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
@@ -317,12 +316,8 @@ function openHelpPage(openInSameTab) {
 		browser.tabs.update({ url: helpPage })
 	} else {
 		// When opened from GUIs, it should open in a new tab
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.create({
-				url: helpPage,
-				openerTabId: tabs[0].id
-			})
-		})
+		withActiveTab(tab =>
+			browser.tabs.create({ url: helpPage, openerTabId: tab.id }))
 	}
 	if (!dismissedUpdate) {
 		browser.storage.sync.set({ 'dismissedUpdate': true })
@@ -378,13 +373,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			break
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
-			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				// Note: Got an "Error handling response: TypeError: Cannot
-				//       read property 'id' of undefined" in Chrome here.
-				//       However it's not clear why this query should fail, and
-				//       there are plenty of other occurrences of it.
-				sendToDevToolsForTab(tabs[0].id, message)
-			})
+			withActiveTab(tab => sendToDevToolsForTab(tab.id, message))
 			break
 		case 'mutation-info':
 		case 'page-warnings':
@@ -397,7 +386,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 // Actions when the extension starts up
 //
 
-browser.tabs.query({}, function(tabs) {
+withAllTabs(function(tabs) {
 	for (const i in tabs) {
 		setBrowserActionState(tabs[i].id, tabs[i].url)
 	}

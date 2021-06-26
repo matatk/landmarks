@@ -5,6 +5,7 @@ import translate from './translate'
 import landmarkName from './landmarkName'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
 import { isContentScriptablePage } from './isContent'
+import { withActiveTab } from './withTabs'
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -336,9 +337,7 @@ function send(message) {
 		})
 		port.postMessage(messageWithTabId)
 	} else {
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			browser.tabs.sendMessage(tabs[0].id, message)
-		})
+		withActiveTab(tab => browser.tabs.sendMessage(tab.id, message))
 	}
 }
 
@@ -435,8 +434,8 @@ function startupPopupOrSidebar() {
 	// it needs to be filtered. (The background script filters out messages
 	// for the DevTools panel.)
 	browser.runtime.onMessage.addListener(function(message, sender) {
-		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-			const activeTabId = tabs[0].id
+		withActiveTab(tab => {
+			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
 				messageHandlerCore(message, sender)
 			}
@@ -445,16 +444,15 @@ function startupPopupOrSidebar() {
 
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
-	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-		browser.tabs.get(tabs[0].id, function(tab) {
+	withActiveTab(tab =>
+		browser.tabs.get(tab.id, function(tab) {
 			if (!isContentScriptablePage(tab.url)) {
 				handleLandmarksMessage(null)
 				return
 			}
 			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
 			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
-		})
-	})
+		}))
 
 	document.getElementById('version').innerText =
 		browser.runtime.getManifest().version
