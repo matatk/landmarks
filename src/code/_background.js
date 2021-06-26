@@ -379,8 +379,10 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
 			browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-				// FIXME: Got an "Error handling response: TypeError: Cannot
-				//        read property 'id' of undefined" in Chrome here:
+				// Note: Got an "Error handling response: TypeError: Cannot
+				//       read property 'id' of undefined" in Chrome here.
+				//       However it's not clear why this query should fail, and
+				//       there are plenty of other occurrences of it.
 				sendToDevToolsForTab(tabs[0].id, message)
 			})
 			break
