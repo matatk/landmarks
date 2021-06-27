@@ -3,11 +3,13 @@ export default function landmarkName(landmark) {
 		? landmark.roleDescription
 		: processRole(landmark.role)
 
-	if (landmark.label) {
-		return landmark.label + ' (' + roleName + ')'
-	}
+	const label = landmark.label
+		? landmark.label + ' (' + roleName + ')'
+		: roleName
 
-	return roleName
+	return landmark.guessed
+		? label + ' (guessed)'
+		: label
 }
 
 // Fetch the user-friendly name for a role
