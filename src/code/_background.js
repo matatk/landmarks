@@ -55,19 +55,26 @@ function sendToDevToolsForTab(tabId, message) {
 	}
 }
 
+// If the content script hasn't started yet (e.g. on browser load, restoring
+// many tabs), ignore an error when trying to talk to it. It'll talk to us.
+//
+// I tried avoiding sending to tabs whose status was not 'complete' but that
+// resulted in messages not being sent even when the content script was ready.
+function wrappedSendToTab(id, message) {
+	browser.tabs.sendMessage(id, message, () => browser.runtime.lastError)
+}
+
 function updateGUIs(tabId, url) {
 	if (isContentScriptablePage(url)) {
-		debugLog('updateGUIs(): requesting landmarks and toggle state')
-		browser.tabs.sendMessage(tabId, { name: 'get-landmarks' })
-		browser.tabs.sendMessage(tabId, { name: 'get-toggle-state' })
+		debugLog(`update UI for ${tabId}: requesting info`)
+		wrappedSendToTab(tabId, { name: 'get-landmarks' })
+		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
 	} else {
-		debugLog('updateGUIs(): non-scriptable page')
+		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera') {
-			browser.runtime.sendMessage({ name: 'landmarks', data: null }, function() {
-				if (browser.runtime.lastError) {
-					// noop
-				}
-			})
+			browser.runtime.sendMessage(
+				{ name: 'landmarks', data: null }, () =>
+					browser.runtime.lastError)  // noop
 		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -254,7 +261,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		browser.tabs.sendMessage(details.tabId, { name: 'trigger-refresh' })
+		wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
 	}
 })
 
