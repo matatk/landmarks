@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "Guess main alone by id"
+    "name": "Guess main alone by id of 'main'"
   },
   "expected": [
     {
