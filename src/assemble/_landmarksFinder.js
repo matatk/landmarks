@@ -404,30 +404,28 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	// Heuristic checks
 	//
 
-	function addGuessedMain(guessedMain) {
-		landmarks.push({
-			'depth': 0,
-			'role': 'main',
-			'roleDescription': getRoleDescription(guessedMain),
-			'label': getARIAProvidedLabel(guessedMain),
-			'element': guessedMain,
-			'selector': createSelector(guessedMain),
-			'guessed': true
-		})
-		mainElementIndices = [0]
+	function tryAddingGuessedMain(guessedMain) {
+		if (guessedMain && landmarks.length === 0) {
+			landmarks.push({
+				'depth': 0,
+				'role': 'main',
+				'roleDescription': getRoleDescription(guessedMain),
+				'label': getARIAProvidedLabel(guessedMain),
+				'element': guessedMain,
+				'selector': createSelector(guessedMain),
+				'guessed': true
+			})
+			mainElementIndices = [0]
+		}
 	}
 
 	// TODO: Guess main if other landmarks, but not main.
 	function tryHeuristics() {
-		if (landmarks.length === 0) {
-			for (const id of ['main', 'content']) {
-				const guessedMain = doc.getElementById(id)
-				if (guessedMain) addGuessedMain(guessedMain)
-			}
-
-			const classMains = doc.getElementsByClassName('main')
-			if (classMains.length === 1) addGuessedMain(classMains[0])
+		for (const id of ['main', 'content']) {
+			tryAddingGuessedMain(doc.getElementById(id))
 		}
+		const classMains = doc.getElementsByClassName('main')
+		if (classMains.length === 1) tryAddingGuessedMain(classMains[0])
 	}
 
 
