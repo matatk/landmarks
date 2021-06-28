@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "name": "Guess main alone by class of 'main'"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "main",
+      "roleDescription": null,
+      "label": null,
+      "selector": "body > div.main",
+      "guessed": true
+    }
+  ]
+}
