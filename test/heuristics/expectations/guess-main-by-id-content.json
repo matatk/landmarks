@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "name": "Guess main alone by id of 'content'"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "main",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#content",
+      "guessed": true
+    }
+  ]
+}
