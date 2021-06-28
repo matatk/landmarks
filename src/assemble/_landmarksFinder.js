@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc) {
+export default function LandmarksFinder(win, doc, useHeuristics) {
 	//
 	// Constants
 	//
@@ -442,7 +442,8 @@ export default function LandmarksFinder(win, doc) {
 
 		if (MODE === 'developer') developerModeChecks()
 
-		if (landmarks.length === 0) {
+		// TODO: Guess main if other landmarks, but not main.
+		if (useHeuristics && landmarks.length === 0) {
 			const guessedMain = doc.getElementById('main')
 			if (guessedMain) {
 				landmarks.push({
