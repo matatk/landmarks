@@ -401,6 +401,32 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 
 
 	//
+	// Heuristic checks
+	//
+
+	// TODO: Guess main if other landmarks, but not main.
+	function tryHeuristics() {
+		if (landmarks.length === 0) {
+			for (const id of ['main', 'content']) {
+				const guessedMain = doc.getElementById(id)
+				if (guessedMain) {
+					landmarks.push({
+						'depth': 0,
+						'role': 'main',
+						'roleDescription': getRoleDescription(guessedMain),
+						'label': getARIAProvidedLabel(guessedMain),
+						'element': guessedMain,
+						'selector': createSelector(guessedMain),
+						'guessed': true
+					})
+					mainElementIndices = [0]
+				}
+			}
+		}
+	}
+
+
+	//
 	// Support for finding next landmark from focused element
 	//
 
@@ -441,23 +467,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
 		if (MODE === 'developer') developerModeChecks()
-
-		// TODO: Guess main if other landmarks, but not main.
-		if (useHeuristics && landmarks.length === 0) {
-			const guessedMain = doc.getElementById('main')
-			if (guessedMain) {
-				landmarks.push({
-					'depth': 0,
-					'role': 'main',
-					'roleDescription': null,
-					'label': getARIAProvidedLabel(guessedMain),
-					'element': guessedMain,
-					'selector': createSelector(guessedMain),
-					'guessed': true
-				})
-				mainElementIndices = [0]
-			}
-		}
+		if (useHeuristics) tryHeuristics()
 	}
 
 	this.getNumberOfLandmarks = function() {
