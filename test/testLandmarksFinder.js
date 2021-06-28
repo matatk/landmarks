@@ -1,3 +1,5 @@
+const path = require('path')
+
 import test from 'ava'
 import jsdom from 'jsdom'
 import pssst from 'page-structural-semantics-scanner-tests'
@@ -5,7 +7,10 @@ import LandmarksFinderStandard from '../src/code/landmarksFinderStandard'
 import LandmarksFinderDeveloper from '../src/code/landmarksFinderDeveloper'
 
 const { JSDOM } = jsdom
-const checks = pssst.getFullPageTestsInline()
+const strictChecks = pssst.getFullPageTestsInline()
+const heuristicChecks = pssst.getFullPageTestsInlineFrom(
+	path.join(__dirname, 'heuristics', 'fixtures'),
+	path.join(__dirname, 'heuristics', 'expectations'))
 
 const testSuiteFormatExpectation = [
 	{
@@ -92,6 +97,28 @@ const landmarksFormatExpectation = [
 	}
 ]
 
+const testSuiteFormatExpectationWithGuesses = [
+	{
+		'type': 'landmark',
+		'role': 'main',
+		'roleDescription': null,
+		'label': null,
+		'selector': '#main',
+		'guessed': true
+	}
+]
+
+const landmarksFormatExpectationWithGuesses = [
+	{
+		'depth': 0,
+		'role': 'main',
+		'roleDescription': null,
+		'label': null,
+		'selector': '#main',
+		'guessed': true
+	}
+]
+
 
 //
 // Check the damage report machine
@@ -99,7 +126,15 @@ const landmarksFormatExpectation = [
 
 test('expectation conversion from test suite to Landmarks format', t => {
 	t.deepEqual(
-		convertExpectation(testSuiteFormatExpectation), landmarksFormatExpectation)
+		convertExpectation(testSuiteFormatExpectation),
+		landmarksFormatExpectation)
+})
+
+test('expectation conversion from test suite to Landmarks format ' +
+	'(with heuristics)', t => {
+	t.deepEqual(
+		convertExpectation(testSuiteFormatExpectationWithGuesses),
+		landmarksFormatExpectationWithGuesses)
 })
 
 
@@ -107,11 +142,12 @@ test('expectation conversion from test suite to Landmarks format', t => {
 // Check the LandmarksFinders
 //
 
-function testSpecificLandmarksFinder(Scanner, scannerName, postProcesor) {
+function testSpecificLandmarksFinder(
+	runName, Scanner, postProcesor, checks, heuristics) {
 	for (const check of Object.values(checks)) {
-		test(scannerName + ': ' + check.meta.name, t => {
+		test(runName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
-			const lf = new Scanner(dom.window, dom.window.document, false)
+			const lf = new Scanner(dom.window, dom.window.document, heuristics)
 			lf.find()
 			const landmarksFinderResult = postProcesor
 				? postProcesor(lf.allInfos())
@@ -131,11 +167,17 @@ function removeWarnings(landmarks) {
 }
 
 const runs = [
-	[ LandmarksFinderStandard, 'Standard', null ],
-	[ LandmarksFinderDeveloper, 'Developer', removeWarnings ]]
+	[ 'Standard (strict)',
+		LandmarksFinderStandard, null, strictChecks, false ],
+	[ 'Developer (strict)',
+		LandmarksFinderDeveloper, removeWarnings, strictChecks, false ],
+	[ 'Standard (heuristics)',
+		LandmarksFinderStandard, null, heuristicChecks, true ],
+	[ 'Developer (heuristics)',
+		LandmarksFinderDeveloper, removeWarnings, heuristicChecks, true ]]
 
-for (const [scanner, name, postProcesor] of runs) {
-	testSpecificLandmarksFinder(scanner, name, postProcesor)
+for (const run of runs) {
+	testSpecificLandmarksFinder(...run)
 }
 
 
@@ -151,7 +193,7 @@ function convertCore(landmarksFormatData, testSuiteFormatData, depth) {
 			'roleDescription': landmark.roleDescription,
 			'label': landmark.label,
 			'selector': landmark.selector,
-			'guessed': false
+			'guessed': landmark.guessed ? true : false
 		})
 		if (landmark.contains) {
 			convertCore(landmarksFormatData, landmark.contains, depth + 1)
