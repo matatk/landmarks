@@ -55,35 +55,40 @@ const landmarksFormatExpectation = [
 		'role': 'banner',
 		'roleDescription': null,
 		'label': null,
-		'selector': 'body > header'
+		'selector': 'body > header',
+		'guessed': false
 	},
 	{
 		'depth': 1,
 		'role': 'navigation',
 		'roleDescription': null,
 		'label': 'World of wombats',
-		'selector': 'body > header > nav'
+		'selector': 'body > header > nav',
+		'guessed': false
 	},
 	{
 		'depth': 0,
 		'role': 'main',
 		'roleDescription': null,
 		'label': 'Looking after your wombat',
-		'selector': 'body > main'
+		'selector': 'body > main',
+		'guessed': false
 	},
 	{
 		'depth': 1,
 		'role': 'navigation',
 		'roleDescription': null,
 		'label': 'Looking after your wombat Topics',
-		'selector': 'body > main > nav:nth-child(2)'
+		'selector': 'body > main > nav:nth-child(2)',
+		'guessed': false
 	},
 	{
 		'depth': 0,
 		'role': 'contentinfo',
 		'roleDescription': null,
 		'label': null,
-		'selector': 'body > footer'
+		'selector': 'body > footer',
+		'guessed': false
 	}
 ]
 
@@ -106,7 +111,7 @@ function testSpecificLandmarksFinder(Scanner, scannerName, postProcesor) {
 	for (const check of Object.values(checks)) {
 		test(scannerName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
-			const lf = new Scanner(dom.window, dom.window.document)
+			const lf = new Scanner(dom.window, dom.window.document, false)
 			lf.find()
 			const landmarksFinderResult = postProcesor
 				? postProcesor(lf.allInfos())
@@ -145,7 +150,8 @@ function convertCore(landmarksFormatData, testSuiteFormatData, depth) {
 			'role': landmark.role,
 			'roleDescription': landmark.roleDescription,
 			'label': landmark.label,
-			'selector': landmark.selector
+			'selector': landmark.selector,
+			'guessed': false
 		})
 		if (landmark.contains) {
 			convertCore(landmarksFormatData, landmark.contains, depth + 1)
