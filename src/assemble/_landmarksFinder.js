@@ -404,22 +404,30 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	// Heuristic checks
 	//
 
+	function makeMainEntry(guessedMain) {
+		return {
+			'depth': 0,
+			'role': 'main',
+			'roleDescription': getRoleDescription(guessedMain),
+			'label': getARIAProvidedLabel(guessedMain),
+			'element': guessedMain,
+			'selector': createSelector(guessedMain),
+			'guessed': true
+		}
+	}
+
 	function tryAddingGuessedMain(guessedMain) {
-		if (guessedMain && landmarks.length === 0) {
-			landmarks.push({
-				'depth': 0,
-				'role': 'main',
-				'roleDescription': getRoleDescription(guessedMain),
-				'label': getARIAProvidedLabel(guessedMain),
-				'element': guessedMain,
-				'selector': createSelector(guessedMain),
-				'guessed': true
-			})
+		if (guessedMain && mainElementIndices.length === 0) {
+			if (landmarks.length === 0) {
+				landmarks.push(makeMainEntry(guessedMain))
+			} else {
+				const insertAt = getIndexOfNextLandmarkAfter(guessedMain)
+				landmarks.splice(insertAt, 0, makeMainEntry(guessedMain))
+			}
 			mainElementIndices = [0]
 		}
 	}
 
-	// TODO: Guess main if other landmarks, but not main.
 	function tryHeuristics() {
 		for (const id of ['main', 'content', 'main-content']) {
 			tryAddingGuessedMain(doc.getElementById(id))
@@ -437,7 +445,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		for (let i = 0; i < landmarks.length; i++) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return i
+			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
 		return null
 	}
@@ -446,7 +454,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		for (let i = landmarks.length - 1; i >= 0; i--) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & Node.DOCUMENT_POSITION_PRECEDING) return i
+			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
 		return null
 	}
