@@ -420,11 +420,12 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		if (guessedMain && mainElementIndices.length === 0) {
 			if (landmarks.length === 0) {
 				landmarks.push(makeMainEntry(guessedMain))
+				mainElementIndices = [0]
 			} else {
 				const insertAt = getIndexOfNextLandmarkAfter(guessedMain)
 				landmarks.splice(insertAt, 0, makeMainEntry(guessedMain))
+				mainElementIndices = [insertAt]
 			}
-			mainElementIndices = [0]
 		}
 	}
 
@@ -478,7 +479,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
 		if (MODE === 'developer') developerModeChecks()
-		if (useHeuristics) tryHeuristics()
+		if (useHeuristics) tryHeuristics()  // FIXME only run no main region
 	}
 
 	this.getNumberOfLandmarks = function() {
