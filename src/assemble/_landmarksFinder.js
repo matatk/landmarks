@@ -421,7 +421,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 
 	// TODO: Guess main if other landmarks, but not main.
 	function tryHeuristics() {
-		for (const id of ['main', 'content']) {
+		for (const id of ['main', 'content', 'main-content']) {
 			tryAddingGuessedMain(doc.getElementById(id))
 		}
 		const classMains = doc.getElementsByClassName('main')
