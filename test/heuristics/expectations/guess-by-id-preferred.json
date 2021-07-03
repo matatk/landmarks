@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "name": "Guessing main by id of 'main' is preferred"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "main",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#main",
+      "guessed": true
+    }
+  ]
+}
