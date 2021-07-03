@@ -21,10 +21,13 @@ const urls = Object.freeze({
 		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
+
 const cacheDir = path.join(__dirname, 'profile-cache')
-const wrapSourcePath = path.join(
-	__dirname, '..', 'src', 'code', 'landmarksFinder.js')
-const wrapOutputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
+const sourceForFinder = (name) =>
+	path.join(__dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
+const outputForFinder = (name) =>
+	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
+
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
 const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
@@ -105,7 +108,8 @@ async function insertLandmark(page, repetition) {
 //
 
 async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
-	const landmarksFinderPath = await wrapLandmarksFinder()
+	const finders = await wrapLandmarksFinders()
+
 	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
 	let totalElements = 0
 	let totalInteractiveElements = 0
@@ -125,7 +129,7 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 			await load(page, site)
 
 			console.log('Injecting script...')
-			await page.addScriptTag({ path: landmarksFinderPath })
+			await page.addScriptTag({ path: finders.standard })
 
 			console.log('Counting elements...')
 			Object.assign(results, await page.evaluate(
@@ -198,23 +202,32 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	})
 }
 
-async function wrapLandmarksFinder() {
-	const inputModified = fs.statSync(wrapSourcePath).mtime
-	const outputModified = fs.existsSync(wrapOutputPath)
-		? fs.statSync(wrapOutputPath).mtime
-		: null
+async function wrapLandmarksFinders() {
+	const finderPaths = {}
 
-	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
-		console.log('Wrapping and caching', path.basename(wrapSourcePath))
-		const bundle = await rollup.rollup({ input: wrapSourcePath })
-		await bundle.write({
-			file: wrapOutputPath,
-			format: 'iife',
-			name: 'LandmarksFinder'
-		})
+	for (const name of ['Standard', 'Developer']) {
+		const sourcePath = sourceForFinder(name)
+		const outputPath = outputForFinder(name)
+
+		const inputModified = fs.statSync(sourcePath).mtime
+		const outputModified = fs.existsSync(outputPath)
+			? fs.statSync(outputPath).mtime
+			: null
+
+		if (!fs.existsSync(outputPath) || inputModified > outputModified) {
+			console.log('Wrapping and caching', path.basename(sourcePath))
+			const bundle = await rollup.rollup({ input: sourcePath })
+			await bundle.write({
+				file: outputPath,
+				format: 'iife',
+				name: 'Landmarksname'
+			})
+		}
+
+		finderPaths[name.toLowerCase()] = outputPath
 	}
 
-	return wrapOutputPath
+	return finderPaths
 }
 
 function elementCounts(interactiveElementSelector) {
