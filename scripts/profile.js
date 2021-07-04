@@ -120,16 +120,17 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
+		for (const finder in finders) {
 		for (const site of sites) {
 			const page = await pageSetUp(browser, false)
-			const results = { 'url': urls[site] }
+			const results = { 'finder': finder, 'url': urls[site] }
 
 			console.log()
 			console.log(`Loading ${site}...`)
 			await load(page, site)
 
 			console.log('Injecting script...')
-			await page.addScriptTag({ path: finders.standard })
+			await page.addScriptTag({ path: finders[finder] })
 
 			console.log('Counting elements...')
 			Object.assign(results, await page.evaluate(
@@ -195,6 +196,7 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 				combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
 				combined.navBackDeviation = stats.stdev(allNavBackTimes)
 			}
+		}
 		}
 
 		await browser.close()
