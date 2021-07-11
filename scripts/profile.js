@@ -11,14 +11,14 @@ const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
 	amazonproduct: 'https://www.amazon.co.uk/'
-		+ 'Ridleys-Corny-Classic-Provide-Laughs/dp/B07DX65CP1',
+	+ 'Ridleys-Corny-Classic-Provide-Laughs/dp/B07DX65CP1',
 	ars: 'https://arstechnica.com',
 	bbcnews: 'https://www.bbc.co.uk/news',
 	bbcnewsarticle: 'https://www.bbc.co.uk/news/technology-53093613',
 	bbcnewsstory: 'https://www.bbc.co.uk/news/resources/idt-sh/'
-		+ 'dundee_the_city_with_grand_designs',
+	+ 'dundee_the_city_with_grand_designs',
 	googledoc: 'https://docs.google.com/document/d/'
-		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
+	+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 
@@ -121,82 +121,82 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
-		for (const site of sites) {
-			const page = await pageSetUp(browser, false)
-			const results = { 'finder': finder, 'url': urls[site] }
+			for (const site of sites) {
+				const page = await pageSetUp(browser, false)
+				const results = { 'finder': finder, 'url': urls[site] }
 
-			console.log()
-			console.log(`Loading ${site}...`)
-			await load(page, site)
+				console.log()
+				console.log(`Loading ${site}...`)
+				await load(page, site)
 
-			console.log('Injecting script...')
-			await page.addScriptTag({ path: finders[finder] })
+				console.log('Injecting script...')
+				await page.addScriptTag({ path: finders[finder] })
 
-			console.log('Counting elements...')
-			Object.assign(results, await page.evaluate(
-				elementCounts, interactiveElementSelector))
-			totalElements += results.numElements
-			totalInteractiveElements += results.numInteractiveElements
-			totalLandmarks += results.numLandmarks
+				console.log('Counting elements...')
+				Object.assign(results, await page.evaluate(
+					elementCounts, interactiveElementSelector))
+				totalElements += results.numElements
+				totalInteractiveElements += results.numInteractiveElements
+				totalLandmarks += results.numLandmarks
 
-			if (doScan) {
-				console.log(`Running landmark-finding code ${loops} times...`)
-				const scanTimes = await page.evaluate(landmarkScan, loops)
-				Object.assign(results, {
-					'scanMeanTimeMS': stats.mean(scanTimes),
-					'scanDeviation': stats.stdev(scanTimes)
-				})
-				Array.prototype.push.apply(allScanTimes, scanTimes)
+				if (doScan) {
+					console.log(`Running landmark-finding code ${loops} times...`)
+					const scanTimes = await page.evaluate(landmarkScan, loops)
+					Object.assign(results, {
+						'scanMeanTimeMS': stats.mean(scanTimes),
+						'scanDeviation': stats.stdev(scanTimes)
+					})
+					Array.prototype.push.apply(allScanTimes, scanTimes)
+				}
+
+				if (doFocus) {
+					console.log(`Running forward-nav code ${loops} times...`)
+					const navForwardTimes = await page.evaluate(
+						landmarkNav, loops, interactiveElementSelector, 'forward')
+					Object.assign(results, {
+						'navForwardMeanTimeMS': stats.mean(navForwardTimes),
+						'navForwardDeviation': stats.stdev(navForwardTimes)
+					})
+					Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
+
+					console.log(`Running Back-nav code ${loops} times...`)
+					const navBackTimes = await page.evaluate(
+						landmarkNav, loops, interactiveElementSelector, 'back')
+					Object.assign(results, {
+						'navBackMeanTimeMS': stats.mean(navBackTimes),
+						'navBackDeviation': stats.stdev(navBackTimes)
+					})
+					Array.prototype.push.apply(allNavBackTimes, navBackTimes)
+				}
+
+				fullResults['results'][site] = results
+				await page.close()
 			}
 
-			if (doFocus) {
-				console.log(`Running forward-nav code ${loops} times...`)
-				const navForwardTimes = await page.evaluate(
-					landmarkNav, loops, interactiveElementSelector, 'forward')
-				Object.assign(results, {
-					'navForwardMeanTimeMS': stats.mean(navForwardTimes),
-					'navForwardDeviation': stats.stdev(navForwardTimes)
-				})
-				Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
+			if (sites.length > 1) {
+				fullResults['combined'] = {}
+				const combined = fullResults['combined']
 
-				console.log(`Running Back-nav code ${loops} times...`)
-				const navBackTimes = await page.evaluate(
-					landmarkNav, loops, interactiveElementSelector, 'back')
-				Object.assign(results, {
-					'navBackMeanTimeMS': stats.mean(navBackTimes),
-					'navBackDeviation': stats.stdev(navBackTimes)
-				})
-				Array.prototype.push.apply(allNavBackTimes, navBackTimes)
+				combined.numElements = totalElements
+				combined.elementsPerPage = totalElements / sites.length
+				combined.numInteractiveElements = totalInteractiveElements
+				combined.interactiveElementsPercent =
+					(totalInteractiveElements / totalElements) * 100
+				combined.numLandmarks = totalLandmarks
+				combined.LandmarksPerPage = totalLandmarks / sites.length
+
+				if (doScan) {
+					combined.scanMeanTimeMS = stats.mean(allScanTimes)
+					combined.scanDeviation = stats.stdev(allScanTimes)
+				}
+
+				if (doFocus) {
+					combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
+					combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
+					combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
+					combined.navBackDeviation = stats.stdev(allNavBackTimes)
+				}
 			}
-
-			fullResults['results'][site] = results
-			await page.close()
-		}
-
-		if (sites.length > 1) {
-			fullResults['combined'] = {}
-			const combined = fullResults['combined']
-
-			combined.numElements = totalElements
-			combined.elementsPerPage = totalElements / sites.length
-			combined.numInteractiveElements = totalInteractiveElements
-			combined.interactiveElementsPercent =
-				(totalInteractiveElements / totalElements) * 100
-			combined.numLandmarks = totalLandmarks
-			combined.LandmarksPerPage = totalLandmarks / sites.length
-
-			if (doScan) {
-				combined.scanMeanTimeMS = stats.mean(allScanTimes)
-				combined.scanDeviation = stats.stdev(allScanTimes)
-			}
-
-			if (doFocus) {
-				combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
-				combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
-				combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
-				combined.navBackDeviation = stats.stdev(allNavBackTimes)
-			}
-		}
 		}
 
 		await browser.close()
@@ -447,15 +447,15 @@ function main() {
 			alias: 'q',
 			type: 'boolean',
 			description:
-				"Don't print out browser console and request failed messages "
-				+ '(do print errors)'
+			"Don't print out browser console and request failed messages "
+			+ '(do print errors)'
 		})
 		.option('really-quiet', {
 			alias: 'Q',
 			type: 'boolean',
 			description:
-				"Don't print out any browser messages (except unhandled "
-				+ 'exceptions)'
+			"Don't print out any browser messages (except unhandled "
+			+ 'exceptions)'
 		})
 		.command(
 			'trace <site> <landmarks> [runs]',
@@ -465,8 +465,8 @@ function main() {
 					.positional('site', siteParameterDefinition)
 					.positional('landmarks', {
 						describe:
-							'number of landmarks to insert (there is a pause '
-							+ 'between each)',
+						'number of landmarks to insert (there is a pause '
+						+ 'between each)',
 						type: 'number'
 					})
 					.coerce('landmarks', function(landmarks) {
@@ -478,8 +478,8 @@ function main() {
 					})
 					.positional('runs', {
 						describe:
-							'number of separate tracing runs to make '
-							+ '(recommend keeping this at one)',
+						'number of separate tracing runs to make '
+						+ '(recommend keeping this at one)',
 						type: 'number',
 						default: 1
 					})
@@ -507,7 +507,7 @@ function main() {
 						alias: 'f',
 						type: 'boolean',
 						description:
-							'Time focusing the next and previous landmark'
+						'Time focusing the next and previous landmark'
 					})
 					.check(argv => {
 						if (argv.scan || argv.focus) {
@@ -520,7 +520,7 @@ function main() {
 					.positional('site', siteParameterDefinition)
 					.positional('repetitions', {
 						describe:
-							'number of separate tracing repetitions to make',
+						'number of separate tracing repetitions to make',
 						type: 'number',
 						default: 100
 					})
@@ -537,7 +537,7 @@ function main() {
 		.command(
 			'guarding',
 			'Make a trace both with and without triggering mutation guarding. '
-				+ debugBuildNote,
+			+ debugBuildNote,
 			() => {},
 			() => {
 				mode = 'guarding'

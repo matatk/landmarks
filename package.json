@@ -48,7 +48,7 @@
     "husky": "^6.0.0",
     "jsdom": "^16.6.0",
     "nyc": "^15.1.0",
-    "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.5.0",
+    "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.6.0",
     "puppeteer": "^10.0.0",
     "replace-in-file": "^6.2.0",
     "rollup": "^2.51.2",
