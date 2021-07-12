@@ -115,101 +115,109 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
-			console.log()
-			console.log(`With scanner ${finder}...`)
-
-			fullResults[finder] = {}
-
-			let totalElements = 0
-			let totalInteractiveElements = 0
-			let totalLandmarks = 0
-			const allScanTimes = []
-			const allNavForwardTimes = []
-			const allNavBackTimes = []
-
-			for (const site of sites) {
-				const page = await pageSetUp(browser, false)
-				const results = { 'url': urls[site] }
-
-				console.log()
-				console.log(`Loading ${site}...`)
-				await load(page, site)
-
-				console.log('Injecting script...')
-				await page.addScriptTag({ path: finders[finder] })
-
-				console.log('Counting elements...')
-				Object.assign(results, await page.evaluate(
-					elementCounts, finder, interactiveElementSelector))
-				totalElements += results.numElements
-				totalInteractiveElements += results.numInteractiveElements
-				totalLandmarks += results.numLandmarks
-
-				if (doScan) {
-					console.log(`Running landmark-finding code ${loops} times...`)
-					const scanTimes = await page.evaluate(
-						landmarkScan, finder, loops)
-					Object.assign(results, {
-						'scanMeanTimeMS': stats.mean(scanTimes),
-						'scanDeviation': stats.stdev(scanTimes)
-					})
-					Array.prototype.push.apply(allScanTimes, scanTimes)
-				}
-
-				if (doFocus) {
-					console.log(`Running forward-nav code ${loops} times...`)
-					const navForwardTimes = await page.evaluate(
-						landmarkNav, loops, interactiveElementSelector, 'forward')
-					Object.assign(results, {
-						'navForwardMeanTimeMS': stats.mean(navForwardTimes),
-						'navForwardDeviation': stats.stdev(navForwardTimes)
-					})
-					Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
-
-					console.log(`Running Back-nav code ${loops} times...`)
-					const navBackTimes = await page.evaluate(
-						landmarkNav, loops, interactiveElementSelector, 'back')
-					Object.assign(results, {
-						'navBackMeanTimeMS': stats.mean(navBackTimes),
-						'navBackDeviation': stats.stdev(navBackTimes)
-					})
-					Array.prototype.push.apply(allNavBackTimes, navBackTimes)
-				}
-
-				fullResults[finder][site] = results
-				await page.close()
-			}
-
-			if (sites.length > 1) {
-				// FIXME DRY
-				fullResults[finder]['combined'] = {}
-				const combined = fullResults[finder]['combined']
-
-				combined.numElements = totalElements
-				combined.elementsPerPage = totalElements / sites.length
-				combined.numInteractiveElements = totalInteractiveElements
-				combined.interactiveElementsPercent =
-					(totalInteractiveElements / totalElements) * 100
-				combined.numLandmarks = totalLandmarks
-				combined.LandmarksPerPage = totalLandmarks / sites.length
-
-				if (doScan) {
-					combined.scanMeanTimeMS = stats.mean(allScanTimes)
-					combined.scanDeviation = stats.stdev(allScanTimes)
-				}
-
-				if (doFocus) {
-					combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
-					combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
-					combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
-					combined.navBackDeviation = stats.stdev(allNavBackTimes)
-				}
-			}
+			fullResults[finder] = await timeFinder(
+				browser, sites, loops, finder, finders[finder], doScan, doFocus)
 		}
 
 		await browser.close()
 		printAndSaveResults(fullResults, loops)
 	})
+}
+
+async function timeFinder(
+	browser, sites, loops, finderName, finderPath, doScan, doFocus) {
+	console.log()
+	console.log(`With scanner ${finderName}...`)
+
+	const finderResults = {}
+
+	let totalElements = 0
+	let totalInteractiveElements = 0
+	let totalLandmarks = 0
+	const allScanTimes = []
+	const allNavForwardTimes = []
+	const allNavBackTimes = []
+
+	for (const site of sites) {
+		const page = await pageSetUp(browser, false)
+		const results = { 'url': urls[site] }
+
+		console.log()
+		console.log(`Loading ${site}...`)
+		await load(page, site)
+
+		console.log('Injecting script...')
+		await page.addScriptTag({ path: finderPath })
+
+		console.log('Counting elements...')
+		Object.assign(results, await page.evaluate(
+			elementCounts, finderName, interactiveElementSelector))
+		totalElements += results.numElements
+		totalInteractiveElements += results.numInteractiveElements
+		totalLandmarks += results.numLandmarks
+
+		if (doScan) {
+			console.log(`Running landmark-finding code ${loops} times...`)
+			const scanTimes = await page.evaluate(
+				landmarkScan, finderName, loops)
+			Object.assign(results, {
+				'scanMeanTimeMS': stats.mean(scanTimes),
+				'scanDeviation': stats.stdev(scanTimes)
+			})
+			Array.prototype.push.apply(allScanTimes, scanTimes)
+		}
+
+		if (doFocus) {
+			console.log(`Running forward-nav code ${loops} times...`)
+			const navForwardTimes = await page.evaluate(
+				landmarkNav, loops, interactiveElementSelector, 'forward')
+			Object.assign(results, {
+				'navForwardMeanTimeMS': stats.mean(navForwardTimes),
+				'navForwardDeviation': stats.stdev(navForwardTimes)
+			})
+			Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
+
+			console.log(`Running Back-nav code ${loops} times...`)
+			const navBackTimes = await page.evaluate(
+				landmarkNav, loops, interactiveElementSelector, 'back')
+			Object.assign(results, {
+				'navBackMeanTimeMS': stats.mean(navBackTimes),
+				'navBackDeviation': stats.stdev(navBackTimes)
+			})
+			Array.prototype.push.apply(allNavBackTimes, navBackTimes)
+		}
+
+		finderResults[site] = results
+		await page.close()
+	}
+
+	if (sites.length > 1) {
+		const combined = {}
+
+		combined.numElements = totalElements
+		combined.elementsPerPage = totalElements / sites.length
+		combined.numInteractiveElements = totalInteractiveElements
+		combined.interactiveElementsPercent =
+			(totalInteractiveElements / totalElements) * 100
+		combined.numLandmarks = totalLandmarks
+		combined.LandmarksPerPage = totalLandmarks / sites.length
+
+		if (doScan) {
+			combined.scanMeanTimeMS = stats.mean(allScanTimes)
+			combined.scanDeviation = stats.stdev(allScanTimes)
+		}
+
+		if (doFocus) {
+			combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
+			combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
+			combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
+			combined.navBackDeviation = stats.stdev(allNavBackTimes)
+		}
+
+		finderResults['combined'] = combined
+	}
+
+	return finderResults
 }
 
 async function wrapLandmarksFinders() {
