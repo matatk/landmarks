@@ -11,14 +11,14 @@ const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
 	amazonproduct: 'https://www.amazon.co.uk/'
-	+ 'Ridleys-Corny-Classic-Provide-Laughs/dp/B07DX65CP1',
+		+ 'Ridleys-Corny-Classic-Provide-Laughs/dp/B07DX65CP1',
 	ars: 'https://arstechnica.com',
 	bbcnews: 'https://www.bbc.co.uk/news',
 	bbcnewsarticle: 'https://www.bbc.co.uk/news/technology-53093613',
 	bbcnewsstory: 'https://www.bbc.co.uk/news/resources/idt-sh/'
-	+ 'dundee_the_city_with_grand_designs',
+		+ 'dundee_the_city_with_grand_designs',
 	googledoc: 'https://docs.google.com/document/d/'
-	+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
+		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 
@@ -110,20 +110,26 @@ async function insertLandmark(page, repetition) {
 async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	const finders = await wrapLandmarksFinders()
 
-	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
-	let totalElements = 0
-	let totalInteractiveElements = 0
-	let totalLandmarks = 0
-	const allScanTimes = []
-	const allNavForwardTimes = []
-	const allNavBackTimes = []
+	const fullResults = { 'meta': { 'loops': loops } }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
+			console.log()
+			console.log(`With scanner ${finder}...`)
+
+			fullResults[finder] = {}
+
+			let totalElements = 0
+			let totalInteractiveElements = 0
+			let totalLandmarks = 0
+			const allScanTimes = []
+			const allNavForwardTimes = []
+			const allNavBackTimes = []
+
 			for (const site of sites) {
 				const page = await pageSetUp(browser, false)
-				const results = { 'finder': finder, 'url': urls[site] }
+				const results = { 'url': urls[site] }
 
 				console.log()
 				console.log(`Loading ${site}...`)
@@ -134,14 +140,15 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 
 				console.log('Counting elements...')
 				Object.assign(results, await page.evaluate(
-					elementCounts, interactiveElementSelector))
+					elementCounts, finder, interactiveElementSelector))
 				totalElements += results.numElements
 				totalInteractiveElements += results.numInteractiveElements
 				totalLandmarks += results.numLandmarks
 
 				if (doScan) {
 					console.log(`Running landmark-finding code ${loops} times...`)
-					const scanTimes = await page.evaluate(landmarkScan, loops)
+					const scanTimes = await page.evaluate(
+						landmarkScan, finder, loops)
 					Object.assign(results, {
 						'scanMeanTimeMS': stats.mean(scanTimes),
 						'scanDeviation': stats.stdev(scanTimes)
@@ -169,13 +176,14 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 					Array.prototype.push.apply(allNavBackTimes, navBackTimes)
 				}
 
-				fullResults['results'][site] = results
+				fullResults[finder][site] = results
 				await page.close()
 			}
 
 			if (sites.length > 1) {
-				fullResults['combined'] = {}
-				const combined = fullResults['combined']
+				// FIXME DRY
+				fullResults[finder]['combined'] = {}
+				const combined = fullResults[finder]['combined']
 
 				combined.numElements = totalElements
 				combined.elementsPerPage = totalElements / sites.length
@@ -208,6 +216,7 @@ async function wrapLandmarksFinders() {
 	const finderPaths = {}
 
 	for (const name of ['Standard', 'Developer']) {
+		const objectName = `LandmarksFinder${name}`
 		const sourcePath = sourceForFinder(name)
 		const outputPath = outputForFinder(name)
 
@@ -222,22 +231,22 @@ async function wrapLandmarksFinders() {
 			await bundle.write({
 				file: outputPath,
 				format: 'iife',
-				name: 'Landmarksname'
+				name: objectName
 			})
 		}
 
-		finderPaths[name.toLowerCase()] = outputPath
+		finderPaths[objectName] = outputPath
 	}
 
 	return finderPaths
 }
 
-function elementCounts(interactiveElementSelector) {
+function elementCounts(objectName, interactiveElementSelector) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector).length
 
-	const lf = new window.LandmarksFinder(window, document)
+	const lf = new window[objectName](window, document)
 	lf.find()
 
 	return {
@@ -248,8 +257,8 @@ function elementCounts(interactiveElementSelector) {
 	}
 }
 
-function landmarkScan(times) {
-	const lf = new window.LandmarksFinder(window, document)
+function landmarkScan(objectName, times) {
+	const lf = new window[objectName](window, document)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
