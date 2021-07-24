@@ -21,10 +21,13 @@ const urls = Object.freeze({
 		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
+
 const cacheDir = path.join(__dirname, 'profile-cache')
-const wrapSourcePath = path.join(
-	__dirname, '..', 'src', 'code', 'landmarksFinder.js')
-const wrapOutputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
+const sourceForFinder = (name) =>
+	path.join(__dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
+const outputForFinder = (name) =>
+	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
+
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
 const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
@@ -105,92 +108,15 @@ async function insertLandmark(page, repetition) {
 //
 
 async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
-	const landmarksFinderPath = await wrapLandmarksFinder()
-	const fullResults = { 'meta': { 'loops': loops }, 'results': {} }
-	let totalElements = 0
-	let totalInteractiveElements = 0
-	let totalLandmarks = 0
-	const allScanTimes = []
-	const allNavForwardTimes = []
-	const allNavBackTimes = []
+	const finders = await wrapLandmarksFinders()
+
+	const fullResults = { 'meta': { 'loops': loops } }
 
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
-		for (const site of sites) {
-			const page = await pageSetUp(browser, false)
-			const results = { 'url': urls[site] }
-
-			console.log()
-			console.log(`Loading ${site}...`)
-			await load(page, site)
-
-			console.log('Injecting script...')
-			await page.addScriptTag({ path: landmarksFinderPath })
-
-			console.log('Counting elements...')
-			Object.assign(results, await page.evaluate(
-				elementCounts, interactiveElementSelector))
-			totalElements += results.numElements
-			totalInteractiveElements += results.numInteractiveElements
-			totalLandmarks += results.numLandmarks
-
-			if (doScan) {
-				console.log(`Running landmark-finding code ${loops} times...`)
-				const scanTimes = await page.evaluate(landmarkScan, loops)
-				Object.assign(results, {
-					'scanMeanTimeMS': stats.mean(scanTimes),
-					'scanDeviation': stats.stdev(scanTimes)
-				})
-				Array.prototype.push.apply(allScanTimes, scanTimes)
-			}
-
-			if (doFocus) {
-				console.log(`Running forward-nav code ${loops} times...`)
-				const navForwardTimes = await page.evaluate(
-					landmarkNav, loops, interactiveElementSelector, 'forward')
-				Object.assign(results, {
-					'navForwardMeanTimeMS': stats.mean(navForwardTimes),
-					'navForwardDeviation': stats.stdev(navForwardTimes)
-				})
-				Array.prototype.push.apply(allNavForwardTimes, navForwardTimes)
-
-				console.log(`Running Back-nav code ${loops} times...`)
-				const navBackTimes = await page.evaluate(
-					landmarkNav, loops, interactiveElementSelector, 'back')
-				Object.assign(results, {
-					'navBackMeanTimeMS': stats.mean(navBackTimes),
-					'navBackDeviation': stats.stdev(navBackTimes)
-				})
-				Array.prototype.push.apply(allNavBackTimes, navBackTimes)
-			}
-
-			fullResults['results'][site] = results
-			await page.close()
-		}
-
-		if (sites.length > 1) {
-			fullResults['combined'] = {}
-			const combined = fullResults['combined']
-
-			combined.numElements = totalElements
-			combined.elementsPerPage = totalElements / sites.length
-			combined.numInteractiveElements = totalInteractiveElements
-			combined.interactiveElementsPercent =
-				(totalInteractiveElements / totalElements) * 100
-			combined.numLandmarks = totalLandmarks
-			combined.LandmarksPerPage = totalLandmarks / sites.length
-
-			if (doScan) {
-				combined.scanMeanTimeMS = stats.mean(allScanTimes)
-				combined.scanDeviation = stats.stdev(allScanTimes)
-			}
-
-			if (doFocus) {
-				combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
-				combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
-				combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
-				combined.navBackDeviation = stats.stdev(allNavBackTimes)
-			}
+		for (const finder in finders) {
+			fullResults[finder] = await timeScannerOnSites(
+				browser, sites, loops, finder, finders[finder], doScan, doFocus)
 		}
 
 		await browser.close()
@@ -198,31 +124,158 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	})
 }
 
-async function wrapLandmarksFinder() {
-	const inputModified = fs.statSync(wrapSourcePath).mtime
-	const outputModified = fs.existsSync(wrapOutputPath)
-		? fs.statSync(wrapOutputPath).mtime
-		: null
+async function timeScannerOnSites(
+	browser, sites, loops, finderName, finderPath, doScan, doFocus) {
+	console.log()
+	console.log(`With scanner ${finderName}...`)
 
-	if (!fs.existsSync(wrapOutputPath) || inputModified > outputModified) {
-		console.log('Wrapping and caching', path.basename(wrapSourcePath))
-		const bundle = await rollup.rollup({ input: wrapSourcePath })
-		await bundle.write({
-			file: wrapOutputPath,
-			format: 'iife',
-			name: 'LandmarksFinder'
+	const finderResults = {}
+
+	let totalElements = 0
+	let totalInteractiveElements = 0
+	let totalLandmarks = 0
+	const allScanTimes = []
+	const allNavForwardTimes = []
+	const allNavBackTimes = []
+
+	for (const site of sites) {
+		const { siteResults, siteRawResults } = await runScansOnSite(
+			browser, site, loops, finderName, finderPath, doScan, doFocus)
+
+		totalElements += siteResults.numElements
+		totalInteractiveElements += siteResults.numInteractiveElements
+		totalLandmarks += siteResults.numLandmarks
+
+		if (doScan) {
+			Array.prototype.push.apply(allScanTimes, siteRawResults.scanTimes)
+		}
+
+		if (doFocus) {
+			Array.prototype.push.apply(
+				allNavForwardTimes, siteRawResults.navForwardTimes)
+			Array.prototype.push.apply(
+				allNavBackTimes, siteRawResults.navBackTimes)
+		}
+
+		finderResults[site] = siteResults
+	}
+
+	if (sites.length > 1) {
+		const combined = {}
+
+		combined.numElements = totalElements
+		combined.elementsPerPage = totalElements / sites.length
+		combined.numInteractiveElements = totalInteractiveElements
+		combined.interactiveElementsPercent =
+			(totalInteractiveElements / totalElements) * 100
+		combined.numLandmarks = totalLandmarks
+		combined.LandmarksPerPage = totalLandmarks / sites.length
+
+		if (doScan) {
+			combined.scanMeanTimeMS = stats.mean(allScanTimes)
+			combined.scanDeviation = stats.stdev(allScanTimes)
+		}
+
+		if (doFocus) {
+			combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
+			combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
+			combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
+			combined.navBackDeviation = stats.stdev(allNavBackTimes)
+		}
+
+		finderResults['combined'] = combined
+	}
+
+	return finderResults
+}
+
+async function runScansOnSite(
+	browser, site, loops, finderName, finderPath, doScan, doFocus) {
+	const page = await pageSetUp(browser, false)
+	const results = { 'url': urls[site] }
+	const rawResults = {}
+
+	console.log()
+	console.log(`Loading ${site}...`)
+	await load(page, site)
+
+	console.log('Injecting script...')
+	await page.addScriptTag({ path: finderPath })
+
+	console.log('Counting elements...')
+	Object.assign(results, await page.evaluate(
+		elementCounts, finderName, interactiveElementSelector))
+
+	if (doScan) {
+		console.log(`Running landmark-finding code ${loops} times...`)
+		const scanTimes = await page.evaluate(
+			landmarkScan, finderName, loops)
+		rawResults.scanTimes = scanTimes
+		Object.assign(results, {
+			'scanMeanTimeMS': stats.mean(scanTimes),
+			'scanDeviation': stats.stdev(scanTimes)
 		})
 	}
 
-	return wrapOutputPath
+	if (doFocus) {
+		console.log(`Running forward-nav code ${loops} times...`)
+		const navForwardTimes = await page.evaluate(
+			landmarkNav, loops, interactiveElementSelector, 'forward')
+		rawResults.navForwardTimes = navForwardTimes
+		Object.assign(results, {
+			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
+			'navForwardDeviation': stats.stdev(navForwardTimes)
+		})
+
+		console.log(`Running Back-nav code ${loops} times...`)
+		const navBackTimes = await page.evaluate(
+			landmarkNav, loops, interactiveElementSelector, 'back')
+		rawResults.navBackTimes = navBackTimes
+		Object.assign(results, {
+			'navBackMeanTimeMS': stats.mean(navBackTimes),
+			'navBackDeviation': stats.stdev(navBackTimes)
+		})
+	}
+
+	await page.close()
+	return { 'siteResults': results, 'siteRawResults': rawResults }
 }
 
-function elementCounts(interactiveElementSelector) {
+async function wrapLandmarksFinders() {
+	const finderPaths = {}
+
+	for (const name of ['Standard', 'Developer']) {
+		const objectName = `LandmarksFinder${name}`
+		const sourcePath = sourceForFinder(name)
+		const outputPath = outputForFinder(name)
+
+		const inputModified = fs.statSync(sourcePath).mtime
+		const outputModified = fs.existsSync(outputPath)
+			? fs.statSync(outputPath).mtime
+			: null
+
+		if (!fs.existsSync(outputPath) || inputModified > outputModified) {
+			console.log('Wrapping and caching', path.basename(sourcePath))
+			const bundle = await rollup.rollup({ input: sourcePath })
+			await bundle.write({
+				file: outputPath,
+				format: 'iife',
+				name: objectName
+			})
+		}
+
+		finderPaths[objectName] = outputPath
+	}
+
+	return finderPaths
+}
+
+function elementCounts(objectName, interactiveElementSelector) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector).length
 
-	const lf = new window.LandmarksFinder(window, document)
+	const lf = new window[objectName](window, document)
 	lf.find()
 
 	return {
@@ -233,8 +286,8 @@ function elementCounts(interactiveElementSelector) {
 	}
 }
 
-function landmarkScan(times) {
-	const lf = new window.LandmarksFinder(window, document)
+function landmarkScan(objectName, times) {
+	const lf = new window[objectName](window, document)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
@@ -432,15 +485,15 @@ function main() {
 			alias: 'q',
 			type: 'boolean',
 			description:
-				"Don't print out browser console and request failed messages "
-				+ '(do print errors)'
+			"Don't print out browser console and request failed messages "
+			+ '(do print errors)'
 		})
 		.option('really-quiet', {
 			alias: 'Q',
 			type: 'boolean',
 			description:
-				"Don't print out any browser messages (except unhandled "
-				+ 'exceptions)'
+			"Don't print out any browser messages (except unhandled "
+			+ 'exceptions)'
 		})
 		.command(
 			'trace <site> <landmarks> [runs]',
@@ -450,8 +503,8 @@ function main() {
 					.positional('site', siteParameterDefinition)
 					.positional('landmarks', {
 						describe:
-							'number of landmarks to insert (there is a pause '
-							+ 'between each)',
+						'number of landmarks to insert (there is a pause '
+						+ 'between each)',
 						type: 'number'
 					})
 					.coerce('landmarks', function(landmarks) {
@@ -463,8 +516,8 @@ function main() {
 					})
 					.positional('runs', {
 						describe:
-							'number of separate tracing runs to make '
-							+ '(recommend keeping this at one)',
+						'number of separate tracing runs to make '
+						+ '(recommend keeping this at one)',
 						type: 'number',
 						default: 1
 					})
@@ -492,7 +545,7 @@ function main() {
 						alias: 'f',
 						type: 'boolean',
 						description:
-							'Time focusing the next and previous landmark'
+						'Time focusing the next and previous landmark'
 					})
 					.check(argv => {
 						if (argv.scan || argv.focus) {
@@ -505,7 +558,7 @@ function main() {
 					.positional('site', siteParameterDefinition)
 					.positional('repetitions', {
 						describe:
-							'number of separate tracing repetitions to make',
+						'number of separate tracing repetitions to make',
 						type: 'number',
 						default: 100
 					})
@@ -522,7 +575,7 @@ function main() {
 		.command(
 			'guarding',
 			'Make a trace both with and without triggering mutation guarding. '
-				+ debugBuildNote,
+			+ debugBuildNote,
 			() => {},
 			() => {
 				mode = 'guarding'
