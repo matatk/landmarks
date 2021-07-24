@@ -107,7 +107,8 @@ async function insertLandmark(page, repetition) {
 // Getting landmarksFinder timings directly
 //
 
-async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
+async function doTimeLandmarksFinding(
+	sites, loops, doScan, doFocus, withoutHeuristicsToo) {
 	const finders = await wrapLandmarksFinders()
 
 	const fullResults = { 'meta': { 'loops': loops } }
@@ -116,7 +117,14 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
 			fullResults[finder] = await timeScannerOnSites(
-				browser, sites, loops, finder, finders[finder], doScan, doFocus)
+				browser, sites, loops, finder, finders[finder],
+				doScan, doFocus, true)
+			if (withoutHeuristicsToo) {
+				fullResults[finder + ' (without heuristics)'] =
+					await timeScannerOnSites(
+						browser, sites, loops, finder, finders[finder],
+						doScan, doFocus, false)
+			}
 		}
 
 		await browser.close()
@@ -125,7 +133,7 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 }
 
 async function timeScannerOnSites(
-	browser, sites, loops, finderName, finderPath, doScan, doFocus) {
+	browser, sites, loops, finderName, finderPath, doScan, doFocus, heuristics) {
 	console.log()
 	console.log(`With scanner ${finderName}...`)
 
@@ -140,7 +148,7 @@ async function timeScannerOnSites(
 
 	for (const site of sites) {
 		const { siteResults, siteRawResults } = await runScansOnSite(
-			browser, site, loops, finderName, finderPath, doScan, doFocus)
+			browser, site, loops, finderName, finderPath, doScan, doFocus, heuristics)
 
 		totalElements += siteResults.numElements
 		totalInteractiveElements += siteResults.numInteractiveElements
@@ -190,7 +198,7 @@ async function timeScannerOnSites(
 }
 
 async function runScansOnSite(
-	browser, site, loops, finderName, finderPath, doScan, doFocus) {
+	browser, site, loops, finderName, finderPath, doScan, doFocus, heuristics) {
 	const page = await pageSetUp(browser, false)
 	const results = { 'url': urls[site] }
 	const rawResults = {}
@@ -204,12 +212,12 @@ async function runScansOnSite(
 
 	console.log('Counting elements...')
 	Object.assign(results, await page.evaluate(
-		elementCounts, finderName, interactiveElementSelector))
+		elementCounts, finderName, interactiveElementSelector, heuristics))
 
 	if (doScan) {
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
-			landmarkScan, finderName, loops)
+			landmarkScan, finderName, loops, heuristics)
 		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
 			'scanMeanTimeMS': stats.mean(scanTimes),
@@ -220,7 +228,7 @@ async function runScansOnSite(
 	if (doFocus) {
 		console.log(`Running forward-nav code ${loops} times...`)
 		const navForwardTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'forward')
+			landmarkNav, loops, interactiveElementSelector, 'forward', heuristics)
 		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
@@ -229,7 +237,7 @@ async function runScansOnSite(
 
 		console.log(`Running Back-nav code ${loops} times...`)
 		const navBackTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'back')
+			landmarkNav, loops, interactiveElementSelector, 'back', heuristics)
 		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
@@ -270,12 +278,12 @@ async function wrapLandmarksFinders() {
 	return finderPaths
 }
 
-function elementCounts(objectName, interactiveElementSelector) {
+function elementCounts(objectName, interactiveElementSelector, heuristics) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector).length
 
-	const lf = new window[objectName](window, document)
+	const lf = new window[objectName](window, document, heuristics)
 	lf.find()
 
 	return {
@@ -286,8 +294,8 @@ function elementCounts(objectName, interactiveElementSelector) {
 	}
 }
 
-function landmarkScan(objectName, times) {
-	const lf = new window[objectName](window, document)
+function landmarkScan(objectName, times, heuristics) {
+	const lf = new window[objectName](window, document, heuristics)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
@@ -300,8 +308,8 @@ function landmarkScan(objectName, times) {
 	return scanTimes
 }
 
-function landmarkNav(times, interactiveElementSelector, mode) {
-	const lf = new window.LandmarksFinder(window, document)
+function landmarkNav(times, interactiveElementSelector, mode, heuristics) {
+	const lf = new window.LandmarksFinder(window, document, heuristics)
 	const interactiveElements = document.querySelectorAll(
 		interactiveElementSelector)
 	const navigationTimes = []
@@ -555,6 +563,11 @@ function main() {
 							'You must request at least one of the timing tests;'
 							+ ' check the help for details.')
 					})
+					.option('without-heuristics-too', {
+						alias: 'w',
+						type: 'boolean',
+						description: 'Time scanning for landmarks _without_ heuristics as well as with heuristics'
+					})
 					.positional('site', siteParameterDefinition)
 					.positional('repetitions', {
 						describe:
@@ -598,7 +611,11 @@ function main() {
 			break
 		case 'time':
 			doTimeLandmarksFinding(
-				pages, argv.repetitions, argv.scan, argv.focus)
+				pages,
+				argv.repetitions,
+				argv.scan,
+				argv.focus,
+				argv.withoutHeuristicsToo)
 			break
 		case 'guarding':
 			doTraceWithAndWithoutGuarding()
