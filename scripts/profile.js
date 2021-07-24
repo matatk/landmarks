@@ -139,29 +139,25 @@ async function timeScannerOnSites(
 	const allNavBackTimes = []
 
 	for (const site of sites) {
-		// FIXME: rename to siteResults?
-		const results = await runScansOnSite(
+		const { siteResults, siteRawResults } = await runScansOnSite(
 			browser, site, loops, finderName, finderPath, doScan, doFocus)
 
-		totalElements += results.numElements
-		totalInteractiveElements += results.numInteractiveElements
-		totalLandmarks += results.numLandmarks
+		totalElements += siteResults.numElements
+		totalInteractiveElements += siteResults.numInteractiveElements
+		totalLandmarks += siteResults.numLandmarks
 
-		// FIXME: store separately and just check for existence
 		if (doScan) {
-			Array.prototype.push.apply(allScanTimes, results.rawScanTimes)
-			delete results.rawScanTimes
+			Array.prototype.push.apply(allScanTimes, siteRawResults.scanTimes)
 		}
 
 		if (doFocus) {
 			Array.prototype.push.apply(
-				allNavForwardTimes, results.rawNavForwardTimes)
-			delete results.rawNavForwardTimes
-			Array.prototype.push.apply(allNavBackTimes, results.rawNavBackTimes)
-			delete results.rawNavBackTimes
+				allNavForwardTimes, siteRawResults.navForwardTimes)
+			Array.prototype.push.apply(
+				allNavBackTimes, siteRawResults.navBackTimes)
 		}
 
-		finderResults[site] = results
+		finderResults[site] = siteResults
 	}
 
 	if (sites.length > 1) {
@@ -197,6 +193,7 @@ async function runScansOnSite(
 	browser, site, loops, finderName, finderPath, doScan, doFocus) {
 	const page = await pageSetUp(browser, false)
 	const results = { 'url': urls[site] }
+	const rawResults = {}
 
 	console.log()
 	console.log(`Loading ${site}...`)
@@ -213,8 +210,8 @@ async function runScansOnSite(
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
 			landmarkScan, finderName, loops)
+		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
-			'rawScanTimes': scanTimes,
 			'scanMeanTimeMS': stats.mean(scanTimes),
 			'scanDeviation': stats.stdev(scanTimes)
 		})
@@ -224,8 +221,8 @@ async function runScansOnSite(
 		console.log(`Running forward-nav code ${loops} times...`)
 		const navForwardTimes = await page.evaluate(
 			landmarkNav, loops, interactiveElementSelector, 'forward')
+		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
-			'rawNavForwardTimes': navForwardTimes,
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
 			'navForwardDeviation': stats.stdev(navForwardTimes)
 		})
@@ -233,15 +230,15 @@ async function runScansOnSite(
 		console.log(`Running Back-nav code ${loops} times...`)
 		const navBackTimes = await page.evaluate(
 			landmarkNav, loops, interactiveElementSelector, 'back')
+		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
-			'rawNavBackTimes': navBackTimes,
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
 			'navBackDeviation': stats.stdev(navBackTimes)
 		})
 	}
 
 	await page.close()
-	return results
+	return { 'siteResults': results, 'siteRawResults': rawResults }
 }
 
 async function wrapLandmarksFinders() {
