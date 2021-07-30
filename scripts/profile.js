@@ -32,7 +32,7 @@ const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
 const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 
-const interactiveElementSelector =
+const selectInteractives =
 	'a[href], a[tabindex], button, div[tabindex], input, textarea'
 const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
 const debugBuildNote =
@@ -107,23 +107,39 @@ async function insertLandmark(page, repetition) {
 // Getting landmarksFinder timings directly
 //
 
-async function doTimeLandmarksFinding(
-	sites, loops, doScan, doFocus, withoutHeuristicsToo) {
+// To avoid passing around loadsa args, we have an options object containing:
+//   loops (int)           -- number of repeated scans and focusings
+//   doScan (bool)         -- perform scanning test?
+//   doFocus (bool)        -- perform focusing tests?
+//   finderName (string)   -- pretty name
+//   finderPath (string)   -- path to built script file
+//   useHeuristics (bool)  -- employ guessing in the Finder?
+
+async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without) {
 	const finders = await wrapLandmarksFinders()
 
 	const fullResults = { 'meta': { 'loops': loops } }
 
+	const options = { loops, doScan, doFocus }
+	options.useHeuristics = true
+
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
-			fullResults[finder] = await timeScannerOnSites(
-				browser, sites, loops, finder, finders[finder],
-				doScan, doFocus, true)
-			if (withoutHeuristicsToo) {
-				fullResults[finder + ' (without heuristics)'] =
-					await timeScannerOnSites(
-						browser, sites, loops, finder, finders[finder],
-						doScan, doFocus, false)
+			options.finderName = finder
+			options.finderPath = finders[finder]
+			options.useHeuristics = true
+			console.log()
+			console.log(`With scanner ${finder}...`)
+			fullResults[finder] =
+				await timeScannerOnSites(browser, sites, options)
+			if (without) {
+				options.useHeuristics = false
+				const finderPrettyName = finder + ' (without heuristics)'
+				console.log()
+				console.log(`With scanner ${finderPrettyName}...`)
+				fullResults[finderPrettyName] =
+					await timeScannerOnSites(browser, sites, options)
 			}
 		}
 
@@ -132,13 +148,8 @@ async function doTimeLandmarksFinding(
 	})
 }
 
-async function timeScannerOnSites(
-	browser, sites, loops, finderName, finderPath, doScan, doFocus, heuristics) {
-	console.log()
-	console.log(`With scanner ${finderName}...`)
-
+async function timeScannerOnSites(browser, sites, options) {
 	const finderResults = {}
-
 	let totalElements = 0
 	let totalInteractiveElements = 0
 	let totalLandmarks = 0
@@ -147,18 +158,18 @@ async function timeScannerOnSites(
 	const allNavBackTimes = []
 
 	for (const site of sites) {
-		const { siteResults, siteRawResults } = await runScansOnSite(
-			browser, site, loops, finderName, finderPath, doScan, doFocus, heuristics)
+		const { siteResults, siteRawResults } =
+			await runScansOnSite(browser, site, options)
 
 		totalElements += siteResults.numElements
 		totalInteractiveElements += siteResults.numInteractiveElements
 		totalLandmarks += siteResults.numLandmarks
 
-		if (doScan) {
+		if (options.doScan) {
 			Array.prototype.push.apply(allScanTimes, siteRawResults.scanTimes)
 		}
 
-		if (doFocus) {
+		if (options.doFocus) {
 			Array.prototype.push.apply(
 				allNavForwardTimes, siteRawResults.navForwardTimes)
 			Array.prototype.push.apply(
@@ -179,12 +190,12 @@ async function timeScannerOnSites(
 		combined.numLandmarks = totalLandmarks
 		combined.LandmarksPerPage = totalLandmarks / sites.length
 
-		if (doScan) {
+		if (options.doScan) {
 			combined.scanMeanTimeMS = stats.mean(allScanTimes)
 			combined.scanDeviation = stats.stdev(allScanTimes)
 		}
 
-		if (doFocus) {
+		if (options.doFocus) {
 			combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
 			combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
 			combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
@@ -197,8 +208,9 @@ async function timeScannerOnSites(
 	return finderResults
 }
 
-async function runScansOnSite(
-	browser, site, loops, finderName, finderPath, doScan, doFocus, heuristics) {
+async function runScansOnSite(browser, site, {
+	loops, finderName, finderPath, doScan, doFocus, useHeuristics
+}) {
 	const page = await pageSetUp(browser, false)
 	const results = { 'url': urls[site] }
 	const rawResults = {}
@@ -212,12 +224,12 @@ async function runScansOnSite(
 
 	console.log('Counting elements...')
 	Object.assign(results, await page.evaluate(
-		elementCounts, finderName, interactiveElementSelector, heuristics))
+		elementCounts, finderName, selectInteractives, useHeuristics))
 
 	if (doScan) {
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
-			landmarkScan, finderName, loops, heuristics)
+			landmarkScan, finderName, loops, useHeuristics)
 		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
 			'scanMeanTimeMS': stats.mean(scanTimes),
@@ -227,8 +239,8 @@ async function runScansOnSite(
 
 	if (doFocus) {
 		console.log(`Running forward-nav code ${loops} times...`)
-		const navForwardTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'forward', heuristics)
+		const navForwardTimes = await page.evaluate(landmarkNav,
+			finderName, loops, selectInteractives, 'forward', useHeuristics)
 		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
@@ -236,8 +248,8 @@ async function runScansOnSite(
 		})
 
 		console.log(`Running Back-nav code ${loops} times...`)
-		const navBackTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'back', heuristics)
+		const navBackTimes = await page.evaluate(landmarkNav,
+			finderName, loops, selectInteractives, 'back', useHeuristics)
 		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
@@ -278,10 +290,10 @@ async function wrapLandmarksFinders() {
 	return finderPaths
 }
 
-function elementCounts(objectName, interactiveElementSelector, heuristics) {
+function elementCounts(objectName, selectInteractives, heuristics) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(
-		interactiveElementSelector).length
+		selectInteractives).length
 
 	const lf = new window[objectName](window, document, heuristics)
 	lf.find()
@@ -308,10 +320,9 @@ function landmarkScan(objectName, times, heuristics) {
 	return scanTimes
 }
 
-function landmarkNav(times, interactiveElementSelector, mode, heuristics) {
-	const lf = new window.LandmarksFinder(window, document, heuristics)
-	const interactiveElements = document.querySelectorAll(
-		interactiveElementSelector)
+function landmarkNav(objectName, times, selectInteractives, mode, heuristics) {
+	const lf = new window[objectName](window, document, heuristics)
+	const interactiveElements = document.querySelectorAll(selectInteractives)
 	const navigationTimes = []
 	// Tests showed that indirectly calling the navigation function is between
 	// 3% and 8% slower than duplicating the code and calling it directly.

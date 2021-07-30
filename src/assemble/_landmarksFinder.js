@@ -78,15 +78,15 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 
 	let landmarks = []
 	// Each member of this array is an object of the form:
-	//   depth: (int)                     -- indicates nesting of landmarks
-	//   role: (string)                   -- the ARIA role
-	//   roleDescription: (string | null) -- custom role description
-	//   label: (string | null)           -- associated label
-	//   selector: (string)               -- CSS selector path of element
-	//   element: (HTML*Element)          -- in-memory element
-	//   guessed: (bool)                  -- landmark was gathered by heuristic
-	// and, in developer mode...
-	//   warnings: [string]               -- list of warnings about this element
+	//   depth (int)                     -- indicates nesting of landmarks
+	//   role (string)                   -- the ARIA role
+	//   roleDescription (string | null) -- custom role description
+	//   label (string | null)           -- associated label
+	//   selector (string)               -- CSS selector path of element
+	//   element (HTML*Element)          -- in-memory element
+	//   guessed (bool)                  -- landmark was gathered by heuristic
+	// and, in developer mode:
+	//   warnings [string]               -- list of warnings about this element
 
 	let _pageWarnings = MODE === 'developer' ? [] : null
 	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
