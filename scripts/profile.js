@@ -27,6 +27,7 @@ const sourceForFinder = (name) =>
 	path.join(__dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
 const outputForFinder = (name) =>
 	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
+const htmlResultsTableTemplate = path.join(__dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
@@ -355,14 +356,20 @@ function rounder(key, value) {
 }
 
 function htmlResults(results, fileName) {
+	const boilerplate = fs.readFileSync(htmlResultsTableTemplate, 'utf-8')
 	const scanners = Object.keys(results).filter(element => element !== 'meta')
 	const sites = Object.keys(results[scanners[0]])
 	const headers = Object.keys(results[scanners[0]][sites[0]])
 
-	let output = '<table>\n'
-	output += '<thead>\n<tr>\n'
+	let output = '<thead>\n<tr>\n'
 	for (const header of headers) {
-		output += `<th>${header}</th>`
+		const prettyHeader = header  // FIXME: capitalise first letter
+			.replace(/MS$/, ' ms')
+			.replace(/([A-Z])/g, '\n$1')
+			.replace(/Percent$/, ' %')
+			.replace('url', 'URL')
+			.replace('num', 'Number of')
+		output += `<th>${prettyHeader}</th>`
 	}
 	output += '\n</tr>\n</thead>\n'
 
@@ -371,17 +378,15 @@ function htmlResults(results, fileName) {
 		for (const site of sites) {
 			output += '<tr>\n'
 			for (const header of headers) {
-				output += `<td>${results[scanner][site][header]}</td>`
+				const roundedResult =
+					rounder(header, results[scanner][site][header])
+				output += `<td>${roundedResult}</td>`
 			}
 			output += '\n'
 		}
 	}
 
-	output += '\n</table>\n'
-
-	const boilerplate = `<html><head><style>th, td { border: 1px solid black }</style></head><body>${output}</body></html>`
-
-	fs.writeFileSync(fileName, boilerplate)
+	fs.writeFileSync(fileName, boilerplate.replace('CONTENT', output))
 	console.log(`${fileName} written.`)
 }
 
