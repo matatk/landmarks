@@ -354,6 +354,37 @@ function rounder(key, value) {
 	return value
 }
 
+function htmlResults(results, fileName) {
+	const scanners = Object.keys(results).filter(element => element !== 'meta')
+	const sites = Object.keys(results[scanners[0]])
+	const headers = Object.keys(results[scanners[0]][sites[0]])
+
+	let output = '<table>\n'
+	output += '<thead>\n<tr>\n'
+	for (const header of headers) {
+		output += `<th>${header}</th>`
+	}
+	output += '\n</tr>\n</thead>\n'
+
+	for (const scanner of scanners) {
+		output += `<tr><th colspan="${headers.length}">${scanner}</th></tr>\n`
+		for (const site of sites) {
+			output += '<tr>\n'
+			for (const header of headers) {
+				output += `<td>${results[scanner][site][header]}</td>`
+			}
+			output += '\n'
+		}
+	}
+
+	output += '\n</table>\n'
+
+	const boilerplate = `<html><head><style>th, td { border: 1px solid black }</style></head><body>${output}</body></html>`
+
+	fs.writeFileSync(fileName, boilerplate)
+	console.log(`${fileName} written.`)
+}
+
 function printAndSaveResults(results) {
 	console.log()
 	console.log('Done.\nResults (times are in milliseconds):')
@@ -367,6 +398,8 @@ function printAndSaveResults(results) {
 	const fileName = `times--${roughlyNow}.json`
 	fs.writeFileSync(fileName, resultsJson)
 	console.log(`${fileName} written.`)
+
+	htmlResults(results, 'times--' + roughlyNow + '.html')
 }
 
 
