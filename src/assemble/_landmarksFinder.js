@@ -416,8 +416,8 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		}
 	}
 
-	function tryAddingGuessedMain(guessedMain) {
-		if (guessedMain && mainElementIndices.length === 0) {
+	function addGuessedMain(guessedMain) {
+		if (guessedMain) {
 			if (landmarks.length === 0) {
 				landmarks.push(makeMainEntry(guessedMain))
 				mainElementIndices = [0]
@@ -426,15 +426,19 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 				landmarks.splice(insertAt, 0, makeMainEntry(guessedMain))
 				mainElementIndices = [insertAt]
 			}
+			return true
 		}
+		return false
 	}
 
 	function tryHeuristics() {
-		for (const id of ['main', 'content', 'main-content']) {
-			tryAddingGuessedMain(doc.getElementById(id))
+		if (mainElementIndices.length === 0) {
+			for (const id of ['main', 'content', 'main-content']) {
+				if (addGuessedMain(doc.getElementById(id))) return
+			}
+			const classMains = doc.getElementsByClassName('main')
+			if (classMains.length === 1) addGuessedMain(classMains[0])
 		}
-		const classMains = doc.getElementsByClassName('main')
-		if (classMains.length === 1) tryAddingGuessedMain(classMains[0])
 	}
 
 
