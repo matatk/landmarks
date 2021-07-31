@@ -365,10 +365,11 @@ function htmlResults(results, fileName) {
 	for (const header of headers) {
 		const prettyHeader = header  // FIXME: capitalise first letter
 			.replace(/MS$/, ' ms')
-			.replace(/([A-Z])/g, '\n$1')
 			.replace(/Percent$/, ' %')
+			.replace(/([A-Z])/g, ' $1')
 			.replace('url', 'URL')
 			.replace('num', 'Number of')
+			.replace(/^([a-z])/, match => match.toUpperCase())
 		output += `<th>${prettyHeader}</th>`
 	}
 	output += '\n</tr>\n</thead>\n'
@@ -378,9 +379,18 @@ function htmlResults(results, fileName) {
 		for (const site of sites) {
 			output += '<tr>\n'
 			for (const header of headers) {
-				const roundedResult =
-					rounder(header, results[scanner][site][header])
-				output += `<td>${roundedResult}</td>`
+				if (header === 'url') {
+					if (!('url' in results[scanner][site])) {
+						output += '<th scope="row">Combined</th>'
+					} else {
+						const url = results[scanner][site].url
+						output += `<th scope="row">${url}</th>`
+					}
+				} else {
+					const roundedResult =
+						rounder(header, results[scanner][site][header])
+					output += `<td>${roundedResult}</td>`
+				}
 			}
 			output += '\n'
 		}
