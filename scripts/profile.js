@@ -355,7 +355,7 @@ function rounder(key, value) {
 	return value
 }
 
-function htmlResults(results, fileName) {
+function htmlResults(results) {
 	const boilerplate = fs.readFileSync(htmlResultsTableTemplate, 'utf-8')
 	const scanners = Object.keys(results).filter(element => element !== 'meta')
 	const sites = Object.keys(results[scanners[0]])
@@ -363,7 +363,7 @@ function htmlResults(results, fileName) {
 
 	let output = '<thead>\n<tr>\n'
 	for (const header of headers) {
-		const prettyHeader = header  // FIXME: capitalise first letter
+		const prettyHeader = header
 			.replace(/MS$/, ' ms')
 			.replace(/Percent$/, ' %')
 			.replace(/([A-Z])/g, ' $1')
@@ -396,25 +396,29 @@ function htmlResults(results, fileName) {
 		}
 	}
 
-	fs.writeFileSync(fileName, boilerplate.replace('CONTENT', output))
+	return boilerplate.replace('CONTENT', output)
+}
+
+function save(fileName, string) {
+	fs.writeFileSync(fileName, string)
 	console.log(`${fileName} written.`)
 }
 
 function printAndSaveResults(results) {
-	console.log()
-	console.log('Done.\nResults (times are in milliseconds):')
-	const resultsJson = JSON.stringify(results, rounder, 2)
-	console.log(resultsJson)
 	const roughlyNow = new Date()
 		.toISOString()
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `times--${roughlyNow}.json`
-	fs.writeFileSync(fileName, resultsJson)
-	console.log(`${fileName} written.`)
+	const baseName = `times--${roughlyNow}`
 
-	htmlResults(results, 'times--' + roughlyNow + '.html')
+	console.log()
+	console.log('Done.\nResults (times are in milliseconds):')
+	const resultsJsonString = JSON.stringify(results, rounder, 2)
+	console.log(resultsJsonString)
+
+	save(baseName + '.json', resultsJsonString)
+	save(baseName + '.html', htmlResults(results))
 }
 
 
