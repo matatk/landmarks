@@ -77,7 +77,8 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 				landmarkName(elementInfo),
 				borderColour,
 				labelFontColour,  // computed as a result of settings
-				borderFontSize)
+				borderFontSize,
+				elementInfo.guessed)
 		}
 	}
 
@@ -130,13 +131,15 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it; position and style them appropriately
-	function drawBorderAndLabel(element, label, colour, fontColour, fontSize) {
+	function drawBorderAndLabel(
+		element, label, colour, fontColour, fontSize, guessed) {
 		const zIndex = 10000000
 
 		const labelContent = doc.createTextNode(label)
 
 		const borderDiv = doc.createElement('div')
-		borderDiv.style.border = borderWidthPx + 'px solid ' + colour
+		const style = guessed ? 'dashed' : 'solid'
+		borderDiv.style.border = borderWidthPx + 'px ' + style + ' ' + colour
 		borderDiv.style.boxSizing = 'border-box'
 		borderDiv.style.margin = '0'
 		borderDiv.style.padding = '0'
@@ -170,7 +173,11 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
 		sizeBorderAndLabel(element, borderDiv, labelDiv)
 
-		borderedElements.set(element, { border: borderDiv, label: labelDiv })
+		borderedElements.set(element, {
+			'border': borderDiv,
+			'label': labelDiv,
+			'guessed': guessed
+		})
 	}
 
 	// Given an element on the page and elements acting as the border and
@@ -242,7 +249,8 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 				labelText,
 				borderColour,
 				labelFontColour,  // computed as a result of settings
-				borderFontSize)
+				borderFontSize,
+				related.guessed)
 		}
 	}
 }

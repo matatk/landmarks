@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc) {
+export default function LandmarksFinder(win, doc, useHeuristics) {
 	//
 	// Constants
 	//
@@ -78,14 +78,15 @@ export default function LandmarksFinder(win, doc) {
 
 	let landmarks = []
 	// Each member of this array is an object of the form:
-	//   depth: (int)                     -- indicates nesting of landmarks
-	//   role: (string)                   -- the ARIA role
-	//   roleDescription: (string | null) -- custom role description
-	//   label: (string | null)           -- associated label
-	//   selector: (string)               -- CSS selector path of element
-	//   element: (HTML*Element)          -- in-memory element
-	// and, in developer mode...
-	//   warnings: [string]               -- list of warnings about this element
+	//   depth (int)                     -- indicates nesting of landmarks
+	//   role (string)                   -- the ARIA role
+	//   roleDescription (string | null) -- custom role description
+	//   label (string | null)           -- associated label
+	//   selector (string)               -- CSS selector path of element
+	//   element (HTML*Element)          -- in-memory element
+	//   guessed (bool)                  -- landmark was gathered by heuristic
+	// and, in developer mode:
+	//   warnings [string]               -- list of warnings about this element
 
 	let _pageWarnings = MODE === 'developer' ? [] : null
 	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
@@ -104,7 +105,7 @@ export default function LandmarksFinder(win, doc) {
 	// changes and the landmark is still there, but has moved within the list.
 	let currentlySelectedElement
 
-	function updateSelectedIndexAndReturnElementInfo(index) {
+	function updateSelectedAndReturnElementInfo(index) {
 		// TODO: Don't need an index check, as we trust the source. Does that
 		//       mean we also don't need the length check?
 		if (landmarks.length === 0) return
@@ -114,7 +115,8 @@ export default function LandmarksFinder(win, doc) {
 			element: currentlySelectedElement,
 			role: landmarks[index].role,
 			roleDescription: landmarks[index].roleDescription,
-			label: landmarks[index].label
+			label: landmarks[index].label,
+			guessed: landmarks[index].guessed
 			// No need to send the selector or warnings
 		}
 	}
@@ -157,6 +159,7 @@ export default function LandmarksFinder(win, doc) {
 				'label': label,
 				'element': element,
 				'selector': createSelector(element),
+				'guessed': false
 			})
 
 			if (MODE === 'developer') {
@@ -398,6 +401,44 @@ export default function LandmarksFinder(win, doc) {
 
 
 	//
+	// Heuristic checks
+	//
+
+	function makeMainEntry(guessedMain) {
+		return {
+			'depth': 0,
+			'role': 'main',
+			'roleDescription': getRoleDescription(guessedMain),
+			'label': getARIAProvidedLabel(guessedMain),
+			'element': guessedMain,
+			'selector': createSelector(guessedMain),
+			'guessed': true
+		}
+	}
+
+	function tryAddingGuessedMain(guessedMain) {
+		if (guessedMain && mainElementIndices.length === 0) {
+			if (landmarks.length === 0) {
+				landmarks.push(makeMainEntry(guessedMain))
+				mainElementIndices = [0]
+			} else {
+				const insertAt = getIndexOfNextLandmarkAfter(guessedMain)
+				landmarks.splice(insertAt, 0, makeMainEntry(guessedMain))
+				mainElementIndices = [insertAt]
+			}
+		}
+	}
+
+	function tryHeuristics() {
+		for (const id of ['main', 'content', 'main-content']) {
+			tryAddingGuessedMain(doc.getElementById(id))
+		}
+		const classMains = doc.getElementsByClassName('main')
+		if (classMains.length === 1) tryAddingGuessedMain(classMains[0])
+	}
+
+
+	//
 	// Support for finding next landmark from focused element
 	//
 
@@ -405,7 +446,7 @@ export default function LandmarksFinder(win, doc) {
 		for (let i = 0; i < landmarks.length; i++) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return i
+			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
 		return null
 	}
@@ -414,7 +455,7 @@ export default function LandmarksFinder(win, doc) {
 		for (let i = landmarks.length - 1; i >= 0; i--) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & Node.DOCUMENT_POSITION_PRECEDING) return i
+			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
 		return null
 	}
@@ -438,22 +479,22 @@ export default function LandmarksFinder(win, doc) {
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
 		if (MODE === 'developer') developerModeChecks()
+		if (useHeuristics) tryHeuristics()  // FIXME only run no main region
 	}
 
 	this.getNumberOfLandmarks = function() {
 		return landmarks.length
 	}
 
-	this.allInfos = function() {
-		return landmarks.map(landmark => {
-			// eslint-disable-next-line no-unused-vars
-			const { element, ...info } = landmark
-			return info
-		})
-	}
+	// This includes the selector, warnings, everything except the element
+	this.allInfos = () => landmarks.map(landmark => {
+		// eslint-disable-next-line no-unused-vars
+		const { element, ...info } = landmark
+		return info
+	})
 
 	this.allElementsInfos = function() {
-		return landmarks.slice()
+		return landmarks.slice()  // TODO: Need a copy?
 	}
 
 	if (MODE === 'developer') {
@@ -468,10 +509,10 @@ export default function LandmarksFinder(win, doc) {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
 			const index = getIndexOfNextLandmarkAfter(doc.activeElement)
 			if (index !== null) {
-				return updateSelectedIndexAndReturnElementInfo(index)
+				return updateSelectedAndReturnElementInfo(index)
 			}
 		}
-		return updateSelectedIndexAndReturnElementInfo(
+		return updateSelectedAndReturnElementInfo(
 			(currentlySelectedIndex + 1) % landmarks.length)
 	}
 
@@ -479,16 +520,16 @@ export default function LandmarksFinder(win, doc) {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
 			const index = getIndexOfPreviousLandmarkAfter(doc.activeElement)
 			if (index !== null) {
-				return updateSelectedIndexAndReturnElementInfo(index)
+				return updateSelectedAndReturnElementInfo(index)
 			}
 		}
-		return updateSelectedIndexAndReturnElementInfo(
+		return updateSelectedAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
 				landmarks.length - 1 : currentlySelectedIndex - 1)
 	}
 
 	this.getLandmarkElementInfo = function(index) {
-		return updateSelectedIndexAndReturnElementInfo(index)
+		return updateSelectedAndReturnElementInfo(index)
 	}
 
 	// If pages are naughty and have more than one 'main' region, we cycle
@@ -497,7 +538,7 @@ export default function LandmarksFinder(win, doc) {
 		if (mainElementIndices.length > 0) {
 			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
 			const mainElementIndex = mainElementIndices[mainIndexPointer]
-			return updateSelectedIndexAndReturnElementInfo(mainElementIndex)
+			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
 		return null
 	}

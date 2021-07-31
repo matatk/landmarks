@@ -7,6 +7,7 @@ landmarks-*.zip
 npm-debug.log
 trace--*.json
 times--*.json
+times--*.html
 _site
 .jekyll-metadata
 .nyc_output

@@ -27,12 +27,13 @@ const sourceForFinder = (name) =>
 	path.join(__dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
 const outputForFinder = (name) =>
 	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
+const htmlResultsTableTemplate = path.join(__dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
 const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 
-const interactiveElementSelector =
+const selectInteractives =
 	'a[href], a[tabindex], button, div[tabindex], input, textarea'
 const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
 const debugBuildNote =
@@ -107,16 +108,40 @@ async function insertLandmark(page, repetition) {
 // Getting landmarksFinder timings directly
 //
 
-async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
+// To avoid passing around loadsa args, we have an options object containing:
+//   loops (int)           -- number of repeated scans and focusings
+//   doScan (bool)         -- perform scanning test?
+//   doFocus (bool)        -- perform focusing tests?
+//   finderName (string)   -- pretty name
+//   finderPath (string)   -- path to built script file
+//   useHeuristics (bool)  -- employ guessing in the Finder?
+
+async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without) {
 	const finders = await wrapLandmarksFinders()
 
 	const fullResults = { 'meta': { 'loops': loops } }
 
+	const options = { loops, doScan, doFocus }
+	options.useHeuristics = true
+
 	console.log(`Runing landmarks loop test on ${sites}...`)
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
-			fullResults[finder] = await timeScannerOnSites(
-				browser, sites, loops, finder, finders[finder], doScan, doFocus)
+			options.finderName = finder
+			options.finderPath = finders[finder]
+			options.useHeuristics = true
+			console.log()
+			console.log(`With scanner ${finder}...`)
+			fullResults[finder] =
+				await timeScannerOnSites(browser, sites, options)
+			if (without) {
+				options.useHeuristics = false
+				const finderPrettyName = finder + ' (without heuristics)'
+				console.log()
+				console.log(`With scanner ${finderPrettyName}...`)
+				fullResults[finderPrettyName] =
+					await timeScannerOnSites(browser, sites, options)
+			}
 		}
 
 		await browser.close()
@@ -124,13 +149,8 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus) {
 	})
 }
 
-async function timeScannerOnSites(
-	browser, sites, loops, finderName, finderPath, doScan, doFocus) {
-	console.log()
-	console.log(`With scanner ${finderName}...`)
-
+async function timeScannerOnSites(browser, sites, options) {
 	const finderResults = {}
-
 	let totalElements = 0
 	let totalInteractiveElements = 0
 	let totalLandmarks = 0
@@ -139,18 +159,18 @@ async function timeScannerOnSites(
 	const allNavBackTimes = []
 
 	for (const site of sites) {
-		const { siteResults, siteRawResults } = await runScansOnSite(
-			browser, site, loops, finderName, finderPath, doScan, doFocus)
+		const { siteResults, siteRawResults } =
+			await runScansOnSite(browser, site, options)
 
 		totalElements += siteResults.numElements
 		totalInteractiveElements += siteResults.numInteractiveElements
 		totalLandmarks += siteResults.numLandmarks
 
-		if (doScan) {
+		if (options.doScan) {
 			Array.prototype.push.apply(allScanTimes, siteRawResults.scanTimes)
 		}
 
-		if (doFocus) {
+		if (options.doFocus) {
 			Array.prototype.push.apply(
 				allNavForwardTimes, siteRawResults.navForwardTimes)
 			Array.prototype.push.apply(
@@ -171,12 +191,12 @@ async function timeScannerOnSites(
 		combined.numLandmarks = totalLandmarks
 		combined.LandmarksPerPage = totalLandmarks / sites.length
 
-		if (doScan) {
+		if (options.doScan) {
 			combined.scanMeanTimeMS = stats.mean(allScanTimes)
 			combined.scanDeviation = stats.stdev(allScanTimes)
 		}
 
-		if (doFocus) {
+		if (options.doFocus) {
 			combined.navForwardMeanTimeMS = stats.mean(allNavForwardTimes)
 			combined.navForwardDeviation = stats.stdev(allNavForwardTimes)
 			combined.navBackMeanTimeMS = stats.mean(allNavBackTimes)
@@ -189,8 +209,9 @@ async function timeScannerOnSites(
 	return finderResults
 }
 
-async function runScansOnSite(
-	browser, site, loops, finderName, finderPath, doScan, doFocus) {
+async function runScansOnSite(browser, site, {
+	loops, finderName, finderPath, doScan, doFocus, useHeuristics
+}) {
 	const page = await pageSetUp(browser, false)
 	const results = { 'url': urls[site] }
 	const rawResults = {}
@@ -204,12 +225,12 @@ async function runScansOnSite(
 
 	console.log('Counting elements...')
 	Object.assign(results, await page.evaluate(
-		elementCounts, finderName, interactiveElementSelector))
+		elementCounts, finderName, selectInteractives, useHeuristics))
 
 	if (doScan) {
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
-			landmarkScan, finderName, loops)
+			landmarkScan, finderName, loops, useHeuristics)
 		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
 			'scanMeanTimeMS': stats.mean(scanTimes),
@@ -219,8 +240,8 @@ async function runScansOnSite(
 
 	if (doFocus) {
 		console.log(`Running forward-nav code ${loops} times...`)
-		const navForwardTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'forward')
+		const navForwardTimes = await page.evaluate(landmarkNav,
+			finderName, loops, selectInteractives, 'forward', useHeuristics)
 		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
@@ -228,8 +249,8 @@ async function runScansOnSite(
 		})
 
 		console.log(`Running Back-nav code ${loops} times...`)
-		const navBackTimes = await page.evaluate(
-			landmarkNav, loops, interactiveElementSelector, 'back')
+		const navBackTimes = await page.evaluate(landmarkNav,
+			finderName, loops, selectInteractives, 'back', useHeuristics)
 		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
@@ -270,12 +291,12 @@ async function wrapLandmarksFinders() {
 	return finderPaths
 }
 
-function elementCounts(objectName, interactiveElementSelector) {
+function elementCounts(objectName, selectInteractives, heuristics) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements = document.querySelectorAll(
-		interactiveElementSelector).length
+		selectInteractives).length
 
-	const lf = new window[objectName](window, document)
+	const lf = new window[objectName](window, document, heuristics)
 	lf.find()
 
 	return {
@@ -286,8 +307,8 @@ function elementCounts(objectName, interactiveElementSelector) {
 	}
 }
 
-function landmarkScan(objectName, times) {
-	const lf = new window[objectName](window, document)
+function landmarkScan(objectName, times, heuristics) {
+	const lf = new window[objectName](window, document, heuristics)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
@@ -300,10 +321,9 @@ function landmarkScan(objectName, times) {
 	return scanTimes
 }
 
-function landmarkNav(times, interactiveElementSelector, mode) {
-	const lf = new window.LandmarksFinder(window, document)
-	const interactiveElements = document.querySelectorAll(
-		interactiveElementSelector)
+function landmarkNav(objectName, times, selectInteractives, mode, heuristics) {
+	const lf = new window[objectName](window, document, heuristics)
+	const interactiveElements = document.querySelectorAll(selectInteractives)
 	const navigationTimes = []
 	// Tests showed that indirectly calling the navigation function is between
 	// 3% and 8% slower than duplicating the code and calling it directly.
@@ -335,19 +355,70 @@ function rounder(key, value) {
 	return value
 }
 
+function htmlResults(results) {
+	const boilerplate = fs.readFileSync(htmlResultsTableTemplate, 'utf-8')
+	const scanners = Object.keys(results).filter(element => element !== 'meta')
+	const sites = Object.keys(results[scanners[0]])
+	const headers = Object.keys(results[scanners[0]][sites[0]])
+
+	let output = '<thead>\n<tr>\n'
+	for (const header of headers) {
+		const prettyHeader = header
+			.replace(/MS$/, ' ms')
+			.replace(/Percent$/, ' %')
+			.replace(/([A-Z])/g, ' $1')
+			.replace('url', 'URL')
+			.replace('num', 'Number of')
+			.replace(/^([a-z])/, match => match.toUpperCase())
+		output += `<th>${prettyHeader}</th>`
+	}
+	output += '\n</tr>\n</thead>\n'
+
+	for (const scanner of scanners) {
+		output += `<tr><th colspan="${headers.length}">${scanner}</th></tr>\n`
+		for (const site of sites) {
+			output += '<tr>\n'
+			for (const header of headers) {
+				if (header === 'url') {
+					if (!('url' in results[scanner][site])) {
+						output += '<th scope="row">Combined</th>'
+					} else {
+						const url = results[scanner][site].url
+						output += `<th scope="row">${url}</th>`
+					}
+				} else {
+					const roundedResult =
+						rounder(header, results[scanner][site][header])
+					output += `<td>${roundedResult}</td>`
+				}
+			}
+			output += '\n'
+		}
+	}
+
+	return boilerplate.replace('CONTENT', output)
+}
+
+function save(fileName, string) {
+	fs.writeFileSync(fileName, string)
+	console.log(`${fileName} written.`)
+}
+
 function printAndSaveResults(results) {
-	console.log()
-	console.log('Done.\nResults (times are in milliseconds):')
-	const resultsJson = JSON.stringify(results, rounder, 2)
-	console.log(resultsJson)
 	const roughlyNow = new Date()
 		.toISOString()
 		.replace(/T/, '-')
 		.replace(/:\d\d\..+/, '')
 		.replace(/:/, '')
-	const fileName = `times--${roughlyNow}.json`
-	fs.writeFileSync(fileName, resultsJson)
-	console.log(`${fileName} written.`)
+	const baseName = `times--${roughlyNow}`
+
+	console.log()
+	console.log('Done.\nResults (times are in milliseconds):')
+	const resultsJsonString = JSON.stringify(results, rounder, 2)
+	console.log(resultsJsonString)
+
+	save(baseName + '.json', resultsJsonString)
+	save(baseName + '.html', htmlResults(results))
 }
 
 
@@ -555,6 +626,11 @@ function main() {
 							'You must request at least one of the timing tests;'
 							+ ' check the help for details.')
 					})
+					.option('without-heuristics-too', {
+						alias: 'w',
+						type: 'boolean',
+						description: 'Time scanning for landmarks _without_ heuristics as well as with heuristics'
+					})
 					.positional('site', siteParameterDefinition)
 					.positional('repetitions', {
 						describe:
@@ -598,7 +674,11 @@ function main() {
 			break
 		case 'time':
 			doTimeLandmarksFinding(
-				pages, argv.repetitions, argv.scan, argv.focus)
+				pages,
+				argv.repetitions,
+				argv.scan,
+				argv.focus,
+				argv.withoutHeuristicsToo)
 			break
 		case 'guarding':
 			doTraceWithAndWithoutGuarding()
