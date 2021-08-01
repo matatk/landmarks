@@ -100,6 +100,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	let currentlySelectedIndex   // the landmark currently having focus/border
 	let mainElementIndices = []  // if we find <main> or role="main" elements
 	let mainIndexPointer         // allows us to cylce through main regions
+	let foundNavigationRegion    // if not, we can go and guess one
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmark is still there, but has moved within the list.
@@ -404,40 +405,55 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	// Heuristic checks
 	//
 
-	function makeMainEntry(guessedMain) {
+	function makeLandmarkEntry(guessed, role) {
 		return {
 			'depth': 0,
-			'role': 'main',
-			'roleDescription': getRoleDescription(guessedMain),
-			'label': getARIAProvidedLabel(guessedMain),
-			'element': guessedMain,
-			'selector': createSelector(guessedMain),
+			'role': role,
+			'roleDescription': getRoleDescription(guessed),
+			'label': getARIAProvidedLabel(guessed),
+			'element': guessed,
+			'selector': createSelector(guessed),
 			'guessed': true
 		}
 	}
 
-	function addGuessedMain(guessedMain) {
-		if (guessedMain) {
+	// TODO: check exists before calling - neater?
+	function addGuessed(guessed, role) {
+		if (guessed) {
 			if (landmarks.length === 0) {
-				landmarks.push(makeMainEntry(guessedMain))
-				mainElementIndices = [0]
+				landmarks.push(makeLandmarkEntry(guessed, role))
+				if (role === 'main') mainElementIndices = [0]
 			} else {
-				const insertAt = getIndexOfNextLandmarkAfter(guessedMain)
-				landmarks.splice(insertAt, 0, makeMainEntry(guessedMain))
-				mainElementIndices = [insertAt]
+				const insertAt =
+					getIndexOfLandmarkAfter(guessed) || landmarks.length
+				landmarks.splice(
+					insertAt, 0, makeLandmarkEntry(guessed, role))
+				if (role === 'main') mainElementIndices = [insertAt]
 			}
 			return true
 		}
 		return false
 	}
 
+	// FIXME: support a main by id and navigation ones
 	function tryHeuristics() {
 		if (mainElementIndices.length === 0) {
 			for (const id of ['main', 'content', 'main-content']) {
-				if (addGuessedMain(doc.getElementById(id))) return
+				if (addGuessed(doc.getElementById(id), 'main')) return
 			}
 			const classMains = doc.getElementsByClassName('main')
-			if (classMains.length === 1) addGuessedMain(classMains[0])
+			if (classMains.length === 1) addGuessed(classMains[0], 'main')
+		}
+
+		if (!foundNavigationRegion) {
+			for (const id of ['navigation', 'nav']) {
+				if (addGuessed(doc.getElementById(id), 'navigation')) break
+			}
+			for (const className of ['navigation', 'nav']) {
+				for (const guessed of doc.getElementsByClassName(className)) {
+					addGuessed(guessed, 'navigation')
+				}
+			}
 		}
 	}
 
@@ -446,7 +462,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	// Support for finding next landmark from focused element
 	//
 
-	function getIndexOfNextLandmarkAfter(element) {
+	function getIndexOfLandmarkAfter(element) {
 		for (let i = 0; i < landmarks.length; i++) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
@@ -455,7 +471,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		return null
 	}
 
-	function getIndexOfPreviousLandmarkAfter(element) {
+	function getIndexOfLandmarkBefore(element) {
 		for (let i = landmarks.length - 1; i >= 0; i--) {
 			const rels = element.compareDocumentPosition(landmarks[i].element)
 			// eslint-disable-next-line no-bitwise
@@ -511,7 +527,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 
 	this.getNextLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const index = getIndexOfNextLandmarkAfter(doc.activeElement)
+			const index = getIndexOfLandmarkAfter(doc.activeElement)
 			if (index !== null) {
 				return updateSelectedAndReturnElementInfo(index)
 			}
@@ -522,7 +538,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 
 	this.getPreviousLandmarkElementInfo = function() {
 		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const index = getIndexOfPreviousLandmarkAfter(doc.activeElement)
+			const index = getIndexOfLandmarkBefore(doc.activeElement)
 			if (index !== null) {
 				return updateSelectedAndReturnElementInfo(index)
 			}

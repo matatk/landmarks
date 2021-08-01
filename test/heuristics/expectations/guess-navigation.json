@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "name": "Guess navigation regions"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#navigation",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "body > div.nav:nth-child(4)",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "body > div.navigation:nth-child(5)",
+      "guessed": true
+    }
+  ]
+}
