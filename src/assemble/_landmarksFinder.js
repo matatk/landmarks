@@ -424,8 +424,11 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 				landmarks.push(makeLandmarkEntry(guessed, role))
 				if (role === 'main') mainElementIndices = [0]
 			} else {
-				const insertAt =
-					getIndexOfLandmarkAfter(guessed) || landmarks.length
+				// TODO: would be much nicer with ??
+				const indexOfNextLandmark = getIndexOfLandmarkAfter(guessed)
+				const insertAt = indexOfNextLandmark !== null
+					? indexOfNextLandmark
+					: landmarks.length
 				landmarks.splice(
 					insertAt, 0, makeLandmarkEntry(guessed, role))
 				if (role === 'main') mainElementIndices = [insertAt]
@@ -435,8 +438,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		return false
 	}
 
-	// FIXME: support a main by id and navigation ones
-	function tryHeuristics() {
+	function tryFindingMain() {
 		if (mainElementIndices.length === 0) {
 			for (const id of ['main', 'content', 'main-content']) {
 				if (addGuessed(doc.getElementById(id), 'main')) return
@@ -444,7 +446,9 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 			const classMains = doc.getElementsByClassName('main')
 			if (classMains.length === 1) addGuessed(classMains[0], 'main')
 		}
+	}
 
+	function tryFindingNavs() {
 		if (!foundNavigationRegion) {
 			for (const id of ['navigation', 'nav']) {
 				if (addGuessed(doc.getElementById(id), 'navigation')) break
@@ -455,6 +459,11 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 				}
 			}
 		}
+	}
+
+	function tryHeuristics() {
+		tryFindingMain()
+		tryFindingNavs()
 	}
 
 
@@ -495,6 +504,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		landmarks = []
 		mainElementIndices = []
 		mainIndexPointer = -1
+		foundNavigationRegion = false
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
