@@ -44,7 +44,7 @@
     "puppeteer": "^10.0.0",
     "replace-in-file": "^6.2.0",
     "rollup": "^2.55.1",
-    "rollup-plugin-esformatter": "^2.0.1",
+    "rollup-plugin-prettier": "^2.1.0",
     "rollup-plugin-terser": "^7.0.2",
     "sharp": "^0.28.3",
     "standard-version": "^9.3.1",
