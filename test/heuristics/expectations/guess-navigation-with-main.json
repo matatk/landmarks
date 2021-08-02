@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "name": "Guess navigation regions with a main"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#nav",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "main",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#main",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#main > div.nav:nth-child(1)",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#main > div.navigation:nth-child(2)",
+      "guessed": true
+    }
+  ]
+}
