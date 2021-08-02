@@ -1,11 +1,13 @@
-'use strict'
-const path = require('path')
-const fs = require('fs')
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 
-const fse = require('fs-extra')
-const puppeteer = require('puppeteer')
-const rollup = require('rollup')
-const stats = require('stats-lite')
+import fse from 'fs-extra'
+import puppeteer from 'puppeteer'
+import { rollup } from 'rollup'
+import stats from 'stats-lite'
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
@@ -22,12 +24,13 @@ const urls = Object.freeze({
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 
-const cacheDir = path.join(__dirname, 'profile-cache')
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+const cacheDir = path.join(dirname, 'profile-cache')
 const sourceForFinder = (name) =>
-	path.join(__dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
+	path.join(dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
 const outputForFinder = (name) =>
 	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
-const htmlResultsTableTemplate = path.join(__dirname, 'table-template.html')
+const htmlResultsTableTemplate = path.join(dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
@@ -277,7 +280,7 @@ async function wrapLandmarksFinders() {
 
 		if (!fs.existsSync(outputPath) || inputModified > outputModified) {
 			console.log('Wrapping and caching', path.basename(sourcePath))
-			const bundle = await rollup.rollup({ input: sourcePath })
+			const bundle = await rollup({ input: sourcePath })
 			await bundle.write({
 				file: outputPath,
 				format: 'iife',
@@ -445,7 +448,7 @@ function doTraceWithAndWithoutGuarding() {
 
 async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
 	const testPage = 'manual-test-injected-landmarks.html'
-	const testUrl = 'file://' + path.join(__dirname, '..', 'test', testPage)
+	const testUrl = 'file://' + path.join(dirname, '..', 'test', testPage)
 	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
 
 	console.log(`Making ${traceName}`)
@@ -551,7 +554,7 @@ function main() {
 		`Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n`
 		+ '"all" can be specified to run the profile on each site.'
 
-	const argv = require('yargs')
+	const argv = yargs(hideBin(process.argv))
 		.option('quiet', {
 			alias: 'q',
 			type: 'boolean',

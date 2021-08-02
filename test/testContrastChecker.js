@@ -1,5 +1,5 @@
 import test from 'ava'
-import ContrastChecker from '../src/code/contrastChecker'
+import ContrastChecker from '../src/code/contrastChecker.js'
 
 const contrastChecker = new ContrastChecker()
 
