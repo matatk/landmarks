@@ -417,18 +417,14 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		}
 	}
 
-	// TODO: check exists before calling - neater?
 	function addGuessed(guessed, role) {
 		if (guessed) {
 			if (landmarks.length === 0) {
 				landmarks.push(makeLandmarkEntry(guessed, role))
 				if (role === 'main') mainElementIndices = [0]
 			} else {
-				// TODO: would be much nicer with ??
-				const indexOfNextLandmark = getIndexOfLandmarkAfter(guessed)
-				const insertAt = indexOfNextLandmark !== null
-					? indexOfNextLandmark
-					: landmarks.length
+				const insertAt =
+					getIndexOfLandmarkAfter(guessed) ?? landmarks.length
 				landmarks.splice(
 					insertAt, 0, makeLandmarkEntry(guessed, role))
 				if (role === 'main') mainElementIndices = [insertAt]
@@ -509,7 +505,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
 		if (MODE === 'developer') developerModeChecks()
-		if (useHeuristics) tryHeuristics()  // FIXME only run no main region
+		if (useHeuristics) tryHeuristics()
 	}
 
 	this.getNumberOfLandmarks = function() {

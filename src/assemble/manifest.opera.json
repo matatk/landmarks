@@ -1,4 +1,6 @@
 {
+  "minimum_opera_version": "67",
+
   "icons": {
     "16": "landmarks-16.png",
     "48": "landmarks-48.png",
