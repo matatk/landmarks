@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "prebuild:all": "npm test",
-    "build:all": "node --experimental-json-modules scripts/build.js --browser all",
+    "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
     "preprofile": "node scripts/build.js --pre-process",
     "profile": "node scripts/profile.js",
@@ -14,7 +14,7 @@
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
-    "pretest": "node --experimental-json-modules scripts/build.js --pre-process && eslint .",
+    "pretest": "node scripts/build.js --pre-process && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "version": "standard-version --tag-prefix=",

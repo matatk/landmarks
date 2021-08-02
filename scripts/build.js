@@ -18,12 +18,15 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import linter from 'addons-linter'
 
+const requireJson = (path) =>
+	JSON.parse(fs.readFileSync(new URL(path, import.meta.url)))
+
 
 //
 // Static Configuration
 //
 
-const packageJson = import(path.join('..', 'package.json'))
+const packageJson = requireJson(path.join('..', 'package.json'))
 const extName = packageJson.name
 let extVersion = packageJson.version  // can be overidden on command line
 const buildDir = 'build'
@@ -418,7 +421,7 @@ function mergeMessages(browser) {
 		const messagesFileName = `messages.${mode}.${locale}.json`
 		const messagesPath = path.join(srcAssembleDir, messagesFileName)
 		return fs.existsSync(messagesPath)
-			? import(path.join('..', messagesPath))
+			? requireJson(path.join('..', messagesPath))
 			: {}
 	}
 
@@ -474,8 +477,8 @@ function mergeManifest(browser) {
 
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
-	const commonJson = import(common)
-	const extraJson = import(extra)
+	const commonJson = requireJson(common)
+	const extraJson = requireJson(extra)
 
 	function combineMerge(target, source, options) {
 		const destination = target.slice()
