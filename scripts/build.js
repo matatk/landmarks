@@ -4,7 +4,7 @@ import fs from 'fs'
 import archiver from 'archiver-promise'
 import chalk from 'chalk'
 import dependencyTree from 'dependency-tree'
-import esformatter from 'rollup-plugin-esformatter'
+import prettier from 'rollup-plugin-prettier'
 import fse from 'fs-extra'
 import glob from 'glob'
 import merge from 'deepmerge'
@@ -331,11 +331,14 @@ async function bundleCode(browser, debug) {
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
 				plugins: debug
-					? [ terser(makeTerserOptions(defines)), esformatter() ]
+					? [
+						terser(makeTerserOptions(defines)),
+						prettier({ parser: 'babel' })
+					]
 					: [
 						strip({ functions: ['debugSend', 'debugLog'] }),
 						terser(makeTerserOptions(defines)),
-						esformatter()
+						prettier({ parser: 'babel' })
 					]
 			}
 

@@ -1,8 +1,8 @@
 {
   "name": "landmarks",
-  "type": "module",
   "version": "2.9.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
@@ -41,10 +41,11 @@
     "husky": "^7.0.1",
     "jsdom": "^16.6.0",
     "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.7.0",
+    "prettier": "^2.3.2",
     "puppeteer": "^10.0.0",
     "replace-in-file": "^6.2.0",
     "rollup": "^2.55.1",
-    "rollup-plugin-esformatter": "^2.0.1",
+    "rollup-plugin-prettier": "^2.1.0",
     "rollup-plugin-terser": "^7.0.2",
     "sharp": "^0.28.3",
     "standard-version": "^9.3.1",

@@ -1,4 +1,6 @@
 {
+  "minimum_chrome_version": "80",
+
   "icons": {
     "16": "landmarks-16.png",
     "32": "landmarks-32.png",
