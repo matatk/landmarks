@@ -6,11 +6,22 @@
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2020
   },
   "reportUnusedDisableDirectives": true,
   "root": true,
   "overrides": [
+    {
+      "files": [
+        "scripts/*.js",
+        "src/assemble/*.js",
+        "src/code/*.js",
+        "test/test*.js"
+      ],
+      "parserOptions": {
+        "sourceType": "module"
+      }
+    },
     {
       "files": ["src/**/*.js"],
       "env": {
@@ -36,12 +47,6 @@
         "BROWSER": "readonly",
         "INTERFACE": "readonly",
         "DEBUG": "readonly"
-      }
-    },
-    {
-      "files": ["src/assemble/*.js", "src/code/*.js", "test/test*.js"],
-      "parserOptions": {
-        "sourceType": "module"
       }
     }
   ],

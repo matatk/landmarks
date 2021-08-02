@@ -1,10 +1,11 @@
 {
   "name": "landmarks",
+  "type": "module",
   "version": "2.9.0",
   "private": true,
   "scripts": {
     "prebuild:all": "npm test",
-    "build:all": "node scripts/build.js --browser all",
+    "build:all": "node --experimental-json-modules scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
     "preprofile": "node scripts/build.js --pre-process",
     "profile": "node scripts/profile.js",
@@ -13,8 +14,8 @@
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
-    "pretest": "node scripts/build.js --pre-process && eslint .",
-    "test": "npx nyc --reporter text --reporter html ava && npm run test:css",
+    "pretest": "node --experimental-json-modules scripts/build.js --pre-process && eslint .",
+    "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "version": "standard-version --tag-prefix=",
     "prepare": "husky install"
@@ -23,14 +24,6 @@
     "files": [
       "!test/generated-*.js",
       "!test/rollup.config.js"
-    ],
-    "require": [
-      "esm"
-    ]
-  },
-  "nyc": {
-    "require": [
-      "esm"
     ]
   },
   "devDependencies": {
@@ -38,16 +31,15 @@
     "addons-linter": "^3.10.0",
     "archiver-promise": "~1.0",
     "ava": "^3.15.0",
+    "c8": "^7.8.0",
     "chalk": "^4.1.2",
     "deepmerge": "~4.2",
     "dependency-tree": "^8.1.1",
     "eslint": "^7.32.0",
-    "esm": "^3.2.25",
     "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "husky": "^7.0.1",
     "jsdom": "^16.6.0",
-    "nyc": "^15.1.0",
     "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.7.0",
     "puppeteer": "^10.0.0",
     "replace-in-file": "^6.2.0",

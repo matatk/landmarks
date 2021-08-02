@@ -1,11 +1,12 @@
-'use strict'
-const path = require('path')
-const fs = require('fs')
+import path from 'path'
+import fs from 'fs'
 
-const fse = require('fs-extra')
-const puppeteer = require('puppeteer')
-const rollup = require('rollup')
-const stats = require('stats-lite')
+import fse from 'fs-extra'
+import puppeteer from 'puppeteer'
+import { rollup } from 'rollup'
+import stats from 'stats-lite'
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
@@ -551,7 +552,7 @@ function main() {
 		`Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n`
 		+ '"all" can be specified to run the profile on each site.'
 
-	const argv = require('yargs')
+	const argv = yargs(hideBin(process.argv))
 		.option('quiet', {
 			alias: 'q',
 			type: 'boolean',

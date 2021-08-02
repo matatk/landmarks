@@ -1,27 +1,29 @@
-'use strict'
-const path = require('path')
-const fs = require('fs')
+import path from 'path'
+import fs from 'fs'
 
-const archiver = require('archiver-promise')
-const chalk = require('chalk')
-const dependencyTree = require('dependency-tree')
-const esformatter = require('rollup-plugin-esformatter')
-const fse = require('fs-extra')
-const glob = require('glob')
-const merge = require('deepmerge')
-const { minify } = require('terser')
-const replace = require('replace-in-file')
-const rollup = require('rollup')
-const sharp = require('sharp')
-const strip = require('@rollup/plugin-strip')
-const terser = require('rollup-plugin-terser').terser
+import archiver from 'archiver-promise'
+import chalk from 'chalk'
+import dependencyTree from 'dependency-tree'
+import esformatter from 'rollup-plugin-esformatter'
+import fse from 'fs-extra'
+import glob from 'glob'
+import merge from 'deepmerge'
+import { minify } from 'terser'
+import replace from 'replace-in-file'
+import { rollup } from 'rollup'
+import sharp from 'sharp'
+import strip from '@rollup/plugin-strip'
+import { terser } from 'rollup-plugin-terser'
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
+import linter from 'addons-linter'
 
 
 //
 // Static Configuration
 //
 
-const packageJson = require(path.join('..', 'package.json'))
+const packageJson = import(path.join('..', 'package.json'))
 const extName = packageJson.name
 let extVersion = packageJson.version  // can be overidden on command line
 const buildDir = 'build'
@@ -350,7 +352,7 @@ async function bundleCode(browser, debug) {
 	// Run each bundle we need to make through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
-		const bundle = await rollup.rollup(options.input)
+		const bundle = await rollup(options.input)
 		await bundle.write(options.output)
 		const basename = path.basename(options.output.file)
 		const builtScript = path.join(pathToBuild(browser), basename)
@@ -416,7 +418,7 @@ function mergeMessages(browser) {
 		const messagesFileName = `messages.${mode}.${locale}.json`
 		const messagesPath = path.join(srcAssembleDir, messagesFileName)
 		return fs.existsSync(messagesPath)
-			? require(path.join('..', messagesPath))
+			? import(path.join('..', messagesPath))
 			: {}
 	}
 
@@ -472,8 +474,8 @@ function mergeManifest(browser) {
 
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
-	const commonJson = require(common)
-	const extraJson = require(extra)
+	const commonJson = import(common)
+	const extraJson = import(extra)
 
 	function combineMerge(target, source, options) {
 		const destination = target.slice()
@@ -602,14 +604,14 @@ async function lintFirefox(lintFolderInsteadOfZip) {
 	const path = lintFolderInsteadOfZip
 		? pathToBuild('firefox')
 		: zipFileName('firefox')
-	const linter = require('addons-linter').createInstance({
+	const lintrunner = linter.createInstance({
 		config: {
 			_: [path],
 			logLevel: process.env.VERBOSE ? 'debug' : 'fatal',
 		}
 	})
 
-	await linter.run().catch(err => error(err))
+	await lintrunner.run().catch(err => error(err))
 }
 
 
@@ -618,7 +620,7 @@ async function lintFirefox(lintFolderInsteadOfZip) {
 //
 
 async function main() {
-	const argv = require('yargs')
+	const argv = yargs(hideBin(process.argv))
 		.usage('Usage: $0 {--pre-process|--browser <browser>} [other options]')
 		.help('help')
 		.alias('help', 'h')

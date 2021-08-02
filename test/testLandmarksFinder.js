@@ -1,16 +1,18 @@
-const path = require('path')
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 import test from 'ava'
 import jsdom from 'jsdom'
 import pssst from 'page-structural-semantics-scanner-tests'
-import LandmarksFinderStandard from '../src/code/landmarksFinderStandard'
-import LandmarksFinderDeveloper from '../src/code/landmarksFinderDeveloper'
+import LandmarksFinderStandard from '../src/code/landmarksFinderStandard.js'
+import LandmarksFinderDeveloper from '../src/code/landmarksFinderDeveloper.js'
 
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 const { JSDOM } = jsdom
 const strictChecks = pssst.getFullPageTestsInline()
 const heuristicChecks = pssst.getFullPageTestsInlineFrom(
-	path.join(__dirname, 'heuristics', 'fixtures'),
-	path.join(__dirname, 'heuristics', 'expectations'))
+	path.join(dirname, 'heuristics', 'fixtures'),
+	path.join(dirname, 'heuristics', 'expectations'))
 
 const testSuiteFormatExpectation = [
 	{
