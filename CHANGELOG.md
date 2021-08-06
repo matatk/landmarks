@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Tests
 
-* Use the ES modules directly ([#385](https://github.com/matatk/landmarks/issues/385)) ([20683b2](https://github.com/matatk/landmarks/commit/20683b223cc64ebae2173ca264c79aca1534c576)), closes [/github.com/avajs/ava/issues/2417#issuecomment-596189267](https://github.com/matatk//github.com/avajs/ava/issues/2417/issues/issuecomment-596189267)
+* Use the ES modules directly ([#385](https://github.com/matatk/landmarks/issues/385)) ([20683b2](https://github.com/matatk/landmarks/commit/20683b223cc64ebae2173ca264c79aca1534c576))
 
 
 ### Continuous integrations
