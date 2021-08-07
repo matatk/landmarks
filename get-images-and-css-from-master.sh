@@ -1,6 +1,6 @@
 #!/bin/sh
-git checkout master
-git pull
-git checkout gh-pages
-git checkout master -- 'meta/firefox*png'
-git checkout master -- 'src/static/common.css'
+git checkout main && \
+	git pull && \
+	git checkout gh-pages && \
+	git checkout main -- 'meta/firefox*png' && \
+	git checkout main -- 'src/static/common.css'

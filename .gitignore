@@ -7,6 +7,10 @@ _site/
 test/
 meta/
 scripts/
+src/*
+!src/static/
+src/static/*
+!src/static/common.css
 .jekyll-metadata
 coverage/
 .nyc_output/
