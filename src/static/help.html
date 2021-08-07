@@ -53,6 +53,9 @@
 					<li>The border's colour.</li>
 					<li>The font size of the in-page landmark labels.</li>
 				</ul>
+				<h3>Subtle details</h3>
+				<p>If a page lacks an author-specified &quot;<span data-message="roleMain"></span>&quot; landmark region, the extension will attempt to guess where it might be. Likewise if the author didn't specify any &quot;<span data-message="roleNavigation"></span>&quot; regions, the extension will try to guess those. The guesses are based on commonly-used element <code>id</code> and <code>class</code> attribute values.</p>
+				<p>Each page is meant to have only one &quot;<span data-message="roleMain"></span>&quot; region, however some pages do have more than one. In this case, using the &quot;<span data-message="mainLandmarkShortcutDescription"></span>&quot; will cycle between them.</p>
 			</div>
 
 			<div id="section-new">
@@ -71,7 +74,7 @@
 
 			<div>
 				<!-- This comes from the README -->
-				<h2>Learning about landmark regions</h2>
+				<h2>About landmark regions, for authors and developers</h2>
 				<p>Landmark regions can really help people get a quick overview of your content, and navigate it much more effectively. This can save them <em>a lot</em> of time, so please consider implementing landmarks on your site. If you’re using HTML5, you’ll almost certainly have some landmarks already, but there are some things you need to know; the info below will help you ensure your landmarks are as helpful as possible.</p>
 				<ul>
 					<li><a href="http://matatk.agrip.org.uk/talks/2020/landmarks/">All about landmark regions, and some golden rules (story and slides for my a11yTOConf talk)</a></li>

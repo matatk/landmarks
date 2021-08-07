@@ -1,4 +1,5 @@
 import handlePopulateCommandsMessage from './keyboardShortcutTableMaker'
+import translate from './translate'
 
 function messageHandler(message) {
 	if (message.name !== 'populate-commands') return
@@ -39,6 +40,8 @@ function reflectInstallOrUpdate() {
 }
 
 function main() {
+	translate()  // to refer to the "go to main" command; main and nav regions
+
 	browser.runtime.onMessage.addListener(messageHandler)
 	browser.runtime.sendMessage({ name: 'get-commands' })
 
