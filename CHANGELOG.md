@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Features
 
 * Guess the "main" region if none exists ([#430](https://github.com/matatk/landmarks/issues/430)) ([2131b04](https://github.com/matatk/landmarks/commit/2131b0448d2b0ddc83a5ac0918552dcda44336e7)), closes [#181](https://github.com/matatk/landmarks/issues/181)
-* Guess the "navigation" regions if none exist ([#435](https://github.com/matatk/landmarks/issues/435)) ([5226c0c](https://github.com/matatk/landmarks/commit/5226c0ccc68dc4abbfc75634a299ca93b6b10e79)), closes [#430](https://github.com/matatk/landmarks/issues/430) [#181](https://github.com/matatk/landmarks/issues/181)
+* Guess the "navigation" regions if none exist ([#435](https://github.com/matatk/landmarks/issues/435)) ([5226c0c](https://github.com/matatk/landmarks/commit/5226c0ccc68dc4abbfc75634a299ca93b6b10e79)), closes [#181](https://github.com/matatk/landmarks/issues/181)
 * More in-keeping DevTools style ([#418](https://github.com/matatk/landmarks/issues/418)) ([ba805a9](https://github.com/matatk/landmarks/commit/ba805a92cc457e71dd6076307d125db93250088a)), closes [#405](https://github.com/matatk/landmarks/issues/405)
 * More warnings; Style; Remove top-level panel ([#422](https://github.com/matatk/landmarks/issues/422)) ([9984007](https://github.com/matatk/landmarks/commit/9984007ff14a49cb2ea115c24aa85aa36c8f6278))
 
