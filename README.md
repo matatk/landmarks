@@ -68,12 +68,12 @@ You can build and run the current code locally as follows.
 
 4.  To load and use the extension locally in your browser...
 
-    -   **Firefox:** either:
-        -   use [Mozilla's instructions on temporarily loading extensions from disk](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/), or
-        -   if you have [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) installed, issue `npm run start:firefox` to open Firefox with Landmarks loaded. It will keep itself up-to-date when you re-build.
-    -   **Chrome:** follow [Google's instructions on loading the extension](https://developer.chrome.com/extensions/getstarted#manifest).
-    -   **Opera:** refer to [Testing and Debugging](https://dev.opera.com/extensions/testing/).
-    -   **Edge:** refer to [Run your Extension locally in your browser while developing it (side-loading)](https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension#run-your-extension-locally-in-your-browser-while-developing-it-side-loading).
+    If you have [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) installed, issue `npm run start:<browser>` to open the browser with Landmarks freshly installed. It will keep itself up-to-date when you re-build. To manually temporarily load the built extension in each browser, follow these instructions...
+
+    -   **Firefox:** [Temporary installation in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)
+    -   **Chrome:** [Instructions in the "Create the manifest" section of the "Getting started" docs](https://developer.chrome.com/extensions/getstarted#manifest)
+    -   **Opera:** [Testing and Debugging](https://dev.opera.com/extensions/testing/)
+    -   **Edge:** [Sideload an extension](https://docs.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/extension-sideloading)
 
 Some further info on the test/build process:
 
