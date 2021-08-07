@@ -163,7 +163,7 @@ function addElementWarnings(root, landmark, array) {
 	const summary = document.createElement('summary')
 	summary.setAttribute('class', 'lint-warning')
 	summary.setAttribute('aria-label',
-		`Warning for ${landmark.role}`)  // FIXME: localise
+		browser.i18n.getMessage('lintWarningPrefix') + ' ' + landmark.role)
 	details.appendChild(summary)
 	makeWarnings(details, array)
 	root.appendChild(details)

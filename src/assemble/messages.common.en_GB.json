@@ -315,6 +315,10 @@
     "message": "Page warnings"
   },
 
+  "lintWarningPrefix": {
+    "message": "Warning for"
+  },
+
   "lintAbout": {
     "message": "About warnings and further info"
   },
