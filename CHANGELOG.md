@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/matatk/landmarks/compare/2.9.0...2.10.0) (2021-08-07)
+
+
+### Features
+
+* Guess the "main" region if none exists ([#430](https://github.com/matatk/landmarks/issues/430)) ([2131b04](https://github.com/matatk/landmarks/commit/2131b0448d2b0ddc83a5ac0918552dcda44336e7)), closes [#181](https://github.com/matatk/landmarks/issues/181)
+* Guess the "navigation" regions if none exist ([#435](https://github.com/matatk/landmarks/issues/435)) ([5226c0c](https://github.com/matatk/landmarks/commit/5226c0ccc68dc4abbfc75634a299ca93b6b10e79)), closes [#430](https://github.com/matatk/landmarks/issues/430) [#181](https://github.com/matatk/landmarks/issues/181)
+* More in-keeping DevTools style ([#418](https://github.com/matatk/landmarks/issues/418)) ([ba805a9](https://github.com/matatk/landmarks/commit/ba805a92cc457e71dd6076307d125db93250088a)), closes [#405](https://github.com/matatk/landmarks/issues/405)
+* More warnings; Style; Remove top-level panel ([#422](https://github.com/matatk/landmarks/issues/422)) ([9984007](https://github.com/matatk/landmarks/commit/9984007ff14a49cb2ea115c24aa85aa36c8f6278))
+
+
+### Tests
+
+* Include both LandmarksFinders in tests ([#416](https://github.com/matatk/landmarks/issues/416)) ([989e2e3](https://github.com/matatk/landmarks/commit/989e2e37e8424a11474929f81c1a323711f7c8d3))
+
+
+### Continuous integrations
+
+* Bump Actions ([e5d44f2](https://github.com/matatk/landmarks/commit/e5d44f2e5fae6978c46f6af39e58ba918316c747))
+* Use npm ci in Action ([492ed23](https://github.com/matatk/landmarks/commit/492ed2376401f3717288cdfdbd6aa0c570697c7b)), closes [#419](https://github.com/matatk/landmarks/issues/419)
+
+
+### Performance improvements
+
+* Fix profiling script; Compare standard and developer scanners ([#431](https://github.com/matatk/landmarks/issues/431)) ([466c8ec](https://github.com/matatk/landmarks/commit/466c8ec68e5df8705f6a751131c20015a93e2f31))
+* Streamlining scans and messaging; Debugging info ([#428](https://github.com/matatk/landmarks/issues/428)) ([94d06df](https://github.com/matatk/landmarks/commit/94d06dff39736d3f3fe7bbbc4c65a5a83978afab))
+
+
+### Bug fixes
+
+* Catch content script not being loaded yet ([#429](https://github.com/matatk/landmarks/issues/429)) ([78eab22](https://github.com/matatk/landmarks/commit/78eab22b7aa251c088d2eef8dee3ddbffb48f0f9))
+* Handle zero page warnings properly ([#425](https://github.com/matatk/landmarks/issues/425)) ([20d4945](https://github.com/matatk/landmarks/commit/20d49451ee85a7264ee726e2775663e82e6d6339))
+* Remove/reinstate the correct DevTools tab/pane ([#423](https://github.com/matatk/landmarks/issues/423)) ([978f874](https://github.com/matatk/landmarks/commit/978f8748ee339e3ec555046624bc032702cb68ec))
+* Rename default branch ([f232270](https://github.com/matatk/landmarks/commit/f2322703840e3fbfb5c3312a25e0993e0f714cfe))
+* Short-circuit and robustify guessed main behaviour ([#433](https://github.com/matatk/landmarks/issues/433)) ([050e1cf](https://github.com/matatk/landmarks/commit/050e1cfc38383be3567be6eabc36fb6f5c8acadc))
+
+
+### Chores
+
+* Bump dependencies ([#421](https://github.com/matatk/landmarks/issues/421)) ([c95d49e](https://github.com/matatk/landmarks/commit/c95d49e7f2f1fccac34f42030b9bb2066b35d84a)), closes [/github.com/npm/cli/issues/2610#issuecomment-795189708](https://github.com/matatk//github.com/npm/cli/issues/2610/issues/issuecomment-795189708) [/github.com/npm/cli/issues/2610#issuecomment-851347583](https://github.com/matatk//github.com/npm/cli/issues/2610/issues/issuecomment-851347583)
+* Bump dependencies ([#432](https://github.com/matatk/landmarks/issues/432)) ([b91f564](https://github.com/matatk/landmarks/commit/b91f56471ac4fc1e90ed511d84451e7c8d495fb6))
+* Bump pssst dependency ([#434](https://github.com/matatk/landmarks/issues/434)) ([c97854b](https://github.com/matatk/landmarks/commit/c97854b72ece84966a450383d6562f921af085fa))
+
+
+### Builds
+
+* Add compare script ([#426](https://github.com/matatk/landmarks/issues/426)) ([afabca2](https://github.com/matatk/landmarks/commit/afabca25e800e616fb6049c77399c6fa3dfad821))
+* Add option to skip zipping ([#417](https://github.com/matatk/landmarks/issues/417)) ([ed7e446](https://github.com/matatk/landmarks/commit/ed7e4467188318c920fb1ebba73bf6a02ca72ebc))
+* Switch to ES modules ([#436](https://github.com/matatk/landmarks/issues/436)) ([35cfd5b](https://github.com/matatk/landmarks/commit/35cfd5b2da9e8d2dc3d7e7258dc3bb983d52cb17))
+
+
+### Styles
+
+* Use the nullish coalescing operator ([#437](https://github.com/matatk/landmarks/issues/437)) ([665236b](https://github.com/matatk/landmarks/commit/665236b8f76f3f5b23d08058fe06db4d35fde415))
+
+
+### Documentation
+
+* Changes for 2.10.0 ([#442](https://github.com/matatk/landmarks/issues/442)) ([35aebf6](https://github.com/matatk/landmarks/commit/35aebf633cc65bcb26feedfe349792a822e7cafe))
+* Document main-cycling; main/nav-finding ([#441](https://github.com/matatk/landmarks/issues/441)) ([d67f54d](https://github.com/matatk/landmarks/commit/d67f54da5bb17259ba7b6dd5efb4ece288c75076)), closes [#384](https://github.com/matatk/landmarks/issues/384)
+* Fix borked link in CHANGELOG ([#438](https://github.com/matatk/landmarks/issues/438)) ([174e583](https://github.com/matatk/landmarks/commit/174e583a9b72232eeb86c5bb8aa0fa101eb8e8da)), closes [#414](https://github.com/matatk/landmarks/issues/414)
+* Update resources and general help info ([#439](https://github.com/matatk/landmarks/issues/439)) ([3c5af69](https://github.com/matatk/landmarks/commit/3c5af6983d0a9b84aa81990beb370c7a74eba66d))
+* Update screengrabs ([#440](https://github.com/matatk/landmarks/issues/440)) ([d301fa4](https://github.com/matatk/landmarks/commit/d301fa40ad00093a53225075d75a8479cc139dd8)), closes [#387](https://github.com/matatk/landmarks/issues/387)
+
 ## [2.9.0](https://github.com/matatk/landmarks/compare/2.8.0...2.9.0) (2021-02-08)
 
 
