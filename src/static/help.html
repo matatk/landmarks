@@ -70,7 +70,22 @@
 			</div>
 
 			<div>
-				<!-- FIXME learning -->
+				<h2>Learning about landmark regions</h2>
+				<p>Landmark regions can really help people get a quick overview of your content, and navigate it much more effectively. This can save them <em>a lot</em> of time, so please consider implementing landmarks on your site. If you’re using HTML5, you’ll almost certainly have some landmarks already, but there are some things you need to know; the info below will help you ensure your landmarks are as helpful as possible.</p>
+				<ul>
+					<li><a href="http://matatk.agrip.org.uk/talks/2020/landmarks/">All about landmark regions, and some golden rules (story and slides for my a11yTOConf talk)</a></li>
+					<li><a href="https://www.youtube.com/watch?v=IhWMou12_Vk">Léonie Watson demonstrates landmarks (video)</a></li>
+					<li><a href="https://www.w3.org/TR/wai-aria-practices/examples/landmarks/index.html">W3C ARIA landmarks example and advice page</a></li>
+					<li><a href="https://www.paciellogroup.com/blog/2015/09/easy-content-organisation-with-html5/">Easy content organisation with HTML5 (The Paciello Group ’blog article)</a></li>
+					<li><a href="https://www.paciellogroup.com/blog/2013/02/using-wai-aria-landmarks-2013/">Using WAI-ARIA landmarks (The Paciello Group ’blog article)</a></li>
+				</ul>
+				<p>Please bear in mind the following when implementing landmarks…</p>
+				<ul>
+					<li><p>It’s important that landmarks are not over-used, because their power comes from providing a concise overview of the content of the page. The heading hierarchy for the page can be relied upon for more fine-grained navigation within a particular area of a page.</p>
+						<p><strong>Rule of thumb:</strong> Use as few landmarks as possible, but ensure that all of the content on the page is within a landmark region.</p></li>
+					<li><p>If you’re using HTML5 elements such as <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code> and others, then your page will inherit some landmarks automagically. However it can be really helpful to label them (especially if there’s more than one landmark of the same type on a page, such as a separate site-wide and page-local <code>&lt;nav&gt;</code>). The W3C documentation has all the details, but essentially you would use either the <code>aria-labelledby</code> or <code>aria-label</code> attribute.</p>
+						<p><strong>Rule of thumb:</strong> If you’ve more than one landmark of the same type, then be sure to label them, so their purpose is clear.</p></li>
+				</ul>
 
 				<h2>This extension's support for landmark regions</h2>
 				<p>The Landmarks extension uses the <a href="https://github.com/matatk/page-structural-semantics-scanner-tests#support-for-landmarks">Page Structural Semantics Scanner Tests suite; you can find information on standards support there</a>.</p>
