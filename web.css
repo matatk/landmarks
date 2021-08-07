@@ -58,8 +58,6 @@ img {
 	filter: drop-shadow(0.5em 0.5em 0.5em var(--background-2));
 }
 
-img:nth-of-type(2) { padding-top: 2em; }
-
 section.further-info h2,
 section.further-info a {
 	color: var(--text-1);
