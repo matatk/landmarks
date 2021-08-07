@@ -79,11 +79,13 @@ Some further info on the test/build process:
 
 -   Automated tests are run as a pre-requisite part of the build process; you can also run them with `npm test`.
 
+-   There's also a script you can use to run various performance tests. For more information, call `node scripts/profile.js --help`.
+
+-   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
+
 -   You can remove the `build/<browser>/` directories and ZIP files for all browsers with `npm run clean:builds`.
 
 -   Because the process of rasterising the SVG to variously-sized PNGs is slow, the PNGs are cached so they only need to be re-generated when the SVG changes. They are cached in the `build/png-cache/` directory.
-
--   The `pre-commit` hook is used to ensure only code that passes tests is committed (it does this by running a build, which, in turn, runs the tests). [Husky](https://github.com/typicode/husky) manages this so that a build is run before you are asked for a commit message.
 
 -   For advanced use, you can run the build script directly (which bypasses the tests, beware) with `node scripts/build.js --help`.
 
