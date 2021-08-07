@@ -6,7 +6,7 @@ This is a browser extension (for Firefox, Chrome, Opera and Edge) that enables n
 
 Landmark regions broadly signpost the areas of a page (e.g. navigation, search, main content and so on). They can make navigation considerably easier for people who use the keyboard to navigate and those using assistive technologies such as screen-readers, because they make it much quicker to get an overview and to navigate to (and between) areas of interest.
 
-If you're an author or developer and want to learn about landmark regions, check out the information below on [why landmarks rock, and how easy they are to put into your site](#learning-about-landmark-regions). If you're using HTML5, you probably already have landmarks on your site, but there are some ways to make them even more helpful, as described below.
+If you're an author or developer and want to learn about landmark regions, check out the information below on [why landmarks rock, and how easy they are to put into your site](#learning-about-landmark-regions). If you're using HTML5, you most likely already have landmarks on your site, but there are some ways to make them even more helpful, as described below.
 
 ## Table of contents
 
@@ -36,9 +36,9 @@ The Landmarks extension uses the [Page Structural Semantics Scanner Tests suite;
 
 ## Learning about landmark regions
 
-Landmark regions can really help people get a quick overview of your site, and navigate it much more effectively. This can save them *a lot* of time, so please consider implementing landmarks on your site; here is some information to help you do so...
+Landmark regions can really help people get a quick overview of your content, and navigate it much more effectively. This can save them *a lot* of time, so please consider implementing landmarks on your site. If you're using HTML5, you'll almost certainly have some landmarks already, but there are some things you need to know; the info below will help you ensure your landmarks are as helpful as possible.
 
--   [All about landmark regions: story and slides for my latest talk](http://matatk.agrip.org.uk/talks/2020/landmarks/)
+-   [All about landmark regions, and some golden rules (story and slides for my a11yTOConf talk)](http://matatk.agrip.org.uk/talks/2020/landmarks/)
 -   [Léonie Watson demonstrates landmarks (video)](https://www.youtube.com/watch?v=IhWMou12_Vk)
 -   [W3C ARIA landmarks example and advice page](https://www.w3.org/TR/wai-aria-practices/examples/landmarks/index.html)
 -   [Easy content organisation with HTML5 (The Paciello Group 'blog article)](https://www.paciellogroup.com/blog/2015/09/easy-content-organisation-with-html5/)
