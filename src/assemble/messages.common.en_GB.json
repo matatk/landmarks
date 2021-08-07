@@ -315,6 +315,18 @@
     "message": "Page warnings"
   },
 
+  "lintAbout": {
+    "message": "About warnings and further info"
+  },
+
+  "lintAboutNature": {
+    "message": "Warnings given above are best practice suggestions: following them can significantly improve the experience of people using assistive technologies. These warnings are not necessarily Web Content Accessibility Guidelines (WCAG) failures. However, using landmarks in a way that misrepresents the structure of the page can be a WCAG failure."
+  },
+
+  "lintAboutLinkText": {
+    "message": "All about landmark regions, and some golden rules (story and slides for my a11yTOConf talk)"
+  },
+
   "lintNoMain": {
     "message": "No main element/region."
   },
