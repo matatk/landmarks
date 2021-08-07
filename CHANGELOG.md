@@ -41,9 +41,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Chores
 
-* Bump dependencies ([#421](https://github.com/matatk/landmarks/issues/421)) ([c95d49e](https://github.com/matatk/landmarks/commit/c95d49e7f2f1fccac34f42030b9bb2066b35d84a)), closes [/github.com/npm/cli/issues/2610#issuecomment-795189708](https://github.com/matatk//github.com/npm/cli/issues/2610/issues/issuecomment-795189708) [/github.com/npm/cli/issues/2610#issuecomment-851347583](https://github.com/matatk//github.com/npm/cli/issues/2610/issues/issuecomment-851347583)
+* Bump dependencies ([#421](https://github.com/matatk/landmarks/issues/421)) ([c95d49e](https://github.com/matatk/landmarks/commit/c95d49e7f2f1fccac34f42030b9bb2066b35d84a))
 * Bump dependencies ([#432](https://github.com/matatk/landmarks/issues/432)) ([b91f564](https://github.com/matatk/landmarks/commit/b91f56471ac4fc1e90ed511d84451e7c8d495fb6))
-* Bump pssst dependency ([#434](https://github.com/matatk/landmarks/issues/434)) ([c97854b](https://github.com/matatk/landmarks/commit/c97854b72ece84966a450383d6562f921af085fa))
+* Bump PSSST dependency ([#434](https://github.com/matatk/landmarks/issues/434)) ([c97854b](https://github.com/matatk/landmarks/commit/c97854b72ece84966a450383d6562f921af085fa))
 
 
 ### Builds
