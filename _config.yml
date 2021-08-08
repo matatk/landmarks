@@ -1,6 +1,10 @@
 exclude:
- - node_modules
- - build
- - test
- - landmarks-*-*.zip
+ - build/
+ - coverage/
  - get-images-and-css-from-master.sh
+ - landmarks-*-*.zip
+ - node_modules/
+ - scripts/
+ - src/assemble/
+ - src/code/
+ - test/
