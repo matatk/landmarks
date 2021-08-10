@@ -149,6 +149,22 @@ function testSpecificLandmarksFinder(
 	for (const check of Object.values(checks)) {
 		test(runName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
+
+			// Expose jsdom's existing textContent method, tweaked, as innerText
+			// https://github.com/jsdom/jsdom/issues/1245#issuecomment-445848341
+			// https://github.com/jsdom/jsdom/issues/1245#issuecomment-584677454
+			// Plus my own tweak removing whitespace.
+			if (heuristics) {
+				global.Element = dom.window.Element
+				Object.defineProperty(global.Element.prototype, 'innerText', {
+					get() {
+						this.querySelectorAll('script,style').forEach(
+							s => s.remove())
+						return this.textContent.replace(/\s+/g, '')
+					}
+				})
+			}
+
 			const lf = new Scanner(dom.window, dom.window.document, heuristics)
 			lf.find()
 			const landmarksFinderResult = postProcesor

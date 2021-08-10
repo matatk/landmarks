@@ -291,6 +291,14 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 		return true
 	}
 
+	// TODO: Check if we need this at all?
+	// Note: This only checks the element itself: it won't reflect if this
+	//       element is contained in another that _is_ visually hidden. So far
+	//       this only seems to be a problem for some OTTly-guessed landmarks,
+	//       though (heuristics aren't using this function, but there's no
+	//       point due to not considering the parents).
+	// https://stackoverflow.com/a/56692552/1485308
+	// https://stackoverflow.com/q/19669786/1485308
 	function isVisuallyHidden(element) {
 		const style = win.getComputedStyle(element)
 		if (element.hasAttribute('hidden')
@@ -418,7 +426,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	}
 
 	function addGuessed(guessed, role) {
-		if (guessed) {
+		if (guessed && guessed.innerText) {
 			if (landmarks.length === 0) {
 				landmarks.push(makeLandmarkEntry(guessed, role))
 				if (role === 'main') mainElementIndices = [0]
