@@ -121,6 +121,16 @@ function main() {
 			name: 'interface',
 			kind: 'radio'
 		})
+
+		if (BROWSER === 'opera') {
+			const radio = document.getElementById('radio-sidebar')
+			radio.disabled = true
+			const warning = document.createElement('p')
+			warning.textContent = 'There is a known bug with Opera that prevents the sidebar from being recognised. They are working on it.'
+			warning.className = 'warning'
+			const target = radio.nextElementSibling.firstElementChild
+			target.insertAdjacentElement('afterend', warning)
+		}
 	}
 
 	updateResetDismissedMessagesButtonState()
