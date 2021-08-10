@@ -44,7 +44,7 @@
 					<li>Quickly check how many landmark regions the page has, via the toolbar icon.</li>
 					<li>Explore landmarks via keyboard shortcuts.</li>
 					<li>Explore landmarks via the toolbar pop-up.</li>
-					<li>Explore landmarks via the browser sidebar (Firefox and Opera only).</li>
+					<li>Explore landmarks via the browser sidebar (Firefox only&mdash;there is currently a known bug with Opera that prevents the sidebar from being recognised).</li>
 					<li>Use the developer tools panel to inspect the code behind landmark regions.</li>
 				</ul>
 				<p>You can change the following <a href="options.html">preferences</a>.</p>
@@ -60,12 +60,18 @@
 
 			<div id="section-new">
 				<h2>What's new?</h2>
-				<p>New in version <span id="version"></span>&hellip;</p>
+				<p>New in version 2.10.0&hellip;</p>
 				<ul>
 					<li>Try guessing what may be the &quot;<span data-message="roleMain"></span>&quot; region if the page author hasn't declared one.</li>
 					<li>Try guessing &quot;<span data-message="roleNavigation"></span>&quot; regions if the author hasn't declared any.</li>
 					<li>Improve the DevTools panel's style, match the browsers' UI more.</li>
 					<li>Add a DevTools warning for the page lacking a &quot;<span data-message="roleMain"></span>&quot; region.</li>
+				</ul>
+				<p>This is version <span id="version"></span>, which addresses the following bugs/small things&hellip;</p>
+				<ul>
+					<li>Don't guess regions that have no text content.</li>
+					<li>The update notice wouldn't appear.</li>
+					<li>Document that on Opera, the sidebar is currently broken due to a browser bug.</li>
 				</ul>
 				<p>For full details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#changelog">change log</a>.</p>
 			</div>
