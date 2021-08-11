@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "name": "Guess navigation regions with a main (some empty)"
+  },
+  "expected": [
+    {
+      "type": "landmark",
+      "role": "main",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#content",
+      "guessed": true
+    },
+    {
+      "type": "landmark",
+      "role": "navigation",
+      "roleDescription": null,
+      "label": null,
+      "selector": "#nav-el",
+      "guessed": true
+    }
+  ]
+}
