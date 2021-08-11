@@ -186,9 +186,14 @@ function switchInterface(mode) {
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	startupCode.push(function() {
-		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-			switchInterface(items.interface)
-		})
+		if (BROWSER === 'opera') {
+			// TODO: Remove when Opera bug is fixed...
+			browser.storage.sync.set({ interface: 'popup' })
+		} else {
+			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+				switchInterface(items.interface)
+			})
+		}
 	})
 }
 
