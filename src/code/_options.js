@@ -123,6 +123,7 @@ function main() {
 		})
 
 		if (BROWSER === 'opera') {
+			// TODO: Remove when Opera bug is fixed...
 			const radio = document.getElementById('radio-sidebar')
 			radio.disabled = true
 			const warning = document.createElement('p')

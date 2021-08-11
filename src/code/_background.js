@@ -186,8 +186,8 @@ function switchInterface(mode) {
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	startupCode.push(function() {
-		// TODO: Remove when Opera bug is fixed...
 		if (BROWSER === 'opera') {
+			// TODO: Remove when Opera bug is fixed...
 			browser.storage.sync.set({ interface: 'popup' })
 		} else {
 			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
