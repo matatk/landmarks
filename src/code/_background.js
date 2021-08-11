@@ -283,14 +283,12 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
-// The second parameter is only needed when messages are later un-dismissed, so
-// that we don't start modifying the badge again.
-function reflectUpdateDismissalState(dismissed, doNotBadge) {
+function reflectUpdateDismissalState(dismissed) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
 		withActiveTab(tab => updateGUIs(tab.id, tab.url))
-	} else if (!doNotBadge) {
+	} else {
 		browser.browserAction.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
 	}
@@ -306,6 +304,8 @@ browser.runtime.onInstalled.addListener(function(details) {
 	if (details.reason === 'install') {
 		browser.tabs.create({ url: 'help.html#!install' })
 		browser.storage.sync.set({ 'dismissedUpdate': true })
+	} else if (details.reason === 'update') {
+		browser.storage.sync.set({ 'dismissedUpdate': false })
 	}
 })
 
@@ -411,12 +411,9 @@ browser.storage.onChanged.addListener(function(changes) {
 	}
 
 	if (changes.hasOwnProperty('dismissedUpdate')) {
-		// Changing _to_ false means we've already dismissed and have since
-		// reset the messages, in which case we should not be badging the
-		// browserAction icon.
-		const dismissed = changes.dismissedUpdate.newValue
-		const doNotModifyBadge = dismissed === false ? true : false
-		reflectUpdateDismissalState(dismissed, doNotModifyBadge)
+		// Changing _to_ false means either we've already dismissed and have
+		// since reset the messages, OR we have just been updated.
+		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
 	}
 })
 
