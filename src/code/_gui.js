@@ -289,7 +289,8 @@ function setupNotes() {
 	browser.storage.onChanged.addListener(function(changes) {
 		if (INTERFACE === 'sidebar') {
 			if (changes.hasOwnProperty('interface')) {
-				reflectInterfaceChange(changes.interface.newValue)
+				reflectInterfaceChange(changes.interface.newValue ??
+					defaultInterfaceSettings.interface)
 			}
 		}
 

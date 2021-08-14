@@ -101,13 +101,8 @@ function dismissalStateChanged(thingChanged) {
 }
 
 function resetToDefaults() {
-	browser.storage.sync.set(defaultSettings, function() {
-		window.location.reload()
-	})
-	// Note: Can't use use .clear() as that removes everything, which would
-	//       cause problems for currently-visible borders.
-	// FIXME use restoreOptions instead?
-	// FIXME resetting to defaults after seetting to sidebar still brings up the warning message (even though it's going back to toolbar) -- this is because it reloads and persists the selection across reloads
+	browser.storage.sync.clear()
+	restoreOptions()
 }
 
 
