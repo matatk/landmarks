@@ -23,7 +23,8 @@ export default function ElementFocuser(doc, borderDrawer) {
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('borderType' in changes) {
-			borderType = changes.borderType.newValue
+			borderType =
+				changes.borderType.newValue ?? defaultBorderSettings.borderType
 			borderTypeChange()
 		}
 	})

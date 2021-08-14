@@ -411,7 +411,8 @@ if (BROWSER !== 'firefox') {
 browser.storage.onChanged.addListener(function(changes) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {
-			switchInterface(changes.interface.newValue)
+			switchInterface(changes.interface.newValue
+				?? defaultInterfaceSettings.interface)
 		}
 	}
 
