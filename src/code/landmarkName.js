@@ -8,7 +8,7 @@ export default function landmarkName(landmark) {
 		: roleName
 
 	return landmark.guessed
-		? label + ' (guessed)'
+		? label + ' (' + browser.i18n.getMessage('guessed') + ')'
 		: label
 }
 
