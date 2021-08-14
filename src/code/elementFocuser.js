@@ -83,6 +83,10 @@ export default function ElementFocuser(doc, borderDrawer) {
 		managingBorders = canManageBorders
 		if (!canManageBorders) {
 			clearTimeout(borderRemovalTimer)
+		} else if (borderType === 'persistent') {
+			// When we stop showing all landmarks at once, ensure the last
+			// single one is put back if it was permanent.
+			borderDrawer.addBorder(currentElementInfo)
 		}
 	}
 
