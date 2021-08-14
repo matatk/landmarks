@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.1](https://github.com/matatk/landmarks/compare/2.10.0...2.10.1) (2021-08-14)
+
+
+### Builds
+
+* Generate Edge moderator info ([#444](https://github.com/matatk/landmarks/issues/444)) ([a6755ec](https://github.com/matatk/landmarks/commit/a6755ece48d80413285174b0189c2869dbd5a519))
+
+
+### Bug fixes
+
+* Ensure update notice returns after an update ([#446](https://github.com/matatk/landmarks/issues/446)) ([bafb3cf](https://github.com/matatk/landmarks/commit/bafb3cf0d92ecb5a39eabc69d565879002e7edd1))
+* Ignore guessed regions with no innerText ([#445](https://github.com/matatk/landmarks/issues/445)) ([46eed4c](https://github.com/matatk/landmarks/commit/46eed4cc2a54163a2e2b0a63cfee48f70b81401f))
+* Localise string for guessed landmarks ([#451](https://github.com/matatk/landmarks/issues/451)) ([de6e84a](https://github.com/matatk/landmarks/commit/de6e84a357ebe50339832f62365850a41e2a9942)), closes [#449](https://github.com/matatk/landmarks/issues/449)
+* Neater settings handling ([#450](https://github.com/matatk/landmarks/issues/450)) ([de25942](https://github.com/matatk/landmarks/commit/de25942990a42cd83be2883aee5f33f0c57e5eb3)), closes [#448](https://github.com/matatk/landmarks/issues/448)
+* Reflect opera sidebar bug ([#447](https://github.com/matatk/landmarks/issues/447)) ([d07b222](https://github.com/matatk/landmarks/commit/d07b2220146df89af6e8f02b4d8c8ae072057a2a))
+* Replace persistent border after un-show-all ([#452](https://github.com/matatk/landmarks/issues/452)) ([5bda689](https://github.com/matatk/landmarks/commit/5bda6891f6e699a8d1f0bdc626972031a745de71)), closes [#404](https://github.com/matatk/landmarks/issues/404)
+
+
+### Documentation
+
+* Notes for 2.10.1 ([#453](https://github.com/matatk/landmarks/issues/453)) ([876e98d](https://github.com/matatk/landmarks/commit/876e98dddb5bc1dfa3c6abf081366f350d624d16))
+
 ## [2.10.0](https://github.com/matatk/landmarks/compare/2.9.0...2.10.0) (2021-08-07)
 
 
