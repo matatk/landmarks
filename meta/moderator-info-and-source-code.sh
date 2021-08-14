@@ -6,6 +6,8 @@ changelog_line=$(grep "$tag" CHANGELOG.md)
 changelog_date=$(echo "$changelog_line" | grep -Eo '\d{4}-\d{2}-\d{2}')
 tag_without_dots=$(echo "$tag" | tr -d .)
 changelog_anchor="$tag_without_dots-$changelog_date"
+github_zip_file=$tag.zip
+github_code_url="https://github.com/matatk/landmarks/archive/$github_zip_file"
 
 make_info_for_browser() {
 	browser_pretty=$1
@@ -16,20 +18,25 @@ make_info_for_browser() {
 		-e "s/BROWSER_PRETTY/$browser_pretty/g" \
 		-e "s/BROWSER_VAR/$browser_var/g" \
 		< $build_info
-	}
+}
 
 make_info_for_edge() {
 	sed \
 		-e "s/CHANGELOG_ANCHOR/$changelog_anchor/g" \
 		< $edge_info
-	}
+}
 
+echo "NOTE: Make sure you've created the latest git tag after merging in the CHANGELOG changes."
+echo
+echo
 echo // Firefox
 echo
 make_info_for_browser Firefox firefox
 echo
 echo
 echo // Opera
+echo
+echo ">> Source code URL: $github_code_url"
 echo
 make_info_for_browser Opera opera
 echo
@@ -40,8 +47,6 @@ make_info_for_edge
 echo
 echo
 
-github_zip_file=$tag.zip
-github_code_url="https://github.com/matatk/landmarks/archive/$github_zip_file"
 local_source_file="landmarks-$github_zip_file"
 if [ ! -f "$local_source_file" ]; then
 	echo "Downloading <$github_code_url>..."

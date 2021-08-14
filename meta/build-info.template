@@ -2,9 +2,7 @@ Changes in this release: https://github.com/matatk/landmarks/blob/master/CHANGEL
 
 Thanks for your review :-).
 
-Landmarks uses a build process. There's no obfuscation or minification, but Rollup is used to turn ES6 modules into combined script files, and a tool is used to convert an SVG logo into several PNG files. Build information follows.
-
-The attached source is from the VERSION_NUMBER tag: <https://github.com/matatk/landmarks/releases/tag/VERSION_NUMBER>
+Landmarks uses a build process. There's no obfuscation or minification, but Rollup is used to turn ES modules into combined script files, and a tool is used to convert an SVG logo into several PNG files. Build information follows.
 
 Required software for the build:
 
