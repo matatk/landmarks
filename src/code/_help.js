@@ -49,9 +49,12 @@ function main() {
 		document.getElementById('open-browser-shortcuts-settings')
 			.parentElement.remove()
 	} else {
-		document.getElementById('open-browser-shortcuts-settings').addEventListener(
-			'click', () => browser.runtime.sendMessage({
-				name: 'open-configure-shortcuts' }))
+		document.getElementById('keyboard-shortcuts-instructions-firefox')
+			.remove()
+		document.getElementById('open-browser-shortcuts-settings')
+			.addEventListener(
+				'click', () => browser.runtime.sendMessage({
+					name: 'open-configure-shortcuts' }))
 	}
 
 	includeVersionNumber()
