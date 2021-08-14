@@ -57,6 +57,14 @@
     "message": "Preferences"
   },
 
+  "badgeNew": {
+    "message": "NEW"
+  },
+
+  "guessed": {
+    "message": "guessed"
+  },
+
 
 
 
@@ -299,13 +307,6 @@
 
   "hintWhatIsNewDismiss": {
     "message": "Dismiss update note"
-  },
-
-
-
-
-  "badgeNew": {
-    "message": "NEW"
   },
 
 
