@@ -59,6 +59,9 @@
             "type": "revert"
           }
         ]
+      },
+      "writerOpts": {
+        "headerPartial": "## {{#if @root.linkCompare~}} [{{version}}]({{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}) {{~else}} {{~version}} {{~/if}} {{~#if title}} \"{{title}}\" {{~/if}} {{~#if date}} ({{date}}) {{/if}}\n"
       }
     }
   }
