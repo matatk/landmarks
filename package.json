@@ -17,7 +17,7 @@
     "pretest": "node scripts/build.js --pre-process && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "version": "standard-version --tag-prefix=",
+    "version": "release-it",
     "prepare": "husky install"
   },
   "ava": {
