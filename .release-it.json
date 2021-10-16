@@ -12,6 +12,7 @@
     "@release-it/conventional-changelog": {
       "infile": "CHANGELOG.md",
       "preset": {
+        "header": "Changelog",
         "name": "conventionalcommits",
         "types": [
           {
