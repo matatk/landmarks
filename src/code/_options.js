@@ -11,7 +11,7 @@ import { defaultSettings, defaultDismissalStates } from './defaults'
 
 const options = [{
 	name: 'borderType',
-	kind: 'radio'
+	kind: 'choice'
 }, {
 	name: 'borderColour',
 	kind: 'individual',
@@ -33,14 +33,14 @@ function restoreOptions() {
 			const saved = items[name]
 
 			switch (option.kind) {
-				case 'radio':
+				case 'choice':
 					document.getElementById(`radio-${saved}`).checked = true
-					break
-				case 'boolean':
-					option.element.checked = saved
 					break
 				case 'individual':
 					option.element.value = saved
+					break
+				case 'boolean':
+					option.element.checked = saved
 					break
 				default:
 					console.error(`Unexpected option kind '${option.kind}'`)
@@ -132,7 +132,7 @@ function main() {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		options.push({
 			name: 'interface',
-			kind: 'radio'
+			kind: 'choice'
 		})
 
 		if (BROWSER === 'opera') {

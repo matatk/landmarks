@@ -324,7 +324,6 @@ function bootstrap() {
 	}
 
 	browser.storage.sync.get(defaultDeveloperSettings, function(items) {
-		console.log('CS: setting values...')
 		landmarksFinderStandard.useHeuristics(!items.developerDoNotGuess)
 		landmarksFinderDeveloper.useHeuristics(!items.developerDoNotGuess)
 	})
@@ -333,7 +332,6 @@ function bootstrap() {
 		if ('developerDoNotGuess' in changes) {
 			const change = changes.developerDoNotGuess
 			if (change.newValue !== change.oldValue) {
-				console.log('CS: dev opt changed from', change.oldValue, 'to', change.newValue)
 				landmarksFinderStandard.useHeuristics(!change.newValue)
 				landmarksFinderDeveloper.useHeuristics(!change.newValue)
 				findLandmarks(noop, noop)

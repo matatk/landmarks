@@ -580,7 +580,10 @@ export default function LandmarksFinder(win, doc) {
 	}
 
 	this.useHeuristics = function(use) {
-		console.log('setting useHeuristics to', use)
-		useHeuristics = use
+		if (typeof use === 'boolean') {
+			useHeuristics = use
+		} else {
+			throw Error(`useHeuristics() given ${typeof use} value: ${use}`)
+		}
 	}
 }
