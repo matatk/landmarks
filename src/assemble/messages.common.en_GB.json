@@ -96,6 +96,14 @@
     "message": "Border label font size (pixels):"
   },
 
+  "prefsDeveloper": {
+    "message": "Developer and accessibility auditor settings"
+  },
+
+  "prefsDeveloperDoNotGuess": {
+    "message": "Do not guess landmark regions"
+  },
+
   "prefsResetAll": {
     "message": "Reset everything to defaults"
   },

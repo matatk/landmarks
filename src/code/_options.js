@@ -15,11 +15,15 @@ const options = [{
 }, {
 	name: 'borderColour',
 	kind: 'individual',
-	element: document.getElementById('border-colour'),
+	element: document.getElementById('border-colour')
 }, {
 	name: 'borderFontSize',
 	kind: 'individual',
-	element: document.getElementById('border-font-size'),
+	element: document.getElementById('border-font-size')
+}, {
+	name: 'developerDoNotGuess',
+	kind: 'boolean',
+	element: document.getElementById('developer-do-not-guess')
 }]
 
 function restoreOptions() {
@@ -31,6 +35,9 @@ function restoreOptions() {
 			switch (option.kind) {
 				case 'radio':
 					document.getElementById(`radio-${saved}`).checked = true
+					break
+				case 'boolean':
+					option.element.checked = saved
 					break
 				case 'individual':
 					option.element.value = saved
@@ -44,12 +51,23 @@ function restoreOptions() {
 
 function setUpOptionHandlers() {
 	for (const option of options) {
-		if (option.kind === 'individual') {
-			option.element.addEventListener('change', () => {
-				browser.storage.sync.set({
-					[option.name]: option.element.value
+		switch (option.kind) {
+			case 'individual':
+				option.element.addEventListener('change', () => {
+					browser.storage.sync.set({
+						[option.name]: option.element.value
+					})
 				})
-			})
+				break
+			case 'boolean':
+				option.element.addEventListener('change', () => {
+					browser.storage.sync.set({
+						[option.name]: option.element.checked
+					})
+				})
+				break
+			default:
+				// Choice (radio button) options are handled below.
 		}
 	}
 
