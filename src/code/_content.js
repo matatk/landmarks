@@ -6,9 +6,10 @@ import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
+import { defaultDeveloperSettings } from './defaults'
 
-const landmarksFinderStandard = new Standard(window, document, true)
-const landmarksFinderDeveloper = new Developer(window, document, true)
+const landmarksFinderStandard = new Standard(window, document)
+const landmarksFinderDeveloper = new Developer(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
@@ -321,6 +322,20 @@ function bootstrap() {
 				document.removeEventListener('visibilitychange', reflectPageVisibility, false)
 			})
 	}
+
+	browser.storage.sync.get(defaultDeveloperSettings, function(items) {
+		console.log('CS: setting values...')
+		landmarksFinderStandard.useHeuristics(!items['developerDoNotGuess'])
+		landmarksFinderDeveloper.useHeuristics(!items['developerDoNotGuess'])
+	})
+
+	browser.storage.onChanged.addListener(function(changes) {
+		if ('developerDoNotGuess' in changes) {
+			console.log('CS: dev opt changed...')
+			landmarksFinderStandard.useHeuristics(!changes.developerDoNotGuess.newValue)
+			landmarksFinderDeveloper.useHeuristics(!changes.developerDoNotGuess.newValue)
+		}
+	})
 
 	createMutationObserver()
 	// Requesting the DevTools' state will eventually cause the correct scanner
