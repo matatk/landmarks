@@ -206,7 +206,7 @@ function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
 
 
 //
-// Bootstrapping and mutation observer setup
+// Mutation observation
 //
 
 function shouldRefreshLandmarkss(mutations) {
@@ -310,23 +310,27 @@ function reflectPageVisibility() {
 	}
 }
 
-function bootstrap() {
-	debugSend(`starting - ${window.location}`)
+
+//
+// Bootstrapping
+//
+
+function disconnectHandler() {
+	console.log('Landmarks: content script disconnected ' +
+		'due to extension unload/reload.')
+	observer.disconnect()
+	document.removeEventListener('visibilitychange', reflectPageVisibility)
+}
+
+function startUpTasks() {
+	document.addEventListener('visibilitychange', reflectPageVisibility)
+
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
-			.onDisconnect.addListener(function() {
-				console.log('Landmarks: content script disconnected due to extension unload/reload.')
-				observer.disconnect()
-				document.removeEventListener('visibilitychange', reflectPageVisibility, false)
-			})
+			.onDisconnect.addListener(disconnectHandler)
 	}
-
-	browser.storage.sync.get(defaultDeveloperSettings, function(items) {
-		landmarksFinderStandard.useHeuristics(!items.developerDoNotGuess)
-		landmarksFinderDeveloper.useHeuristics(!items.developerDoNotGuess)
-	})
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('developerDoNotGuess' in changes) {
@@ -340,10 +344,15 @@ function bootstrap() {
 	})
 
 	createMutationObserver()
-	// Requesting the DevTools' state will eventually cause the correct scanner
-	// to be set, and the document to be scanned, if visible.
+
+	// Requesting the DevTools' state will eventually cause the correct
+	// scanner to be set, and the document to be scanned, if visible.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 }
 
-bootstrap()
+debugSend(`starting - ${window.location}`)
+browser.storage.sync.get(defaultDeveloperSettings, function(items) {
+	landmarksFinderStandard.useHeuristics(!items.developerDoNotGuess)
+	landmarksFinderDeveloper.useHeuristics(!items.developerDoNotGuess)
+	startUpTasks()
+})
