@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc) {
+export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	//
 	// Constants
 	//
@@ -88,7 +88,7 @@ export default function LandmarksFinder(win, doc) {
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
 
-	let useHeuristics = null
+	let useHeuristics = _testUseHeuristics  // parameter is only use by tests
 	let _pageWarnings = MODE === 'developer' ? [] : null
 	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
 	let _visibleMainElements = MODE === 'developer' ? [] : null

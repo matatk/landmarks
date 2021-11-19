@@ -21,9 +21,9 @@ const options = [{
 	kind: 'individual',
 	element: document.getElementById('border-font-size')
 }, {
-	name: 'developerDoNotGuess',
+	name: 'guessLandmarks',
 	kind: 'boolean',
-	element: document.getElementById('developer-do-not-guess')
+	element: document.getElementById('guess-landmarks')
 }]
 
 function restoreOptions() {

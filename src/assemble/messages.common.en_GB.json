@@ -96,12 +96,12 @@
     "message": "Border label font size (pixels):"
   },
 
-  "prefsDeveloper": {
-    "message": "Developer and accessibility auditor settings"
+  "prefsGuessLandmarks": {
+    "message": "Try to guess some landmarks if they're not provided"
   },
 
-  "prefsDeveloperDoNotGuess": {
-    "message": "Do not guess landmark regions"
+  "prefsGuessLandmarksInfo": {
+    "message": "If you're a developer or accessibility auditor, you may wish to disable this, as guessed landmarks are counted in the toolbar badge. Regardless of this setting, relevant warnings are always shown in the Landmarks DevTools side pane."
   },
 
   "prefsResetAll": {

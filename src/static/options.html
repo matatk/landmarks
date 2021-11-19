@@ -15,13 +15,15 @@
 
 		<main>
 			<!-- sidebar -->
+			<h2>Interface</h2>
+
 			<fieldset data-pref="interface">
 				<legend data-message="prefsInterface"></legend>
 
 				<div class="field-radio">
 					<input type="radio" name="interface" value="popup" id="radio-popup">
 					<label for="radio-popup">
-						<p data-message="prefsPopup"></p>
+						<p data-message="prefsPopup"></p><span class="visually-hidden">.</span>
 						<p data-message="prefsPopupExplanation"></p>
 					</label>
 				</div>
@@ -29,12 +31,15 @@
 				<div class="field-radio">
 					<input type="radio" name="interface" value="sidebar" id="radio-sidebar">
 					<label for="radio-sidebar">
-						<p data-message="prefsSidebar"></p>
+						<p data-message="prefsSidebar"></p><span class="visually-hidden">.</span>
+
 						<p data-message="prefsSidebarExplanation"></p>
 					</label>
 				</div>
 			</fieldset>
 			<!-- /sidebar -->
+
+			<h2>Border appearance</h2>
 
 			<fieldset data-pref="borderType">
 				<legend data-message="prefsBorderType"></legend>
@@ -63,15 +68,18 @@
 				<input type="number" id="border-font-size">
 			</div>
 
-			<fieldset>
-				<legend data-message="prefsDeveloper"></legend>
+			<h2>Functionality</h2>
 
-				<div class="field-radio">
-					<input type="checkbox" id="developer-do-not-guess">
-					<label for="developer-do-not-guess" data-message="prefsDeveloperDoNotGuess"></label>
-					</label>
-				</div>
-			</fieldset>
+			<div class="field-radio">
+				<input type="checkbox" id="guess-landmarks">
+				<label for="guess-landmarks">
+					<p data-message="prefsGuessLandmarks"></p><span class="visually-hidden">.</span>
+
+					<p data-message="prefsGuessLandmarksInfo"></p>
+				</label>
+			</div>
+
+			<h2>Resetting stuff</h2>
 
 			<div>
 				<button id="reset-messages" data-message="prefsResetMessages" aria-describedby="reset-messages-feedback"></button>

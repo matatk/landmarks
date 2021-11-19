@@ -13,8 +13,8 @@ export const defaultInterfaceSettings =
 		? Object.freeze({ interface: 'popup' })
 		: null
 
-export const defaultDeveloperSettings = Object.freeze({
-	developerDoNotGuess: false
+export const defaultFunctionalSettings = Object.freeze({
+	guessLandmarks: true
 })
 
 export const defaultSettings =
@@ -22,10 +22,10 @@ export const defaultSettings =
 		? Object.freeze(Object.assign({},
 			defaultBorderSettings,
 			defaultInterfaceSettings,
-			defaultDeveloperSettings))
+			defaultFunctionalSettings))
 		: Object.freeze(Object.assign({},
 			defaultBorderSettings,
-			defaultDeveloperSettings))
+			defaultFunctionalSettings))
 
 
 //

@@ -6,7 +6,7 @@ import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
-import { defaultDeveloperSettings } from './defaults'
+import { defaultFunctionalSettings } from './defaults'
 
 const landmarksFinderStandard = new Standard(window, document)
 const landmarksFinderDeveloper = new Developer(window, document)
@@ -333,11 +333,12 @@ function startUpTasks() {
 	}
 
 	browser.storage.onChanged.addListener(function(changes) {
-		if ('developerDoNotGuess' in changes) {
-			const change = changes.developerDoNotGuess
-			if (change.newValue !== change.oldValue) {
-				landmarksFinderStandard.useHeuristics(!change.newValue)
-				landmarksFinderDeveloper.useHeuristics(!change.newValue)
+		if ('guessLandmarks' in changes) {
+			const setting = changes.guessLandmarks.newValue ??
+				defaultFunctionalSettings.guessLandmarks
+			if (setting !== changes.guessLandmarks.oldValue) {
+				landmarksFinderStandard.useHeuristics(setting)
+				landmarksFinderDeveloper.useHeuristics(setting)
 				findLandmarks(noop, noop)
 			}
 		}
@@ -351,8 +352,8 @@ function startUpTasks() {
 }
 
 debugSend(`starting - ${window.location}`)
-browser.storage.sync.get(defaultDeveloperSettings, function(items) {
-	landmarksFinderStandard.useHeuristics(!items.developerDoNotGuess)
-	landmarksFinderDeveloper.useHeuristics(!items.developerDoNotGuess)
+browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+	landmarksFinderStandard.useHeuristics(items.guessLandmarks)
+	landmarksFinderDeveloper.useHeuristics(items.guessLandmarks)
 	startUpTasks()
 })
