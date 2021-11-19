@@ -1,4 +1,8 @@
 {
+  "prefsHeadingInterface": {
+    "message": "Interface"
+  },
+
   "prefsInterface": {
     "message": "Show landmarks in"
   },
