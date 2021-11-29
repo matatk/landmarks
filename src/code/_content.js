@@ -111,8 +111,7 @@ function messageHandler(message) {
 				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
-				debugSend('doc visible; also observing and scanning')
-				observeMutations()  // OK to call again
+				debugSend('doc visible; scanning')
 				findLandmarks(noop, noop)
 			}
 			break
@@ -127,7 +126,7 @@ function messageHandler(message) {
 function doUpdateOutdatedResults() {
 	let outOfDate = false
 	if (observerReconnectionScanTimer !== null) {
-		debugSend('out-of-date: no scan yet + waiting to observe')
+		debugSend('out-of-date: was awaiting reconnection; re-observing now')
 		cancelObserverReconnectionScan()
 		observeMutations()
 		outOfDate = true
@@ -271,7 +270,6 @@ function createMutationObserver() {
 }
 
 function observeMutations() {
-	debugSend('observing mutations')
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -284,7 +282,6 @@ function observeMutations() {
 
 function cancelObserverReconnectionScan() {
 	if (observerReconnectionScanTimer) {
-		debugSend('cancelling scheduled observing and scan')
 		clearTimeout(observerReconnectionScanTimer)
 		observerReconnectionScanTimer = null
 	}
@@ -294,12 +291,10 @@ function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
-		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
-		debugSend('starting reconnection timer')
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('performing scheduled observing and scan')
+			debugSend('page remained visible: observing and scanning')
 			findLandmarksAndSend(
 				msr.incrementNonMutationScans, noop)  // it will send anyway
 			observeMutations()
@@ -343,6 +338,10 @@ function startUpTasks() {
 	})
 
 	createMutationObserver()
+	if (!document.hidden) {
+		debugSend('document visible at startup; observing')
+		observeMutations()
+	}
 
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
