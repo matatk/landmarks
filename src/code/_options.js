@@ -11,15 +11,19 @@ import { defaultSettings, defaultDismissalStates } from './defaults'
 
 const options = [{
 	name: 'borderType',
-	kind: 'radio'
+	kind: 'choice'
 }, {
 	name: 'borderColour',
 	kind: 'individual',
-	element: document.getElementById('border-colour'),
+	element: document.getElementById('border-colour')
 }, {
 	name: 'borderFontSize',
 	kind: 'individual',
-	element: document.getElementById('border-font-size'),
+	element: document.getElementById('border-font-size')
+}, {
+	name: 'guessLandmarks',
+	kind: 'boolean',
+	element: document.getElementById('guess-landmarks')
 }]
 
 function restoreOptions() {
@@ -29,11 +33,14 @@ function restoreOptions() {
 			const saved = items[name]
 
 			switch (option.kind) {
-				case 'radio':
+				case 'choice':
 					document.getElementById(`radio-${saved}`).checked = true
 					break
 				case 'individual':
 					option.element.value = saved
+					break
+				case 'boolean':
+					option.element.checked = saved
 					break
 				default:
 					console.error(`Unexpected option kind '${option.kind}'`)
@@ -44,12 +51,23 @@ function restoreOptions() {
 
 function setUpOptionHandlers() {
 	for (const option of options) {
-		if (option.kind === 'individual') {
-			option.element.addEventListener('change', () => {
-				browser.storage.sync.set({
-					[option.name]: option.element.value
+		switch (option.kind) {
+			case 'individual':
+				option.element.addEventListener('change', () => {
+					browser.storage.sync.set({
+						[option.name]: option.element.value
+					})
 				})
-			})
+				break
+			case 'boolean':
+				option.element.addEventListener('change', () => {
+					browser.storage.sync.set({
+						[option.name]: option.element.checked
+					})
+				})
+				break
+			default:
+				// Choice (radio button) options are handled below.
 		}
 	}
 
@@ -114,7 +132,7 @@ function main() {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		options.push({
 			name: 'interface',
-			kind: 'radio'
+			kind: 'choice'
 		})
 
 		if (BROWSER === 'opera') {

@@ -6,9 +6,10 @@ import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
+import { defaultFunctionalSettings } from './defaults'
 
-const landmarksFinderStandard = new Standard(window, document, true)
-const landmarksFinderDeveloper = new Developer(window, document, true)
+const landmarksFinderStandard = new Standard(window, document)
+const landmarksFinderDeveloper = new Developer(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
@@ -205,7 +206,7 @@ function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
 
 
 //
-// Bootstrapping and mutation observer setup
+// Mutation observation
 //
 
 function shouldRefreshLandmarkss(mutations) {
@@ -309,24 +310,50 @@ function reflectPageVisibility() {
 	}
 }
 
-function bootstrap() {
-	debugSend(`starting - ${window.location}`)
+
+//
+// Bootstrapping
+//
+
+function disconnectHandler() {
+	console.log('Landmarks: content script disconnected ' +
+		'due to extension unload/reload.')
+	observer.disconnect()
+	document.removeEventListener('visibilitychange', reflectPageVisibility)
+}
+
+function startUpTasks() {
+	document.addEventListener('visibilitychange', reflectPageVisibility)
+
 	browser.runtime.onMessage.addListener(messageHandler)
 
 	if (BROWSER !== 'firefox') {
 		browser.runtime.connect({ name: 'disconnect-checker' })
-			.onDisconnect.addListener(function() {
-				console.log('Landmarks: content script disconnected due to extension unload/reload.')
-				observer.disconnect()
-				document.removeEventListener('visibilitychange', reflectPageVisibility, false)
-			})
+			.onDisconnect.addListener(disconnectHandler)
 	}
 
+	browser.storage.onChanged.addListener(function(changes) {
+		if ('guessLandmarks' in changes) {
+			const setting = changes.guessLandmarks.newValue ??
+				defaultFunctionalSettings.guessLandmarks
+			if (setting !== changes.guessLandmarks.oldValue) {
+				landmarksFinderStandard.useHeuristics(setting)
+				landmarksFinderDeveloper.useHeuristics(setting)
+				findLandmarks(noop, noop)
+			}
+		}
+	})
+
 	createMutationObserver()
-	// Requesting the DevTools' state will eventually cause the correct scanner
-	// to be set, and the document to be scanned, if visible.
+
+	// Requesting the DevTools' state will eventually cause the correct
+	// scanner to be set, and the document to be scanned, if visible.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
-	document.addEventListener('visibilitychange', reflectPageVisibility, false)
 }
 
-bootstrap()
+debugSend(`starting - ${window.location}`)
+browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+	landmarksFinderStandard.useHeuristics(items.guessLandmarks)
+	landmarksFinderDeveloper.useHeuristics(items.guessLandmarks)
+	startUpTasks()
+})

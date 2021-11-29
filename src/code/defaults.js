@@ -13,12 +13,19 @@ export const defaultInterfaceSettings =
 		? Object.freeze({ interface: 'popup' })
 		: null
 
+export const defaultFunctionalSettings = Object.freeze({
+	guessLandmarks: true
+})
+
 export const defaultSettings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
 		? Object.freeze(Object.assign({},
 			defaultBorderSettings,
-			defaultInterfaceSettings))
-		: Object.freeze(defaultBorderSettings)
+			defaultInterfaceSettings,
+			defaultFunctionalSettings))
+		: Object.freeze(Object.assign({},
+			defaultBorderSettings,
+			defaultFunctionalSettings))
 
 
 //

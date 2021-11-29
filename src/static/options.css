@@ -1,4 +1,7 @@
-main > * + * { margin-top: 1rem; }
+main > * + :not(h2) { margin-top: 1rem; }
+
+input[type="radio"],
+input[type="checkbox"] { transform: scale(var(--radio-and-tick-scale-factor)); }
 
 button[aria-pressed="true"] {
 	background-color: var(--accent-1);
@@ -10,19 +13,19 @@ fieldset > * + * { margin-top: 0.5rem; }
 .field-radio {
 	display: flex;
 	align-items: center;
+	gap: 1em;
 }
 
 .field-radio label {
-	margin-left: 0.5rem;
 	flex-grow: 1;
 }
 
-fieldset label p {
+label p {
 	margin: 0;
 	margin-bottom: 0.25rem;
 }
 
-fieldset label p:first-child { font-weight: bold; }
+label p:first-child { font-weight: bold; }
 
 fieldset > :last-child { margin-bottom: 0.5rem; }
 

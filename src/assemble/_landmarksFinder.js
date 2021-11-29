@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc, useHeuristics) {
+export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	//
 	// Constants
 	//
@@ -88,6 +88,7 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
 
+	let useHeuristics = _testUseHeuristics  // parameter is only used by tests
 	let _pageWarnings = MODE === 'developer' ? [] : null
 	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
 	let _visibleMainElements = MODE === 'developer' ? [] : null
@@ -575,5 +576,13 @@ export default function LandmarksFinder(win, doc, useHeuristics) {
 			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
 		return null
+	}
+
+	this.useHeuristics = function(use) {
+		if (typeof use === 'boolean') {
+			useHeuristics = use
+		} else {
+			throw Error(`useHeuristics() given ${typeof use} value: ${use}`)
+		}
 	}
 }
