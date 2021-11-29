@@ -113,7 +113,8 @@ function messageHandler(message) {
 				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
-				debugSend('doc visible; also scanning')
+				debugSend('doc visible; also observing and scanning')
+				observeMutations()  // OK to call again
 				findLandmarks(noop, noop)
 			}
 			break
@@ -346,8 +347,9 @@ function startUpTasks() {
 
 	createMutationObserver()
 
-	// Requesting the DevTools' state will eventually cause the correct
-	// scanner to be set, and the document to be scanned, if visible.
+	// Requesting the DevTools' state will eventually cause the correct scanner
+	// to be set, the observer to be hooked up, and the document to be scanned,
+	// if visible.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
