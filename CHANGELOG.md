@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug fixes
 
-* Ensure pages loaded in the foreground tab are monitored for changes ([#460](https://github.com/matatk/landmarks/issues/460)) ([9216a38](https://github.com/matatk/landmarks/commit/9216a38504c6fa776402c9f4adb94f7d043987cc)), closes [#428](https://github.com/matatk/landmarks/issues/428) [#458](https://github.com/matatk/landmarks/issues/458) [#458](https://github.com/matatk/landmarks/issues/458)
+* Ensure pages loaded in the foreground tab are monitored for changes ([#460](https://github.com/matatk/landmarks/issues/460)) ([9216a38](https://github.com/matatk/landmarks/commit/9216a38504c6fa776402c9f4adb94f7d043987cc)), closes [#458](https://github.com/matatk/landmarks/issues/458)
 
 
 ### Documentation
