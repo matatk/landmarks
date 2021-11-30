@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.11.0](https://github.com/matatk/landmarks/compare/2.10.1...2.11.0) (2021-11-30)
+
+
+### Features
+
+* Add an option to control whether heuristics are used ([#459](https://github.com/matatk/landmarks/issues/459)) ([116251d](https://github.com/matatk/landmarks/commit/116251d8633ba121fb61f92c7a138c0f262182a3)), closes [#457](https://github.com/matatk/landmarks/issues/457)
+
+
+### Bug fixes
+
+* Ensure pages loaded in the foreground tab are monitored for changes ([#460](https://github.com/matatk/landmarks/issues/460)) ([9216a38](https://github.com/matatk/landmarks/commit/9216a38504c6fa776402c9f4adb94f7d043987cc)), closes [#428](https://github.com/matatk/landmarks/issues/428) [#458](https://github.com/matatk/landmarks/issues/458) [#458](https://github.com/matatk/landmarks/issues/458)
+
+
+### Documentation
+
+* **Help:** Release notes for 2.11.0 ([#461](https://github.com/matatk/landmarks/issues/461)) ([c5062a7](https://github.com/matatk/landmarks/commit/c5062a7a47261be072f6ce1eef1c812c9f54d4e8))
+
+
+### Builds
+
+* Improve reviewer info script ([#456](https://github.com/matatk/landmarks/issues/456)) ([086041d](https://github.com/matatk/landmarks/commit/086041d79a812d88eaa7d6ed6bab7f538742f4ab))
+* Run the local copy of standard-version ([#462](https://github.com/matatk/landmarks/issues/462)) ([e688b13](https://github.com/matatk/landmarks/commit/e688b13b95db3c2cac9d03e969c6cf52fe328ce3))
+
 ## [2.10.1](https://github.com/matatk/landmarks/compare/2.10.0...2.10.1) (2021-08-14)
 
 
