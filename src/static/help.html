@@ -52,18 +52,10 @@
 
 			<div id="section-new">
 				<h2>What's new?</h2>
-				<p>New in version 2.10.0&hellip;</p>
+				<p>New in version <span id="version"></span>&hellip;</p>
 				<ul>
-					<li>Try guessing what may be the &quot;<span data-message="roleMain"></span>&quot; region if the page author hasn't declared one.</li>
-					<li>Try guessing &quot;<span data-message="roleNavigation"></span>&quot; regions if the author hasn't declared any.</li>
-					<li>Improve the DevTools panel's style, match the browsers' UI more.</li>
-					<li>Add a DevTools warning for the page lacking a &quot;<span data-message="roleMain"></span>&quot; region.</li>
-				</ul>
-				<p>This is version <span id="version"></span>, which addresses the following bugs/small things&hellip;</p>
-				<ul>
-					<li>Don't guess regions that have no text content.</li>
-					<li>Fix the update notice not appearing.</li>
-					<li>Document that on Opera, the sidebar is currently broken due to a browser bug.</li>
+					<li>Make the guessing of landmark regions an option (that defaults to being on)&mdash;this may be of use to you if you're a developer or accessibility auditor as, whilst guessed regions are indicated in the UI, they are included in the number of landmarks in the toolbar button's badge. Turning this off means that number won't include any guessed regions.</li>
+					<li>Fix a bug where pages wouldn't be monitored for changes (mutations) if loaded in the foreground tab.</li>
 				</ul>
 				<p>For full details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#changelog">change log</a>.</p>
 			</div>
