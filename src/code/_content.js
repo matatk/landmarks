@@ -21,7 +21,6 @@ const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer = null
 let observer = null
 let landmarksFinder = landmarksFinderStandard  // just in case
-let haveScannedForLandmarks = false
 
 
 //
@@ -98,7 +97,6 @@ function messageHandler(message) {
 			findLandmarksAndSend(
 				// TODO: this willl send the non-mutation message twice
 				msr.incrementNonMutationScans, msr.sendAllUpdates)
-			// haveScannedForLandmarks will be set to true now anyway
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
@@ -113,7 +111,7 @@ function messageHandler(message) {
 				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
-				debugSend('doc visible; also scanning')
+				debugSend('doc visible; scanning')
 				findLandmarks(noop, noop)
 			}
 			break
@@ -127,8 +125,8 @@ function messageHandler(message) {
 
 function doUpdateOutdatedResults() {
 	let outOfDate = false
-	if (observerReconnectionScanTimer !== null && !haveScannedForLandmarks) {
-		debugSend('out-of-date: no scan yet + waiting to observe')
+	if (observerReconnectionScanTimer !== null) {
+		debugSend('out-of-date: was awaiting reconnection; re-observing now')
 		cancelObserverReconnectionScan()
 		observeMutations()
 		outOfDate = true
@@ -185,7 +183,6 @@ function findLandmarks(counterIncrementFunction, updateSendFunction) {
 
 	const start = performance.now()
 	landmarksFinder.find()
-	if (!haveScannedForLandmarks) haveScannedForLandmarks = true
 	msr.setLastScanDuration(performance.now() - start)
 
 	counterIncrementFunction()
@@ -273,7 +270,6 @@ function createMutationObserver() {
 }
 
 function observeMutations() {
-	debugSend('observing mutations')
 	observer.observe(document, {
 		attributes: true,
 		childList: true,
@@ -286,7 +282,6 @@ function observeMutations() {
 
 function cancelObserverReconnectionScan() {
 	if (observerReconnectionScanTimer) {
-		debugSend('cancelling scheduled observing and scan')
 		clearTimeout(observerReconnectionScanTimer)
 		observerReconnectionScanTimer = null
 	}
@@ -296,12 +291,10 @@ function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
-		debugSend('disconnecting from observer')
 		observer.disconnect()
 	} else {
-		debugSend('starting reconnection timer')
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('performing scheduled observing and scan')
+			debugSend('page remained visible: observing and scanning')
 			findLandmarksAndSend(
 				msr.incrementNonMutationScans, noop)  // it will send anyway
 			observeMutations()
@@ -345,9 +338,14 @@ function startUpTasks() {
 	})
 
 	createMutationObserver()
+	if (!document.hidden) {
+		debugSend('document visible at startup; observing')
+		observeMutations()
+	}
 
-	// Requesting the DevTools' state will eventually cause the correct
-	// scanner to be set, and the document to be scanned, if visible.
+	// Requesting the DevTools' state will eventually cause the correct scanner
+	// to be set, the observer to be hooked up, and the document to be scanned,
+	// if visible.
 	browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
