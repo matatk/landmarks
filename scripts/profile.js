@@ -9,6 +9,8 @@ import stats from 'stats-lite'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
+import { makeLandmarksFinders } from './lib.js'
+
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
@@ -120,6 +122,7 @@ async function insertLandmark(page, repetition) {
 //   useHeuristics (bool)  -- employ guessing in the Finder?
 
 async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without) {
+	await makeLandmarksFinders(true)
 	const finders = await wrapLandmarksFinders()
 
 	const fullResults = { 'meta': { 'loops': loops } }
@@ -267,6 +270,7 @@ async function runScansOnSite(browser, site, {
 
 async function wrapLandmarksFinders() {
 	const finderPaths = {}
+	let didWrap = false
 
 	for (const name of ['Standard', 'Developer']) {
 		const objectName = `LandmarksFinder${name}`
@@ -286,11 +290,13 @@ async function wrapLandmarksFinders() {
 				format: 'iife',
 				name: objectName
 			})
+			didWrap = true
 		}
 
 		finderPaths[objectName] = outputPath
 	}
 
+	if (didWrap) console.log()
 	return finderPaths
 }
 

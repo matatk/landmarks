@@ -8,7 +8,6 @@ import prettier from 'rollup-plugin-prettier'
 import fse from 'fs-extra'
 import glob from 'glob'
 import merge from 'deepmerge'
-import { minify } from 'terser'
 import replace from 'replace-in-file'
 import { rollup } from 'rollup'
 import sharp from 'sharp'
@@ -17,6 +16,8 @@ import { terser } from 'rollup-plugin-terser'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import linter from 'addons-linter'
+
+import { logStep, srcAssembleDir, srcCodeDir, makeLandmarksFinders, makeTerserOptions } from './lib.js'
 
 const requireJson = (path) =>
 	JSON.parse(fs.readFileSync(new URL(path, import.meta.url)))
@@ -31,8 +32,6 @@ const extName = packageJson.name
 let extVersion = packageJson.version  // can be overidden on command line
 const buildDir = 'build'
 const srcStaticDir = path.join('src', 'static')
-const srcAssembleDir = path.join('src', 'assemble')
-const srcCodeDir = path.join('src', 'code')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
 const scriptCacheDir = path.join(buildDir, 'script-cache')
@@ -138,12 +137,6 @@ function error() {
 }
 
 
-// Log the start of a new step (styled)
-function logStep(name) {
-	console.log(chalk.underline(name + '...'))
-}
-
-
 // Return path for extension in build folder
 function pathToBuild(browser) {
 	if (validBrowsers.includes(browser)) {
@@ -183,30 +176,6 @@ function builtMessagesFile(browser, locale) {
 }
 
 
-function makeTerserOptions(globals) {
-	return {
-		mangle: false,
-		compress: {
-			defaults: false,
-			global_defs: globals, // eslint-disable-line camelcase
-			conditionals: true,
-			dead_code: true,      // eslint-disable-line camelcase
-			evaluate: true,
-			side_effects: true,   // eslint-disable-line camelcase
-			switches: true,
-			unused: true,
-			passes: 2  // expand env vars; compresses their code
-		},
-		output: {
-			beautify: true,
-			braces: true,
-			comments: true
-			// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
-		}
-	}
-}
-
-
 //
 // Build Steps
 //
@@ -216,35 +185,6 @@ function clean(browser) {
 
 	fse.removeSync(pathToBuild(browser))
 	fse.removeSync(zipFileName(browser))
-}
-
-
-async function makeLandmarksFinders() {
-	logStep('Creating the two landmarkFinder code versions')
-	const sourceName = '_landmarksFinder.js'
-	const sourcePath = path.join(srcAssembleDir, sourceName)
-
-	for (const mode of ['standard', 'developer']) {
-		const titleCaseMode = mode.charAt(0).toUpperCase() + mode.substr(1)
-		const cachedName = `landmarksFinder${titleCaseMode}.js`
-		const cachedPath = path.join(srcCodeDir, cachedName)
-		const cachedScriptExists = fs.existsSync(cachedPath)
-		const cachedScriptModified = cachedScriptExists
-			? fs.statSync(cachedPath).mtime
-			: null
-		const sourceModified = fs.statSync(sourcePath).mtime
-
-		if (!cachedScriptExists || sourceModified > cachedScriptModified) {
-			console.log(chalk.bold.blue(
-				`Bundling ${sourceName} as ${cachedName}...`))
-			const source = fs.readFileSync(sourcePath, 'utf8')
-			const result = await minify(
-				source, makeTerserOptions({ MODE: mode }))
-			fs.writeFileSync(cachedPath, result.code)
-		} else {
-			console.log(chalk.bold.blue(`Using cached ${cachedName}`))
-		}
-	}
 }
 
 
@@ -627,13 +567,10 @@ async function lintFirefox(lintFolderInsteadOfZip) {
 
 async function main() {
 	const argv = yargs(hideBin(process.argv))
-		.usage('Usage: $0 {--pre-process|--browser <browser>} [other options]')
+		.usage('Usage: $0 --browser <browser> [other options]')
 		.help('help')
 		.alias('help', 'h')
-		.boolean('pre-process')
-		.alias('pre-process', 'p')
-		.describe('pre-process', 'Generate code that requires pre-processing to create (i.e. the LandmarksFinder variants)')
-		.describe('browser', 'Build for a specific browser, or all browsers. Existing build directory and extension ZIP files are deleted first.')
+		.describe('browser', 'Build for a specific browser, or all browsers. Multiple browsers can be specified as repeat options. Existing build directory and extension ZIP files are deleted first.')
 		.choices('browser', buildTargets)
 		.alias('browser', 'b')
 		.describe('test-release', 'Build an experimental release, which is flagged as being a test version')
@@ -655,12 +592,7 @@ async function main() {
 		.describe('skip-zipping', "Don't create the zip archive (for when running locally only)")
 		.boolean('skip-zipping')
 		.alias('skip-zipping', 'Z')
-		.check(argv => {
-			if (!argv.browser && !argv.preProcess) {
-				throw new Error('You must request either a browser build or pre-processing')
-			}
-			return true
-		})
+		.demandOption('browser', 'You must specify at least one browser')
 		.argv
 
 	if (argv.release) extVersion = argv.release
