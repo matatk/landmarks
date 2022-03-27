@@ -324,9 +324,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		if (role === 'region' || (role === 'form' && !explicitRole)) {
 			return label !== null
 		}
-
-		// Is the role (which may've been explicitly set) a valid landmark type?
-		return regionTypes.includes(role)  // FIXME: no longer needed; test diff
+		return true  // already a valid role if we were called
 	}
 
 	function getRoleDescription(element) {
