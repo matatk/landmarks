@@ -137,7 +137,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		let explicitRole = false
 
 		// Elements with explicitly-set rolees
-		if (element.getAttribute) {  // FIXME/TODO: why is this check needed?
+		if (element.getAttribute) {  // TODO: why is this check needed?
 			const tempRole = getValidExplicitRole(element)
 			if (tempRole) {
 				role = tempRole
@@ -267,7 +267,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	}
 
 	function getValidExplicitRole(element) {
-		const value = element.getAttribute('role')  // FIXME: test passing just attribute value string?
+		const value = element.getAttribute('role')
 
 		if (value) {
 			if (value.indexOf(' ') >= 0) {
