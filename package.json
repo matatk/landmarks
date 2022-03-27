@@ -13,7 +13,7 @@
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
-    "pretest": "eslint .",
+    "pretest": "node scripts/makeLandmarksFinders.js && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "version": "npx standard-version --tag-prefix=",
