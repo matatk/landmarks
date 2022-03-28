@@ -39,7 +39,7 @@
     "glob": "^7.1.7",
     "husky": "^7.0.1",
     "jsdom": "^16.6.0",
-    "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.7.0",
+    "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.8.0",
     "prettier": "^2.3.2",
     "puppeteer": "^10.0.0",
     "replace-in-file": "^6.2.0",

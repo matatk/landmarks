@@ -137,8 +137,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		let explicitRole = false
 
 		// Elements with explicitly-set rolees
-		if (element.getAttribute) {
-			const tempRole = element.getAttribute('role')
+		if (element.getAttribute) {  // TODO: why is this check needed?
+			const tempRole = getValidExplicitRole(element)
 			if (tempRole) {
 				role = tempRole
 				explicitRole = true
@@ -205,93 +205,6 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		}
 	}
 
-	function getARIAProvidedLabel(element) {
-		let label = null
-
-		// TODO general whitespace test?
-		const idRefs = element.getAttribute('aria-labelledby')
-		if (idRefs !== null && idRefs.length > 0) {
-			const innerTexts = Array.from(idRefs.split(' '), idRef => {
-				const labelElement = doc.getElementById(idRef)
-				return getInnerText(labelElement)
-			})
-			label = innerTexts.join(' ')
-		}
-
-		if (label === null) {
-			label = element.getAttribute('aria-label')
-		}
-
-		return label
-	}
-
-	function isLandmark(role, explicitRole, label) {
-		// <section> and <form> are only landmarks when labelled.
-		// <div role="form"> is always a landmark.
-		if (role === 'region' || (role === 'form' && !explicitRole)) {
-			return label !== null
-		}
-
-		// Is the role (which may've been explicitly set) a valid landmark type?
-		return regionTypes.includes(role)
-	}
-
-	function getInnerText(element) {
-		let text = null
-
-		if (element) {
-			text = element.innerText
-			if (text === undefined) {
-				text = element.textContent
-			}
-		}
-
-		return text
-	}
-
-	function getRoleFromTagNameAndContainment(element) {
-		const name = element.tagName
-		let role = null
-
-		if (name) {
-			if (implicitRoles.hasOwnProperty(name)) {
-				role = implicitRoles[name]
-			}
-
-			// <header> and <footer> elements have some containment-
-			// related constraints on whether they're counted as landmarks
-			if (name === 'HEADER' || name === 'FOOTER') {
-				if (!isChildOfTopLevelSection(element)) {
-					role = null
-				}
-			}
-		}
-
-		return role
-	}
-
-	function getRoleDescription(element) {
-		const roleDescription = element.getAttribute('aria-roledescription')
-		// TODO make this a general whitespace check?
-		if (/^\s*$/.test(roleDescription)) {
-			return null
-		}
-		return roleDescription
-	}
-
-	function isChildOfTopLevelSection(element) {
-		let ancestor = element.parentNode
-
-		while (ancestor !== null) {
-			if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
-				return false
-			}
-			ancestor = ancestor.parentNode
-		}
-
-		return true
-	}
-
 	// TODO: Check if we need this at all?
 	// Note: This only checks the element itself: it won't reflect if this
 	//       element is contained in another that _is_ visually hidden. So far
@@ -317,6 +230,111 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 			return true
 		}
 		return false
+	}
+
+	function getRoleFromTagNameAndContainment(element) {
+		const name = element.tagName
+		let role = null
+
+		if (name) {
+			if (implicitRoles.hasOwnProperty(name)) {
+				role = implicitRoles[name]
+			}
+
+			// <header> and <footer> elements have some containment-
+			// related constraints on whether they're counted as landmarks
+			if (name === 'HEADER' || name === 'FOOTER') {
+				if (!isChildOfTopLevelSection(element)) {
+					role = null
+				}
+			}
+		}
+
+		return role
+	}
+
+	function isChildOfTopLevelSection(element) {
+		let ancestor = element.parentNode
+
+		while (ancestor !== null) {
+			if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
+				return false
+			}
+			ancestor = ancestor.parentNode
+		}
+
+		return true
+	}
+
+	function getValidExplicitRole(element) {
+		const value = element.getAttribute('role')
+
+		if (value) {
+			if (value.indexOf(' ') >= 0) {
+				const roles = value.split(' ')
+				for (const role of roles) {
+					if (regionTypes.includes(role)) {
+						return role
+					}
+				}
+			} else if (regionTypes.includes(value)) {
+				return value
+			}
+		}
+
+		return null
+	}
+
+	function getARIAProvidedLabel(element) {
+		let label = null
+
+		// TODO general whitespace test?
+		// TODO if some IDs don't exist, this will include nulls - test?
+		const idRefs = element.getAttribute('aria-labelledby')
+		if (idRefs !== null && idRefs.length > 0) {
+			const innerTexts = Array.from(idRefs.split(' '), idRef => {
+				const labelElement = doc.getElementById(idRef)
+				return getInnerText(labelElement)
+			})
+			label = innerTexts.join(' ')
+		}
+
+		if (label === null) {
+			label = element.getAttribute('aria-label')
+		}
+
+		return label
+	}
+
+	function getInnerText(element) {
+		let text = null
+
+		if (element) {
+			text = element.innerText
+			if (text === undefined) {
+				text = element.textContent
+			}
+		}
+
+		return text
+	}
+
+	function isLandmark(role, explicitRole, label) {
+		// <section> and <form> are only landmarks when labelled.
+		// <div role="form"> is always a landmark.
+		if (role === 'region' || (role === 'form' && !explicitRole)) {
+			return label !== null
+		}
+		return true  // already a valid role if we were called
+	}
+
+	function getRoleDescription(element) {
+		const roleDescription = element.getAttribute('aria-roledescription')
+		// TODO make this a general whitespace check?
+		if (/^\s*$/.test(roleDescription)) {
+			return null
+		}
+		return roleDescription
 	}
 
 	function createSelector(element) {
