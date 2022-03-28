@@ -289,6 +289,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		let label = null
 
 		// TODO general whitespace test?
+		// TODO if some IDs don't exist, this will include nulls - test?
 		const idRefs = element.getAttribute('aria-labelledby')
 		if (idRefs !== null && idRefs.length > 0) {
 			const innerTexts = Array.from(idRefs.split(' '), idRef => {
