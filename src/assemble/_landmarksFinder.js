@@ -202,28 +202,23 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		}
 	}
 
-	// TODO: Check if we need this at all?
-	// Note: This only checks the element itself: it won't reflect if this
-	//       element is contained in another that _is_ visually hidden. So far
-	//       this only seems to be a problem for some OTTly-guessed landmarks,
-	//       though (heuristics aren't using this function, but there's no
-	//       point due to not considering the parents).
-	// https://stackoverflow.com/a/56692552/1485308
-	// https://stackoverflow.com/q/19669786/1485308
+	// This can only check an element's direct styles. We just stop recursing
+	// into elements that are hidden. That's why the heuristics don't call this
+	// function (they don't check all of a guessed landmark's parent elements).
 	function isVisuallyHidden(element) {
+		if (element.hasAttribute('hidden')) return true
+
 		const style = win.getComputedStyle(element)
-		if (element.hasAttribute('hidden')
-			|| style.visibility === 'hidden'
-			|| style.display === 'none' ) {
+		if (style.visibility === 'hidden' || style.display === 'none') {
 			return true
 		}
+
 		return false
 	}
 
 	function isSemantiallyHidden(element) {
 		if (element.getAttribute('aria-hidden') === 'true'
-			|| (element.hasAttribute('inert')
-				&& element.getAttribute('inert') !== 'false')) {
+			|| element.hasAttribute('inert')) {
 			return true
 		}
 		return false
