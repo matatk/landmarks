@@ -132,24 +132,21 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	function getLandmarks(element, depth, parentLandmark) {
 		if (isVisuallyHidden(element) || isSemantiallyHidden(element)) return
 
-		// Support HTML5 elements' native roles
-		let role = getRoleFromTagNameAndContainment(element)
-		let explicitRole = false
-
 		// Elements with explicitly-set rolees
-		if (element.getAttribute) {  // TODO: why is this check needed?
-			const tempRole = getValidExplicitRole(element)
-			if (tempRole) {
-				role = tempRole
-				explicitRole = true
-			}
-		}
+		const rawRoleValue = element.getAttribute('role')
+		const explicitRole = rawRoleValue
+			? getValidExplicitRole(rawRoleValue)
+			: null
+		const hasExplicitRole = explicitRole !== null
+
+		// Support HTML5 elements' native roles
+		const role = explicitRole ?? getRoleFromTagNameAndContainment(element)
 
 		// The element may or may not have a label
 		const label = getARIAProvidedLabel(element)
 
 		// Add the element if it should be considered a landmark
-		if (role && isLandmark(role, explicitRole, label)) {
+		if (role && isLandmark(role, hasExplicitRole, label)) {
 			if (parentLandmark && parentLandmark.contains(element)) {
 				depth = depth + 1
 			}
@@ -175,7 +172,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 				}
 
 				if (role === 'main'
-					&& explicitRole === false
+					&& !hasExplicitRole
 					&& !isVisuallyHidden(element)) {
 					_visibleMainElements.push(element)
 				}
@@ -266,9 +263,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		return true
 	}
 
-	function getValidExplicitRole(element) {
-		const value = element.getAttribute('role')
-
+	function getValidExplicitRole(value) {
 		if (value) {
 			if (value.indexOf(' ') >= 0) {
 				const roles = value.split(' ')
@@ -281,7 +276,6 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 				return value
 			}
 		}
-
 		return null
 	}
 
