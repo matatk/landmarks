@@ -171,9 +171,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 					_unlabelledRoleElements.get(role).push(element)
 				}
 
-				if (role === 'main'
-					&& !hasExplicitRole
-					&& !isVisuallyHidden(element)) {
+				if (role === 'main' && !hasExplicitRole) {
 					_visibleMainElements.push(element)
 				}
 			}
