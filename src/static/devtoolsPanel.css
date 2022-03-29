@@ -8,18 +8,29 @@
 	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
 	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
 	html { font-size: 12px; }
-
-	body { background-color: var(--bkg); }
 }
 
-html {
+:root {
 	--text: black;
 	--bkg: white;
 	--thin-accent: gray;
 	--thick-accent: #ccc;
 	--danger: #e00;
 	--link: blue;
+}
 
+@media (prefers-color-scheme: dark) {
+	:root {
+		--text: white;
+		--bkg: black;
+		--thin-accent: #6b6b6b;
+		--thick-accent: #444;
+		--danger: red;
+		--link: #88f;
+	}
+}
+
+html {
 	/* Shared across themes */
 	--border: 1px solid var(--thin-accent);
 	--small-spacing: 0.15rem;
@@ -27,20 +38,12 @@ html {
 	--big-padding: 0.5rem;
 }
 
-html.theme-dark {
-	--text: white;
-	--bkg: black;
-	--thin-accent: #6b6b6b;
-	--thick-accent: #444;
-	--danger: red;
-	--link: #88f;
-}
-
 body {
 	font-family: sans-serif;
-	margin: 0;
-	color: var(--text);
 	line-height: 1.2;
+	color: var(--text);
+	background-color: var(--bkg);
+	margin: 0;
 }
 
 a { color: var(--link); }
@@ -48,7 +51,7 @@ a { color: var(--link); }
 button {
 	font-size: inherit;
 	color: var(--text);
-	background-color: unset;
+	background-color: var(--bkg);
 }
 button.examine::after { content: "🔍"; }
 

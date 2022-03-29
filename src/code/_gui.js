@@ -386,10 +386,6 @@ function handleMutationMessage(data) {
 	}
 }
 
-function reflectDevToolsTheme(themeName) {
-	document.documentElement.classList = `theme-${themeName}`
-}
-
 
 //
 // Start-up
@@ -401,17 +397,12 @@ function reflectDevToolsTheme(themeName) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
-	reflectDevToolsTheme(browser.devtools.panels.themeName)
-
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
 		// DevTools page doesn't get reloaded when the extension does
 		port.onDisconnect.addListener(function() {
 			document.getElementById('connection-error').hidden = false
 		})
-	} else {
-		browser.devtools.panels.onThemeChanged.addListener(
-			reflectDevToolsTheme)
 	}
 
 	port.onMessage.addListener(messageHandlerCore)
