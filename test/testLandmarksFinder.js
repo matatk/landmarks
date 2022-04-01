@@ -4,8 +4,7 @@ import { fileURLToPath } from 'url'
 import test from 'ava'
 import jsdom from 'jsdom'
 import pssst from 'page-structural-semantics-scanner-tests'
-import LandmarksFinderStandard from '../src/code/landmarksFinderStandard.js'
-import LandmarksFinderDeveloper from '../src/code/landmarksFinderDeveloper.js'
+import LandmarksFinder from '../src/code/landmarksFinder.js'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const { JSDOM } = jsdom
@@ -145,7 +144,7 @@ test('expectation conversion from test suite to Landmarks format ' +
 //
 
 function testSpecificLandmarksFinder(
-	runName, Scanner, postProcesor, checks, heuristics) {
+	runName, Scanner, postProcesor, checks, heuristics, developer) {
 	for (const check of Object.values(checks)) {
 		test(runName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
@@ -165,7 +164,7 @@ function testSpecificLandmarksFinder(
 				})
 			}
 
-			const lf = new Scanner(dom.window, dom.window.document, heuristics)
+			const lf = new Scanner(dom.window, dom.window.document, heuristics, developer)
 			lf.find()
 			const landmarksFinderResult = postProcesor
 				? postProcesor(lf.allInfos())
@@ -186,13 +185,13 @@ function removeWarnings(landmarks) {
 
 const runs = [
 	[ 'Standard (strict)',
-		LandmarksFinderStandard, null, strictChecks, false ],
+		LandmarksFinder, null, strictChecks, false, false ],
 	[ 'Developer (strict)',
-		LandmarksFinderDeveloper, removeWarnings, strictChecks, false ],
+		LandmarksFinder, removeWarnings, strictChecks, false, true ],
 	[ 'Standard (heuristics)',
-		LandmarksFinderStandard, null, heuristicChecks, true ],
+		LandmarksFinder, null, heuristicChecks, true, false ],
 	[ 'Developer (heuristics)',
-		LandmarksFinderDeveloper, removeWarnings, heuristicChecks, true ]]
+		LandmarksFinder, removeWarnings, heuristicChecks, true, true ]]
 
 for (const run of runs) {
 	testSpecificLandmarksFinder(...run)

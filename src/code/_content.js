@@ -1,6 +1,5 @@
 import './compatibility'
-import Standard from './landmarksFinderStandard'
-import Developer from './landmarksFinderDeveloper'
+import LandmarksFinder from './landmarksFinder'
 import ElementFocuser from './elementFocuser'
 import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
@@ -8,8 +7,7 @@ import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults'
 
-const landmarksFinderStandard = new Standard(window, document)
-const landmarksFinderDeveloper = new Developer(window, document)
+const landmarksFinder = new LandmarksFinder(window, document)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
@@ -20,7 +18,6 @@ const noop = () => {}
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer = null
 let observer = null
-let landmarksFinder = landmarksFinderStandard  // just in case
 const highlightLastTouchTimes = new Map()
 const highlightTimeouts = new Map()
 const LIMITER = 350
@@ -143,11 +140,11 @@ function messageHandler(message) {
 		case 'devtools-state':
 			if (message.state === 'open') {
 				debugSend('change scanner to dev')
-				landmarksFinder = landmarksFinderDeveloper
+				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
 			} else if (message.state === 'closed') {
 				debugSend('change scanner to std')
-				landmarksFinder = landmarksFinderStandard
+				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
 			} else {
 				throw Error(`Invalid DevTools state "${message.state}".`)
@@ -372,8 +369,7 @@ function startUpTasks() {
 			const setting = changes.guessLandmarks.newValue ??
 				defaultFunctionalSettings.guessLandmarks
 			if (setting !== changes.guessLandmarks.oldValue) {
-				landmarksFinderStandard.useHeuristics(setting)
-				landmarksFinderDeveloper.useHeuristics(setting)
+				landmarksFinder.useHeuristics(setting)
 				findLandmarks(noop, noop)
 			}
 		}
@@ -393,7 +389,6 @@ function startUpTasks() {
 
 debugSend(`starting - ${window.location}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-	landmarksFinderStandard.useHeuristics(items.guessLandmarks)
-	landmarksFinderDeveloper.useHeuristics(items.guessLandmarks)
+	landmarksFinder.useHeuristics(items.guessLandmarks)
 	startUpTasks()
 })

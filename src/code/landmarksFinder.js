@@ -1,8 +1,10 @@
 /* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc, _testUseHeuristics) {
+export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDevMode) {
 	//
 	// Constants
 	//
+
+	// TODO: The code runs faster with these defined in here. (?)
 
 	// List of landmarks to navigate
 	const regionTypes = Object.freeze([
@@ -89,9 +91,11 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	//   warnings [string]               -- list of warnings about this element
 
 	let useHeuristics = _testUseHeuristics  // parameter is only used by tests
-	let _pageWarnings = MODE === 'developer' ? [] : null
-	const _unlabelledRoleElements = MODE === 'developer' ? new Map() : null
-	let _visibleMainElements = MODE === 'developer' ? [] : null
+	let useDevMode = _testUseDevMode        // parameter is only used by tests
+
+	let _pageWarnings = []
+	const _unlabelledRoleElements = new Map()
+	let _visibleMainElements = []
 
 
 	//
@@ -161,7 +165,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 				'guessed': false
 			})
 
-			if (MODE === 'developer') {
+			if (useDevMode) {
 				landmarks[landmarks.length - 1].warnings = []
 
 				if (!label) {
@@ -499,13 +503,19 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		return null
 	}
 
+	function checkBoolean(name, value) {
+		if (typeof value !== 'boolean') {
+			throw Error(`${name}() given ${typeof value} value: ${value}`)
+		}
+	}
+
 
 	//
 	// Public API
 	//
 
 	this.find = function() {
-		if (MODE === 'developer') {
+		if (useDevMode) {
 			_pageWarnings = []
 			_unlabelledRoleElements.clear()
 			_visibleMainElements = []
@@ -518,7 +528,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
 
-		if (MODE === 'developer') developerModeChecks()
+		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 	}
 
@@ -537,10 +547,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 		return landmarks.slice()  // TODO: Need a copy?
 	}
 
-	if (MODE === 'developer') {
-		this.pageResults = function() {
-			return _pageWarnings
-		}
+	this.pageResults = function() {
+		return useDevMode ? _pageWarnings : null
 	}
 
 	// These all return elements and their related info
@@ -584,11 +592,13 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	}
 
 	this.useHeuristics = function(use) {
-		if (typeof use === 'boolean') {
-			useHeuristics = use
-		} else {
-			throw Error(`useHeuristics() given ${typeof use} value: ${use}`)
-		}
+		checkBoolean(useHeuristics, use)
+		useHeuristics = use
+	}
+
+	this.useDevMode = function(use) {
+		checkBoolean(useDevMode, use)
+		useDevMode = use
 	}
 
 	this.getCurrentlySelectedIndex = function() {

@@ -9,8 +9,6 @@ import stats from 'stats-lite'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { makeLandmarksFinders } from './lib.js'
-
 const urls = Object.freeze({
 	abootstrap: 'https://angular-ui.github.io/bootstrap/',
 	amazon: 'https://www.amazon.co.uk',
@@ -28,10 +26,6 @@ const urls = Object.freeze({
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const cacheDir = path.join(dirname, 'profile-cache')
-const sourceForFinder = (name) =>
-	path.join(dirname, '..', 'src', 'code', `landmarksFinder${name}.js`)
-const outputForFinder = (name) =>
-	path.join(cacheDir, `wrappedLandmarksFinder${name}.js`)
 const htmlResultsTableTemplate = path.join(dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
@@ -119,11 +113,15 @@ async function insertLandmark(page, repetition) {
 //   doFocus (bool)        -- perform focusing tests?
 //   finderName (string)   -- pretty name
 //   finderPath (string)   -- path to built script file
-//   useHeuristics (bool)  -- employ guessing in the Finder?
+//   without (bool)        -- do NOT employ guessing in the Finder?
 
 async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without) {
-	await makeLandmarksFinders(true)
-	const finders = await wrapLandmarksFinders()
+	const finderPath = await wrapLandmarksFinder()
+
+	const finders = {
+		'Standard': false,
+		'Developer': true
+	}
 
 	const fullResults = { 'meta': { 'loops': loops } }
 
@@ -134,8 +132,8 @@ async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without) {
 	puppeteer.launch().then(async browser => {
 		for (const finder in finders) {
 			options.finderName = finder
-			options.finderPath = finders[finder]
-			options.useHeuristics = true
+			options.finderPath = finderPath
+			options.useDevMode = finders[finder]
 			console.log()
 			console.log(`With scanner ${finder}...`)
 			fullResults[finder] =
@@ -216,7 +214,7 @@ async function timeScannerOnSites(browser, sites, options) {
 }
 
 async function runScansOnSite(browser, site, {
-	loops, finderName, finderPath, doScan, doFocus, useHeuristics
+	loops, finderName, finderPath, doScan, doFocus, useHeuristics, useDevMode
 }) {
 	const page = await pageSetUp(browser, false)
 	const results = { 'url': urls[site] }
@@ -236,7 +234,7 @@ async function runScansOnSite(browser, site, {
 	if (doScan) {
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
-			landmarkScan, finderName, loops, useHeuristics)
+			landmarkScan, finderName, loops, useHeuristics, useDevMode)
 		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
 			'scanMeanTimeMS': stats.mean(scanTimes),
@@ -268,36 +266,27 @@ async function runScansOnSite(browser, site, {
 	return { 'siteResults': results, 'siteRawResults': rawResults }
 }
 
-async function wrapLandmarksFinders() {
-	const finderPaths = {}
-	let didWrap = false
+async function wrapLandmarksFinder() {
+	const sourcePath = path.join(dirname, '..', 'src', 'code', 'landmarksFinder.js')
+	const outputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
 
-	for (const name of ['Standard', 'Developer']) {
-		const objectName = `LandmarksFinder${name}`
-		const sourcePath = sourceForFinder(name)
-		const outputPath = outputForFinder(name)
+	const inputModified = fs.statSync(sourcePath).mtime
+	const outputModified = fs.existsSync(outputPath)
+		? fs.statSync(outputPath).mtime
+		: null
 
-		const inputModified = fs.statSync(sourcePath).mtime
-		const outputModified = fs.existsSync(outputPath)
-			? fs.statSync(outputPath).mtime
-			: null
-
-		if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-			console.log('Wrapping and caching', path.basename(sourcePath))
-			const bundle = await rollup({ input: sourcePath })
-			await bundle.write({
-				file: outputPath,
-				format: 'iife',
-				name: objectName
-			})
-			didWrap = true
-		}
-
-		finderPaths[objectName] = outputPath
+	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
+		console.log('Wrapping and caching', path.basename(sourcePath))
+		const bundle = await rollup({ input: sourcePath })
+		await bundle.write({
+			file: outputPath,
+			format: 'iife',
+			name: 'LandmarksFinder'
+		})
+		console.log()
 	}
 
-	if (didWrap) console.log()
-	return finderPaths
+	return outputPath
 }
 
 function elementCounts(objectName, selectInteractives, heuristics) {
@@ -305,7 +294,7 @@ function elementCounts(objectName, selectInteractives, heuristics) {
 	const interactiveElements = document.querySelectorAll(
 		selectInteractives).length
 
-	const lf = new window[objectName](window, document, heuristics)
+	const lf = new window.LandmarksFinder(window, document, heuristics, false)
 	lf.find()
 
 	return {
@@ -316,8 +305,8 @@ function elementCounts(objectName, selectInteractives, heuristics) {
 	}
 }
 
-function landmarkScan(objectName, times, heuristics) {
-	const lf = new window[objectName](window, document, heuristics)
+function landmarkScan(objectName, times, heuristics, devMode) {
+	const lf = new window.LandmarksFinder(window, document, heuristics, devMode)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
@@ -331,7 +320,7 @@ function landmarkScan(objectName, times, heuristics) {
 }
 
 function landmarkNav(objectName, times, selectInteractives, mode, heuristics) {
-	const lf = new window[objectName](window, document, heuristics)
+	const lf = new window.LandmarksFinder(window, document, heuristics, false)
 	const interactiveElements = document.querySelectorAll(selectInteractives)
 	const navigationTimes = []
 	// Tests showed that indirectly calling the navigation function is between
