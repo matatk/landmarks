@@ -17,8 +17,6 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import linter from 'addons-linter'
 
-import { logStep, srcAssembleDir, srcCodeDir, makeLandmarksFinders, makeTerserOptions } from './lib.js'
-
 const requireJson = (path) =>
 	JSON.parse(fs.readFileSync(new URL(path, import.meta.url)))
 
@@ -31,6 +29,8 @@ const packageJson = requireJson(path.join('..', 'package.json'))
 const extName = packageJson.name
 let extVersion = packageJson.version  // can be overidden on command line
 const buildDir = 'build'
+const srcAssembleDir = path.join('src', 'assemble')
+const srcCodeDir = path.join('src', 'code')
 const srcStaticDir = path.join('src', 'static')
 const svgPath = path.join(srcAssembleDir, 'landmarks.svg')
 const pngCacheDir = path.join(buildDir, 'png-cache')
@@ -107,6 +107,11 @@ let testMode = false	// are we building a test (alpha/beta) version?
 // Utilities
 //
 
+// Log the start of a new step (styled)
+function logStep(name) {
+	console.log(chalk.underline(name + '...'))
+}
+
 function doReplace(files, from, to, message) {
 	try {
 		const results = replace.sync({
@@ -173,6 +178,29 @@ function builtLocaleDir(browser, locale) {
 
 function builtMessagesFile(browser, locale) {
 	return path.join(builtLocaleDir(browser, locale), 'messages.json')
+}
+
+function makeTerserOptions(globals) {
+	return {
+		mangle: false,
+		compress: {
+			defaults: false,
+			global_defs: globals, // eslint-disable-line camelcase
+			conditionals: true,
+			dead_code: true,      // eslint-disable-line camelcase
+			evaluate: true,
+			side_effects: true,   // eslint-disable-line camelcase
+			switches: true,
+			unused: true,
+			passes: 2  // expand env vars; compresses their code
+		},
+		output: {
+			beautify: true,
+			braces: true,
+			comments: true
+			// Others may be relevant: https://github.com/fabiosantoscode/terser/issues/92#issuecomment-410442271
+		}
+	}
 }
 
 
@@ -580,9 +608,9 @@ async function main() {
 		.string('release')
 		.nargs('release', 1)
 		.alias('release', 'r')
-		.describe('clean-only', "Don't build; just remove existing build directory and ZIP.")
-		.boolean('clean-only')
-		.alias('clean-only', 'c')
+		.describe('clean', "Don't build; just remove existing build directory and ZIP.")
+		.boolean('clean')
+		.alias('clean', 'c')
 		.describe('debug', 'Create a debug build, with console.timeStamp() calls included, which are used in profile recordings.')
 		.boolean('debug')
 		.alias('debug', 'd')
@@ -605,7 +633,7 @@ async function main() {
 				: [argv.browser]
 		: null
 
-	const isFullBuild = argv.cleanOnly !== true
+	const isFullBuild = argv.clean !== true
 	const action = isFullBuild ? 'Building' : 'Cleaning'
 	console.log(chalk.bold(`${action} ${extName} ${extVersion}...`))
 	const debugMode = argv.debug === true
@@ -614,8 +642,6 @@ async function main() {
 	testMode = argv.testRelease === true
 	const testMsg = testMode ? ' (test)' : ''
 
-	console.log()
-	await makeLandmarksFinders()
 	if (!browsers) return
 
 	for (const browser of browsers) {
