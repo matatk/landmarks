@@ -29,9 +29,9 @@ label p:first-child { font-weight: bold; }
 
 fieldset > :last-child { margin-bottom: 0.5rem; }
 
-input[type=number] { width: 3rem; }
+input[type="number"] { width: 3rem; }
 
-input[type=color] {
+input[type="color"] {
 	height: 1.5rem;
 	width: 5rem;
 }
@@ -39,8 +39,7 @@ input[type=color] {
 #gird {
 	display: grid;
 	grid-template-columns: max-content 1fr; /* TODO refine */
-	grid-column-gap: 1rem;
-	grid-row-gap: 1rem;
+	grid-gap: 1rem;
 	align-items: center;
 }
 

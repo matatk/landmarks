@@ -1,4 +1,4 @@
-@-moz-document url-prefix() {
+@-moz-document url-prefix("") {
 	/* Hacks for Firefox */
 
 	/* The font is not resizable on Firefox—whilst the text size on other

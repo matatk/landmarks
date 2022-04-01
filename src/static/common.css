@@ -59,10 +59,7 @@ select {
 button {
 	border-radius: var(--roundedness);
 	margin: 0;
-	padding-left: 0.5rem;
-	padding-right: 0.5rem;
-	padding-top: 0.25rem;
-	padding-bottom: 0.25rem;
+	padding: 0.25rem 0.5rem;
 }
 
 a {
