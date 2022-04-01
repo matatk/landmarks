@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.11.1](https://github.com/matatk/landmarks/compare/2.11.0...2.11.1) (2022-04-01)
+
+
+### Builds
+
+* Factor out and share finder-making code ([#465](https://github.com/matatk/landmarks/issues/465)) ([b9196da](https://github.com/matatk/landmarks/commit/b9196dab75ef77f65bb563979b4d7de4cc136485))
+
+
+### Performance improvements
+
+* Remove a check; Restructure ([#468](https://github.com/matatk/landmarks/issues/468)) ([6a3a964](https://github.com/matatk/landmarks/commit/6a3a96483d0492840b7a53ea1412fbbd9c5b3de3))
+* Tweak hidden element detection ([#469](https://github.com/matatk/landmarks/issues/469)) ([43997fc](https://github.com/matatk/landmarks/commit/43997fc1f777c9ac4cc9b178076ee88a8009412e))
+
+
+### Bug fixes
+
+* Correct dark mode colours in DevTools panel ([#470](https://github.com/matatk/landmarks/issues/470)) ([b59b846](https://github.com/matatk/landmarks/commit/b59b846f6c6597d0221ac5a502a6285de5ae93d3)), closes [#466](https://github.com/matatk/landmarks/issues/466)
+* Restore sidebar on Opera ([#471](https://github.com/matatk/landmarks/issues/471)) ([6d7b0ba](https://github.com/matatk/landmarks/commit/6d7b0ba13bbbdafee9b5b8e75011629652afd4ca))
+* Support the "role" attribute correctly as a token list ([#467](https://github.com/matatk/landmarks/issues/467)) ([2ca800a](https://github.com/matatk/landmarks/commit/2ca800a6725b87e11f3010a629172307f28bf097)), closes [#464](https://github.com/matatk/landmarks/issues/464)
+
+
+### Documentation
+
+* Add updated Opera sidebar screengrab ([#472](https://github.com/matatk/landmarks/issues/472)) ([2581b0f](https://github.com/matatk/landmarks/commit/2581b0fee703340017a609920b144108e42849aa))
+* **Help:** Release notes for 2.11.1 ([#473](https://github.com/matatk/landmarks/issues/473)) ([158955a](https://github.com/matatk/landmarks/commit/158955a6b6170ae5fbcb35d47a28503fb4cda0a1))
+
+
+### Chores
+
+* Bump dependencies ([#474](https://github.com/matatk/landmarks/issues/474)) ([2d38fed](https://github.com/matatk/landmarks/commit/2d38fedd3ae098b068b8c849320d002f81ac275b))
+
 ## [2.11.0](https://github.com/matatk/landmarks/compare/2.10.1...2.11.0) (2021-11-30)
 
 
