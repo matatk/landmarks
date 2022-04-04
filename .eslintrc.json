@@ -14,6 +14,7 @@
     {
       "files": [
         "scripts/*.js",
+        "scripts/profile-lib/*.js",
         "src/assemble/*.js",
         "src/code/*.js",
         "test/test*.js"
