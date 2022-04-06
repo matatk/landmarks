@@ -133,7 +133,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	// Recursive function for building list of landmarks from a root element
-	function getLandmarks(element, depth, parentLandmark) {
+	function getLandmarks(element, depth, parentLandmark, thisLevel) {
 		if (isVisuallyHidden(element) || isSemantiallyHidden(element)) return
 
 		// Elements with explicitly-set rolees
@@ -149,21 +149,27 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		// The element may or may not have a label
 		const label = getARIAProvidedLabel(element)
 
+		let newLevel = thisLevel
+
 		// Add the element if it should be considered a landmark
 		if (role && isLandmark(role, hasExplicitRole, label)) {
-			if (parentLandmark && parentLandmark.contains(element)) {
-				depth = depth + 1
-			}
-
-			landmarks.push({
+			const thisLandmarkEntry = {
 				'depth': depth,
 				'role': role,
 				'roleDescription': getRoleDescription(element),
 				'label': label,
 				'element': element,
 				'selector': createSelector(element),
-				'guessed': false
-			})
+				'guessed': false,
+				'contains': []
+			}
+
+			thisLevel.push(thisLandmarkEntry)
+
+			if (parentLandmark && parentLandmark.contains(element)) {
+				depth = depth + 1
+				newLevel = thisLandmarkEntry.contains
+			}
 
 			if (useDevMode) {
 				landmarks[landmarks.length - 1].warnings = []
@@ -200,7 +206,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		// HTMLCollection. Checking for this would cause a slowdown, so
 		// ignoring for now.
 		for (const elementChild of element.children) {
-			getLandmarks(elementChild, depth, parentLandmark)
+			getLandmarks(elementChild, depth, parentLandmark, newLevel)
 		}
 	}
 
@@ -526,7 +532,9 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
-		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
+		const rootLandmarks = []
+		getLandmarks(doc.body.parentNode, 0, null, rootLandmarks)  // supports role on <body>
+		console.log(JSON.stringify(rootLandmarks, null, 2))
 
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
