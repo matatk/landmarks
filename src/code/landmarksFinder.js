@@ -1,85 +1,24 @@
-/* eslint-disable no-prototype-builtins */
-export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDevMode) {
-	//
-	// Constants
-	//
+import {
+	isVisuallyHidden,
+	isSemantiallyHidden,
+	getValidExplicitRole,
+	getRoleFromTagNameAndContainment,
+	getARIAProvidedLabel,
+	isLandmark,
+	getRoleDescription,
+	createSelector
+} from './landmarksFinderDOMUtils.js'
 
-	// TODO: The code runs faster with these defined in here. (?)
-
-	// List of landmarks to navigate
-	const regionTypes = Object.freeze([
-		// Core ARIA
-		'banner',
-		'complementary',
-		'contentinfo',
-		'form',           // spec says should label
-		'main',
-		'navigation',
-		'region',         // spec says must label
-		'search',
-
-		// Digital Publishing ARIA module
-		'doc-acknowledgments',
-		'doc-afterword',
-		'doc-appendix',
-		'doc-bibliography',
-		'doc-chapter',
-		'doc-conclusion',
-		'doc-credits',
-		'doc-endnotes',
-		'doc-epilogue',
-		'doc-errata',
-		'doc-foreword',
-		'doc-glossary',
-		'doc-index',         // via navigation
-		'doc-introduction',
-		'doc-pagelist',      // via navigation
-		'doc-part',
-		'doc-preface',
-		'doc-prologue',
-		'doc-toc'            // via navigation
-	])
-
-	// Mapping of HTML5 elements to implicit roles
-	const implicitRoles = Object.freeze({
-		ASIDE:   'complementary',
-		FOOTER:  'contentinfo',    // depending on its ancestor elements
-		FORM:    'form',
-		HEADER:  'banner',         // depending on its ancestor elements
-		MAIN:    'main',
-		NAV:     'navigation',
-		SECTION: 'region'
-	})
-
-	// Sectioning content elements
-	const sectioningContentElements = Object.freeze([
-		'ARTICLE',
-		'ASIDE',
-		'NAV',
-		'SECTION'
-	])
-
-	// Non-<body> sectioning root elements
-	const nonBodySectioningRootElements = Object.freeze([
-		'BLOCKQUOTE',
-		'DETAILS',
-		'FIELDSET',
-		'FIGURE',
-		'TD'
-	])
-
-	// non-<body> sectioning elements and <main>
-	const nonBodySectioningElementsAndMain = Object.freeze(
-		sectioningContentElements.concat(nonBodySectioningRootElements, 'MAIN')
-	)
-
+// TODO: we don't need doc as a parameter
+export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
+	let useHeuristics = _useHeuristics  // parameter is only used by tests
+	let useDevMode = _useDevMode        // parameter is only used by tests
 
 	//
 	// Found landmarks
 	//
 
-	let landmarks = []
-	// Each member of this array is an object of the form:
+	// Each member of these data structures is an object of the form:
 	//   depth (int)                     -- indicates nesting of landmarks
 	//   role (string)                   -- the ARIA role
 	//   roleDescription (string | null) -- custom role description
@@ -89,10 +28,16 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//   guessed (bool)                  -- landmark was gathered by heuristic
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
+	let landmarksTree = []  // point of truth
+	let landmarksList = []  // created alongside the tree; used for focusing
 
-	let useHeuristics = _testUseHeuristics  // parameter is only used by tests
-	let useDevMode = _testUseDevMode        // parameter is only used by tests
+	// Tracking landmark finding
+	let previousLandmarkEntry = null
+	let cachedFilteredTree = null
+	let cachedAllInfos = null
+	let cachedAllElementInfos = null
 
+	// Tracking landmark finding in developer mode
 	let _pageWarnings = []
 	const _unlabelledRoleElements = new Map()
 	let _visibleMainElements = []
@@ -114,15 +59,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function updateSelectedAndReturnElementInfo(index) {
 		// TODO: Don't need an index check, as we trust the source. Does that
 		//       mean we also don't need the length check?
-		if (landmarks.length === 0) return
+		if (landmarksList.length === 0) return
 		currentlySelectedIndex = index
-		currentlySelectedElement = landmarks[index].element
+		currentlySelectedElement = landmarksList[index].element
 		return {
 			element: currentlySelectedElement,
-			role: landmarks[index].role,
-			roleDescription: landmarks[index].roleDescription,
-			label: landmarks[index].label,
-			guessed: landmarks[index].guessed
+			role: landmarksList[index].role,
+			roleDescription: landmarksList[index].roleDescription,
+			label: landmarksList[index].label,
+			guessed: landmarksList[index].guessed
 			// No need to send the selector or warnings
 		}
 	}
@@ -133,8 +78,10 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	// Recursive function for building list of landmarks from a root element
-	function getLandmarks(element, depth, parentLandmark) {
-		if (isVisuallyHidden(element) || isSemantiallyHidden(element)) return
+	function getLandmarks(element, depth, parentLandmark, thisLevel, parentLandmarkLevel) {
+		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
+			return
+		}
 
 		// Elements with explicitly-set rolees
 		const rawRoleValue = element.getAttribute('role')
@@ -147,7 +94,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		const role = explicitRole ?? getRoleFromTagNameAndContainment(element)
 
 		// The element may or may not have a label
-		const label = getARIAProvidedLabel(element)
+		const label = getARIAProvidedLabel(doc, element)
 
 		// Add the element if it should be considered a landmark
 		if (role && isLandmark(role, hasExplicitRole, label)) {
@@ -155,18 +102,31 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 				depth = depth + 1
 			}
 
-			landmarks.push({
+			const thisLandmarkEntry = {
+				'type': 'landmark',
 				'depth': depth,
 				'role': role,
 				'roleDescription': getRoleDescription(element),
 				'label': label,
 				'element': element,
 				'selector': createSelector(element),
-				'guessed': false
-			})
+				'guessed': false,
+				'contains': [],
+				'previous': previousLandmarkEntry,
+				'next': null
+			}
+
+			if (previousLandmarkEntry) {
+				previousLandmarkEntry.next = thisLandmarkEntry
+			}
+
+			thisLevel.push(thisLandmarkEntry)
+			landmarksList.push(thisLandmarkEntry)
+
+			previousLandmarkEntry = thisLandmarkEntry
 
 			if (useDevMode) {
-				landmarks[landmarks.length - 1].warnings = []
+				thisLandmarkEntry.warnings = []
 
 				if (!label) {
 					if (!_unlabelledRoleElements.has(role)) {
@@ -183,16 +143,17 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
 			if (currentlySelectedElement === element) {
-				currentlySelectedIndex = landmarks.length - 1
+				currentlySelectedIndex = landmarksList.length - 1
 			}
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
 			if (role === 'main') {
-				mainElementIndices.push(landmarks.length - 1)
+				mainElementIndices.push(landmarksList.length - 1)
 			}
 
 			parentLandmark = element
+			parentLandmarkLevel = thisLandmarkEntry.contains
 		}
 
 		// One just one page I've seen an error here in Chrome (91) which seems
@@ -200,180 +161,14 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		// HTMLCollection. Checking for this would cause a slowdown, so
 		// ignoring for now.
 		for (const elementChild of element.children) {
-			getLandmarks(elementChild, depth, parentLandmark)
+			getLandmarks(
+				elementChild,
+				depth,
+				parentLandmark,
+				parentLandmarkLevel ?? thisLevel,
+				null
+			)
 		}
-	}
-
-	// This can only check an element's direct styles. We just stop recursing
-	// into elements that are hidden. That's why the heuristics don't call this
-	// function (they don't check all of a guessed landmark's parent elements).
-	function isVisuallyHidden(element) {
-		if (element.hasAttribute('hidden')) return true
-
-		const style = win.getComputedStyle(element)
-		if (style.visibility === 'hidden' || style.display === 'none') {
-			return true
-		}
-
-		return false
-	}
-
-	function isSemantiallyHidden(element) {
-		if (element.getAttribute('aria-hidden') === 'true'
-			|| element.hasAttribute('inert')) {
-			return true
-		}
-		return false
-	}
-
-	function getRoleFromTagNameAndContainment(element) {
-		const name = element.tagName
-		let role = null
-
-		if (name) {
-			if (implicitRoles.hasOwnProperty(name)) {
-				role = implicitRoles[name]
-			}
-
-			// <header> and <footer> elements have some containment-
-			// related constraints on whether they're counted as landmarks
-			if (name === 'HEADER' || name === 'FOOTER') {
-				if (!isChildOfTopLevelSection(element)) {
-					role = null
-				}
-			}
-		}
-
-		return role
-	}
-
-	function isChildOfTopLevelSection(element) {
-		let ancestor = element.parentNode
-
-		while (ancestor !== null) {
-			if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
-				return false
-			}
-			ancestor = ancestor.parentNode
-		}
-
-		return true
-	}
-
-	function getValidExplicitRole(value) {
-		if (value) {
-			if (value.indexOf(' ') >= 0) {
-				const roles = value.split(' ')
-				for (const role of roles) {
-					if (regionTypes.includes(role)) {
-						return role
-					}
-				}
-			} else if (regionTypes.includes(value)) {
-				return value
-			}
-		}
-		return null
-	}
-
-	function getARIAProvidedLabel(element) {
-		let label = null
-
-		// TODO general whitespace test?
-		// TODO if some IDs don't exist, this will include nulls - test?
-		const idRefs = element.getAttribute('aria-labelledby')
-		if (idRefs !== null && idRefs.length > 0) {
-			const innerTexts = Array.from(idRefs.split(' '), idRef => {
-				const labelElement = doc.getElementById(idRef)
-				return getInnerText(labelElement)
-			})
-			label = innerTexts.join(' ')
-		}
-
-		if (label === null) {
-			label = element.getAttribute('aria-label')
-		}
-
-		return label
-	}
-
-	function getInnerText(element) {
-		let text = null
-
-		if (element) {
-			text = element.innerText
-			if (text === undefined) {
-				text = element.textContent
-			}
-		}
-
-		return text
-	}
-
-	function isLandmark(role, explicitRole, label) {
-		// <section> and <form> are only landmarks when labelled.
-		// <div role="form"> is always a landmark.
-		if (role === 'region' || (role === 'form' && !explicitRole)) {
-			return label !== null
-		}
-		return true  // already a valid role if we were called
-	}
-
-	function getRoleDescription(element) {
-		const roleDescription = element.getAttribute('aria-roledescription')
-		// TODO make this a general whitespace check?
-		if (/^\s*$/.test(roleDescription)) {
-			return null
-		}
-		return roleDescription
-	}
-
-	function createSelector(element) {
-		const reversePath = []
-		let node = element
-
-		while (node.tagName !== 'HTML') {
-			const tag = node.tagName.toLowerCase()
-			const id = node.id
-			const klass = node.classList.length > 0 ? node.classList[0] : null
-
-			let description
-
-			if (id) {
-				description = '#' + id
-			} else {
-				// If the element tag is not unique amongst its siblings, then
-				// we'll need to include an nth-child bit on the end of the
-				// selector part for this element.
-				const siblingElementTagNames =
-					Array.from(node.parentNode.children, x => x.tagName)
-				const uniqueSiblingElementTagNames =
-					[...new Set(siblingElementTagNames)]  // Array API is neater
-
-				// Include element's class if need be.
-				// TODO this probably isn't needed as we have nth-child.
-				if (klass) {
-					description = tag + '.' + klass
-				} else {
-					description = tag
-				}
-
-				if (siblingElementTagNames.length
-					> uniqueSiblingElementTagNames.length) {
-					const siblingNumber =
-						Array.prototype.indexOf.call(
-							node.parentNode.children, node) + 1
-
-					description += ':nth-child(' + siblingNumber + ')'
-				}
-			}
-
-			reversePath.push(description)
-			if (id) break
-			node = node.parentNode
-		}
-
-		return reversePath.reverse().join(' > ')
 	}
 
 
@@ -392,7 +187,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			_pageWarnings.push('lintManyMains')
 		}
 
-		for (const landmark of landmarks) {
+		for (const landmark of landmarksList) {
 			if (_visibleMainElements.length > 1
 				&& _visibleMainElements.includes(landmark.element)) {
 				landmark.warnings.push('lintManyVisibleMainElements')
@@ -425,10 +220,11 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	function makeLandmarkEntry(guessed, role) {
 		return {
+			'type': 'landmark',
 			'depth': 0,
 			'role': role,
 			'roleDescription': getRoleDescription(guessed),
-			'label': getARIAProvidedLabel(guessed),
+			'label': getARIAProvidedLabel(doc, guessed),
 			'element': guessed,
 			'selector': createSelector(guessed),
 			'guessed': true
@@ -437,14 +233,16 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	function addGuessed(guessed, role) {
 		if (guessed && guessed.innerText) {
-			if (landmarks.length === 0) {
-				landmarks.push(makeLandmarkEntry(guessed, role))
+			const entry = makeLandmarkEntry(guessed, role)
+			if (landmarksList.length === 0) {
+				landmarksTree.push(entry)
+				landmarksList.push(entry)
 				if (role === 'main') mainElementIndices = [0]
 			} else {
 				const insertAt =
-					getIndexOfLandmarkAfter(guessed) ?? landmarks.length
-				landmarks.splice(
-					insertAt, 0, makeLandmarkEntry(guessed, role))
+					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
+				landmarksTree.splice(insertAt, 0, entry)
+				landmarksList.splice(insertAt, 0, entry)
 				if (role === 'main') mainElementIndices = [insertAt]
 			}
 			return true
@@ -486,8 +284,9 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	function getIndexOfLandmarkAfter(element) {
-		for (let i = 0; i < landmarks.length; i++) {
-			const rels = element.compareDocumentPosition(landmarks[i].element)
+		for (let i = 0; i < landmarksList.length; i++) {
+			const rels =
+				element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
@@ -495,12 +294,41 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	}
 
 	function getIndexOfLandmarkBefore(element) {
-		for (let i = landmarks.length - 1; i >= 0; i--) {
-			const rels = element.compareDocumentPosition(landmarks[i].element)
+		for (let i = landmarksList.length - 1; i >= 0; i--) {
+			const rels =
+				element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
 		return null
+	}
+
+
+	//
+	// Support for public API
+	//
+
+	function filterTree(subtree) {
+		const filteredLevel = []
+
+		for (const entry of subtree) {
+			// eslint-disable-next-line no-unused-vars
+			const { contains, depth, element, previous, next, ...info } = entry
+
+			// NOTE: Guessed landmarks aren't given a 'contains' property
+			const filteredContains = Array.isArray(entry.contains)
+				? filterTree(entry.contains)
+				: []
+
+			const filteredEntry = { ...info }
+			if (filteredContains.length > 0) {
+				filteredEntry.contains = filteredContains
+			}
+
+			filteredLevel.push(filteredEntry)
+		}
+
+		return filteredLevel
 	}
 
 	function checkBoolean(name, value) {
@@ -515,40 +343,64 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	this.find = function() {
+		landmarksTree = []
+		landmarksList = []
+		previousLandmarkEntry = null
+		cachedFilteredTree = null
+		cachedAllInfos = null
+		cachedAllElementInfos = null
+
 		if (useDevMode) {
 			_pageWarnings = []
 			_unlabelledRoleElements.clear()
 			_visibleMainElements = []
 		}
 
-		landmarks = []
 		mainElementIndices = []
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
-		getLandmarks(doc.body.parentNode, 0, null)  // supports role on <body>
+
+		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
+		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 	}
 
-	this.getNumberOfLandmarks = function() {
-		return landmarks.length
+	this.getNumberOfLandmarks = () => landmarksList.length
+
+	// This includes the selector, warnings, everything except the element.
+	// Used by the UI.
+	this.allInfos = function() {
+		if (!cachedAllInfos) {
+			cachedAllInfos = landmarksList.map(entry => {
+				// eslint-disable-next-line no-unused-vars
+				const { element, contains, previous, next, ...info } = entry
+				return info
+			})
+		}
+		return cachedAllInfos
 	}
 
-	// This includes the selector, warnings, everything except the element
-	this.allInfos = () => landmarks.map(landmark => {
-		// eslint-disable-next-line no-unused-vars
-		const { element, ...info } = landmark
-		return info
-	})
-
+	// As above, but also including the element. Used by the borderDrawer.
 	this.allElementsInfos = function() {
-		return landmarks.slice()  // TODO: Need a copy?
+		if (!cachedAllElementInfos) {
+			cachedAllElementInfos = landmarksList.map(entry => {
+				// eslint-disable-next-line no-unused-vars
+				const { contains, previous, next, ...info } = entry
+				return info
+			})
+		}
+		return cachedAllElementInfos
 	}
 
-	this.pageResults = function() {
-		return useDevMode ? _pageWarnings : null
+	// Just the tree structure, in serialisable form
+	this.tree = function() {
+		if (!cachedFilteredTree) {
+			cachedFilteredTree = filterTree(landmarksTree)
+		}
+		return cachedFilteredTree
 	}
 
 	// These all return elements and their related info
@@ -561,7 +413,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			}
 		}
 		return updateSelectedAndReturnElementInfo(
-			(currentlySelectedIndex + 1) % landmarks.length)
+			(currentlySelectedIndex + 1) % landmarksList.length)
 	}
 
 	this.getPreviousLandmarkElementInfo = function() {
@@ -573,7 +425,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		}
 		return updateSelectedAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1)
+				landmarksList.length - 1 : currentlySelectedIndex - 1)
 	}
 
 	this.getLandmarkElementInfo = function(index) {
@@ -584,7 +436,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	// betwixt them.
 	this.getMainElementInfo = function() {
 		if (mainElementIndices.length > 0) {
-			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
+			mainIndexPointer =
+				(mainIndexPointer + 1) % mainElementIndices.length
 			const mainElementIndex = mainElementIndices[mainIndexPointer]
 			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
@@ -607,6 +460,6 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	// TODO: Rename this and the above
 	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
-		return landmarks[index]
+		return landmarksList[index]
 	}
 }

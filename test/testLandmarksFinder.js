@@ -57,39 +57,43 @@ const testSuiteFormatExpectation = [
 
 const landmarksFormatExpectation = [
 	{
-		'depth': 0,
+		'type': 'landmark',
 		'role': 'banner',
 		'roleDescription': null,
 		'label': null,
 		'selector': 'body > header',
+		'contains': [
+			{
+				'type': 'landmark',
+				'role': 'navigation',
+				'roleDescription': null,
+				'label': 'World of wombats',
+				'selector': 'body > header > nav',
+				'guessed': false
+			}
+		],
 		'guessed': false
 	},
 	{
-		'depth': 1,
-		'role': 'navigation',
-		'roleDescription': null,
-		'label': 'World of wombats',
-		'selector': 'body > header > nav',
-		'guessed': false
-	},
-	{
-		'depth': 0,
+		'type': 'landmark',
 		'role': 'main',
 		'roleDescription': null,
 		'label': 'Looking after your wombat',
 		'selector': 'body > main',
+		'contains': [
+			{
+				'type': 'landmark',
+				'role': 'navigation',
+				'roleDescription': null,
+				'label': 'Looking after your wombat Topics',
+				'selector': 'body > main > nav:nth-child(2)',
+				'guessed': false
+			}
+		],
 		'guessed': false
 	},
 	{
-		'depth': 1,
-		'role': 'navigation',
-		'roleDescription': null,
-		'label': 'Looking after your wombat Topics',
-		'selector': 'body > main > nav:nth-child(2)',
-		'guessed': false
-	},
-	{
-		'depth': 0,
+		'type': 'landmark',
 		'role': 'contentinfo',
 		'roleDescription': null,
 		'label': null,
@@ -111,7 +115,7 @@ const testSuiteFormatExpectationWithGuesses = [
 
 const landmarksFormatExpectationWithGuesses = [
 	{
-		'depth': 0,
+		'type': 'landmark',
 		'role': 'main',
 		'roleDescription': null,
 		'label': null,
@@ -167,20 +171,24 @@ function testSpecificLandmarksFinder(
 			const lf = new Scanner(dom.window, dom.window.document, heuristics, developer)
 			lf.find()
 			const landmarksFinderResult = postProcesor
-				? postProcesor(lf.allInfos())
-				: lf.allInfos()
+				? postProcesor(lf.tree())
+				: lf.tree()
 			const convertedExpectation = convertExpectation(check.expected)
 			t.deepEqual(landmarksFinderResult, convertedExpectation)
 		})
 	}
 }
 
+function removeWarningsCore(landmarks) {
+	for (const landmark of landmarks) {
+		delete landmark.warnings
+		if (landmark.contains) removeWarnings(landmark.contains)
+	}
+}
+
 function removeWarnings(landmarks) {
-	return landmarks.map(landmark => {
-		// eslint-disable-next-line no-unused-vars
-		const { warnings, ...info } = landmark
-		return info
-	})
+	removeWarningsCore(landmarks)
+	return landmarks
 }
 
 const runs = [
@@ -202,24 +210,14 @@ for (const run of runs) {
 // Expectation format conversion
 //
 
-function convertCore(landmarksFormatData, testSuiteFormatData, depth) {
+function convertCore(testSuiteFormatData) {
 	for (const landmark of testSuiteFormatData) {
-		landmarksFormatData.push({
-			'depth': depth,
-			'role': landmark.role,
-			'roleDescription': landmark.roleDescription,
-			'label': landmark.label,
-			'selector': landmark.selector,
-			'guessed': landmark.guessed ? true : false
-		})
-		if (landmark.contains) {
-			convertCore(landmarksFormatData, landmark.contains, depth + 1)
-		}
+		landmark.guessed = landmark.guessed ?? false
+		if (landmark.contains) convertExpectation(landmark.contains)
 	}
 }
 
 function convertExpectation(testSuiteFormatData) {
-	const landmarksFormatData = []
-	convertCore(landmarksFormatData, testSuiteFormatData, 0)
-	return landmarksFormatData
+	convertCore(testSuiteFormatData)
+	return testSuiteFormatData
 }
