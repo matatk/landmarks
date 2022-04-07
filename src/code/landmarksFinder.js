@@ -104,7 +104,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	let currentlySelectedIndex   // the landmark currently having focus/border
-	let mainElements = []        // if we find <main> or role="main" elements
+	let mainElementIndices = []  // if we find <main> or role="main" elements
 	let mainIndexPointer         // allows us to cylce through main regions
 	let foundNavigationRegion    // if not, we can go and guess one
 
@@ -194,7 +194,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
-			if (role === 'main') mainElements.push(thisLandmarkEntry)
+			if (role === 'main') mainElementIndices.push(landmarksList.length - 1)
 
 			parentLandmark = element
 			parentLandmarkLevel = thisLandmarkEntry.contains
@@ -395,11 +395,11 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function developerModeChecks() {
 		const _duplicateUnlabelledWarnings = getDuplicateUnlabelledWarnings()
 
-		if (mainElements.length === 0) {
+		if (mainElementIndices.length === 0) {
 			_pageWarnings.push('lintNoMain')
 		}
 
-		if (mainElements.length > 1) {
+		if (mainElementIndices.length > 1) {
 			_pageWarnings.push('lintManyMains')
 		}
 
@@ -450,15 +450,14 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function addGuessed(guessed, role) {
 		if (guessed && guessed.innerText) {
 			if (landmarksList.length === 0) {
-				const entry = makeLandmarkEntry(guessed, role)
-				landmarksList.push(entry)  // FIXME what about tree?
-				if (role === 'main') mainElements = [entry]
+				landmarksList.push(makeLandmarkEntry(guessed, role))
+				if (role === 'main') mainElementIndices = [0]
 			} else {
 				const insertAt =
 					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
 				landmarksList.splice(
 					insertAt, 0, makeLandmarkEntry(guessed, role))
-				if (role === 'main') mainElements = [insertAt]
+				if (role === 'main') mainElementIndices = [insertAt]
 			}
 			return true
 		}
@@ -466,7 +465,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	}
 
 	function tryFindingMain() {
-		if (mainElements.length === 0) {
+		if (mainElementIndices.length === 0) {
 			for (const id of ['main', 'content', 'main-content']) {
 				if (addGuessed(doc.getElementById(id), 'main')) return
 			}
@@ -536,7 +535,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 		landmarksTree = []
 		landmarksList = []
-		mainElements = []
+		mainElementIndices = []
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
@@ -616,9 +615,9 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	// If pages are naughty and have more than one 'main' region, we cycle
 	// betwixt them.
 	this.getMainElementInfo = function() {
-		if (mainElements.length > 0) {
-			mainIndexPointer = (mainIndexPointer + 1) % mainElements.length
-			const mainElementIndex = mainElements[mainIndexPointer]
+		if (mainElementIndices.length > 0) {
+			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
+			const mainElementIndex = mainElementIndices[mainIndexPointer]
 			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
 		return null
