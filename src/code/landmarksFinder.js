@@ -78,7 +78,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	// Found landmarks
 	//
 
-	let landmarks = []
+	let landmarksTree = []
+	let landmarksList = []
 	// Each member of this array is an object of the form:
 	//   depth (int)                     -- indicates nesting of landmarks
 	//   role (string)                   -- the ARIA role
@@ -103,7 +104,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	let currentlySelectedIndex   // the landmark currently having focus/border
-	let mainElementIndices = []  // if we find <main> or role="main" elements
+	let mainElements = []        // if we find <main> or role="main" elements
 	let mainIndexPointer         // allows us to cylce through main regions
 	let foundNavigationRegion    // if not, we can go and guess one
 
@@ -114,15 +115,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function updateSelectedAndReturnElementInfo(index) {
 		// TODO: Don't need an index check, as we trust the source. Does that
 		//       mean we also don't need the length check?
-		if (landmarks.length === 0) return
+		if (landmarksList.length === 0) return
 		currentlySelectedIndex = index
-		currentlySelectedElement = landmarks[index].element
+		currentlySelectedElement = landmarksList[index].element
 		return {
 			element: currentlySelectedElement,
-			role: landmarks[index].role,
-			roleDescription: landmarks[index].roleDescription,
-			label: landmarks[index].label,
-			guessed: landmarks[index].guessed
+			role: landmarksList[index].role,
+			roleDescription: landmarksList[index].roleDescription,
+			label: landmarksList[index].label,
+			guessed: landmarksList[index].guessed
 			// No need to send the selector or warnings
 		}
 	}
@@ -133,7 +134,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	// Recursive function for building list of landmarks from a root element
-	function getLandmarks(element, depth, parentLandmark, thisLevel) {
+	function getLandmarks(element, depth, parentLandmark, thisLevel, parentLandmarkLevel) {
 		if (isVisuallyHidden(element) || isSemantiallyHidden(element)) return
 
 		// Elements with explicitly-set rolees
@@ -149,11 +150,14 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		// The element may or may not have a label
 		const label = getARIAProvidedLabel(element)
 
-		let newLevel = thisLevel
-
 		// Add the element if it should be considered a landmark
 		if (role && isLandmark(role, hasExplicitRole, label)) {
+			if (parentLandmark && parentLandmark.contains(element)) {
+				depth = depth + 1
+			}
+
 			const thisLandmarkEntry = {
+				'type': 'landmark',
 				'depth': depth,
 				'role': role,
 				'roleDescription': getRoleDescription(element),
@@ -165,14 +169,10 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			}
 
 			thisLevel.push(thisLandmarkEntry)
-
-			if (parentLandmark && parentLandmark.contains(element)) {
-				depth = depth + 1
-				newLevel = thisLandmarkEntry.contains
-			}
+			landmarksList.push(thisLandmarkEntry)
 
 			if (useDevMode) {
-				landmarks[landmarks.length - 1].warnings = []
+				thisLandmarkEntry.warnings = []
 
 				if (!label) {
 					if (!_unlabelledRoleElements.has(role)) {
@@ -189,16 +189,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
 			if (currentlySelectedElement === element) {
-				currentlySelectedIndex = landmarks.length - 1
+				currentlySelectedIndex = landmarksList.length - 1
 			}
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
-			if (role === 'main') {
-				mainElementIndices.push(landmarks.length - 1)
-			}
+			if (role === 'main') mainElements.push(thisLandmarkEntry)
 
 			parentLandmark = element
+			parentLandmarkLevel = thisLandmarkEntry.contains
 		}
 
 		// One just one page I've seen an error here in Chrome (91) which seems
@@ -206,7 +205,13 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		// HTMLCollection. Checking for this would cause a slowdown, so
 		// ignoring for now.
 		for (const elementChild of element.children) {
-			getLandmarks(elementChild, depth, parentLandmark, newLevel)
+			getLandmarks(
+				elementChild,
+				depth,
+				parentLandmark,
+				parentLandmarkLevel ?? thisLevel,
+				null
+			)
 		}
 	}
 
@@ -390,15 +395,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function developerModeChecks() {
 		const _duplicateUnlabelledWarnings = getDuplicateUnlabelledWarnings()
 
-		if (mainElementIndices.length === 0) {
+		if (mainElements.length === 0) {
 			_pageWarnings.push('lintNoMain')
 		}
 
-		if (mainElementIndices.length > 1) {
+		if (mainElements.length > 1) {
 			_pageWarnings.push('lintManyMains')
 		}
 
-		for (const landmark of landmarks) {
+		for (const landmark of landmarksList) {
 			if (_visibleMainElements.length > 1
 				&& _visibleMainElements.includes(landmark.element)) {
 				landmark.warnings.push('lintManyVisibleMainElements')
@@ -431,6 +436,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	function makeLandmarkEntry(guessed, role) {
 		return {
+			'type': 'landmark',
 			'depth': 0,
 			'role': role,
 			'roleDescription': getRoleDescription(guessed),
@@ -443,15 +449,16 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	function addGuessed(guessed, role) {
 		if (guessed && guessed.innerText) {
-			if (landmarks.length === 0) {
-				landmarks.push(makeLandmarkEntry(guessed, role))
-				if (role === 'main') mainElementIndices = [0]
+			if (landmarksList.length === 0) {
+				const entry = makeLandmarkEntry(guessed, role)
+				landmarksList.push(entry)  // FIXME what about tree?
+				if (role === 'main') mainElements = [entry]
 			} else {
 				const insertAt =
-					getIndexOfLandmarkAfter(guessed) ?? landmarks.length
-				landmarks.splice(
+					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
+				landmarksList.splice(
 					insertAt, 0, makeLandmarkEntry(guessed, role))
-				if (role === 'main') mainElementIndices = [insertAt]
+				if (role === 'main') mainElements = [insertAt]
 			}
 			return true
 		}
@@ -459,7 +466,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	}
 
 	function tryFindingMain() {
-		if (mainElementIndices.length === 0) {
+		if (mainElements.length === 0) {
 			for (const id of ['main', 'content', 'main-content']) {
 				if (addGuessed(doc.getElementById(id), 'main')) return
 			}
@@ -492,8 +499,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//
 
 	function getIndexOfLandmarkAfter(element) {
-		for (let i = 0; i < landmarks.length; i++) {
-			const rels = element.compareDocumentPosition(landmarks[i].element)
+		for (let i = 0; i < landmarksList.length; i++) {
+			const rels = element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
@@ -501,8 +508,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	}
 
 	function getIndexOfLandmarkBefore(element) {
-		for (let i = landmarks.length - 1; i >= 0; i--) {
-			const rels = element.compareDocumentPosition(landmarks[i].element)
+		for (let i = landmarksList.length - 1; i >= 0; i--) {
+			const rels = element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
@@ -527,32 +534,50 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			_visibleMainElements = []
 		}
 
-		landmarks = []
-		mainElementIndices = []
+		landmarksTree = []
+		landmarksList = []
+		mainElements = []
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
-		const rootLandmarks = []
-		getLandmarks(doc.body.parentNode, 0, null, rootLandmarks)  // supports role on <body>
-		console.log(JSON.stringify(rootLandmarks, null, 2))
+		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)  // supports role on <body>
 
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 	}
 
 	this.getNumberOfLandmarks = function() {
-		return landmarks.length
+		return landmarksList.length
 	}
 
 	// This includes the selector, warnings, everything except the element
-	this.allInfos = () => landmarks.map(landmark => {
+	this.allInfos = () => landmarksList.map(landmark => {
 		// eslint-disable-next-line no-unused-vars
-		const { element, ...info } = landmark
+		const { element, contains, ...info } = landmark
 		return info
 	})
 
+	// FIXME: remove contains?
 	this.allElementsInfos = function() {
-		return landmarks.slice()  // TODO: Need a copy?
+		return landmarksList.slice()  // TODO: Need a copy?
+	}
+
+	function removeElements(subtree) {
+		for (const landmark of subtree) {
+			delete landmark.depth
+			delete landmark.element
+			if (landmark.contains.length === 0) {
+				delete landmark.contains
+			} else {
+				removeElements(landmark.contains)
+			}
+		}
+	}
+
+	// FIXME: genuine copy?
+	this.tree = function() {
+		removeElements(landmarksTree)
+		return landmarksTree
 	}
 
 	this.pageResults = function() {
@@ -569,7 +594,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 			}
 		}
 		return updateSelectedAndReturnElementInfo(
-			(currentlySelectedIndex + 1) % landmarks.length)
+			(currentlySelectedIndex + 1) % landmarksList.length)
 	}
 
 	this.getPreviousLandmarkElementInfo = function() {
@@ -581,7 +606,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		}
 		return updateSelectedAndReturnElementInfo(
 			(currentlySelectedIndex <= 0) ?
-				landmarks.length - 1 : currentlySelectedIndex - 1)
+				landmarksList.length - 1 : currentlySelectedIndex - 1)
 	}
 
 	this.getLandmarkElementInfo = function(index) {
@@ -591,9 +616,9 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	// If pages are naughty and have more than one 'main' region, we cycle
 	// betwixt them.
 	this.getMainElementInfo = function() {
-		if (mainElementIndices.length > 0) {
-			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
-			const mainElementIndex = mainElementIndices[mainIndexPointer]
+		if (mainElements.length > 0) {
+			mainIndexPointer = (mainIndexPointer + 1) % mainElements.length
+			const mainElementIndex = mainElements[mainIndexPointer]
 			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
 		return null
