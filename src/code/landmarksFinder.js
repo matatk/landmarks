@@ -450,14 +450,14 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	function addGuessed(guessed, role) {
 		if (guessed && guessed.innerText) {
 			const entry = makeLandmarkEntry(guessed, role)
-			landmarksTree.push(entry)
-
 			if (landmarksList.length === 0) {
+				landmarksTree.push(entry)
 				landmarksList.push(entry)
 				if (role === 'main') mainElementIndices = [0]
 			} else {
 				const insertAt =
 					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
+				landmarksTree.splice(insertAt, 0, entry)
 				landmarksList.splice(insertAt, 0, entry)
 				if (role === 'main') mainElementIndices = [insertAt]
 			}
