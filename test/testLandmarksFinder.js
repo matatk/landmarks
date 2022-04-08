@@ -195,13 +195,11 @@ const runs = [
 	[ 'Standard (strict)',
 		LandmarksFinder, null, strictChecks, false, false ],
 	[ 'Developer (strict)',
-		LandmarksFinder, removeWarnings, strictChecks, false, true ]]
-/*
+		LandmarksFinder, removeWarnings, strictChecks, false, true ],
 	[ 'Standard (heuristics)',
 		LandmarksFinder, null, heuristicChecks, true, false ],
 	[ 'Developer (heuristics)',
 		LandmarksFinder, removeWarnings, heuristicChecks, true, true ]]
-		*/
 
 for (const run of runs) {
 	testSpecificLandmarksFinder(...run)

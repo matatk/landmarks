@@ -449,14 +449,16 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 
 	function addGuessed(guessed, role) {
 		if (guessed && guessed.innerText) {
+			const entry = makeLandmarkEntry(guessed, role)
+			landmarksTree.push(entry)
+
 			if (landmarksList.length === 0) {
-				landmarksList.push(makeLandmarkEntry(guessed, role))
+				landmarksList.push(entry)
 				if (role === 'main') mainElementIndices = [0]
 			} else {
 				const insertAt =
 					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
-				landmarksList.splice(
-					insertAt, 0, makeLandmarkEntry(guessed, role))
+				landmarksList.splice(insertAt, 0, entry)
 				if (role === 'main') mainElementIndices = [insertAt]
 			}
 			return true
@@ -565,10 +567,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		for (const landmark of subtree) {
 			delete landmark.depth
 			delete landmark.element
-			if (landmark.contains.length === 0) {
-				delete landmark.contains
-			} else {
-				removeElements(landmark.contains)
+
+			// NOTE: Check needed for guessed landmarks.
+			// TODO: Compare operator performance? Insert a dummy 'contains'?
+			if ('contains' in landmark) {
+				if (landmark.contains.length === 0) {
+					delete landmark.contains
+				} else {
+					removeElements(landmark.contains)
+				}
 			}
 		}
 	}
