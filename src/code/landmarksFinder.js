@@ -10,12 +10,12 @@ import {
 } from './landmarksFinderDOMUtils.js'
 
 export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDevMode) {
-
 	//
 	// Found landmarks
 	//
 
 	let landmarksTree = []
+	let previousLandmarkEntry = null
 	let landmarksList = []
 	// Each member of this array is an object of the form:
 	//   depth (int)                     -- indicates nesting of landmarks
@@ -102,11 +102,19 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 				'element': element,
 				'selector': createSelector(element),
 				'guessed': false,
-				'contains': []
+				'contains': [],
+				'previous': previousLandmarkEntry,
+				'next': null
+			}
+
+			if (previousLandmarkEntry) {
+				previousLandmarkEntry.next = thisLandmarkEntry
 			}
 
 			thisLevel.push(thisLandmarkEntry)
 			landmarksList.push(thisLandmarkEntry)
+
+			previousLandmarkEntry = thisLandmarkEntry
 
 			if (useDevMode) {
 				thisLandmarkEntry.warnings = []
@@ -301,12 +309,15 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		}
 
 		landmarksTree = []
+		previousLandmarkEntry = null
 		landmarksList = []
 		mainElementIndices = []
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
 		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)  // supports role on <body>
+		if (landmarksTree.length > 0) previousLandmarkEntry.next = landmarksTree[0]
+		console.log(landmarksTree)
 
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
@@ -319,7 +330,7 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	// This includes the selector, warnings, everything except the element
 	this.allInfos = () => landmarksList.map(landmark => {
 		// eslint-disable-next-line no-unused-vars
-		const { element, contains, ...info } = landmark
+		const { element, contains, previous, next, ...info } = landmark
 		return info
 	})
 
@@ -332,6 +343,8 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		for (const landmark of subtree) {
 			delete landmark.depth
 			delete landmark.element
+			delete landmark.previous
+			delete landmark.next
 
 			// NOTE: Check needed for guessed landmarks.
 			// TODO: Compare operator performance? Insert a dummy 'contains'?
