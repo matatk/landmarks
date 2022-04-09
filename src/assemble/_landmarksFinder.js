@@ -191,6 +191,12 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 			parentLandmark = element
 		}
 
+		if(element.shadowRoot) {
+			for (const elementChild of element.shadowRoot.children) {
+				getLandmarks(elementChild, depth, parentLandmark)
+			}
+		}
+
 		// One just one page I've seen an error here in Chrome (91) which seems
 		// to be a bug, because only one HTMLElement was returned; not an
 		// HTMLCollection. Checking for this would cause a slowdown, so
@@ -367,6 +373,9 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 			reversePath.push(description)
 			if (id) break
 			node = node.parentNode
+			while(node.host) {
+				node = node.host
+			}
 		}
 
 		return reversePath.reverse().join(' > ')
