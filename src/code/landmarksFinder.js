@@ -9,15 +9,16 @@ import {
 	createSelector
 } from './landmarksFinderDOMUtils.js'
 
-export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDevMode) {
+// TODO: we don't need doc as a parameter
+export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
+	let useHeuristics = _useHeuristics  // parameter is only used by tests
+	let useDevMode = _useDevMode        // parameter is only used by tests
+
 	//
 	// Found landmarks
 	//
 
-	let landmarksTree = []
-	let previousLandmarkEntry = null
-	let landmarksList = []
-	// Each member of this array is an object of the form:
+	// Each member of these data structures is an object of the form:
 	//   depth (int)                     -- indicates nesting of landmarks
 	//   role (string)                   -- the ARIA role
 	//   roleDescription (string | null) -- custom role description
@@ -27,10 +28,13 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 	//   guessed (bool)                  -- landmark was gathered by heuristic
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
+	let landmarksTree = []  // point of truth
+	let landmarksList = []  // created alongside the tree; used for focusing
 
-	let useHeuristics = _testUseHeuristics  // parameter is only used by tests
-	let useDevMode = _testUseDevMode        // parameter is only used by tests
+	// Tracking landmark finding
+	let previousLandmarkEntry = null
 
+	// Tracking landmark finding in developer mode
 	let _pageWarnings = []
 	const _unlabelledRoleElements = new Map()
 	let _visibleMainElements = []
@@ -311,16 +315,18 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics, _testUseDe
 		landmarksTree = []
 		previousLandmarkEntry = null
 		landmarksList = []
+
 		mainElementIndices = []
 		mainIndexPointer = -1
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
-		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)  // supports role on <body>
-		if (landmarksTree.length > 0) previousLandmarkEntry.next = landmarksTree[0]
-		console.log(landmarksTree)
 
+		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
+		if (landmarksTree.length > 0) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
+
+		console.log(landmarksTree)
 	}
 
 	this.getNumberOfLandmarks = function() {
