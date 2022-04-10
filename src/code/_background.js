@@ -338,9 +338,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 		case 'landmarks':
 			if (dismissedUpdate) {
 				browser.browserAction.setBadgeText({
-					text: message.data.length === 0
-						? ''
-						: String(message.data.length),
+					text: message.number === 0 ? '' : String(message.number),
 					tabId: sender.tab.id
 				})
 			}
