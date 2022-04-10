@@ -33,6 +33,7 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	// Tracking landmark finding
 	let previousLandmarkEntry = null
+	let cachedFilteredTree = null
 
 	// Tracking landmark finding in developer mode
 	let _pageWarnings = []
@@ -294,6 +295,34 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 		return null
 	}
 
+
+	//
+	// Support for public API
+	//
+
+	function filterTree(subtree) {
+		const filteredLevel = []
+
+		for (const entry of subtree) {
+			// eslint-disable-next-line no-unused-vars
+			const { contains, depth, element, previous, next, ...info } = entry
+
+			// NOTE: Guessed landmarks aren't given a 'contains' property
+			const filteredContains = Array.isArray(entry.contains)
+				? filterTree(entry.contains)
+				: []
+
+			const filteredEntry = { ...info }
+			if (filteredContains.length > 0) {
+				filteredEntry.contains = filteredContains
+			}
+
+			filteredLevel.push(filteredEntry)
+		}
+
+		return filteredLevel
+	}
+
 	function checkBoolean(name, value) {
 		if (typeof value !== 'boolean') {
 			throw Error(`${name}() given ${typeof value} value: ${value}`)
@@ -306,15 +335,16 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	//
 
 	this.find = function() {
+		landmarksTree = []
+		previousLandmarkEntry = null
+		cachedFilteredTree = null
+		landmarksList = []
+
 		if (useDevMode) {
 			_pageWarnings = []
 			_unlabelledRoleElements.clear()
 			_visibleMainElements = []
 		}
-
-		landmarksTree = []
-		previousLandmarkEntry = null
-		landmarksList = []
 
 		mainElementIndices = []
 		mainIndexPointer = -1
@@ -322,16 +352,12 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 		currentlySelectedIndex = -1
 
 		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
-		if (landmarksTree.length > 0) previousLandmarkEntry.next = landmarksTree[0]
+		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
-
-		console.log(landmarksTree)
 	}
 
-	this.getNumberOfLandmarks = function() {
-		return landmarksList.length
-	}
+	this.getNumberOfLandmarks = () => landmarksList.length
 
 	// This includes the selector, warnings, everything except the element
 	this.allInfos = () => landmarksList.map(landmark => {
@@ -341,37 +367,21 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	})
 
 	// FIXME: remove contains?
+	// FIXME: Need a copy?
 	this.allElementsInfos = function() {
-		return landmarksList.slice()  // TODO: Need a copy?
-	}
-
-	function removeElements(subtree) {
-		for (const landmark of subtree) {
-			delete landmark.depth
-			delete landmark.element
-			delete landmark.previous
-			delete landmark.next
-
-			// NOTE: Check needed for guessed landmarks.
-			// TODO: Compare operator performance? Insert a dummy 'contains'?
-			if ('contains' in landmark) {
-				if (landmark.contains.length === 0) {
-					delete landmark.contains
-				} else {
-					removeElements(landmark.contains)
-				}
-			}
-		}
-	}
-
-	// FIXME: genuine copy?
-	this.tree = function() {
-		removeElements(landmarksTree)
-		return landmarksTree
+		return landmarksList.slice()
 	}
 
 	this.pageResults = function() {
 		return useDevMode ? _pageWarnings : null
+	}
+
+	// Just the tree structure, in serialisable form
+	this.tree = function() {
+		if (!cachedFilteredTree) {
+			cachedFilteredTree = filterTree(landmarksTree)
+		}
+		return cachedFilteredTree
 	}
 
 	// These all return elements and their related info
