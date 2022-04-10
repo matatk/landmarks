@@ -34,6 +34,8 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	// Tracking landmark finding
 	let previousLandmarkEntry = null
 	let cachedFilteredTree = null
+	let cachedAllInfos = null
+	let cachedAllElementInfos = null
 
 	// Tracking landmark finding in developer mode
 	let _pageWarnings = []
@@ -77,7 +79,9 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	// Recursive function for building list of landmarks from a root element
 	function getLandmarks(element, depth, parentLandmark, thisLevel, parentLandmarkLevel) {
-		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) return
+		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
+			return
+		}
 
 		// Elements with explicitly-set rolees
 		const rawRoleValue = element.getAttribute('role')
@@ -144,7 +148,9 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
-			if (role === 'main') mainElementIndices.push(landmarksList.length - 1)
+			if (role === 'main') {
+				mainElementIndices.push(landmarksList.length - 1)
+			}
 
 			parentLandmark = element
 			parentLandmarkLevel = thisLandmarkEntry.contains
@@ -279,7 +285,8 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	function getIndexOfLandmarkAfter(element) {
 		for (let i = 0; i < landmarksList.length; i++) {
-			const rels = element.compareDocumentPosition(landmarksList[i].element)
+			const rels =
+				element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
@@ -288,7 +295,8 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	function getIndexOfLandmarkBefore(element) {
 		for (let i = landmarksList.length - 1; i >= 0; i--) {
-			const rels = element.compareDocumentPosition(landmarksList[i].element)
+			const rels =
+				element.compareDocumentPosition(landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
@@ -336,9 +344,11 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	this.find = function() {
 		landmarksTree = []
+		landmarksList = []
 		previousLandmarkEntry = null
 		cachedFilteredTree = null
-		landmarksList = []
+		cachedAllInfos = null
+		cachedAllElementInfos = null
 
 		if (useDevMode) {
 			_pageWarnings = []
@@ -353,27 +363,36 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
+
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 	}
 
 	this.getNumberOfLandmarks = () => landmarksList.length
 
-	// This includes the selector, warnings, everything except the element
-	this.allInfos = () => landmarksList.map(landmark => {
-		// eslint-disable-next-line no-unused-vars
-		const { element, contains, previous, next, ...info } = landmark
-		return info
-	})
-
-	// FIXME: remove contains?
-	// FIXME: Need a copy?
-	this.allElementsInfos = function() {
-		return landmarksList.slice()
+	// This includes the selector, warnings, everything except the element.
+	// Used by the UI.
+	this.allInfos = function() {
+		if (!cachedAllInfos) {
+			cachedAllInfos = landmarksList.map(entry => {
+				// eslint-disable-next-line no-unused-vars
+				const { element, contains, previous, next, ...info } = entry
+				return info
+			})
+		}
+		return cachedAllInfos
 	}
 
-	this.pageResults = function() {
-		return useDevMode ? _pageWarnings : null
+	// As above, but also including the element. Used by the borderDrawer.
+	this.allElementsInfos = function() {
+		if (!cachedAllElementInfos) {
+			cachedAllElementInfos = landmarksList.map(entry => {
+				// eslint-disable-next-line no-unused-vars
+				const { contains, previous, next, ...info } = entry
+				return info
+			})
+		}
+		return cachedAllElementInfos
 	}
 
 	// Just the tree structure, in serialisable form
@@ -417,7 +436,8 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	// betwixt them.
 	this.getMainElementInfo = function() {
 		if (mainElementIndices.length > 0) {
-			mainIndexPointer = (mainIndexPointer + 1) % mainElementIndices.length
+			mainIndexPointer =
+				(mainIndexPointer + 1) % mainElementIndices.length
 			const mainElementIndex = mainElementIndices[mainIndexPointer]
 			return updateSelectedAndReturnElementInfo(mainElementIndex)
 		}
