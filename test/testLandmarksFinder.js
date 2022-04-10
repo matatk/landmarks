@@ -55,6 +55,8 @@ const testSuiteFormatExpectation = [
 	}
 ]
 
+// NOTE: These will also have 'index' keys inserted at runtime, and 'warnings'
+//       keys in developer mode.
 const landmarksFormatExpectation = [
 	{
 		'type': 'landmark',
@@ -147,8 +149,7 @@ test('expectation conversion from test suite to Landmarks format ' +
 // Check the LandmarksFinders
 //
 
-function testSpecificLandmarksFinder(
-	runName, Scanner, postProcesor, checks, heuristics, developer) {
+function testSpecificLandmarksFinder(runName, checks, heuristics, developer) {
 	for (const check of Object.values(checks)) {
 		test(runName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
@@ -168,38 +169,36 @@ function testSpecificLandmarksFinder(
 				})
 			}
 
-			const lf = new Scanner(dom.window, dom.window.document, heuristics, developer)
+			const lf = new LandmarksFinder(dom.window, dom.window.document, heuristics, developer)
 			lf.find()
-			const landmarksFinderResult = postProcesor
-				? postProcesor(lf.tree())
-				: lf.tree()
+
+			const landmarksFinderResult = removeStuff(lf.tree())
 			const convertedExpectation = convertExpectation(check.expected)
+
 			t.deepEqual(landmarksFinderResult, convertedExpectation)
 		})
 	}
 }
 
-function removeWarningsCore(landmarks) {
+function removeStuffCore(landmarks) {
 	for (const landmark of landmarks) {
+		delete landmark.index
 		delete landmark.warnings
-		if (landmark.contains) removeWarnings(landmark.contains)
+		if (landmark.contains) removeStuff(landmark.contains)
 	}
 }
 
-function removeWarnings(landmarks) {
-	removeWarningsCore(landmarks)
+// Remove 'index' in all modes; 'warnings' too in dev mode
+function removeStuff(landmarks) {
+	removeStuffCore(landmarks)
 	return landmarks
 }
 
 const runs = [
-	[ 'Standard (strict)',
-		LandmarksFinder, null, strictChecks, false, false ],
-	[ 'Developer (strict)',
-		LandmarksFinder, removeWarnings, strictChecks, false, true ],
-	[ 'Standard (heuristics)',
-		LandmarksFinder, null, heuristicChecks, true, false ],
-	[ 'Developer (heuristics)',
-		LandmarksFinder, removeWarnings, heuristicChecks, true, true ]]
+	[ 'Standard (strict)', strictChecks, false, false ],
+	[ 'Developer (strict)', strictChecks, false, true ],
+	[ 'Standard (heuristics)', heuristicChecks, true, false ],
+	[ 'Developer (heuristics)', heuristicChecks, true, true ]]
 
 for (const run of runs) {
 	testSpecificLandmarksFinder(...run)
@@ -217,6 +216,7 @@ function convertCore(testSuiteFormatData) {
 	}
 }
 
+// These days all this does is ensure there's a 'guessed' key in the entries
 function convertExpectation(testSuiteFormatData) {
 	convertCore(testSuiteFormatData)
 	return testSuiteFormatData
