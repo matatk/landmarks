@@ -212,7 +212,8 @@ function debugSend(what) {
 function sendLandmarks() {
 	browser.runtime.sendMessage({
 		name: 'landmarks',
-		data: landmarksFinder.allInfos()
+		tree: landmarksFinder.tree(),
+		number: landmarksFinder.getNumberOfLandmarks()
 	})
 }
 

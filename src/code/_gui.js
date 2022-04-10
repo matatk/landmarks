@@ -55,18 +55,18 @@ let port = null
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(data) {
+function handleLandmarksMessage(tree) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
 
 	// Content script would normally send back an array of landmarks
-	if (Array.isArray(data)) {
-		if (data.length === 0) {
+	if (Array.isArray(tree)) {
+		if (tree.length === 0) {
 			addText(display, browser.i18n.getMessage('noLandmarksFound'))
 			showAllContainer.style.display = 'none'
 		} else {
-			makeLandmarksTree(data, display)
+			display.appendChild(processTree(tree))
 			showAllContainer.style.display = null
 		}
 	} else {
@@ -75,88 +75,64 @@ function handleLandmarksMessage(data) {
 	}
 }
 
-// Go through the landmarks identified for the page and create an HTML
-// nested list to mirror the structure of those landmarks
-function makeLandmarksTree(landmarks, container) {
-	let previousDepth = 0
-	const root = document.createElement('ul')  // start of tree
-	let base = root                            // anchor for sub-trees
-	let previousItem = null                    // last item to be created
+function processTree(treeLevel) {
+	const thisLevelList = document.createElement('UL')
 
-	landmarks.forEach(function(landmark, index) {
-		const depthChange = landmark.depth - previousDepth
-		const absDepthChange = Math.abs(depthChange)
+	for (const landmark of treeLevel) {
+		thisLevelList.appendChild(
+			processTreeLevelItem(landmark))
+	}
 
-		function whenDepthIncreases() {
-			base = document.createElement('ul')
-			previousItem.appendChild(base)
-		}
+	return thisLevelList
+}
 
-		function whenDepthDecreases() {
-			// The parent of base is an <li>, the grandparent is the <ul>
-			base = base.parentElement.parentElement
-		}
+function processTreeLevelItem(landmark) {
+	// Create the <li> for this landmark
+	const item = document.createElement('li')
 
-		// If the depth has changed, insert/step back the appropriate number of
-		// levels
+	const shower = function() {
+		send({ name: 'show-landmark', index: landmark.index })
+	}
 
-		if (absDepthChange > 0) {
-			const operation =
-				depthChange > 0 ? whenDepthIncreases : whenDepthDecreases
-			for (let i = 0; i < absDepthChange; i++) {
-				operation()
+	const hider = function() {
+		send({ name: 'hide-landmark', index: landmark.index })
+	}
+
+	const button = makeLandmarkButton(
+		function() {
+			send({ name: 'focus-landmark', index: landmark.index })
+			if (INTERFACE === 'popup' && closePopupOnActivate) {
+				window.close()
 			}
-		}
+		},
+		shower,
+		hider,
+		landmarkName(landmark))
 
-		// If nesting hasn't changed, stick with the current base
+	item.appendChild(button)
 
-		const shower = function() {
-			send({ name: 'show-landmark', index })
-		}
+	if (INTERFACE === 'devtools') {
+		addInspectButton(item, landmark)
 
-		const hider = function() {
-			send({ name: 'hide-landmark', index })
-		}
-
-		// Create the <li> for this landmark
-		const item = document.createElement('li')
-		const button = makeLandmarkButton(
-			function() {
-				send({ name: 'focus-landmark', index: index })
-				if (INTERFACE === 'popup' && closePopupOnActivate) {
-					window.close()
-				}
-			},
-			shower,
-			hider,
-			landmarkName(landmark))
-		item.appendChild(button)
-
-		if (INTERFACE === 'devtools') {
-			addInspectButton(item, landmark)
-
-			// TODO: come back to this check; can we make it not needed?
-			// When the content script first starts, it assumes that DevTools
-			// aren't open. The background script will request a GUI update and
-			// whilst unlikely, this might happen before the content script has
-			// learnt that DevTools are open.
-			if (landmark.hasOwnProperty('warnings')) {
-				if (landmark.warnings.length > 0) {
-					addElementWarnings(item, landmark, landmark.warnings)
-				}
-			} else {
-				debugSend('no warnings for ' + landmark.role)
+		// TODO: come back to this check; can we make it not needed?
+		// When the content script first starts, it assumes that DevTools
+		// aren't open. The background script will request a GUI update and
+		// whilst unlikely, this might happen before the content script has
+		// learnt that DevTools are open.
+		if (landmark.hasOwnProperty('warnings')) {
+			if (landmark.warnings.length > 0) {
+				addElementWarnings(item, landmark, landmark.warnings)
 			}
+		} else {
+			debugSend('no warnings for ' + landmark.role)
 		}
+	}
 
-		base.appendChild(item)  // add to current base
+	if (landmark.contains) {  // landmarksFinder ensures >0 entries if present
+		item.appendChild(processTree(landmark.contains))
+	}
 
-		// Housekeeping
-		previousDepth = landmark.depth
-		previousItem = item
-	})
-
-	container.appendChild(root)
+	return item
 }
 
 function addInspectButton(root, landmark) {
@@ -186,7 +162,7 @@ function addElementWarnings(root, landmark, array) {
 	root.appendChild(details)
 }
 
-// Remove all nodes contained within a node
+// TODO: Is there a DOM API for this?
 function removeChildNodes(element) {
 	while (element.firstChild) {
 		element.removeChild(element.firstChild)
@@ -379,7 +355,7 @@ function debugSend(what) {
 
 function messageHandlerCore(message) {
 	if (message.name === 'landmarks') {
-		handleLandmarksMessage(message.data)
+		handleLandmarksMessage(message.tree)
 		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)

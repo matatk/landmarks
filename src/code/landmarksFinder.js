@@ -314,13 +314,13 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 		for (const entry of subtree) {
 			// eslint-disable-next-line no-unused-vars
 			const { contains, depth, element, previous, next, ...info } = entry
+			const filteredEntry = { ...info }
 
 			// NOTE: Guessed landmarks aren't given a 'contains' property
 			const filteredContains = Array.isArray(entry.contains)
 				? filterTree(entry.contains)
 				: []
 
-			const filteredEntry = { ...info }
 			if (filteredContains.length > 0) {
 				filteredEntry.contains = filteredContains
 			}
@@ -363,9 +363,12 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
-
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
+
+		for (let i = 0; i < landmarksList.length; i++) {
+			landmarksList[i].index = i
+		}
 	}
 
 	this.getNumberOfLandmarks = () => landmarksList.length
