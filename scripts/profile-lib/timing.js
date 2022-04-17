@@ -16,7 +16,7 @@ import {
 	elementCounts,
 	landmarkNav,
 	landmarkScan,
-	pickLandmark
+	mutationTest
 } from './timingBrowserFuncs.js'
 
 const selectInteractives =
@@ -178,8 +178,8 @@ async function runScansOnSite(browser, site, quietness, {
 
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
-		const found = await page.evaluate(pickLandmark, useHeuristics)
-		console.log(found)
+		const result = await page.evaluate(mutationTest, useHeuristics)
+		console.log('mutation test result:', result)
 	}
 
 	await page.close()

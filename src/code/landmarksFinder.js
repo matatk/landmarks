@@ -332,6 +332,26 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 
 	//
+	// Handling mutations; debugging handling mutations
+	//
+
+	function handleMutations(mutations) {
+		console.log('handleMutations():', mutations)
+	}
+
+	const debugFuncTimes = []
+
+	function debugWrap(func) {
+		return function(...args) {
+			const start = win.performance.now()
+			func(...args)
+			const end = win.performance.now()
+			debugFuncTimes.push(end - start)
+		}
+	}
+
+
+	//
 	// Public API
 	//
 
@@ -449,4 +469,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		checkBoolean(useDevMode, use)
 		useDevMode = use
 	}
+
+	this.handleMutations = handleMutations
+
+	this.debugHandleMutations = debugWrap(handleMutations)
+
+	this.debugFuncTimes = () => debugFuncTimes
 }
