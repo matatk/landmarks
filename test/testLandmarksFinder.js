@@ -169,7 +169,7 @@ function testSpecificLandmarksFinder(runName, checks, heuristics, developer) {
 				})
 			}
 
-			const lf = new LandmarksFinder(dom.window, dom.window.document, heuristics, developer)
+			const lf = new LandmarksFinder(dom.window, heuristics, developer)
 			lf.find()
 
 			const landmarksFinderResult = removeStuff(lf.tree())

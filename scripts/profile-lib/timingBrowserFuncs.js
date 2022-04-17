@@ -3,8 +3,7 @@ export function elementCounts(selectInteractives, useHeuristics) {
 	const interactiveElements =
 		document.querySelectorAll(selectInteractives).length
 
-	const lf =
-		new window.LandmarksFinder(window, document, useHeuristics, false)
+	const lf = new window.LandmarksFinder(window, useHeuristics, false)
 	lf.find()
 
 	return {
@@ -16,8 +15,7 @@ export function elementCounts(selectInteractives, useHeuristics) {
 }
 
 export function landmarkScan(times, useHeuristics, useDevMode) {
-	const lf =
-		new window.LandmarksFinder(window, document, useHeuristics, useDevMode)
+	const lf = new window.LandmarksFinder(window, useHeuristics, useDevMode)
 	const scanTimes = []
 
 	for (let i = 0; i < times; i++) {
@@ -31,8 +29,7 @@ export function landmarkScan(times, useHeuristics, useDevMode) {
 }
 
 export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
-	const lf =
-		new window.LandmarksFinder(window, document, useHeuristics, false)
+	const lf = new window.LandmarksFinder(window, useHeuristics, false)
 	const interactiveElements = document.querySelectorAll(selectInteractives)
 	const navigationTimes = []
 	// Tests showed that indirectly calling the navigation function is between
@@ -54,4 +51,12 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 	}
 
 	return navigationTimes
+}
+
+export function pickLandmark(useHeuristics) {
+	const lf = new window.LandmarksFinder(window, useHeuristics, false)
+	lf.find()
+	const landmarks = lf.allInfos()
+	const picked = landmarks[Math.floor(Math.random() * landmarks.length)]
+	return picked
 }

@@ -7,7 +7,7 @@ import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults'
 
-const landmarksFinder = new LandmarksFinder(window, document)
+const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)

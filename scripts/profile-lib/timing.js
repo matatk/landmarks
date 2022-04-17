@@ -15,7 +15,8 @@ import {
 import {
 	elementCounts,
 	landmarkNav,
-	landmarkScan
+	landmarkScan,
+	pickLandmark
 } from './timingBrowserFuncs.js'
 
 const selectInteractives =
@@ -30,12 +31,13 @@ const selectInteractives =
 //   loops (int)           -- number of repeated scans and focusings
 //   doScan (bool)         -- perform scanning test?
 //   doFocus (bool)        -- perform focusing tests?
+//   doMutations (bool)    -- perform mutation tests?
 //   finderPath (string)   -- path to built script file
 //   without (bool)        -- do NOT employ guessing in the Finder?
 //   quietness (count)     -- how quiet should we be?
 
-export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without, quietness) {
-	const options = { loops, doScan, doFocus }
+export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness) {
+	const options = { loops, doScan, doFocus, doMutations }
 	const finderPath = await wrapLandmarksFinder()
 	const findersDevModes = { 'Standard': false, 'Developer': true }
 	const fullResults = { 'meta': { 'loops': loops } }
@@ -126,7 +128,7 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 }
 
 async function runScansOnSite(browser, site, quietness, {
-	loops, finderPath, doScan, doFocus, useHeuristics, useDevMode
+	loops, finderPath, doScan, doFocus, doMutations, useHeuristics, useDevMode
 }) {
 	const page = await pageSetUp(browser, false, quietness)
 	const results = { 'url': urls[site] }
@@ -172,6 +174,12 @@ async function runScansOnSite(browser, site, quietness, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
 			'navBackDeviation': stats.stdev(navBackTimes)
 		})
+	}
+
+	if (doMutations) {
+		console.log(`Running mutation tests ${loops} times...`)
+		const found = await page.evaluate(pickLandmark, useHeuristics)
+		console.log(found)
 	}
 
 	await page.close()

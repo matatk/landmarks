@@ -10,7 +10,8 @@ import {
 } from './landmarksFinderDOMUtils.js'
 
 // TODO: we don't need doc as a parameter
-export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
+export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
+	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
 	let useDevMode = _useDevMode        // parameter is only used by tests
 
@@ -19,7 +20,6 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	//
 
 	// Each member of these data structures is an object of the form:
-	//   depth (int)                     -- indicates nesting of landmarks
 	//   role (string)                   -- the ARIA role
 	//   roleDescription (string | null) -- custom role description
 	//   label (string | null)           -- associated label
@@ -78,7 +78,7 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	//
 
 	// Recursive function for building list of landmarks from a root element
-	function getLandmarks(element, depth, parentLandmark, thisLevel, parentLandmarkLevel) {
+	function getLandmarks(element, parentLandmark, thisLevel, parentLandmarkLevel) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
 			return
 		}
@@ -98,13 +98,8 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 		// Add the element if it should be considered a landmark
 		if (role && isLandmark(role, hasExplicitRole, label)) {
-			if (parentLandmark && parentLandmark.contains(element)) {
-				depth = depth + 1
-			}
-
 			const thisLandmarkEntry = {
 				'type': 'landmark',
-				'depth': depth,
 				'role': role,
 				'roleDescription': getRoleDescription(element),
 				'label': label,
@@ -163,7 +158,6 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 		for (const elementChild of element.children) {
 			getLandmarks(
 				elementChild,
-				depth,
 				parentLandmark,
 				parentLandmarkLevel ?? thisLevel,
 				null
@@ -221,7 +215,6 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	function makeLandmarkEntry(guessed, role) {
 		return {
 			'type': 'landmark',
-			'depth': 0,
 			'role': role,
 			'roleDescription': getRoleDescription(guessed),
 			'label': getARIAProvidedLabel(doc, guessed),
@@ -455,14 +448,5 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 	this.useDevMode = function(use) {
 		checkBoolean(useDevMode, use)
 		useDevMode = use
-	}
-
-	this.getCurrentlySelectedIndex = function() {
-		return currentlySelectedIndex
-	}
-
-	// TODO: Rename this and the above
-	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
-		return landmarksList[index]
 	}
 }

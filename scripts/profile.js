@@ -88,8 +88,13 @@ function main() {
 						description:
 						'Time focusing the next and previous landmark'
 					})
+					.option('mutate', {
+						alias: 'm',
+						type: 'boolean',
+						description: 'Time handling mutations'
+					})
 					.check(argv => {
-						if (argv.scan || argv.focus) {
+						if (argv.scan || argv.focus || argv.mutate) {
 							return true
 						}
 						throw new Error(
@@ -150,6 +155,7 @@ function main() {
 				argv.repetitions,
 				argv.scan,
 				argv.focus,
+				argv.mutate,
 				argv.withoutHeuristicsToo,
 				argv.quiet)
 			break
