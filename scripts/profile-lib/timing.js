@@ -17,7 +17,8 @@ import {
 	landmarkNav,
 	landmarkScan,
 	mutationSetup,
-	mutationTest
+	mutationTests,
+	mutationTearDown
 } from './timingBrowserFuncs.js'
 
 const selectInteractives =
@@ -124,6 +125,11 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 			combined.navBackDeviation = stats.stdev(allNavBackTimes)
 		}
 
+		if (options.doMutations) {
+			combined.mutationTestMeanTimeMS = stats.mean(allScanTimes)
+			combined.mutationTestDeviation = stats.stdev(allScanTimes)
+		}
+
 		finderResults['combined'] = combined
 	}
 
@@ -181,9 +187,22 @@ async function runScansOnSite(browser, site, quietness, {
 
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
-		const result1 = await page.evaluate(mutationSetup, useHeuristics)
-		const result2 = await page.evaluate(mutationTest, useHeuristics)
-		console.log('mutation test result:', result1, result2)
+		await page.evaluate(mutationSetup, useHeuristics)
+
+		// NOTE: Doing this here as opposed to in the browser due to having to
+		//       wait between mutations.
+		for (const [ name, func ] of Object.entries(mutationTests)) {
+			console.log('\t' + name)
+			for (let i = 0; i < loops; i++) {
+				await page.evaluate(func, useHeuristics)
+			}
+			const times = await page.evaluate(mutationTearDown, useHeuristics)
+			rawResults.mutationTestTimes = times
+			Object.assign(results, {
+				[name + 'MeanTimeMS']: stats.mean(times),
+				[name + 'Deviation']: stats.stdev(times)
+			})
+		}
 	}
 
 	await page.close()

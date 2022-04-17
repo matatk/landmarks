@@ -54,16 +54,55 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 }
 
 export function mutationSetup(useHeuristics) {
+	// TODO: Share across all tasks
 	window.landmarksFinder =
 		new window.LandmarksFinder(window, useHeuristics, false)
-	return true
+	window.observer = new MutationObserver(
+		window.landmarksFinder.debugHandleMutations)
+	// TODO: DRY with content script
+	// FIXME: doesn't include roledescription
+	window.observer.observe(document, {
+		attributes: true,
+		childList: true,
+		subtree: true,
+		attributeFilter: [
+			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+		]
+	})
 }
 
-export function mutationTest() {
-	const lf = window.landmarksFinder
-	lf.find()
-	lf.debugHandleMutations([])
-	lf.debugHandleMutations([])
-	lf.debugHandleMutations([])
-	return lf.debugFuncTimes()
+// TODO: check the answer (only on one go)
+function mutationTestAddNonLandmarkElement() {
+	const notALandmark = document.createElement('DIV')
+	notALandmark.appendChild(document.createTextNode('not a landmark'))
+	document.body.appendChild(notALandmark)
+}
+
+// TODO: check the answer (only on one go)
+// TODO: Add a COMPLICATED landmark
+function mutationTestAddLandmark() {
+	const landmark = document.createElement('NAV')
+	landmark.appendChild(document.createTextNode('navigation landmark'))
+	document.body.appendChild(landmark)
+}
+
+// TODO: check the answer (only on one go)
+function mutationTestAddLandmarkWithinRandomLandmark() {
+	// TODO
+}
+
+// TODO: check the answer (only on one go)
+function mutationTestRemoveRandomLandmark() {
+	// TODO
+}
+
+export const mutationTests = {
+	mutationTestAddNonLandmarkElement,
+	mutationTestAddLandmark,
+	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestRemoveRandomLandmark
+}
+
+export function mutationTearDown() {
+	return window.landmarksFinder.debugMutationHandlingTimes()
 }

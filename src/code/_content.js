@@ -310,6 +310,8 @@ function createMutationObserver() {
 }
 
 function observeMutations() {
+	// TODO: DRY with profile (timing) script
+	// FIXME: doesn't include roledescription
 	observer.observe(document, {
 		attributes: true,
 		childList: true,

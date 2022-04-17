@@ -9,7 +9,6 @@ import {
 	createSelector
 } from './landmarksFinderDOMUtils.js'
 
-// TODO: we don't need doc as a parameter
 export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
@@ -77,7 +76,35 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Finding landmarks
 	//
 
-	// Recursive function for building list of landmarks from a root element
+	function find() {
+		landmarksTree = []
+		landmarksList = []
+		previousLandmarkEntry = null
+		cachedFilteredTree = null
+		cachedAllInfos = null
+		cachedAllElementInfos = null
+
+		if (useDevMode) {
+			_pageWarnings = []
+			_unlabelledRoleElements.clear()
+			_visibleMainElements = []
+		}
+
+		mainElementIndices = []
+		mainIndexPointer = -1
+		foundNavigationRegion = false
+		currentlySelectedIndex = -1
+
+		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
+		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
+		if (useDevMode) developerModeChecks()
+		if (useHeuristics) tryHeuristics()
+
+		for (let i = 0; i < landmarksList.length; i++) {
+			landmarksList[i].index = i
+		}
+	}
+
 	function getLandmarks(element, parentLandmark, thisLevel, parentLandmarkLevel) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
 			return
@@ -337,16 +364,17 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	function handleMutations(mutations) {
 		console.log('handleMutations():', mutations)
+		find()
 	}
 
-	const debugFuncTimes = []
+	const debugMutationHandlingTimes = []
 
 	function debugWrap(func) {
 		return function(...args) {
 			const start = win.performance.now()
 			func(...args)
 			const end = win.performance.now()
-			debugFuncTimes.push(end - start)
+			debugMutationHandlingTimes.push(end - start)
 		}
 	}
 
@@ -355,35 +383,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Public API
 	//
 
-	this.find = function() {
-		landmarksTree = []
-		landmarksList = []
-		previousLandmarkEntry = null
-		cachedFilteredTree = null
-		cachedAllInfos = null
-		cachedAllElementInfos = null
-
-		if (useDevMode) {
-			_pageWarnings = []
-			_unlabelledRoleElements.clear()
-			_visibleMainElements = []
-		}
-
-		mainElementIndices = []
-		mainIndexPointer = -1
-		foundNavigationRegion = false
-		currentlySelectedIndex = -1
-
-		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
-		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
-		if (useDevMode) developerModeChecks()
-		if (useHeuristics) tryHeuristics()
-
-		for (let i = 0; i < landmarksList.length; i++) {
-			landmarksList[i].index = i
-		}
-	}
-
+	this.find = find
 	this.getNumberOfLandmarks = () => landmarksList.length
 
 	// This includes the selector, warnings, everything except the element.
@@ -471,8 +471,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	this.handleMutations = handleMutations
-
 	this.debugHandleMutations = debugWrap(handleMutations)
-
-	this.debugFuncTimes = () => debugFuncTimes
+	this.debugMutationHandlingTimes = () => debugMutationHandlingTimes
 }
