@@ -53,11 +53,17 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 	return navigationTimes
 }
 
-export function mutationTest(useHeuristics) {
-	const lf = new window.LandmarksFinder(window, useHeuristics, false)
+export function mutationSetup(useHeuristics) {
+	window.landmarksFinder =
+		new window.LandmarksFinder(window, useHeuristics, false)
+	return true
+}
+
+export function mutationTest() {
+	const lf = window.landmarksFinder
 	lf.find()
 	lf.debugHandleMutations([])
 	lf.debugHandleMutations([])
 	lf.debugHandleMutations([])
-	return lf.debugFuncTimes()  // FIXME: not ready yet
+	return lf.debugFuncTimes()
 }

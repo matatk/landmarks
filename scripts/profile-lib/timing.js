@@ -16,6 +16,7 @@ import {
 	elementCounts,
 	landmarkNav,
 	landmarkScan,
+	mutationSetup,
 	mutationTest
 } from './timingBrowserFuncs.js'
 
@@ -35,8 +36,9 @@ const selectInteractives =
 //   finderPath (string)   -- path to built script file
 //   without (bool)        -- do NOT employ guessing in the Finder?
 //   quietness (count)     -- how quiet should we be?
+//   noFileWrite (bool)    -- do NOT write results to disk
 
-export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness) {
+export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness, noFileWrite) {
 	const options = { loops, doScan, doFocus, doMutations }
 	const finderPath = await wrapLandmarksFinder()
 	const findersDevModes = { 'Standard': false, 'Developer': true }
@@ -63,7 +65,8 @@ export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMu
 		}
 
 		await browser.close()
-		printAndSaveResults(fullResults, loops)
+		// NOTE: super-secret quietness level
+		if (quietness < 3) printAndSaveResults(fullResults, !noFileWrite)
 	})
 }
 
@@ -178,8 +181,9 @@ async function runScansOnSite(browser, site, quietness, {
 
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
-		const result = await page.evaluate(mutationTest, useHeuristics)
-		console.log('mutation test result:', result)
+		const result1 = await page.evaluate(mutationSetup, useHeuristics)
+		const result2 = await page.evaluate(mutationTest, useHeuristics)
+		console.log('mutation test result:', result1, result2)
 	}
 
 	await page.close()

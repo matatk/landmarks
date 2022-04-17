@@ -106,6 +106,11 @@ function main() {
 						type: 'boolean',
 						description: 'Time scanning for landmarks _without_ heuristics as well as with heuristics'
 					})
+					.option('no-file-write', {
+						alias: 'F',
+						type: 'boolean',
+						description: "Don't write any results files"
+					})
 					.positional('site', siteParameterDefinition)
 					.positional('repetitions', {
 						describe:
@@ -157,7 +162,8 @@ function main() {
 				argv.focus,
 				argv.mutate,
 				argv.withoutHeuristicsToo,
-				argv.quiet)
+				argv.quiet,
+				argv.noFileWrite)
 			break
 		case 'guarding':
 			doTraceWithAndWithoutGuarding(argv.quiet, debugBuildNote)

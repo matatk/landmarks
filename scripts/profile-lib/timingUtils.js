@@ -38,7 +38,7 @@ export async function wrapLandmarksFinder() {
 	return outputPath
 }
 
-export function printAndSaveResults(results) {
+export function printAndSaveResults(results, writeFiles) {
 	const roughlyNow = new Date()
 		.toISOString()
 		.replace(/T/, '-')
@@ -51,8 +51,12 @@ export function printAndSaveResults(results) {
 	const resultsJsonString = JSON.stringify(results, rounder, 2)
 	console.log(resultsJsonString)
 
-	save(baseName + '.json', resultsJsonString)
-	save(baseName + '.html', htmlResults(results))
+	if (writeFiles) {
+		save(baseName + '.json', resultsJsonString)
+		save(baseName + '.html', htmlResults(results))
+	} else {
+		console.log('Results files NOT written')
+	}
 }
 
 
