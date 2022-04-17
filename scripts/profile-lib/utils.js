@@ -20,8 +20,6 @@ export const urls = Object.freeze({
 export const dirname = path.dirname(
 	path.join(fileURLToPath(import.meta.url), '..'))
 export const cacheDir = path.join(dirname, 'profile-cache')
-export const htmlResultsTableTemplate = path.join(
-	dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab
