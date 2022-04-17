@@ -14,14 +14,14 @@ export const urls = Object.freeze({
 		+ 'dundee_the_city_with_grand_designs',
 	googledoc: 'https://docs.google.com/document/d/'
 		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
+	landmarks: 'http://matatk.agrip.org.uk/landmarks/',
+	pattern: 'http://c2.com/ppr/checks.html',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 
 export const dirname = path.dirname(
 	path.join(fileURLToPath(import.meta.url), '..'))
 export const cacheDir = path.join(dirname, 'profile-cache')
-export const htmlResultsTableTemplate = path.join(
-	dirname, 'table-template.html')
 
 const pageSettleDelay = 4e3              // after loading a real page
 const guiDelayBeforeTabSwitch = 500      // Avoid clash with 'on install' tab

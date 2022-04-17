@@ -1,22 +1,34 @@
-import fs from 'fs'
-import path from 'path'
-
 import puppeteer from 'puppeteer'
-import { rollup } from 'rollup'
 import stats from 'stats-lite'
 
 import {
-	cacheDir,
-	dirname,
-	htmlResultsTableTemplate,
 	load,
 	pageSetUp,
 	urls
 } from './utils.js'
 
+import {
+	areObjectListsEqual,
+	listDebug,
+	printAndSaveResults,
+	wrapLandmarksFinder
+} from './timingUtils.js'
+
+import {
+	elementCounts,
+	landmarkNav,
+	landmarkScan,
+	mutationSetup,
+	mutationTests,
+	mutationTestsNeedingIndex,
+	mutationTestsNeedingLandmarks,
+	getAlreadyFoundLandmarks,
+	getLandmarksAfterFullScan,
+	mutationAfterEach
+} from './timingBrowserFuncs.js'
+
 const selectInteractives =
 	'a[href], a[tabindex], button, div[tabindex], input, textarea'
-const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
 
 
 //
@@ -27,30 +39,24 @@ const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
 //   loops (int)           -- number of repeated scans and focusings
 //   doScan (bool)         -- perform scanning test?
 //   doFocus (bool)        -- perform focusing tests?
-//   finderName (string)   -- pretty name
+//   doMutations (bool)    -- perform mutation tests?
 //   finderPath (string)   -- path to built script file
 //   without (bool)        -- do NOT employ guessing in the Finder?
 //   quietness (count)     -- how quiet should we be?
+//   noFileWrite (bool)    -- do NOT write results to disk
 
-export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, without, quietness) {
+export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness, noFileWrite) {
+	const options = { loops, doScan, doFocus, doMutations }
 	const finderPath = await wrapLandmarksFinder()
-
-	const finders = {
-		'Standard': false,
-		'Developer': true
-	}
-
+	const findersDevModes = { 'Standard': false, 'Developer': true }
 	const fullResults = { 'meta': { 'loops': loops } }
 
-	const options = { loops, doScan, doFocus }
-	options.useHeuristics = true
-
 	console.log(`Runing landmarks loop test on ${sites}...`)
+	options.useHeuristics = true
 	puppeteer.launch().then(async browser => {
-		for (const finder in finders) {
-			options.finderName = finder
+		for (const finder in findersDevModes) {
 			options.finderPath = finderPath
-			options.useDevMode = finders[finder]
+			options.useDevMode = findersDevModes[finder]
 			console.log()
 			console.log(`With scanner ${finder}...`)
 			fullResults[finder] =
@@ -66,7 +72,7 @@ export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, with
 		}
 
 		await browser.close()
-		printAndSaveResults(fullResults, loops)
+		if (quietness < 3) printAndSaveResults(fullResults, !noFileWrite)
 	})
 }
 
@@ -78,6 +84,13 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 	const allScanTimes = []
 	const allNavForwardTimes = []
 	const allNavBackTimes = []
+	const allMutationTestNamesTimes = {}
+
+	if (options.doMutations) {
+		for (const name of Object.keys(mutationTests)) {
+			allMutationTestNamesTimes[name] = []
+		}
+	}
 
 	for (const site of sites) {
 		const { siteResults, siteRawResults } =
@@ -96,6 +109,14 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 				allNavForwardTimes, siteRawResults.navForwardTimes)
 			Array.prototype.push.apply(
 				allNavBackTimes, siteRawResults.navBackTimes)
+		}
+
+		if (options.doMutations) {
+			for (const key in allMutationTestNamesTimes) {
+				Array.prototype.push.apply(
+					allMutationTestNamesTimes[key],
+					siteRawResults.mutationTests[key])
+			}
 		}
 
 		finderResults[site] = siteResults
@@ -124,6 +145,15 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 			combined.navBackDeviation = stats.stdev(allNavBackTimes)
 		}
 
+		if (options.doMutations) {
+			for (const testName in allMutationTestNamesTimes) {
+				combined[testName + 'MeanTimeMS'] =
+					stats.mean(allMutationTestNamesTimes[testName])
+				combined[testName + 'Deviation'] =
+					stats.stdev(allMutationTestNamesTimes[testName])
+			}
+		}
+
 		finderResults['combined'] = combined
 	}
 
@@ -131,7 +161,7 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 }
 
 async function runScansOnSite(browser, site, quietness, {
-	loops, finderName, finderPath, doScan, doFocus, useHeuristics, useDevMode
+	loops, finderPath, doScan, doFocus, doMutations, useHeuristics, useDevMode
 }) {
 	const page = await pageSetUp(browser, false, quietness)
 	const results = { 'url': urls[site] }
@@ -146,12 +176,12 @@ async function runScansOnSite(browser, site, quietness, {
 
 	console.log('Counting elements...')
 	Object.assign(results, await page.evaluate(
-		elementCounts, finderName, selectInteractives, useHeuristics))
+		elementCounts, selectInteractives, useHeuristics))
 
 	if (doScan) {
 		console.log(`Running landmark-finding code ${loops} times...`)
 		const scanTimes = await page.evaluate(
-			landmarkScan, finderName, loops, useHeuristics, useDevMode)
+			landmarkScan, loops, useHeuristics, useDevMode)
 		rawResults.scanTimes = scanTimes
 		Object.assign(results, {
 			'scanMeanTimeMS': stats.mean(scanTimes),
@@ -162,7 +192,7 @@ async function runScansOnSite(browser, site, quietness, {
 	if (doFocus) {
 		console.log(`Running forward-nav code ${loops} times...`)
 		const navForwardTimes = await page.evaluate(landmarkNav,
-			finderName, loops, selectInteractives, 'forward', useHeuristics)
+			loops, selectInteractives, 'forward', useHeuristics)
 		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
@@ -171,7 +201,7 @@ async function runScansOnSite(browser, site, quietness, {
 
 		console.log(`Running Back-nav code ${loops} times...`)
 		const navBackTimes = await page.evaluate(landmarkNav,
-			finderName, loops, selectInteractives, 'back', useHeuristics)
+			loops, selectInteractives, 'back', useHeuristics)
 		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
@@ -179,161 +209,81 @@ async function runScansOnSite(browser, site, quietness, {
 		})
 	}
 
+	if (doMutations) {
+		rawResults.mutationTests = {}
+
+		console.log(`Running mutation tests ${loops} times...`)
+		await page.evaluate(mutationSetup, useHeuristics)
+		const landmarks = await page.evaluate(getLandmarksAfterFullScan)
+
+		// NOTE: Doing this here as opposed to in the browser due to having to
+		//       wait between mutations.
+		for (const [ name, func ] of Object.entries(mutationTests)) {
+			const msg = '\t' + name
+			if (landmarks.length === 0 && !mutationTestsNeedingLandmarks.has(func)) {
+				console.log(msg, '(skipping; no landmarks)')
+				continue
+			} else {
+				console.log(msg)
+			}
+
+			for (let i = 0; i < loops; i++) {
+				if (mutationTestsNeedingIndex.has(func)) {
+					const index = Math.floor(Math.random() * landmarks.length)
+					await page.evaluate(func, index)
+				} else {
+					await page.evaluate(func, true)  // TODO: needed? so !null
+				}
+
+				let mutated
+				let reverted
+
+				// Check that a full scan matches the landmarks we found by
+				// reacting to the mutation only.
+				if (i === 0) {
+					mutated = await page.evaluate(getAlreadyFoundLandmarks)
+					const full = await page.evaluate(getLandmarksAfterFullScan)
+					if (!areObjectListsEqual(full, mutated)) {
+						console.log('FULL:', full, 'MUTATED:', mutated)
+						console.log(
+							'FULL:\n', listDebug(full),
+							'\nMUTATED:\n', listDebug(mutated))
+						throw Error(
+							`Mutated and full scan results differ for ${name}.`)
+					}
+				}
+
+				await page.evaluate(func, null)  // clean up
+
+				// Check we reverted back OK.  FIXME docs
+				//
+				// NOTE: The cleanup function re-runs a full scan, so we don't
+				//       need to here.
+				if (i === 0) {
+					reverted = await page.evaluate(getAlreadyFoundLandmarks)
+					if (!areObjectListsEqual(landmarks, reverted)) {
+						console.log(
+							'LANDMARKS:', landmarks,
+							'REVERTED:', reverted)
+						console.log(
+							'LANDMARKS:\n', listDebug(landmarks),
+							'\nREVERTED:\n', listDebug(reverted))
+						throw Error(`${name} DOM not successfully reverted.`)
+					}
+				}
+			}
+
+			// NOTE: Not all mutations may be grouped, so there could be a
+			//       different number of mutations (and thus times) than loops.
+			const times = await page.evaluate(mutationAfterEach, useHeuristics)
+			rawResults.mutationTests[name] = times
+			Object.assign(results, {
+				[name + 'MeanTimeMS']: stats.mean(times),
+				[name + 'Deviation']: stats.stdev(times)
+			})
+		}
+	}
+
 	await page.close()
 	return { 'siteResults': results, 'siteRawResults': rawResults }
 }
-
-async function wrapLandmarksFinder() {
-	const sourcePath = path.join(dirname, '..', 'src', 'code', 'landmarksFinder.js')
-	const outputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
-
-	const inputModified = fs.statSync(sourcePath).mtime
-	const outputModified = fs.existsSync(outputPath)
-		? fs.statSync(outputPath).mtime
-		: null
-
-	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-		console.log('Wrapping and caching', path.basename(sourcePath))
-		const bundle = await rollup({ input: sourcePath })
-		await bundle.write({
-			file: outputPath,
-			format: 'iife',
-			name: 'LandmarksFinder'
-		})
-		console.log()
-	}
-
-	return outputPath
-}
-
-function elementCounts(objectName, selectInteractives, heuristics) {
-	const elements = document.querySelectorAll('*').length
-	const interactiveElements = document.querySelectorAll(
-		selectInteractives).length
-
-	const lf = new window.LandmarksFinder(window, document, heuristics, false)
-	lf.find()
-
-	return {
-		'numElements': elements,
-		'numInteractiveElements': interactiveElements,
-		'interactiveElementsPercent': (interactiveElements / elements) * 100,
-		'numLandmarks': lf.getNumberOfLandmarks()
-	}
-}
-
-function landmarkScan(objectName, times, heuristics, devMode) {
-	const lf = new window.LandmarksFinder(window, document, heuristics, devMode)
-	const scanTimes = []
-
-	for (let i = 0; i < times; i++) {
-		const start = window.performance.now()
-		lf.find()
-		const end = window.performance.now()
-		scanTimes.push(end - start)
-	}
-
-	return scanTimes
-}
-
-function landmarkNav(objectName, times, selectInteractives, mode, heuristics) {
-	const lf = new window.LandmarksFinder(window, document, heuristics, false)
-	const interactiveElements = document.querySelectorAll(selectInteractives)
-	const navigationTimes = []
-	// Tests showed that indirectly calling the navigation function is between
-	// 3% and 8% slower than duplicating the code and calling it directly.
-	const navigationFunction = mode === 'forward'
-		? lf.getNextLandmarkElementInfo
-		: mode === 'back'
-			? lf.getPreviousLandmarkElementInfo
-			: null
-
-	for (let i = 0; i < times; i++) {
-		const element = interactiveElements[
-			Math.floor(Math.random() * interactiveElements.length)]
-		element.focus()
-		const start = window.performance.now()
-		navigationFunction()
-		const end = window.performance.now()
-		navigationTimes.push(end - start)
-	}
-
-	return navigationTimes
-}
-
-function rounder(key, value) {
-	for (const ending of roundKeysThatEndWith) {
-		if (key.endsWith(ending)) {
-			return Number(value.toPrecision(2))
-		}
-	}
-	return value
-}
-
-function htmlResults(results) {
-	const boilerplate = fs.readFileSync(htmlResultsTableTemplate, 'utf-8')
-	const scanners = Object.keys(results).filter(element => element !== 'meta')
-	const sites = Object.keys(results[scanners[0]])
-	const headers = Object.keys(results[scanners[0]][sites[0]])
-
-	let output = '<thead>\n<tr>\n'
-	for (const header of headers) {
-		const prettyHeader = header
-			.replace(/MS$/, ' ms')
-			.replace(/Percent$/, ' %')
-			.replace(/([A-Z])/g, ' $1')
-			.replace('url', 'URL')
-			.replace('num', 'Number of')
-			.replace(/^([a-z])/, match => match.toUpperCase())
-		output += `<th>${prettyHeader}</th>`
-	}
-	output += '\n</tr>\n</thead>\n'
-
-	for (const scanner of scanners) {
-		output += `<tr><th colspan="${headers.length}">${scanner}</th></tr>\n`
-		for (const site of sites) {
-			output += '<tr>\n'
-			for (const header of headers) {
-				if (header === 'url') {
-					if (!('url' in results[scanner][site])) {
-						output += '<th scope="row">Combined</th>'
-					} else {
-						const url = results[scanner][site].url
-						output += `<th scope="row">${url}</th>`
-					}
-				} else {
-					const roundedResult =
-						rounder(header, results[scanner][site][header])
-					output += `<td>${roundedResult}</td>`
-				}
-			}
-			output += '\n'
-		}
-	}
-
-	return boilerplate.replace('CONTENT', output)
-}
-
-function save(fileName, string) {
-	fs.writeFileSync(fileName, string)
-	console.log(`${fileName} written.`)
-}
-
-function printAndSaveResults(results) {
-	const roughlyNow = new Date()
-		.toISOString()
-		.replace(/T/, '-')
-		.replace(/:\d\d\..+/, '')
-		.replace(/:/, '')
-	const baseName = `times--${roughlyNow}`
-
-	console.log()
-	console.log('Done.\nResults (times are in milliseconds):')
-	const resultsJsonString = JSON.stringify(results, rounder, 2)
-	console.log(resultsJsonString)
-
-	save(baseName + '.json', resultsJsonString)
-	save(baseName + '.html', htmlResults(results))
-}
-
-
