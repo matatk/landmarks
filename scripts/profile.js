@@ -34,7 +34,7 @@ function main() {
 			alias: 'q',
 			type: 'boolean',
 			count: true,
-			description: "(1) Don't print out browser console and request failed messages (do print errors); (2) Don't print out any browser messages (except unhandled exceptions)"
+			description: "(1) Don't print out browser console and request failed messages (do print errors); (2) Don't print out any browser messages (except unhandled exceptions); (3) Don't print out results AND don't write any results files (i.e. imples -F) when using the 'time' command."
 		})
 		.command(
 			'trace <site> <landmarks> [runs]',
