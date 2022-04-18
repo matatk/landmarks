@@ -54,7 +54,7 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 }
 
 export function mutationSetup(useHeuristics) {
-	// TODO: Share across all tasks
+	// TODO: Share across all timing tasks
 	window.landmarksFinder =
 		new window.LandmarksFinder(window, useHeuristics, false)
 	window.observer = new MutationObserver(
@@ -69,6 +69,8 @@ export function mutationSetup(useHeuristics) {
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
 		]
 	})
+	window.landmarksFinder.find()
+	return window.landmarksFinder.allInfos()
 }
 
 // TODO: check the answer (only on one go)
@@ -87,14 +89,25 @@ function mutationTestAddLandmark() {
 }
 
 // TODO: check the answer (only on one go)
-function mutationTestAddLandmarkWithinRandomLandmark() {
-	// TODO
+function mutationTestAddLandmarkWithinRandomLandmark(index) {
+	const parent = window.landmarksFinder.getLandmarkElementInfo(index).element
+	const landmark = document.createElement('ASIDE')
+	landmark.appendChild(document.createTextNode('complementary landmark'))
+	parent.appendChild(landmark)
 }
 
 // TODO: check the answer (only on one go)
-function mutationTestRemoveRandomLandmark() {
-	// TODO
+function mutationTestRemoveRandomLandmark(index) {
+	const parent = window.landmarksFinder.getLandmarkElementInfo(index).element
+	parent.remove()  // FIXME: need to reset the page after.
 }
+
+// TODO: More tests!
+//       - Change a label
+//       - Remove a label
+//       - Change a role
+//       - Hide or show non-landmark content
+//       - Hide or show landmark content
 
 export const mutationTests = {
 	mutationTestAddNonLandmarkElement,

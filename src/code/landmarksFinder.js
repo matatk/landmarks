@@ -363,7 +363,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//
 
 	function handleMutations(mutations) {
-		console.log('handleMutations():', mutations)
+		console.log('LandmarksFinder.handleMutations():', mutations)
 		find()
 	}
 

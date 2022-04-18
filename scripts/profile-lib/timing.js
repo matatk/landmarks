@@ -168,7 +168,7 @@ async function runScansOnSite(browser, site, quietness, {
 	if (doFocus) {
 		console.log(`Running forward-nav code ${loops} times...`)
 		const navForwardTimes = await page.evaluate(landmarkNav,
-			loops, 'forward', useHeuristics)
+			loops, selectInteractives, 'forward', useHeuristics)
 		rawResults.navForwardTimes = navForwardTimes
 		Object.assign(results, {
 			'navForwardMeanTimeMS': stats.mean(navForwardTimes),
@@ -177,7 +177,7 @@ async function runScansOnSite(browser, site, quietness, {
 
 		console.log(`Running Back-nav code ${loops} times...`)
 		const navBackTimes = await page.evaluate(landmarkNav,
-			loops, 'back', useHeuristics)
+			loops, selectInteractives, 'back', useHeuristics)
 		rawResults.navBackTimes = navBackTimes
 		Object.assign(results, {
 			'navBackMeanTimeMS': stats.mean(navBackTimes),
@@ -187,14 +187,19 @@ async function runScansOnSite(browser, site, quietness, {
 
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
-		await page.evaluate(mutationSetup, useHeuristics)
+		const landmarks = await page.evaluate(mutationSetup, useHeuristics)
 
 		// NOTE: Doing this here as opposed to in the browser due to having to
 		//       wait between mutations.
 		for (const [ name, func ] of Object.entries(mutationTests)) {
 			console.log('\t' + name)
 			for (let i = 0; i < loops; i++) {
-				await page.evaluate(func, useHeuristics)
+				if (func.length === 0) {
+					await page.evaluate(func, useHeuristics)  // FIXME: useH?
+				} else {
+					const index = Math.floor(Math.random() * landmarks.length)
+					await page.evaluate(func, index)
+				}
 			}
 			const times = await page.evaluate(mutationTearDown, useHeuristics)
 			rawResults.mutationTestTimes = times
