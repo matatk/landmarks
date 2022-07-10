@@ -363,11 +363,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//
 
 	function handleMutations(mutations) {
-		console.log('LandmarksFinder.handleMutations():', mutations)
 		find()
 	}
 
-	const debugMutationHandlingTimes = []
+	let debugMutationHandlingTimes = []
 
 	function debugWrap(func) {
 		return function(...args) {
@@ -470,7 +469,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		useDevMode = use
 	}
 
-	this.handleMutations = handleMutations
 	this.debugHandleMutations = debugWrap(handleMutations)
 	this.debugMutationHandlingTimes = () => debugMutationHandlingTimes
+	this.clearDebugMutationHandlingTimes = () => debugMutationHandlingTimes = []
 }

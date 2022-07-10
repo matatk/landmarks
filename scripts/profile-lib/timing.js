@@ -18,7 +18,8 @@ import {
 	landmarkScan,
 	mutationSetup,
 	mutationTests,
-	mutationTearDown
+	mutationTestsNeedingIndex,
+	mutationAfterEach
 } from './timingBrowserFuncs.js'
 
 const selectInteractives =
@@ -193,15 +194,21 @@ async function runScansOnSite(browser, site, quietness, {
 		//       wait between mutations.
 		for (const [ name, func ] of Object.entries(mutationTests)) {
 			console.log('\t' + name)
+
 			for (let i = 0; i < loops; i++) {
-				if (func.length === 0) {
-					await page.evaluate(func, useHeuristics)  // FIXME: useH?
-				} else {
+				if (mutationTestsNeedingIndex.has(func)) {
 					const index = Math.floor(Math.random() * landmarks.length)
 					await page.evaluate(func, index)
+				} else {
+					await page.evaluate(func, true)  // TODO: needed? so !null
 				}
+				await page.evaluate(func, null)  // clean up
 			}
-			const times = await page.evaluate(mutationTearDown, useHeuristics)
+
+			// NOTE: Not all mutations may be grouped, so there could be a
+			//       different number of mutations (and thus times) than loops.
+			const times = await page.evaluate(mutationAfterEach, useHeuristics)
+			console.log('got', times.length)
 			rawResults.mutationTestTimes = times
 			Object.assign(results, {
 				[name + 'MeanTimeMS']: stats.mean(times),

@@ -1,3 +1,7 @@
+//
+// Element counting
+//
+
 export function elementCounts(selectInteractives, useHeuristics) {
 	const elements = document.querySelectorAll('*').length
 	const interactiveElements =
@@ -13,6 +17,11 @@ export function elementCounts(selectInteractives, useHeuristics) {
 		'numLandmarks': lf.getNumberOfLandmarks()
 	}
 }
+
+
+//
+// Scanning and focusing
+//
 
 export function landmarkScan(times, useHeuristics, useDevMode) {
 	const lf = new window.LandmarksFinder(window, useHeuristics, useDevMode)
@@ -53,54 +62,12 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 	return navigationTimes
 }
 
-export function mutationSetup(useHeuristics) {
-	// TODO: Share across all timing tasks
-	window.landmarksFinder =
-		new window.LandmarksFinder(window, useHeuristics, false)
-	window.observer = new MutationObserver(
-		window.landmarksFinder.debugHandleMutations)
-	// TODO: DRY with content script
-	// FIXME: doesn't include roledescription
-	window.observer.observe(document, {
-		attributes: true,
-		childList: true,
-		subtree: true,
-		attributeFilter: [
-			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
-		]
-	})
-	window.landmarksFinder.find()
-	return window.landmarksFinder.allInfos()
-}
 
-// TODO: check the answer (only on one go)
-function mutationTestAddNonLandmarkElement() {
-	const notALandmark = document.createElement('DIV')
-	notALandmark.appendChild(document.createTextNode('not a landmark'))
-	document.body.appendChild(notALandmark)
-}
+//
+// Mutation handling
+//
 
-// TODO: check the answer (only on one go)
-// TODO: Add a COMPLICATED landmark
-function mutationTestAddLandmark() {
-	const landmark = document.createElement('NAV')
-	landmark.appendChild(document.createTextNode('navigation landmark'))
-	document.body.appendChild(landmark)
-}
-
-// TODO: check the answer (only on one go)
-function mutationTestAddLandmarkWithinRandomLandmark(index) {
-	const parent = window.landmarksFinder.getLandmarkElementInfo(index).element
-	const landmark = document.createElement('ASIDE')
-	landmark.appendChild(document.createTextNode('complementary landmark'))
-	parent.appendChild(landmark)
-}
-
-// TODO: check the answer (only on one go)
-function mutationTestRemoveRandomLandmark(index) {
-	const parent = window.landmarksFinder.getLandmarkElementInfo(index).element
-	parent.remove()  // FIXME: need to reset the page after.
-}
+// Housekeeping
 
 // TODO: More tests!
 //       - Change a label
@@ -116,6 +83,108 @@ export const mutationTests = {
 	mutationTestRemoveRandomLandmark
 }
 
-export function mutationTearDown() {
-	return window.landmarksFinder.debugMutationHandlingTimes()
+export const mutationTestsNeedingIndex = new Set([
+	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestRemoveRandomLandmark
+])
+
+export function mutationSetup(useHeuristics) {
+	window.landmarksFinder =
+		new window.LandmarksFinder(window, useHeuristics, false)
+	const observer =
+		new MutationObserver(window.landmarksFinder.debugHandleMutations)
+	window.landmarksFinder.find()
+
+	function startObserving() {
+		// TODO: DRY with content script
+		// FIXME: doesn't include roledescription
+		observer.observe(document, {
+			attributes: true,
+			childList: true,
+			subtree: true,
+			attributeFilter: [
+				'aria-label',
+				'aria-labelledby',
+				'class',
+				'hidden',
+				'role',
+				'style'
+			]
+		})
+	}
+
+	window.cleanUp = function(cleanUpTask) {
+		observer.disconnect()
+		cleanUpTask()
+		startObserving()
+	}
+
+	startObserving()
+	return window.landmarksFinder.allInfos()
+}
+
+export function mutationAfterEach() {
+	const results = window.landmarksFinder.debugMutationHandlingTimes()
+	window.landmarksFinder.clearDebugMutationHandlingTimes()
+	return results
+}
+
+// Simulated mutations
+
+// TODO: check the answer (only on one go)
+// TODO: place it in a random place in the DOM?
+function mutationTestAddNonLandmarkElement(runTest) {
+	if (runTest) {
+		const notALandmark = document.createElement('DIV')
+		notALandmark.appendChild(document.createTextNode('not a landmark'))
+		document.body.appendChild(notALandmark)
+	} else {
+		// window.cleanUp(() => document.body.lastChild.remove())
+	}
+}
+
+// TODO: check the answer (only on one go)
+// TODO: Add a COMPLICATED landmark
+// TODO: replace this with the next one (and keep the shorter function name)?
+function mutationTestAddLandmark(runTest) {
+	if (runTest) {
+		window.addedLandmark = document.createElement('NAV')
+		window.addedLandmark.appendChild(document.createTextNode('navigation landmark'))
+		document.body.appendChild(window.addedLandmark)
+	} else {
+		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+// TODO: check the answer (only on one go)
+function mutationTestAddLandmarkWithinRandomLandmark(index) {
+	if (index !== null) {
+		const parent =
+			window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.addedLandmark = document.createElement('ASIDE')
+		window.addedLandmark.appendChild(document.createTextNode('complementary landmark'))
+		parent.appendChild(window.addedLandmark)
+	} else {
+		window.cleanUp(() => {
+			window.addedLandmark.remove()
+			window.landmarksFinder.find()  // FIXME needed in each cleanup call?
+		})
+	}
+}
+
+// TODO: check the answer (only on one go)
+// TODO: not strictly just removing things here
+function mutationTestRemoveRandomLandmark(index) {
+	if (index !== null) {
+		const picked
+			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.backup = picked
+		window.dummy = document.createElement('DIV')
+		picked.replaceWith(window.dummy)
+	} else {
+		window.cleanUp(() => {
+			window.dummy.replaceWith(window.backup)
+			window.landmarksFinder.find()
+		})
+	}
 }
