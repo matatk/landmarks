@@ -41,6 +41,13 @@ function messageHandler(message) {
 			guiCheckFocusElement(() =>
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
+		case 'show-landmark':
+			borderDrawer.replaceCurrentBordersWithElements(
+				[landmarksFinder.getLandmarkElementInfo(message.index)])
+			break
+		case 'hide-all-landmarks':
+			borderDrawer.removeAllBorders()
+			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
