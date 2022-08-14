@@ -3,9 +3,12 @@
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults'
 import { isContentScriptablePage } from './isContent'
 import { withActiveTab } from './withTabs'
+
+// TODO: check how this looks in the built code
+let closePopupOnActivate = defaultFunctionalSettings.closePopupOnActivate
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -119,6 +122,10 @@ function makeLandmarksTree(landmarks, container) {
 		const button = makeLandmarkButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
+				// TODO: check how this looks in the built code
+				if (INTERFACE === 'popup' && closePopupOnActivate) {
+					window.close()
+				}
 			},
 			shower,
 			hider,
@@ -467,6 +474,15 @@ function startupPopupOrSidebar() {
 		browser.runtime.getManifest().version
 
 	setupNotes()
+
+	// Get user's chosen values for FIXME.
+	//
+	// NOTE: We don't need to monitor for changes, because only the popup is
+	// affected by this setting, and the user almost certainly won't change a
+	// popup-related setting whilst a popup is open.
+	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+		closePopupOnActivate = items['closePopupOnActivate']
+	})
 }
 
 function main() {
