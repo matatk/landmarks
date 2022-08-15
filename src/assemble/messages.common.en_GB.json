@@ -112,6 +112,14 @@
     "message": "If you're a developer or accessibility auditor, you may wish to disable this, as guessed landmarks are counted in the toolbar badge. Regardless of this setting, relevant warnings are always shown in the Landmarks DevTools side pane."
   },
 
+  "prefsClosePopupOnActivate": {
+    "message": "Close the pop-up immediately when activating a landmark button"
+  },
+
+  "prefsClosePopupOnActivateInfo": {
+    "message": "Instead of keeping the pop-up open, close it and move focus to the selected landmark on the page, so you can start navigating directly from there."
+  },
+
   "prefsHeadingReset": {
     "message": "Resetting stuff"
   },
