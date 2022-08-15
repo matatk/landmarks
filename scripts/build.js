@@ -327,7 +327,7 @@ function copyStaticFiles(browser) {
 
 
 function copyGuiFiles(browser) {
-	logStep('Copying root GUI HTML to create the popup and other bits')
+	logStep('Copying root GUI HTML to create the pop-up and other bits')
 
 	function copyOneGuiFile(destination, isSidebar, isDevTools) {
 		const destHtml = path.join(pathToBuild(browser), `${destination}.html`)
@@ -339,7 +339,7 @@ function copyGuiFiles(browser) {
 			`Referenced ${destination} code`)
 
 		// The general gui.html file is organised such that non-DevTools stuff
-		// is always wrapped in a popup-and-sidebar block.
+		// is always wrapped in a 'popup-and-sidebar' block.
 		if (isDevTools) {
 			removeStuff('pop-up and sidebar', 'popup-and-sidebar', destHtml)
 		} else {

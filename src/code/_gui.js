@@ -477,9 +477,9 @@ function startupPopupOrSidebar() {
 
 	// Get user's chosen values for FIXME.
 	//
-	// NOTE: We don't need to monitor for changes, because only the popup is
+	// NOTE: We don't need to monitor for changes, because only the pop-up is
 	// affected by this setting, and the user almost certainly won't change a
-	// popup-related setting whilst a popup is open.
+	// pop-up-related setting whilst a pop-up is open.
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 		closePopupOnActivate = items['closePopupOnActivate']
 	})
