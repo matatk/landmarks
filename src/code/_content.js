@@ -42,11 +42,15 @@ function messageHandler(message) {
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'show-landmark':
-			borderDrawer.replaceCurrentBordersWithElements(
-				[landmarksFinder.getLandmarkElementInfo(message.index)])
+			if (elementFocuser.isManagingBorders()) {
+				borderDrawer.replaceCurrentBordersWithElements(
+					[landmarksFinder.getLandmarkElementInfo(message.index)])
+			}
 			break
 		case 'hide-all-landmarks':
-			borderDrawer.removeAllBorders()
+			if (elementFocuser.isManagingBorders()) {
+				borderDrawer.removeAllBorders()
+			}
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
