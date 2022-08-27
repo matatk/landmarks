@@ -117,7 +117,7 @@
   },
 
   "prefsClosePopupOnActivateInfo": {
-    "message": "Instead of keeping the pop-up open, close it and move focus to the selected landmark on the page, so you can start navigating directly from there."
+    "message": "Instead of having to manually close the pop-up before continuing to navigate the page, turning this on closes the pop-up automatically."
   },
 
   "prefsHeadingReset": {
