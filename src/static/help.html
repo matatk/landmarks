@@ -54,10 +54,13 @@
 				<h2>What's new?</h2>
 				<p>New in version <span id="version"></span>&hellip;</p>
 				<ul>
-					<li>Correctly support the <code>role</code> attribute, which can take multiple values. <a href="https://github.com/matatk/landmarks/issues/464">Thanks for the bug report, James Nurthen</a>.</li>
-					<li>Fix DevTools pane colours in dark mode. <a href="https://github.com/matatk/landmarks/issues/466">Thanks for the bug report, Andrew Nevins</a>.</li>
-					<li>Reinstate the sidebar on Opera (the browser bug has been fixed).</li>
-					<li>Minor performance improvements.</li>
+					<li>Visually highlight landmarks when their corresponding buttons in the sidebar (Firefox) or pop-up (all browsers) are focused/hovered. A couple more details&hellip;
+						<ul>
+							<li>The page won't scroll when highlighting landmarks in this way, to prevent jumpiness.</li>
+							<li>The rate at which the highlights are applied/removed is capped, to prevent excessive flashing.</li>
+						</ul>
+					</li>
+					<li>TBD</li>
 				</ul>
 				<p>For full details, consult the <a href="https://github.com/matatk/landmarks/blob/master/CHANGELOG.md#changelog">change log</a>.</p>
 			</div>
