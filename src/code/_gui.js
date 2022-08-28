@@ -107,11 +107,11 @@ function makeLandmarksTree(landmarks, container) {
 		// If nesting hasn't changed, stick with the current base
 
 		const shower = function() {
-			send({ name: 'show-landmark', index: index })
+			send({ name: 'show-landmark', index })
 		}
 
 		const hider = function() {
-			send({ name: 'hide-all-landmarks' })
+			send({ name: 'hide-landmark', index })
 		}
 
 		// Create the <li> for this landmark
