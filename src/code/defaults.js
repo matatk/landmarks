@@ -14,7 +14,8 @@ export const defaultInterfaceSettings =
 		: null
 
 export const defaultFunctionalSettings = Object.freeze({
-	guessLandmarks: true
+	guessLandmarks: true,
+	closePopupOnActivate: false
 })
 
 export const defaultSettings =

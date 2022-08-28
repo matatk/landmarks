@@ -1,11 +1,15 @@
-// hasOwnProperty is only used on browser-provided objects
+// hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate'
 import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults'
 import { isContentScriptablePage } from './isContent'
 import { withActiveTab } from './withTabs'
+
+let closePopupOnActivate = INTERFACE === 'popup'
+	? defaultFunctionalSettings.closePopupOnActivate
+	: null
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -119,6 +123,9 @@ function makeLandmarksTree(landmarks, container) {
 		const button = makeLandmarkButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
+				if (INTERFACE === 'popup' && closePopupOnActivate) {
+					window.close()
+				}
 			},
 			shower,
 			hider,
@@ -467,6 +474,15 @@ function startupPopupOrSidebar() {
 		browser.runtime.getManifest().version
 
 	setupNotes()
+
+	if (INTERFACE === 'popup') {
+		// Get close-on-activate pref. We don't need to monitor for changes:
+		// only the pop-up is affected, and the user almost certainly won't
+		// change a pop-up-related setting whilst a pop-up is open.
+		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+			closePopupOnActivate = items['closePopupOnActivate']
+		})
+	}
 }
 
 function main() {

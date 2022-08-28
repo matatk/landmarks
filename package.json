@@ -8,7 +8,7 @@
     "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean-only",
     "profile": "node scripts/profile.js",
-    "start:_core": "web-ext --no-config-discovery run --start-url https://matatk.agrip.org.uk/landmarks/world-of-wombats/",
+    "start:_core": "web-ext --no-config-discovery run --start-url https://matatk.agrip.org.uk/landmarks/world-of-wombats/ --browser-console",
     "start:chrome": "npm run start:_core -- --source-dir build/chrome --target chromium",
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",

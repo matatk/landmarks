@@ -24,6 +24,10 @@ const options = [{
 	name: 'guessLandmarks',
 	kind: 'boolean',
 	element: document.getElementById('guess-landmarks')
+}, {
+	name: 'closePopupOnActivate',
+	kind: 'boolean',
+	element: document.getElementById('close-popup-on-activate')
 }]
 
 function restoreOptions() {
