@@ -1,4 +1,4 @@
-// hasOwnProperty is only used on browser-provided objects
+// hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate'
@@ -7,8 +7,9 @@ import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSideb
 import { isContentScriptablePage } from './isContent'
 import { withActiveTab } from './withTabs'
 
-// TODO: check how this looks in the built code
-let closePopupOnActivate = defaultFunctionalSettings.closePopupOnActivate
+let closePopupOnActivate = INTERFACE === 'popup'
+	? defaultFunctionalSettings.closePopupOnActivate
+	: null
 
 const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
@@ -122,7 +123,6 @@ function makeLandmarksTree(landmarks, container) {
 		const button = makeLandmarkButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
-				// TODO: check how this looks in the built code
 				if (INTERFACE === 'popup' && closePopupOnActivate) {
 					window.close()
 				}
@@ -475,14 +475,14 @@ function startupPopupOrSidebar() {
 
 	setupNotes()
 
-	// Get user's chosen values for FIXME.
-	//
-	// NOTE: We don't need to monitor for changes, because only the pop-up is
-	// affected by this setting, and the user almost certainly won't change a
-	// pop-up-related setting whilst a pop-up is open.
-	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		closePopupOnActivate = items['closePopupOnActivate']
-	})
+	if (INTERFACE === 'popup') {
+		// Get close-on-activate pref. We don't need to monitor for changes:
+		// only the pop-up is affected, and the user almost certainly won't
+		// change a pop-up-related setting whilst a pop-up is open.
+		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+			closePopupOnActivate = items['closePopupOnActivate']
+		})
+	}
 }
 
 function main() {
