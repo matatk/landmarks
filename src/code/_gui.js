@@ -91,16 +91,16 @@ function processTreeLevelItem(landmark) {
 	const item = document.createElement('li')
 
 	const shower = function() {
-		send({ name: 'show-landmark', index })
+		send({ name: 'show-landmark', index: landmark.index })
 	}
 
 	const hider = function() {
-		send({ name: 'hide-landmark', index })
+		send({ name: 'hide-landmark', index: landmark.index })
 	}
 
 	const button = makeLandmarkButton(
 		function() {
-			send({ name: 'focus-landmark', index: index })
+			send({ name: 'focus-landmark', index: landmark.index })
 			if (INTERFACE === 'popup' && closePopupOnActivate) {
 				window.close()
 			}
