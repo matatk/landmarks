@@ -2,7 +2,7 @@
 // User preferences
 //
 
-export const defaultBorderSettings = Object.freeze({
+export const defaultBorderSettings = /* #__PURE__ */Object.freeze({
 	borderType: 'momentary',
 	borderColour: '#ff2f92',
 	borderFontSize: '16'
@@ -10,21 +10,21 @@ export const defaultBorderSettings = Object.freeze({
 
 export const defaultInterfaceSettings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
-		? Object.freeze({ interface: 'popup' })
+		? /* #__PURE__ */Object.freeze({ interface: 'popup' })
 		: null
 
-export const defaultFunctionalSettings = Object.freeze({
+export const defaultFunctionalSettings = /* #__PURE__ */Object.freeze({
 	guessLandmarks: true,
 	closePopupOnActivate: false
 })
 
 export const defaultSettings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
-		? Object.freeze(Object.assign({},
+		? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
 			defaultBorderSettings,
 			defaultInterfaceSettings,
 			defaultFunctionalSettings))
-		: Object.freeze(Object.assign({},
+		: /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
 			defaultBorderSettings,
 			defaultFunctionalSettings))
 
@@ -33,15 +33,15 @@ export const defaultSettings =
 // Dismissal state of user interface messages
 //
 
-export const defaultDismissedSidebarNotAlone = Object.freeze(
+export const defaultDismissedSidebarNotAlone = /* #__PURE__ */Object.freeze(
 	{ dismissedSidebarNotAlone: false })
 
-export const defaultDismissedUpdate = Object.freeze(
+export const defaultDismissedUpdate = /* #__PURE__ */Object.freeze(
 	{ dismissedUpdate: false })
 
 export const defaultDismissalStates =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
-		? Object.freeze(Object.assign({},
+		? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
 			defaultDismissedSidebarNotAlone,
 			defaultDismissedUpdate))
 		: defaultDismissedUpdate
