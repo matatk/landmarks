@@ -21,11 +21,30 @@ const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer = null
 let observer = null
 let landmarksFinder = landmarksFinderStandard  // just in case
+const highlightLastTouchTimes = new Map()
+const highlightTimeouts = new Map()
+const LIMITER = 350
 
 
 //
 // Extension message management
 //
+
+function handleHighlightMessage(index, action) {
+	const now = performance.now()
+	const elapsed = now - (highlightLastTouchTimes.get(index) ?? 0)
+	clearTimeout(highlightTimeouts.get(index))
+	if (elapsed > LIMITER) {
+		action()
+		highlightLastTouchTimes.set(index, now)
+	} else {
+		const timeout = setTimeout(() => {
+			action()
+			highlightLastTouchTimes.set(index, performance.now())
+		}, LIMITER - elapsed)
+		highlightTimeouts.set(index, timeout)
+	}
+}
 
 function messageHandler(message) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
@@ -40,6 +59,22 @@ function messageHandler(message) {
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() =>
 				landmarksFinder.getLandmarkElementInfo(message.index))
+			break
+		case 'show-landmark':
+			if (elementFocuser.isManagingBorders()) {
+				const info =
+					landmarksFinder.getLandmarkElementInfo(message.index)
+				handleHighlightMessage(message.index,
+					() => borderDrawer.addBorder(info))
+			}
+			break
+		case 'hide-landmark':
+			if (elementFocuser.isManagingBorders()) {
+				const info =
+					landmarksFinder.getLandmarkElementInfo(message.index)
+				handleHighlightMessage(message.index,
+					() => borderDrawer.removeBorderOn(info.element))
+			}
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
@@ -97,6 +132,8 @@ function messageHandler(message) {
 			findLandmarksAndSend(
 				// TODO: this willl send the non-mutation message twice
 				msr.incrementNonMutationScans, msr.sendAllUpdates)
+			highlightLastTouchTimes.clear()
+			highlightTimeouts.clear()
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {

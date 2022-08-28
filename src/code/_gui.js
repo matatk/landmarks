@@ -106,12 +106,22 @@ function makeLandmarksTree(landmarks, container) {
 
 		// If nesting hasn't changed, stick with the current base
 
+		const shower = function() {
+			send({ name: 'show-landmark', index })
+		}
+
+		const hider = function() {
+			send({ name: 'hide-landmark', index })
+		}
+
 		// Create the <li> for this landmark
 		const item = document.createElement('li')
-		const button = makeButton(
+		const button = makeLandmarkButton(
 			function() {
 				send({ name: 'focus-landmark', index: index })
 			},
+			shower,
+			hider,
 			landmarkName(landmark))
 		item.appendChild(button)
 
@@ -143,7 +153,7 @@ function makeLandmarksTree(landmarks, container) {
 }
 
 function addInspectButton(root, landmark) {
-	const inspectButton = makeButton(
+	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
 				+ landmark.selector  // comes from our own code
@@ -184,14 +194,21 @@ function addText(element, message) {
 	element.appendChild(newPara)
 }
 
-function makeButton(onClick, text, cssClass, context) {
+function makeLandmarkButton(onClick, shower, hider, text) {
 	const button = document.createElement('button')
-	if (cssClass && context) {
-		button.className = cssClass
-		button.setAttribute('aria-label', text + ' ' + context)
-	} else {
-		button.appendChild(document.createTextNode(text))
-	}
+	button.appendChild(document.createTextNode(text))
+	button.addEventListener('click', onClick)
+	button.addEventListener('focus', shower)
+	button.addEventListener('mouseenter', shower)
+	button.addEventListener('blur', hider)
+	button.addEventListener('mouseleave', hider)
+	return button
+}
+
+function makeInspectButton(onClick, text, cssClass, context) {
+	const button = document.createElement('button')
+	button.className = cssClass
+	button.setAttribute('aria-label', text + ' ' + context)
 	button.addEventListener('click', onClick)
 	return button
 }
