@@ -20,7 +20,8 @@ import {
 	mutationSetup,
 	mutationTests,
 	mutationTestsNeedingIndex,
-	getLandmarks,
+	getAlreadyFoundLandmarks,
+	getLandmarksAfterFullScan,
 	mutationAfterEach
 } from './timingBrowserFuncs.js'
 
@@ -191,7 +192,7 @@ async function runScansOnSite(browser, site, quietness, {
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
 		await page.evaluate(mutationSetup, useHeuristics)
-		const landmarks = await page.evaluate(getLandmarks)
+		const landmarks = await page.evaluate(getLandmarksAfterFullScan)
 
 		// NOTE: Doing this here as opposed to in the browser due to having to
 		//       wait between mutations.
@@ -206,20 +207,27 @@ async function runScansOnSite(browser, site, quietness, {
 					await page.evaluate(func, true)  // TODO: needed? so !null
 				}
 
-				// FIXME this isn't working
-				/*
+				let mutated
+				let reverted
+
+				// Check that a full scan matches the landmarks we found by
+				// reacting to the mutation only.
 				if (i === 0) {
-					const check = await page.evaluate(getLandmarks)
-					console.log('check mutated', areObjectListsEqual(landmarks, check))
+					mutated = await page.evaluate(getAlreadyFoundLandmarks)
+					const full = await page.evaluate(getLandmarksAfterFullScan)
+					console.log('mutated', areObjectListsEqual(full, mutated))
 				}
-				*/
 
 				await page.evaluate(func, null)  // clean up
 
-				// Check we reverted back OK
+				// Check we reverted back OK.
+				//
+				// NOTE: The cleanup function re-runs a full scan, so we don't
+				//       need to here.
 				if (i === 0) {
-					const check = await page.evaluate(getLandmarks)
-					console.log('reverted', areObjectListsEqual(landmarks, check))
+					reverted = await page.evaluate(getAlreadyFoundLandmarks)
+					console.log('reverted', areObjectListsEqual(landmarks, reverted))
+					console.log('reverted === mutated', areObjectListsEqual(mutated, reverted))
 				}
 			}
 

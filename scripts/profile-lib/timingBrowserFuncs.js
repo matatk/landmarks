@@ -93,7 +93,6 @@ export function mutationSetup(useHeuristics) {
 		new window.LandmarksFinder(window, useHeuristics, false)
 	const observer =
 		new MutationObserver(window.landmarksFinder.debugHandleMutations)
-	window.landmarksFinder.find()
 
 	function startObserving() {
 		// TODO: DRY with content script
@@ -125,7 +124,12 @@ export function mutationSetup(useHeuristics) {
 	startObserving()
 }
 
-export function getLandmarks() {
+export function getLandmarksAfterFullScan() {
+	window.landmarksFinder.find()
+	return window.landmarksFinder.allInfos()
+}
+
+export function getAlreadyFoundLandmarks() {
 	return window.landmarksFinder.allInfos()
 }
 
