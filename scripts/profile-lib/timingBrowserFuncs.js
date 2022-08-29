@@ -116,10 +116,16 @@ export function mutationSetup(useHeuristics) {
 	window.cleanUp = function(cleanUpTask) {
 		observer.disconnect()
 		cleanUpTask()
+		// Re-find, so as to reset results so that they will match those
+		// collected already by the code running outside of the browser.
+		window.landmarksFinder.find()
 		startObserving()
 	}
 
 	startObserving()
+}
+
+export function getLandmarks() {
 	return window.landmarksFinder.allInfos()
 }
 
@@ -139,7 +145,7 @@ function mutationTestAddNonLandmarkElement(runTest) {
 		notALandmark.appendChild(document.createTextNode('not a landmark'))
 		document.body.appendChild(notALandmark)
 	} else {
-		// window.cleanUp(() => document.body.lastChild.remove())
+		// NOTE: Cleanup not needed.
 	}
 }
 
@@ -165,10 +171,7 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 		window.addedLandmark.appendChild(document.createTextNode('complementary landmark'))
 		parent.appendChild(window.addedLandmark)
 	} else {
-		window.cleanUp(() => {
-			window.addedLandmark.remove()
-			window.landmarksFinder.find()  // FIXME needed in each cleanup call?
-		})
+		window.cleanUp(() => window.addedLandmark.remove())
 	}
 }
 
@@ -182,9 +185,6 @@ function mutationTestRemoveRandomLandmark(index) {
 		window.dummy = document.createElement('DIV')
 		picked.replaceWith(window.dummy)
 	} else {
-		window.cleanUp(() => {
-			window.dummy.replaceWith(window.backup)
-			window.landmarksFinder.find()
-		})
+		window.cleanUp(() => window.dummy.replaceWith(window.backup))
 	}
 }

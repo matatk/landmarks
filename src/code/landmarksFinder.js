@@ -364,7 +364,29 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	function handleMutations(mutations) {
 		find()
+		/*
+		for (const mutation of mutations) {
+			switch (mutation.type) {
+				case 'childList':
+					handleChildListMutation(mutation)
+					break
+				case 'attributes':
+					handleAttributeMutation(mutation)
+					break
+			}
+		}
+		*/
 	}
+
+	/*
+	function handleChildListMutation(mutation) {
+		const target = mutation.target
+	}
+
+	function handleAttributeMutation(mutation) {
+		// FIXME
+	}
+	*/
 
 	let debugMutationHandlingTimes = []
 

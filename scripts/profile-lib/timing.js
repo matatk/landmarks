@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer'
 import stats from 'stats-lite'
 
 import {
+	areObjectListsEqual,
 	load,
 	pageSetUp,
 	urls
@@ -19,6 +20,7 @@ import {
 	mutationSetup,
 	mutationTests,
 	mutationTestsNeedingIndex,
+	getLandmarks,
 	mutationAfterEach
 } from './timingBrowserFuncs.js'
 
@@ -188,7 +190,8 @@ async function runScansOnSite(browser, site, quietness, {
 
 	if (doMutations) {
 		console.log(`Running mutation tests ${loops} times...`)
-		const landmarks = await page.evaluate(mutationSetup, useHeuristics)
+		await page.evaluate(mutationSetup, useHeuristics)
+		const landmarks = await page.evaluate(getLandmarks)
 
 		// NOTE: Doing this here as opposed to in the browser due to having to
 		//       wait between mutations.
@@ -202,13 +205,27 @@ async function runScansOnSite(browser, site, quietness, {
 				} else {
 					await page.evaluate(func, true)  // TODO: needed? so !null
 				}
+
+				// FIXME this isn't working
+				/*
+				if (i === 0) {
+					const check = await page.evaluate(getLandmarks)
+					console.log('check mutated', areObjectListsEqual(landmarks, check))
+				}
+				*/
+
 				await page.evaluate(func, null)  // clean up
+
+				// Check we reverted back OK
+				if (i === 0) {
+					const check = await page.evaluate(getLandmarks)
+					console.log('reverted', areObjectListsEqual(landmarks, check))
+				}
 			}
 
 			// NOTE: Not all mutations may be grouped, so there could be a
 			//       different number of mutations (and thus times) than loops.
 			const times = await page.evaluate(mutationAfterEach, useHeuristics)
-			console.log('got', times.length)
 			rawResults.mutationTestTimes = times
 			Object.assign(results, {
 				[name + 'MeanTimeMS']: stats.mean(times),
