@@ -20,6 +20,7 @@ import {
 	mutationSetup,
 	mutationTests,
 	mutationTestsNeedingIndex,
+	mutationTestsNotAffectingLandmarks,
 	getAlreadyFoundLandmarks,
 	getLandmarksAfterFullScan,
 	mutationAfterEach
@@ -215,19 +216,33 @@ async function runScansOnSite(browser, site, quietness, {
 				if (i === 0) {
 					mutated = await page.evaluate(getAlreadyFoundLandmarks)
 					const full = await page.evaluate(getLandmarksAfterFullScan)
-					console.log('mutated', areObjectListsEqual(full, mutated))
+					if (!areObjectListsEqual(full, mutated)) {
+						throw Error(
+							`Mutated and full scan results differ for ${name}.`)
+					}
 				}
 
 				await page.evaluate(func, null)  // clean up
 
-				// Check we reverted back OK.
+				// Check we reverted back OK.  FIXME docs
 				//
 				// NOTE: The cleanup function re-runs a full scan, so we don't
 				//       need to here.
 				if (i === 0) {
 					reverted = await page.evaluate(getAlreadyFoundLandmarks)
-					console.log('reverted', areObjectListsEqual(landmarks, reverted))
-					console.log('reverted === mutated', areObjectListsEqual(mutated, reverted))
+					if (!areObjectListsEqual(landmarks, reverted)) {
+						throw Error(`${name} DOM not successfully reverted.`)
+					}
+
+					const revertedEqualsMutated =
+						areObjectListsEqual(mutated, reverted)
+					const thisIsOK =
+						mutationTestsNotAffectingLandmarks.has(func)
+							? revertedEqualsMutated === true
+							: revertedEqualsMutated === false
+					if (!thisIsOK) {
+						throw Error(`Reverted/Mutated mismatch for ${name}.`)
+					}
 				}
 			}
 

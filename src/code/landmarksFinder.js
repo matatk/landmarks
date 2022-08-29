@@ -363,8 +363,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//
 
 	function handleMutations(mutations) {
-		find()
-		/*
 		for (const mutation of mutations) {
 			switch (mutation.type) {
 				case 'childList':
@@ -375,18 +373,15 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					break
 			}
 		}
-		*/
 	}
 
-	/*
 	function handleChildListMutation(mutation) {
-		const target = mutation.target
+		// const target = mutation.target
 	}
 
 	function handleAttributeMutation(mutation) {
-		// FIXME
+		find()
 	}
-	*/
 
 	let debugMutationHandlingTimes = []
 

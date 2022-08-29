@@ -88,6 +88,10 @@ export const mutationTestsNeedingIndex = new Set([
 	mutationTestRemoveRandomLandmark
 ])
 
+export const mutationTestsNotAffectingLandmarks = new Set([
+	mutationTestAddNonLandmarkElement
+])
+
 export function mutationSetup(useHeuristics) {
 	window.landmarksFinder =
 		new window.LandmarksFinder(window, useHeuristics, false)
@@ -141,7 +145,6 @@ export function mutationAfterEach() {
 
 // Simulated mutations
 
-// TODO: check the answer (only on one go)
 // TODO: place it in a random place in the DOM?
 function mutationTestAddNonLandmarkElement(runTest) {
 	if (runTest) {
@@ -153,7 +156,6 @@ function mutationTestAddNonLandmarkElement(runTest) {
 	}
 }
 
-// TODO: check the answer (only on one go)
 // TODO: Add a COMPLICATED landmark
 // TODO: replace this with the next one (and keep the shorter function name)?
 function mutationTestAddLandmark(runTest) {
@@ -166,7 +168,6 @@ function mutationTestAddLandmark(runTest) {
 	}
 }
 
-// TODO: check the answer (only on one go)
 function mutationTestAddLandmarkWithinRandomLandmark(index) {
 	if (index !== null) {
 		const parent =
@@ -179,7 +180,6 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 	}
 }
 
-// TODO: check the answer (only on one go)
 // TODO: not strictly just removing things here
 function mutationTestRemoveRandomLandmark(index) {
 	if (index !== null) {

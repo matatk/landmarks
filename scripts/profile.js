@@ -50,7 +50,7 @@ function main() {
 					})
 					.coerce('landmarks', function(landmarks) {
 						if (landmarks < 0) {
-							throw new Error(
+							throw Error(
 								"Can't insert a negative number of landmarks")
 						}
 						return landmarks
@@ -64,7 +64,7 @@ function main() {
 					})
 					.coerce('runs', function(runs) {
 						if (runs < 1) {
-							throw new Error("Can't make less than one run")
+							throw Error("Can't make less than one run")
 						}
 						return runs
 					})
@@ -91,13 +91,13 @@ function main() {
 					.option('mutate', {
 						alias: 'm',
 						type: 'boolean',
-						description: 'Time handling mutations'
+						description: 'Time _and also check the results_ obtained when handling mutations specifically (refer to further notes below).'
 					})
 					.check(argv => {
 						if (argv.scan || argv.focus || argv.mutate) {
 							return true
 						}
-						throw new Error(
+						throw Error(
 							'You must request at least one of the timing tests;'
 							+ ' check the help for details.')
 					})
@@ -120,11 +120,11 @@ function main() {
 					})
 					.coerce('repetitions', function(repetitions) {
 						if (repetitions < 1) {
-							throw new Error("Can't make less than one run")
+							throw Error("Can't make less than one run")
 						}
 						return repetitions
 					})
-					.epilogue(epilogue)
+					.epilogue('NOTE: The results of mutation handling are checked against full scan results for the mutated page; the unit tests are still needed in order to verify that the full scan results for a given situation are correct. Checking of mutation handling is only done once for each specific mutation test.\n\n' + epilogue)
 			}, () => {
 				mode = 'time'
 			})
