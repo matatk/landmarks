@@ -97,7 +97,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
 
-		getLandmarks(doc.body.parentNode, null, null, landmarksTree)
+		getLandmarks(doc.body.parentNode, null, landmarksTree)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
@@ -109,7 +109,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
-	function getLandmarks(element, parentLandmark, thisLevel, parentLandmarkLevel) {
+	function getLandmarks(element, thisLevel, parentLandmarkLevel) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
 			return
 		}
@@ -178,7 +178,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				mainElementIndices.push(landmarksList.length - 1)
 			}
 
-			parentLandmark = element
 			parentLandmarkLevel = thisLandmarkEntry.contains
 		}
 
@@ -189,7 +188,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		for (const elementChild of element.children) {
 			getLandmarks(
 				elementChild,
-				parentLandmark,
 				parentLandmarkLevel ?? thisLevel,
 				null
 			)
