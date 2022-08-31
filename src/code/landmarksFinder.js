@@ -9,6 +9,8 @@ import {
 	createSelector
 } from './landmarksFinderDOMUtils.js'
 
+const LANDMARK_INDEX_ATTR = 'data-landmark-index'
+
 export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
@@ -95,13 +97,15 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
 
-		getLandmarks(doc.body.parentNode, 0, null, landmarksTree, null)
+		getLandmarks(doc.body.parentNode, null, null, landmarksTree)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
+			// FIXME: test
+			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
 		}
 	}
 
@@ -376,11 +380,42 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	function handleChildListMutation(mutation) {
-		// const target = mutation.target
+		let found = mutation.target
+		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
+			found = found.parentNode
+		}
+
+		if (found === doc.body) {
+			find()
+			return
+		}
+
+		const info = foundLandmarkElementInfo(found)
+		if (info === null) {
+			find()  // there was some error
+		}
+
+		// If we got here, we now have a subtree to target.
+
+		// TODO
+		// if found is me then replace all of it with scan results?
+		// if found is a parent of me then leave parent alone and scan contents
+
+		console.log(JSON.stringify(landmarksTree, null, 2))
 	}
 
 	function handleAttributeMutation(mutation) {
+		console.log(mutation)
 		find()
+	}
+
+	// FIXME: test
+	function foundLandmarkElementInfo(candidate) {
+		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
+		if (!number) return null
+		if (number < 0 || number > (landmarksList.length - 1)) return null
+		if (landmarksList[number].element !== candidate) return null
+		return landmarksList[number]
 	}
 
 	let debugMutationHandlingTimes = []
