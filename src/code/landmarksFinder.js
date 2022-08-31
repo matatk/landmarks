@@ -97,7 +97,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		foundNavigationRegion = false
 		currentlySelectedIndex = -1
 
-		getLandmarks(doc.body.parentNode, null, landmarksTree)
+		getLandmarks(doc.body.parentNode, landmarksTree)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
@@ -109,7 +109,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
-	function getLandmarks(element, thisLevel, parentLandmarkLevel) {
+	function getLandmarks(element, thisLevel) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
 			return
 		}
@@ -128,8 +128,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		const label = getARIAProvidedLabel(doc, element)
 
 		// Add the element if it should be considered a landmark
+		let thisLandmarkEntry = null
 		if (role && isLandmark(role, hasExplicitRole, label)) {
-			const thisLandmarkEntry = {
+			thisLandmarkEntry = {
 				'type': 'landmark',
 				'role': role,
 				'roleDescription': getRoleDescription(element),
@@ -177,8 +178,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			if (role === 'main') {
 				mainElementIndices.push(landmarksList.length - 1)
 			}
-
-			parentLandmarkLevel = thisLandmarkEntry.contains
 		}
 
 		// One just one page I've seen an error here in Chrome (91) which seems
@@ -188,8 +187,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		for (const elementChild of element.children) {
 			getLandmarks(
 				elementChild,
-				parentLandmarkLevel ?? thisLevel,
-				null
+				thisLandmarkEntry?.contains ?? thisLevel
 			)
 		}
 	}
