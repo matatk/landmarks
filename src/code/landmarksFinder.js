@@ -393,11 +393,17 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		// If we got here, we now have a subtree to target.
 
-		// TODO
-		// if found is me then replace all of it with scan results?
-		// if found is a parent of me then leave parent alone and scan contents
+		// FIXME: DRY with above
+		getLandmarks(found, FIXME)
+		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
+		if (useDevMode) developerModeChecks()
+		if (useHeuristics) tryHeuristics()
 
-		console.log(JSON.stringify(landmarksTree, null, 2))
+		for (let i = 0; i < landmarksList.length; i++) {
+			landmarksList[i].index = i
+			// FIXME: test
+			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
+		}
 	}
 
 	function handleAttributeMutation(mutation) {
