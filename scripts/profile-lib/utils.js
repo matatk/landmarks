@@ -93,22 +93,3 @@ export async function pageSetUp(browser, gui, quietness) {
 
 	return page
 }
-
-export function areObjectListsEqual(list1, listA) {
-	if (list1.length !== listA.length) {
-		console.error('length mismatch:', list1.length, listA.length)
-		return false
-	}
-	for (let i = 0; i < list1.length; i++) {
-		const item1 = list1[i]
-		const itemA = listA[i]
-		for (const [key, value] of Object.entries(item1)) {
-			if (itemA[key] !== value) {
-				console.error('value mismatch in item', i, '"' + key +
-					'" field\n' + value + '\n' + itemA[key])
-				return false
-			}
-		}
-	}
-	return true
-}

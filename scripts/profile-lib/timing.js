@@ -2,13 +2,13 @@ import puppeteer from 'puppeteer'
 import stats from 'stats-lite'
 
 import {
-	areObjectListsEqual,
 	load,
 	pageSetUp,
 	urls
 } from './utils.js'
 
 import {
+	areObjectListsEqual,
 	printAndSaveResults,
 	wrapLandmarksFinder
 } from './timingUtils.js'
