@@ -14,6 +14,7 @@ export const urls = Object.freeze({
 		+ 'dundee_the_city_with_grand_designs',
 	googledoc: 'https://docs.google.com/document/d/'
 		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
+	landmarks: 'http://matatk.agrip.org.uk/landmarks/',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 
@@ -103,7 +104,8 @@ export function areObjectListsEqual(list1, listA) {
 		const itemA = listA[i]
 		for (const [key, value] of Object.entries(item1)) {
 			if (itemA[key] !== value) {
-				console.error('value mismatch in item', i, key, value, itemA[key])
+				console.error('value mismatch in item', i, '"' + key +
+					'" field\n' + value + '\n' + itemA[key])
 				return false
 			}
 		}

@@ -20,7 +20,6 @@ import {
 	mutationSetup,
 	mutationTests,
 	mutationTestsNeedingIndex,
-	mutationTestsNotAffectingLandmarks,
 	getAlreadyFoundLandmarks,
 	getLandmarksAfterFullScan,
 	mutationAfterEach
@@ -217,6 +216,7 @@ async function runScansOnSite(browser, site, quietness, {
 					mutated = await page.evaluate(getAlreadyFoundLandmarks)
 					const full = await page.evaluate(getLandmarksAfterFullScan)
 					if (!areObjectListsEqual(full, mutated)) {
+						console.log('FULL:', full, 'MUTATED:', mutated)
 						throw Error(
 							`Mutated and full scan results differ for ${name}.`)
 					}
@@ -231,17 +231,8 @@ async function runScansOnSite(browser, site, quietness, {
 				if (i === 0) {
 					reverted = await page.evaluate(getAlreadyFoundLandmarks)
 					if (!areObjectListsEqual(landmarks, reverted)) {
+						console.log('LANDMARKS:', landmarks, 'REVERTED:', reverted)
 						throw Error(`${name} DOM not successfully reverted.`)
-					}
-
-					const revertedEqualsMutated =
-						areObjectListsEqual(mutated, reverted)
-					const thisIsOK =
-						mutationTestsNotAffectingLandmarks.has(func)
-							? revertedEqualsMutated === true
-							: revertedEqualsMutated === false
-					if (!thisIsOK) {
-						throw Error(`Reverted/Mutated mismatch for ${name}.`)
 					}
 				}
 			}
