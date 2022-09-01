@@ -16,17 +16,21 @@ const roundKeysThatEndWith = ['Percent', 'MS', 'Deviation', 'PerPage']
 //
 
 export async function wrapLandmarksFinder() {
-	const sourcePath = path.join(dirname, '..', 'src', 'code', 'landmarksFinder.js')
+	const sourcePaths = [
+		path.join(dirname, '..', 'src', 'code', 'landmarksFinder.js'),
+		path.join(dirname, '..', 'src', 'code', 'landmarksFinderDOMUtils.js')]
 	const outputPath = path.join(cacheDir, 'wrappedLandmarksFinder.js')
 
-	const inputModified = fs.statSync(sourcePath).mtime
+	const latestInputModified =
+		new Date(Math.max(...sourcePaths.map(path => fs.statSync(path).mtime)))
 	const outputModified = fs.existsSync(outputPath)
 		? fs.statSync(outputPath).mtime
 		: null
 
-	if (!fs.existsSync(outputPath) || inputModified > outputModified) {
-		console.log('Wrapping and caching', path.basename(sourcePath))
-		const bundle = await rollup({ input: sourcePath })
+	if (!fs.existsSync(outputPath) || latestInputModified > outputModified) {
+		const main = sourcePaths[0]
+		console.log('Wrapping and caching', path.basename(main))
+		const bundle = await rollup({ input: main })
 		await bundle.write({
 			file: outputPath,
 			format: 'iife',
