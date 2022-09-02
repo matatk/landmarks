@@ -11,8 +11,6 @@ import {
 
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
 
-const levelTagNames = level => level.map(i => i.element.tagName).join(',')
-
 export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
@@ -62,6 +60,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function updateSelectedAndReturnElementInfo(index) {
 		// TODO: Don't need an index check, as we trust the source. Does that
 		//       mean we also don't need the length check?
+		// TODO: The return can be massively simplified, rite?
 		if (landmarksList.length === 0) return
 		currentlySelectedIndex = index
 		currentlySelectedElement = landmarksList[index].element
@@ -143,8 +142,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'contains': [],
 				'previous': previousLandmarkEntry,
 				'next': null,
-				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need
-				// FIXME: add to guessed if not removing
+				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need?
 			}
 
 			if (previousLandmarkEntry) {
@@ -251,7 +249,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			'label': getARIAProvidedLabel(doc, guessed),
 			'element': guessed,
 			'selector': createSelector(guessed),
-			'guessed': true
+			'guessed': true,
+			'debug': guessed.tagName + '(' + role + ')?'  // FIXME: un-need?
 		}
 	}
 
@@ -382,6 +381,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	// FIXME: What about when a valid landmark has its labelling element
 	//        removed? (keep track of all labelling elements? a bit much?)
+	// FIXME: When removing elements, we should just be able to rewire the
+	//        tree, rather than scanning again.
+	//  TODO: Can we use addedNodes and removedNodes to help narrow the search?
+	//  NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
 		previousLandmarkEntry.next = null  // stop at end of tree walk
 
@@ -405,6 +408,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			return
 		}
 		const info = landmarksList[index]
+
+		console.log('targ info', infoString(info))
 
 		// If we got here, we now have a subtree to target.
 
@@ -481,7 +486,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function walk(list, root) {
 		let entry = root?.[0]
 		while (entry) {
-			list.push(entry)
+			if (entry.element.isConnected) list.push(entry)
 			entry = entry.next
 		}
 	}
@@ -497,6 +502,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
+	// Stringify the tree for debugging
+
 	let debugTreeString = '\n'
 
 	function debugTree() {
@@ -506,11 +513,14 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	function debugTreeCore(tree, depth) {
 		for (const thing of tree) {
-			const { previous, next, element, contains, ...debug } = thing
-			debugTreeString +=
-				'~ '.repeat(depth) + JSON.stringify(debug, null, 2) + '\n'
+			debugTreeString += '~ '.repeat(depth) + infoString(thing) + '\n'
 			debugTreeCore(thing.contains, depth + 1)
 		}
+	}
+
+	function infoString(entry) {
+		const { previous, next, element, contains, ...debug } = entry
+		return JSON.stringify(debug, null, 2)
 	}
 
 

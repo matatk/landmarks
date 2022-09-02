@@ -83,7 +83,8 @@ export function areObjectListsEqual(list1, listA) {
 }
 
 export function listDebug(landmarks) {
-	return landmarks.map(landmark => landmark.debug).join(',')
+	return landmarks.map(landmark => landmark.debug).join(', ') +
+		' ' + landmarks.length
 }
 
 
