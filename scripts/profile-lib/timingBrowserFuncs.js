@@ -88,10 +88,6 @@ export const mutationTestsNeedingIndex = new Set([
 	mutationTestRemoveRandomLandmark
 ])
 
-export const mutationTestsNotAffectingLandmarks = new Set([
-	mutationTestAddNonLandmarkElement
-])
-
 export function mutationSetup(useHeuristics) {
 	window.landmarksFinder =
 		new window.LandmarksFinder(window, useHeuristics, false)
@@ -148,11 +144,11 @@ export function mutationAfterEach() {
 // TODO: place it in a random place in the DOM?
 function mutationTestAddNonLandmarkElement(runTest) {
 	if (runTest) {
-		const notALandmark = document.createElement('DIV')
-		notALandmark.appendChild(document.createTextNode('not a landmark'))
-		document.body.appendChild(notALandmark)
+		window.notALandmark = document.createElement('DIV')
+		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
+		document.body.appendChild(window.notALandmark)
 	} else {
-		// NOTE: Cleanup not needed.
+		window.cleanUp(() => window.notALandmark.remove())
 	}
 }
 
@@ -160,8 +156,9 @@ function mutationTestAddNonLandmarkElement(runTest) {
 // TODO: replace this with the next one (and keep the shorter function name)?
 function mutationTestAddLandmark(runTest) {
 	if (runTest) {
-		window.addedLandmark = document.createElement('NAV')
-		window.addedLandmark.appendChild(document.createTextNode('navigation landmark'))
+		window.addedLandmark = document.createElement('ASIDE')
+		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
+		window.addedLandmark.appendChild(document.createTextNode('forty-two'))
 		document.body.appendChild(window.addedLandmark)
 	} else {
 		window.cleanUp(() => window.addedLandmark.remove())
@@ -173,6 +170,7 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 		const parent =
 			window.landmarksFinder.getLandmarkElementInfo(index).element
 		window.addedLandmark = document.createElement('ASIDE')
+		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
 		window.addedLandmark.appendChild(document.createTextNode('complementary landmark'))
 		parent.appendChild(window.addedLandmark)
 	} else {

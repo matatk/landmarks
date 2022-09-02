@@ -11,6 +11,8 @@ import {
 
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
 
+const levelTagNames = level => level.map(i => i.element.tagName).join(',')
+
 export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
@@ -362,6 +364,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Handling mutations; debugging handling mutations
 	//
 
+	// FIXME: Need to deal with main indices, dev warnings, etc.
 	function handleMutations(mutations) {
 		for (const mutation of mutations) {
 			switch (mutation.type) {
@@ -375,7 +378,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
+	// FIXME: What about when a valid landmark has its labelling element
+	//        removed? (keep track of all labelling elements? a bit much?)
 	function handleChildListMutation(mutation) {
+		previousLandmarkEntry.next = null
+
 		let found = mutation.target
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
 			found = found.parentNode
@@ -388,20 +395,46 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		const info = foundLandmarkElementInfo(found)
 		if (info === null) {
-			find()  // there was some error
+			console.error('info is null')
+			find()
+			return
 		}
 
 		// If we got here, we now have a subtree to target.
 
-		// FIXME: DRY with above
-		getLandmarks(found, FIXME)
+		const originalNext = info.next
+
+		info.contains = []
+		previousLandmarkEntry = info
+		for (const childElement of found.children) {
+			cachedFilteredTree = null
+			cachedAllInfos = null
+			cachedAllElementInfos = null
+			getLandmarks(childElement, info.contains)
+		}
+
+		if (info.contains.length > 0) {
+			info.contains[info.contains.length - 1].next = originalNext
+		} else {
+			info.next = originalNext
+		}
+
+		// debugTree()
+
+		// TODO: test different string syntax for performance
+		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
+			el.removeAttribute(LANDMARK_INDEX_ATTR)
+		}
+
+		landmarksList = []
+		walk(landmarksList, landmarksTree)
+
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 		if (useHeuristics) tryHeuristics()
 
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
-			// FIXME: test
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
 		}
 	}
@@ -414,10 +447,19 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// FIXME: test
 	function foundLandmarkElementInfo(candidate) {
 		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
-		if (!number) return null
+		if (isNaN(number)) return null
 		if (number < 0 || number > (landmarksList.length - 1)) return null
 		if (landmarksList[number].element !== candidate) return null
 		return landmarksList[number]
+	}
+
+	// FIXME: test this and/or wider
+	function walk(list, root) {
+		let entry = root?.[0]
+		while (entry) {
+			list.push(entry)
+			entry = entry.next
+		}
 	}
 
 	let debugMutationHandlingTimes = []
@@ -428,6 +470,22 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			func(...args)
 			const end = win.performance.now()
 			debugMutationHandlingTimes.push(end - start)
+		}
+	}
+
+	let debugTreeString = '\n'
+
+	function debugTree() {
+		debugTreeCore(landmarksTree, 0)
+		console.log(debugTreeString)
+	}
+
+	function debugTreeCore(tree, depth) {
+		for (const thing of tree) {
+			const { previous, next, element, contains, ...debug } = thing
+			debugTreeString +=
+				'~ '.repeat(depth) + JSON.stringify(debug, null, 2) + '\n'
+			debugTreeCore(thing.contains, depth + 1)
 		}
 	}
 
