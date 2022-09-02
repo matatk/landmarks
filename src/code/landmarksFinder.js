@@ -144,6 +144,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'previous': previousLandmarkEntry,
 				'next': null,
 				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need
+				// FIXME: add to guessed if not removing
 			}
 
 			if (previousLandmarkEntry) {
@@ -382,13 +383,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// FIXME: What about when a valid landmark has its labelling element
 	//        removed? (keep track of all labelling elements? a bit much?)
 	function handleChildListMutation(mutation) {
-		previousLandmarkEntry.next = null
+		previousLandmarkEntry.next = null  // stop at end of tree walk
 
-		/*
 		console.log('added', mutation.addedNodes.length)
 		console.log('removed', mutation.removedNodes.length)
 		console.log('targ', mutation.target.tagName, mutation.target.getAttribute('role'))
-		*/
 
 		let found = mutation.target
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
@@ -400,16 +399,29 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			return
 		}
 
-		const info = foundLandmarkElementInfo(found)
-		if (info === null) {
+		const index = foundLandmarkElementIndex(found)
+		if (index === null) {
 			find()
 			return
 		}
+		const info = landmarksList[index]
 
 		// If we got here, we now have a subtree to target.
 
-		// FIXME problem here with nesting?
-		const originalNext = info.next
+		// FIXME: Need a better way to find end of subtree.
+		// Find the correct pointer to the landmark that comes after this
+		// subtree (which may be deep).
+		let next = null
+		for (let i = index + 1; i < landmarksList.length; i++) {
+			const listNext = landmarksList[i]
+			const rels = info.element.compareDocumentPosition(listNext.element)
+			// eslint-disable-next-line no-bitwise
+			const contained = rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY
+			if (!contained) {
+				next = listNext
+				break
+			}
+		}
 
 		info.contains = []
 		previousLandmarkEntry = info
@@ -420,7 +432,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			getLandmarks(childElement, info.contains)
 		}
 
-		previousLandmarkEntry.next = originalNext
+		previousLandmarkEntry.next = next
 
 		// debugTree()
 
@@ -448,7 +460,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	// FIXME: test
-	function foundLandmarkElementInfo(candidate) {
+	function foundLandmarkElementIndex(candidate) {
 		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
 		if (isNaN(number)) {
 			console.error(`Index ${number} from attribute is NaN`)
@@ -462,7 +474,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			console.error(`Landmark at ${number} isn't the found element.`)
 			return null
 		}
-		return landmarksList[number]
+		return number
 	}
 
 	// FIXME: test this and/or wider
