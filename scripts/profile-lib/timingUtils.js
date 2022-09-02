@@ -82,6 +82,10 @@ export function areObjectListsEqual(list1, listA) {
 	return true
 }
 
+export function listDebug(landmarks) {
+	return landmarks.map(landmark => landmark.debug).join(',')
+}
+
 
 //
 // Private

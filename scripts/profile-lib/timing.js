@@ -9,6 +9,7 @@ import {
 
 import {
 	areObjectListsEqual,
+	listDebug,
 	printAndSaveResults,
 	wrapLandmarksFinder
 } from './timingUtils.js'
@@ -217,6 +218,9 @@ async function runScansOnSite(browser, site, quietness, {
 					const full = await page.evaluate(getLandmarksAfterFullScan)
 					if (!areObjectListsEqual(full, mutated)) {
 						console.log('FULL:', full, 'MUTATED:', mutated)
+						console.log(
+							'FULL:\n', listDebug(full),
+							'\nMUTATED:\n', listDebug(mutated))
 						throw Error(
 							`Mutated and full scan results differ for ${name}.`)
 					}
@@ -231,7 +235,12 @@ async function runScansOnSite(browser, site, quietness, {
 				if (i === 0) {
 					reverted = await page.evaluate(getAlreadyFoundLandmarks)
 					if (!areObjectListsEqual(landmarks, reverted)) {
-						console.log('LANDMARKS:', landmarks, 'REVERTED:', reverted)
+						console.log(
+							'LANDMARKS:', landmarks,
+							'REVERTED:', reverted)
+						console.log(
+							'LANDMARKS:\n', listDebug(landmarks),
+							'\nmREVERTED:\n', listDebug(reverted))
 						throw Error(`${name} DOM not successfully reverted.`)
 					}
 				}

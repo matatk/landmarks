@@ -142,7 +142,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'guessed': false,
 				'contains': [],
 				'previous': previousLandmarkEntry,
-				'next': null
+				'next': null,
+				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need
 			}
 
 			if (previousLandmarkEntry) {
@@ -383,6 +384,12 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function handleChildListMutation(mutation) {
 		previousLandmarkEntry.next = null
 
+		/*
+		console.log('added', mutation.addedNodes.length)
+		console.log('removed', mutation.removedNodes.length)
+		console.log('targ', mutation.target.tagName, mutation.target.getAttribute('role'))
+		*/
+
 		let found = mutation.target
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
 			found = found.parentNode
@@ -395,13 +402,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		const info = foundLandmarkElementInfo(found)
 		if (info === null) {
-			console.error('info is null')
 			find()
 			return
 		}
 
 		// If we got here, we now have a subtree to target.
 
+		// FIXME problem here with nesting?
 		const originalNext = info.next
 
 		info.contains = []
@@ -413,11 +420,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			getLandmarks(childElement, info.contains)
 		}
 
-		if (info.contains.length > 0) {
-			info.contains[info.contains.length - 1].next = originalNext
-		} else {
-			info.next = originalNext
-		}
+		previousLandmarkEntry.next = originalNext
 
 		// debugTree()
 
@@ -447,9 +450,18 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// FIXME: test
 	function foundLandmarkElementInfo(candidate) {
 		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
-		if (isNaN(number)) return null
-		if (number < 0 || number > (landmarksList.length - 1)) return null
-		if (landmarksList[number].element !== candidate) return null
+		if (isNaN(number)) {
+			console.error(`Index ${number} from attribute is NaN`)
+			return null
+		}
+		if (number < 0 || number > (landmarksList.length - 1)) {
+			console.error(`Index ${number} from attribute is out of range`)
+			return null
+		}
+		if (landmarksList[number].element !== candidate) {
+			console.error(`Landmark at ${number} isn't the found element.`)
+			return null
+		}
 		return landmarksList[number]
 	}
 
