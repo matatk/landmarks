@@ -499,6 +499,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	let debugTreeString = '\n'
 
+	// eslint-disable-next-line no-unused-vars
 	function debugTree() {
 		debugTreeCore(landmarksTree, 0)
 		console.log(debugTreeString)
@@ -512,6 +513,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	function infoString(entry) {
+		// eslint-disable-next-line no-unused-vars
 		const { previous, next, element, contains, ...debug } = entry
 		return JSON.stringify(debug, null, 2)
 	}
