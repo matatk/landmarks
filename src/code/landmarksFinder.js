@@ -145,6 +145,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'contains': [],
 				'previous': previousLandmarkEntry,
 				'next': null,
+				'level': thisLevel,
 				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need?
 			}
 
@@ -328,7 +329,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		for (const entry of subtree) {
 			// eslint-disable-next-line no-unused-vars
-			const { contains, element, previous, next, debug, ...info } = entry
+			const { contains, element, previous, next, debug, level, ...info } = entry
 			const filteredEntry = { ...info }
 
 			// NOTE: Guessed landmarks aren't given a 'contains' property
@@ -380,9 +381,53 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function handleChildListMutation(mutation) {
 		previousLandmarkEntry.next = null  // stop at end of tree walk
 
-		console.log('added', mutation.addedNodes.length)
-		console.log('removed', mutation.removedNodes.length)
+		/*
+		console.log('added', mutation.addedNodes.length, [...mutation.addedNodes].map(n => n.tagName).join(','))
+		console.log('removed', mutation.removedNodes.length, [...mutation.removedNodes].map(n => n.tagName).join(','))
 		console.log('targ', mutation.target.tagName, mutation.target.getAttribute('role'))
+		*/
+
+		// Deal specifically with when a landmark is removed
+		// TODO: How likely is it that precisely a landmark will be removed?
+		let didRemove = false
+		for (const removed of mutation.removedNodes) {
+			if (!removed.hasAttribute(LANDMARK_INDEX_ATTR)) continue
+			const index = foundLandmarkElementIndex(removed)
+			if (index === null) continue
+			const info = landmarksList[index]
+			debugTree()
+			console.log('removed', index, infoString(info))
+			const next = info.next
+			const level = info.level
+
+			let levelIndex = null
+			for (let i = 0; i < level.length; i++) {
+				if (level[i].element === removed) {
+					levelIndex = i
+					break
+				}
+			}
+
+			level.splice(levelIndex, 1)
+			if (levelIndex > 0) {
+				level[levelIndex - 1].next = next
+			} else if (index > 0) {
+				landmarksList[index - 1].next = next
+			} else {
+				// The first thing in the tree was removed
+			}
+
+			didRemove = true
+		}
+
+		if (didRemove) {
+			cachedFilteredTree = null
+			cachedAllInfos = null
+			cachedAllElementInfos = null
+			tidyUpStuff()
+			return
+			// FIXME: what if other nodes were removed, or nodes were added too?
+		}
 
 		let found = mutation.target
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
@@ -401,7 +446,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 		const info = landmarksList[index]
 
-		console.log('targ info', infoString(info))
+		// console.log('targ info', infoString(info))
 
 		// If we got here, we now have a subtree to target.
 
@@ -435,6 +480,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		// debugTree()
 
+		tidyUpStuff()
+	}
+
+	function tidyUpStuff() {
 		// TODO: test different string syntax for performance
 		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
@@ -514,7 +563,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	function infoString(entry) {
 		// eslint-disable-next-line no-unused-vars
-		const { previous, next, element, contains, ...debug } = entry
+		const { previous, next, element, contains, level, ...debug } = entry
 		return JSON.stringify(debug, null, 2)
 	}
 
@@ -532,7 +581,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (!cachedAllInfos) {
 			cachedAllInfos = landmarksList.map(entry => {
 				// eslint-disable-next-line no-unused-vars
-				const { element, contains, previous, next, ...info } = entry
+				const { element, contains, previous, next, level, ...info } = entry
 				return info
 			})
 		}
@@ -544,7 +593,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (!cachedAllElementInfos) {
 			cachedAllElementInfos = landmarksList.map(entry => {
 				// eslint-disable-next-line no-unused-vars
-				const { contains, previous, next, ...info } = entry
+				const { contains, previous, next, level, ...info } = entry
 				return info
 			})
 		}

@@ -167,6 +167,7 @@ function mutationTestAddLandmark(runTest) {
 
 function mutationTestAddLandmarkWithinRandomLandmark(index) {
 	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
 		const parent =
 			window.landmarksFinder.getLandmarkElementInfo(index).element
 		window.addedLandmark = document.createElement('ASIDE')
@@ -178,15 +179,18 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 	}
 }
 
-// TODO: not strictly just removing things here
 function mutationTestRemoveRandomLandmark(index) {
 	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
 		const picked
 			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.pNext = picked.nextSibling
+		window.pParent = picked.parentNode
+		picked.remove()
 		window.backup = picked
-		window.dummy = document.createElement('DIV')
-		picked.replaceWith(window.dummy)
 	} else {
-		window.cleanUp(() => window.dummy.replaceWith(window.backup))
+		window.cleanUp(() => {
+			window.pParent.insertBefore(window.backup, window.pNext)
+		})
 	}
 }

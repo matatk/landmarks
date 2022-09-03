@@ -240,7 +240,7 @@ async function runScansOnSite(browser, site, quietness, {
 							'REVERTED:', reverted)
 						console.log(
 							'LANDMARKS:\n', listDebug(landmarks),
-							'\nmREVERTED:\n', listDebug(reverted))
+							'\nREVERTED:\n', listDebug(reverted))
 						throw Error(`${name} DOM not successfully reverted.`)
 					}
 				}
