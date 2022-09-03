@@ -17,23 +17,25 @@
       "roleDescription": null,
       "label": null,
       "selector": "#main",
-      "guessed": true
-    },
-    {
-      "type": "landmark",
-      "role": "navigation",
-      "roleDescription": null,
-      "label": null,
-      "selector": "#main > div.nav:nth-child(1)",
-      "guessed": true
-    },
-    {
-      "type": "landmark",
-      "role": "navigation",
-      "roleDescription": null,
-      "label": null,
-      "selector": "#main > div.navigation:nth-child(2)",
-      "guessed": true
+      "guessed": true,
+      "contains": [
+        {
+          "type": "landmark",
+          "role": "navigation",
+          "roleDescription": null,
+          "label": null,
+          "selector": "#main > div.nav:nth-child(1)",
+          "guessed": true
+        },
+        {
+          "type": "landmark",
+          "role": "navigation",
+          "roleDescription": null,
+          "label": null,
+          "selector": "#main > div.navigation:nth-child(2)",
+          "guessed": true
+        }
+      ]
     }
   ]
 }

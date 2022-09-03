@@ -1,3 +1,4 @@
+// FIXME: if useHeuristics changes, undo the guessing!
 import {
 	isVisuallyHidden,
 	isSemantiallyHidden,
@@ -10,11 +11,13 @@ import {
 } from './landmarksFinderDOMUtils.js'
 
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
+const LANDMARK_GUESSED_ATTR = 'data-landmark-guessed'
 
 export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	const doc = win.document
 	let useHeuristics = _useHeuristics  // parameter is only used by tests
 	let useDevMode = _useDevMode        // parameter is only used by tests
+
 
 	//
 	// Found landmarks
@@ -51,7 +54,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	let currentlySelectedIndex   // the landmark currently having focus/border
 	let mainElementIndices = []  // if we find <main> or role="main" elements
 	let mainIndexPointer         // allows us to cylce through main regions
-	let foundNavigationRegion    // if not, we can go and guess one
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmark is still there, but has moved within the list.
@@ -95,13 +97,14 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		mainElementIndices = []
 		mainIndexPointer = -1
-		foundNavigationRegion = false
 		currentlySelectedIndex = -1
+
+		// FIXME: only on page startup?
+		if (useHeuristics) tryHeuristics()
 
 		getLandmarks(doc.body.parentNode, landmarksTree)
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
-		if (useHeuristics) tryHeuristics()
 
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
@@ -138,7 +141,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'label': label,
 				'element': element,
 				'selector': createSelector(element),
-				'guessed': false,
+				'guessed': element.hasAttribute(LANDMARK_GUESSED_ATTR),
 				'contains': [],
 				'previous': previousLandmarkEntry,
 				'next': null,
@@ -241,56 +244,44 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Heuristic checks
 	//
 
-	function makeLandmarkEntry(guessed, role) {
-		return {
-			'type': 'landmark',
-			'role': role,
-			'roleDescription': getRoleDescription(guessed),
-			'label': getARIAProvidedLabel(doc, guessed),
-			'element': guessed,
-			'selector': createSelector(guessed),
-			'guessed': true,
-			'debug': guessed.tagName + '(' + role + ')?'  // FIXME: un-need?
-		}
-	}
-
-	function addGuessed(guessed, role) {
-		if (guessed && guessed.innerText) {
-			const entry = makeLandmarkEntry(guessed, role)
-			if (landmarksList.length === 0) {
-				landmarksTree.push(entry)
-				landmarksList.push(entry)
-				if (role === 'main') mainElementIndices = [0]
-			} else {
-				const insertAt =
-					getIndexOfLandmarkAfter(guessed) ?? landmarksList.length
-				landmarksTree.splice(insertAt, 0, entry)
-				landmarksList.splice(insertAt, 0, entry)
-				if (role === 'main') mainElementIndices = [insertAt]
-			}
-			return true
-		}
-		return false
-	}
-
+	// FIXME: editing these attrs will trigger mutations
 	function tryFindingMain() {
-		if (mainElementIndices.length === 0) {
-			for (const id of ['main', 'content', 'main-content']) {
-				if (addGuessed(doc.getElementById(id), 'main')) return
+		if (doc.querySelector('main, [role="main"]')) return
+
+		for (const id of ['main', 'content', 'main-content']) {
+			const element = doc.getElementById(id)
+			if (element && element.innerText) {
+				element.setAttribute('role', 'main')
+				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
+				return
 			}
-			const classMains = doc.getElementsByClassName('main')
-			if (classMains.length === 1) addGuessed(classMains[0], 'main')
+		}
+
+		const classMains = doc.getElementsByClassName('main')
+		if (classMains.length === 1 && classMains[0].innerText) {
+			classMains[0].setAttribute('role', 'main')
+			classMains[0].setAttribute(LANDMARK_GUESSED_ATTR, '')
 		}
 	}
 
+	// FIXME: editing these attrs will trigger mutations
 	function tryFindingNavs() {
-		if (!foundNavigationRegion) {
-			for (const id of ['navigation', 'nav']) {
-				if (addGuessed(doc.getElementById(id), 'navigation')) break
+		if (doc.querySelector('nav, [role="navigation"]')) return
+
+		for (const id of ['navigation', 'nav']) {
+			const element = doc.getElementById(id)
+			if (element && element.innerText) {
+				element.setAttribute('role', 'navigation')
+				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
+				break
 			}
-			for (const className of ['navigation', 'nav']) {
-				for (const guessed of doc.getElementsByClassName(className)) {
-					addGuessed(guessed, 'navigation')
+		}
+
+		for (const className of ['navigation', 'nav']) {
+			for (const element of doc.getElementsByClassName(className)) {
+				if (element.innerText) {
+					element.setAttribute('role', 'navigation')
+					element.setAttribute(LANDMARK_GUESSED_ATTR, '')
 				}
 			}
 		}
@@ -331,12 +322,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Support for public API
 	//
 
+	// FIXME: un-need 'debug' field
 	function filterTree(subtree) {
 		const filteredLevel = []
 
 		for (const entry of subtree) {
 			// eslint-disable-next-line no-unused-vars
-			const { contains, depth, element, previous, next, ...info } = entry
+			const { contains, element, previous, next, debug, ...info } = entry
 			const filteredEntry = { ...info }
 
 			// NOTE: Guessed landmarks aren't given a 'contains' property
@@ -428,6 +420,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 		}
 
+		if (useHeuristics) tryHeuristics()
+
 		info.contains = []
 		previousLandmarkEntry = info
 		for (const childElement of found.children) {
@@ -451,7 +445,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
-		if (useHeuristics) tryHeuristics()
 
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
