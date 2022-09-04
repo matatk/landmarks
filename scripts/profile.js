@@ -132,6 +132,8 @@ function main() {
 						description: "Don't write any results files"
 					})
 					.epilogue('NOTE: The results of mutation handling are checked against full scan results for the mutated page; the unit tests are still needed in order to verify that the full scan results for a given situation are correct. Checking of mutation handling is only done once for each specific mutation test.\n\n' + epilogue)
+					.group(['url', 'repetitions', 'without-heuristics-too'], 'Fundamentals')
+					.group(['scan', 'focus', 'mutate'], 'Scanning tasks')
 			}, () => {
 				mode = 'time'
 			})
