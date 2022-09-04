@@ -381,8 +381,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//  NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
 		/*
-		console.log('added', mutation.addedNodes.length, [...mutation.addedNodes].map(n => n.tagName).join(','))
-		console.log('removed', mutation.removedNodes.length, [...mutation.removedNodes].map(n => n.tagName).join(','))
+		console.log(' ')
+		console.log('added', [...mutation.addedNodes].map(n => n.tagName).join(','), '(' + mutation.addedNodes.length + ')')
+		console.log('removed', [...mutation.removedNodes].map(n => n.tagName).join(','), '(' + mutation.removedNodes.length + ')')
 		console.log('targ', mutation.target.tagName, mutation.target.getAttribute('role'))
 		*/
 
@@ -437,7 +438,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				const index = foundLandmarkElementIndex(removed)
 				if (index === null) continue
 				const info = landmarksList[index]
-				// debugTree()
 				const level = info.level
 
 				let levelIndex = null
@@ -448,7 +448,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					}
 				}
 
-				const next = levelIndex < level.length
+				const next = levelIndex < level.length - 1
 					? level[levelIndex + 1]
 					: nextNotInSubTree(index)
 
@@ -499,8 +499,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			return
 		}
 		const info = landmarksList[index]
-
-		// console.log('targ info', infoString(info))
 
 		// If we got here, we now have a subtree to target.
 

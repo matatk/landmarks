@@ -184,7 +184,6 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 
 function mutationTestRemoveRandomLandmark(index) {
 	if (index !== null) {
-		index = 3
 		// TODO: getLandmarkElementInfo() has side effects?
 		const picked
 			= window.landmarksFinder.getLandmarkElementInfo(index).element
