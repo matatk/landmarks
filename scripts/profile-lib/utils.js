@@ -15,6 +15,7 @@ export const urls = Object.freeze({
 	googledoc: 'https://docs.google.com/document/d/'
 		+ '1FvmYUC0S0BkdkR7wZsg0hLdKc_qjGnGahBwwa0CdnHE',
 	landmarks: 'http://matatk.agrip.org.uk/landmarks/',
+	pattern: 'http://c2.com/ppr/checks.html',
 	wikipediaarticle: 'https://en.wikipedia.org/wiki/Color_blindness'
 })
 

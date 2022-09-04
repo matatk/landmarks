@@ -21,6 +21,7 @@ import {
 	mutationSetup,
 	mutationTests,
 	mutationTestsNeedingIndex,
+	mutationTestsNeedingLandmarks,
 	getAlreadyFoundLandmarks,
 	getLandmarksAfterFullScan,
 	mutationAfterEach
@@ -198,7 +199,13 @@ async function runScansOnSite(browser, site, quietness, {
 		// NOTE: Doing this here as opposed to in the browser due to having to
 		//       wait between mutations.
 		for (const [ name, func ] of Object.entries(mutationTests)) {
-			console.log('\t' + name)
+			const msg = '\t' + name
+			if (landmarks.length === 0 && !mutationTestsNeedingLandmarks.has(func)) {
+				console.log(msg, '(skipping; no landmarks)')
+				continue
+			} else {
+				console.log(msg)
+			}
 
 			for (let i = 0; i < loops; i++) {
 				if (mutationTestsNeedingIndex.has(func)) {

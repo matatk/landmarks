@@ -77,8 +77,8 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 //       - Hide or show landmark content
 
 export const mutationTests = {
-	mutationTestAddNonLandmarkElement,
-	mutationTestAddLandmark,
+	mutationTestAddNonLandmarkElementAtEndOfBody,
+	mutationTestAddLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark
 }
@@ -86,6 +86,11 @@ export const mutationTests = {
 export const mutationTestsNeedingIndex = new Set([
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark
+])
+
+export const mutationTestsNeedingLandmarks = new Set([
+	mutationTestAddNonLandmarkElementAtEndOfBody,
+	mutationTestAddLandmarkAtEndOfBody
 ])
 
 export function mutationSetup(useHeuristics) {
@@ -141,8 +146,7 @@ export function mutationAfterEach() {
 
 // Simulated mutations
 
-// TODO: place it in a random place in the DOM?
-function mutationTestAddNonLandmarkElement(runTest) {
+function mutationTestAddNonLandmarkElementAtEndOfBody(runTest) {
 	if (runTest) {
 		window.notALandmark = document.createElement('DIV')
 		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
@@ -153,8 +157,7 @@ function mutationTestAddNonLandmarkElement(runTest) {
 }
 
 // TODO: Add a COMPLICATED landmark
-// TODO: replace this with the next one (and keep the shorter function name)?
-function mutationTestAddLandmark(runTest) {
+function mutationTestAddLandmarkAtEndOfBody(runTest) {
 	if (runTest) {
 		window.addedLandmark = document.createElement('ASIDE')
 		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
@@ -181,6 +184,7 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 
 function mutationTestRemoveRandomLandmark(index) {
 	if (index !== null) {
+		index = 3
 		// TODO: getLandmarkElementInfo() has side effects?
 		const picked
 			= window.landmarksFinder.getLandmarkElementInfo(index).element
