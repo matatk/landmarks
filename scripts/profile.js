@@ -20,11 +20,12 @@ const debugBuildNote =
 function main() {
 	let mode
 
-	const siteParameterDefinition = {
-		describe: 'sites (urls) to scan (they will be cached locally)',
+	const siteOptionDefinition = [ 'url', {
+		alias: 'u',
+		describe: 'pages to scan (they will be cached locally)',
 		choices: ['all'].concat(Object.keys(urls)),
 		required: true
-	}
+	}]
 
 	const epilogue =
 		`Valid sites:\n${JSON.stringify(urls, null, 2)}\n\n`
@@ -38,16 +39,18 @@ function main() {
 			description: "(1) Don't print out browser console and request failed messages (do print errors); (2) Don't print out any browser messages (except unhandled exceptions); (3) Don't print out results AND don't write any results files (i.e. imples -F) when using the 'time' command."
 		})
 		.command(
-			'trace <site> <landmarks> [runs]',
+			'trace',
 			'Run the built extension on a page and create a performance trace',
 			yargs => {
 				yargs
-					.positional('site', siteParameterDefinition)
-					.positional('landmarks', {
+					.option(...siteOptionDefinition)
+					.option('landmarks', {
+						alias: 'l',
 						describe:
 							'number of landmarks to insert (there is a pause '
 							+ 'between each)',
-						type: 'number'
+						type: 'number',
+						required: true
 					})
 					.coerce('landmarks', function(landmarks) {
 						if (landmarks < 0) {
@@ -56,10 +59,11 @@ function main() {
 						}
 						return landmarks
 					})
-					.positional('runs', {
+					.option('runs', {
+						alias: 'r',
 						describe:
-						'number of separate tracing runs to make '
-						+ '(recommend keeping this at one)',
+							'number of separate tracing runs to make ' +
+							'(recommend keeping this at one)',
 						type: 'number',
 						default: 1
 					})
@@ -78,6 +82,20 @@ function main() {
 			'Runs only the LandmarksFinder code on a page, or pages',
 			yargs => {
 				yargs
+					.option(...siteOptionDefinition)
+					.option('repetitions', {
+						alias: 'r',
+						describe:
+						'number of separate tracing repetitions to make',
+						type: 'number',
+						default: 100
+					})
+					.coerce('repetitions', function(repetitions) {
+						if (repetitions < 1) {
+							throw Error("Can't make less than one run")
+						}
+						return repetitions
+					})
 					.option('scan', {
 						alias: 's',
 						type: 'boolean',
@@ -112,20 +130,6 @@ function main() {
 						type: 'boolean',
 						description: "Don't write any results files"
 					})
-					.option('url', siteParameterDefinition)
-					.option('repetitions', {
-						alias: 'r',
-						describe:
-						'number of separate tracing repetitions to make',
-						type: 'number',
-						default: 100
-					})
-					.coerce('repetitions', function(repetitions) {
-						if (repetitions < 1) {
-							throw Error("Can't make less than one run")
-						}
-						return repetitions
-					})
 					.epilogue('NOTE: The results of mutation handling are checked against full scan results for the mutated page; the unit tests are still needed in order to verify that the full scan results for a given situation are correct. Checking of mutation handling is only done once for each specific mutation test.\n\n' + epilogue)
 			}, () => {
 				mode = 'time'
@@ -144,7 +148,11 @@ function main() {
 		.epilogue(epilogue)
 		.argv
 
-	const pages = argv.url === 'all' ? Object.keys(urls) : argv.url
+	const pages = argv.url === 'all'
+		? Object.keys(urls)
+		: typeof argv.url === 'object'
+			? argv.url
+			: [argv.url]
 
 	fse.ensureDirSync(cacheDir)
 
