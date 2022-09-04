@@ -93,6 +93,7 @@ export function listDebug(landmarks) {
 //
 
 function rounder(key, value) {
+	if (value === undefined) return '—'
 	for (const ending of roundKeysThatEndWith) {
 		if (key.endsWith(ending)) {
 			return Number(value.toPrecision(2))
