@@ -72,7 +72,6 @@ export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMu
 		}
 
 		await browser.close()
-		// NOTE: super-secret quietness level
 		if (quietness < 3) printAndSaveResults(fullResults, !noFileWrite)
 	})
 }
@@ -85,6 +84,13 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 	const allScanTimes = []
 	const allNavForwardTimes = []
 	const allNavBackTimes = []
+	const allMutationTestNamesTimes = {}
+
+	if (options.doMutations) {
+		for (const name of Object.keys(mutationTests)) {
+			allMutationTestNamesTimes[name] = []
+		}
+	}
 
 	for (const site of sites) {
 		const { siteResults, siteRawResults } =
@@ -103,6 +109,14 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 				allNavForwardTimes, siteRawResults.navForwardTimes)
 			Array.prototype.push.apply(
 				allNavBackTimes, siteRawResults.navBackTimes)
+		}
+
+		if (options.doMutations) {
+			for (const key in allMutationTestNamesTimes) {
+				Array.prototype.push.apply(
+					allMutationTestNamesTimes[key],
+					siteRawResults.mutationTests[key])
+			}
 		}
 
 		finderResults[site] = siteResults
@@ -132,8 +146,12 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 		}
 
 		if (options.doMutations) {
-			combined.mutationTestMeanTimeMS = stats.mean(allScanTimes)
-			combined.mutationTestDeviation = stats.stdev(allScanTimes)
+			for (const testName in allMutationTestNamesTimes) {
+				combined[testName + 'MeanTimeMS'] =
+					stats.mean(allMutationTestNamesTimes[testName])
+				combined[testName + 'Deviation'] =
+					stats.stdev(allMutationTestNamesTimes[testName])
+			}
 		}
 
 		finderResults['combined'] = combined
@@ -192,6 +210,8 @@ async function runScansOnSite(browser, site, quietness, {
 	}
 
 	if (doMutations) {
+		rawResults.mutationTests = {}
+
 		console.log(`Running mutation tests ${loops} times...`)
 		await page.evaluate(mutationSetup, useHeuristics)
 		const landmarks = await page.evaluate(getLandmarksAfterFullScan)
@@ -256,7 +276,7 @@ async function runScansOnSite(browser, site, quietness, {
 			// NOTE: Not all mutations may be grouped, so there could be a
 			//       different number of mutations (and thus times) than loops.
 			const times = await page.evaluate(mutationAfterEach, useHeuristics)
-			rawResults.mutationTestTimes = times
+			rawResults.mutationTests[name] = times
 			Object.assign(results, {
 				[name + 'MeanTimeMS']: stats.mean(times),
 				[name + 'Deviation']: stats.stdev(times)

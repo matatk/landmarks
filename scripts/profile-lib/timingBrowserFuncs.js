@@ -77,8 +77,8 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 //       - Hide or show landmark content
 
 export const mutationTests = {
-	mutationTestAddNonLandmarkElementAtEndOfBody,
-	mutationTestAddLandmarkAtEndOfBody,
+	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
+	mutationTestAddSimpleLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark
 }
@@ -89,8 +89,8 @@ export const mutationTestsNeedingIndex = new Set([
 ])
 
 export const mutationTestsNeedingLandmarks = new Set([
-	mutationTestAddNonLandmarkElementAtEndOfBody,
-	mutationTestAddLandmarkAtEndOfBody
+	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
+	mutationTestAddSimpleLandmarkAtEndOfBody
 ])
 
 export function mutationSetup(useHeuristics) {
@@ -146,7 +146,7 @@ export function mutationAfterEach() {
 
 // Simulated mutations
 
-function mutationTestAddNonLandmarkElementAtEndOfBody(runTest) {
+function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
 	if (runTest) {
 		window.notALandmark = document.createElement('DIV')
 		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
@@ -156,8 +156,7 @@ function mutationTestAddNonLandmarkElementAtEndOfBody(runTest) {
 	}
 }
 
-// TODO: Add a COMPLICATED landmark
-function mutationTestAddLandmarkAtEndOfBody(runTest) {
+function mutationTestAddSimpleLandmarkAtEndOfBody(runTest) {
 	if (runTest) {
 		window.addedLandmark = document.createElement('ASIDE')
 		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')

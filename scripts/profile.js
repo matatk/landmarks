@@ -21,8 +21,9 @@ function main() {
 	let mode
 
 	const siteParameterDefinition = {
-		describe: 'sites to scan',
-		choices: ['all'].concat(Object.keys(urls))
+		describe: 'sites (urls) to scan (they will be cached locally)',
+		choices: ['all'].concat(Object.keys(urls)),
+		required: true
 	}
 
 	const epilogue =
@@ -44,8 +45,8 @@ function main() {
 					.positional('site', siteParameterDefinition)
 					.positional('landmarks', {
 						describe:
-						'number of landmarks to insert (there is a pause '
-						+ 'between each)',
+							'number of landmarks to insert (there is a pause '
+							+ 'between each)',
 						type: 'number'
 					})
 					.coerce('landmarks', function(landmarks) {
@@ -73,8 +74,8 @@ function main() {
 				mode = 'trace'
 			})
 		.command(
-			'time <site> [repetitions]',
-			'Runs only the LandmarksFinder code on a page',
+			'time',
+			'Runs only the LandmarksFinder code on a page, or pages',
 			yargs => {
 				yargs
 					.option('scan', {
@@ -111,8 +112,9 @@ function main() {
 						type: 'boolean',
 						description: "Don't write any results files"
 					})
-					.positional('site', siteParameterDefinition)
-					.positional('repetitions', {
+					.option('url', siteParameterDefinition)
+					.option('repetitions', {
+						alias: 'r',
 						describe:
 						'number of separate tracing repetitions to make',
 						type: 'number',
@@ -142,7 +144,7 @@ function main() {
 		.epilogue(epilogue)
 		.argv
 
-	const pages = argv.site === 'all' ? Object.keys(urls) : [argv.site]
+	const pages = argv.url === 'all' ? Object.keys(urls) : argv.url
 
 	fse.ensureDirSync(cacheDir)
 
