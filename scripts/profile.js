@@ -32,6 +32,7 @@ function main() {
 		+ '"all" can be specified to run the profile on each site.'
 
 	const argv = yargs(hideBin(process.argv))
+		.strict()
 		.option('quiet', {
 			alias: 'q',
 			type: 'boolean',
