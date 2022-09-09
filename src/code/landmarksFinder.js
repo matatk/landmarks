@@ -489,18 +489,35 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 
 		if (found === doc.body) {
-			find()
+			find()  // TODO: try to remove the need for find()s
 			return
 		}
 
 		const index = foundLandmarkElementIndex(found)
 		if (index === null) {
-			find()
+			find()  // TODO: try to remove the need for find()s
 			return
 		}
 		const info = landmarksList[index]
 
 		// If we got here, we now have a subtree to target.
+
+		if (info.contains.length) {
+			// TODO: Find out where we are and put our results into the tree.
+			// TODO: This needs a page that contains a landmark that has both
+			//       landmark and non-landmark children.
+			console.log('subtree root', info.debug)
+			console.log('subtree level',
+				'"' + info.contains.map(i => i.debug).join(',') + '"')
+			for (const added of mutation.addedNodes) {  // TODO: perf
+				console.log('added', added.tagName)
+				const before = getIndexOfLandmarkBefore2(added, info.contains)
+				const after = getIndexOfLandmarkAfter2(added, info.contains)
+				console.log(added.tagName,
+					'last one before:', before, info.contains[before]?.debug,
+					'first one after:', after, info.contains[after]?.debug)
+			}
+		}
 
 		// FIXME: Need a better way to find end of subtree.
 		// Find the correct pointer to the landmark that comes after this
@@ -590,6 +607,28 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			if (entry.element.isConnected) list.push(entry)
 			entry = entry.next
 		}
+	}
+
+	// TODO: DRY with getIndexOfLandmarkAfter()? Test performance.
+	function getIndexOfLandmarkAfter2(element, list) {
+		for (let i = 0; i < list.length; i++) {
+			const rels =
+				element.compareDocumentPosition(list[i].element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
+		}
+		return null
+	}
+
+	// TODO: DRY with getIndexOfLandmarkBefore()? Test performance.
+	function getIndexOfLandmarkBefore2(element, list) {
+		for (let i = list.length - 1; i >= 0; i--) {
+			const rels =
+				element.compareDocumentPosition(list[i].element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
+		}
+		return null
 	}
 
 	let debugMutationHandlingTimes = []
