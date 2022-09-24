@@ -46,12 +46,10 @@ export default function BorderDrawer(win, doc, contrastChecker) {
 		let needUpdate = false
 		if ('borderColour' in changes) {
 			borderColour = changes.borderColour.newValue
-				?? defaultBorderSettings.borderColour
 			needUpdate = true
 		}
 		if ('borderFontSize' in changes) {
 			borderFontSize = changes.borderFontSize.newValue
-				?? defaultBorderSettings.borderFontSize
 			needUpdate = true
 		}
 		if (needUpdate) {
