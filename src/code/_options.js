@@ -58,9 +58,13 @@ function setUpOptionHandlers() {
 		switch (option.kind) {
 			case 'individual':
 				option.element.addEventListener('change', () => {
-					browser.storage.sync.set({
-						[option.name]: option.element.value
-					})
+					if (option.element.value) {
+						browser.storage.sync.set({
+							[option.name]: option.element.value
+						})
+					} else {
+						option.element.value = defaultSettings[option.name]
+					}
 				})
 				break
 			case 'boolean':
