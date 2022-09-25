@@ -590,4 +590,13 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 			throw Error(`useHeuristics() given ${typeof use} value: ${use}`)
 		}
 	}
+
+	this.getCurrentlySelectedIndex = function() {
+		return currentlySelectedIndex
+	}
+
+	// TODO: Rename this and the above
+	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
+		return landmarks[index]
+	}
 }

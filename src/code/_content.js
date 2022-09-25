@@ -6,7 +6,7 @@ import PauseHandler from './pauseHandler'
 import BorderDrawer from './borderDrawer'
 import ContrastChecker from './contrastChecker'
 import MutationStatsReporter from './mutationStatsReporter'
-import { defaultFunctionalSettings } from './defaults'
+import { defaultFunctionalSettings, defaultBorderSettings } from './defaults'
 
 const landmarksFinderStandard = new Standard(window, document)
 const landmarksFinderDeveloper = new Developer(window, document)
@@ -30,16 +30,25 @@ const LIMITER = 350
 // Extension message management
 //
 
-function handleHighlightMessage(index, action) {
+function handleHighlightMessage(index, action, actionParam) {
+	browser.storage.sync.get(defaultBorderSettings, function(items) {
+		if (!elementFocuser.isManagingBorders() ||
+			(items.borderType === 'persistent' &&
+			landmarksFinder.getCurrentlySelectedIndex() === index)) return
+		handleHighlightMessageCore(index, action, actionParam)
+	})
+}
+
+function handleHighlightMessageCore(index, action, actionParam) {
 	const now = performance.now()
 	const elapsed = now - (highlightLastTouchTimes.get(index) ?? 0)
 	clearTimeout(highlightTimeouts.get(index))
 	if (elapsed > LIMITER) {
-		action()
+		action(actionParam)
 		highlightLastTouchTimes.set(index, now)
 	} else {
 		const timeout = setTimeout(() => {
-			action()
+			action(actionParam)
 			highlightLastTouchTimes.set(index, performance.now())
 		}, LIMITER - elapsed)
 		highlightTimeouts.set(index, timeout)
@@ -61,20 +70,16 @@ function messageHandler(message) {
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'show-landmark':
-			if (elementFocuser.isManagingBorders()) {
-				const info =
-					landmarksFinder.getLandmarkElementInfo(message.index)
-				handleHighlightMessage(message.index,
-					() => borderDrawer.addBorder(info))
-			}
+			handleHighlightMessage(
+				message.index,
+				borderDrawer.addBorder,
+				landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index))
 			break
 		case 'hide-landmark':
-			if (elementFocuser.isManagingBorders()) {
-				const info =
-					landmarksFinder.getLandmarkElementInfo(message.index)
-				handleHighlightMessage(message.index,
-					() => borderDrawer.removeBorderOn(info.element))
-			}
+			handleHighlightMessage(
+				message.index,
+				borderDrawer.removeBorderOn,
+				landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element)
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
