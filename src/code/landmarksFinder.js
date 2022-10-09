@@ -460,6 +460,6 @@ export default function LandmarksFinder(win, doc, _useHeuristics, _useDevMode) {
 
 	// TODO: Rename this and the above
 	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
-		return landmarks[index]
+		return landmarksList[index]
 	}
 }
