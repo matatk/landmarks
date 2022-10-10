@@ -16,7 +16,6 @@
     "pretest": "node scripts/makeLandmarksFinders.js && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "version": "npx standard-version --tag-prefix=",
     "prepare": "husky install"
   },
   "ava": {
