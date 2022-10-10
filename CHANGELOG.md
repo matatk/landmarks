@@ -1,5 +1,38 @@
 # Changelog
 
+## [2.12.0](https://github.com/matatk/landmarks/compare/2.11.1...2.12.0) (2022-10-10)
+
+
+### Features
+
+* Highlight landmark on button focus or hover ([#478](https://github.com/matatk/landmarks/issues/478)) ([b98f04b](https://github.com/matatk/landmarks/commit/b98f04bd5b6c7e211c20c81352b34268e8c04ffe))
+* Option to close the pop-up immediately on using a landmark button ([#480](https://github.com/matatk/landmarks/issues/480)) ([9ebb1d7](https://github.com/matatk/landmarks/commit/9ebb1d7200c6c56e5addded4d321e31d9785b0c1)), closes [#477](https://github.com/matatk/landmarks/issues/477)
+
+
+### Continuous integrations
+
+* Move to GitHub Action for PR title checking ([c54e1a5](https://github.com/matatk/landmarks/commit/c54e1a5de172793cdf120048a6f08994f2c6abdc))
+
+
+### Documentation
+
+* **Help:** Release notes for 2.12.0 ([#489](https://github.com/matatk/landmarks/issues/489)) ([bbddfed](https://github.com/matatk/landmarks/commit/bbddfed39e0ff18269cdcdd41d0f0c8fb895f051))
+
+
+### Bug fixes
+
+* Don't double-up on making releases ([c2841c3](https://github.com/matatk/landmarks/commit/c2841c3b99cb0fdb4eaef0073d2cf05f53aa0f8f))
+* Don't un-highlight persistent border ([#487](https://github.com/matatk/landmarks/issues/487)) ([67a8006](https://github.com/matatk/landmarks/commit/67a8006586a22e0e2378f9a58b3ff7a7338a5c29))
+* **Help:** Reflect that the sidebar was reinstated on Opera ([#483](https://github.com/matatk/landmarks/issues/483)) ([0e52289](https://github.com/matatk/landmarks/commit/0e5228915c918d520bdbb3fbdfa95804f3bff6d0))
+* Remove redundant code from builds ([#481](https://github.com/matatk/landmarks/issues/481)) ([35aeebe](https://github.com/matatk/landmarks/commit/35aeebe4946a53308a5e16f7e3aa19e69a2b3f34))
+* Validate border size setting ([#486](https://github.com/matatk/landmarks/issues/486)) ([4399f82](https://github.com/matatk/landmarks/commit/4399f82ee0e4fb841ff53c70c5d3decb5138e86c)), closes [#484](https://github.com/matatk/landmarks/issues/484)
+
+
+### Builds
+
+* Clean up CHANGELOG.md ([b53bb69](https://github.com/matatk/landmarks/commit/b53bb694b7c2f2fc51e6cc238b1fdb059f83a293))
+* Use release-it ([#488](https://github.com/matatk/landmarks/issues/488)) ([8ccf7c5](https://github.com/matatk/landmarks/commit/8ccf7c5e7750237a53634b1554ed3c438ac87692))
+
 ## [2.11.1](https://github.com/matatk/landmarks/compare/2.11.0...2.11.1) (2022-04-01)
 
 
