@@ -26,6 +26,7 @@
     ]
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^5.1.1",
     "@rollup/plugin-strip": "^2.1.0",
     "addons-linter": "^5.0.0",
     "archiver-promise": "~1.0",
@@ -42,12 +43,12 @@
     "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.8.0",
     "prettier": "^2.6.1",
     "puppeteer": "^13.5.2",
+    "release-it": "^15.5.0",
     "replace-in-file": "^6.3.2",
     "rollup": "^2.70.1",
     "rollup-plugin-prettier": "^2.2.2",
     "rollup-plugin-terser": "^7.0.2",
     "sharp": "^0.30.3",
-    "standard-version": "^9.3.2",
     "stats-lite": "~2.2",
     "stylelint": "^14.6.1",
     "stylelint-config-standard": "^25.0.0",
