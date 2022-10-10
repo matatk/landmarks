@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
-    "clean:builds": "node scripts/build.js --browser all --clean-only",
+    "clean:builds": "node scripts/build.js --browser all --clean",
     "profile": "node scripts/profile.js",
     "start:_core": "web-ext --no-config-discovery run --start-url https://matatk.agrip.org.uk/landmarks/world-of-wombats/ --browser-console",
     "start:chrome": "npm run start:_core -- --source-dir build/chrome --target chromium",
