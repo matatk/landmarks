@@ -706,6 +706,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return cachedFilteredTree
 	}
 
+	this.pageResults = function() {
+		return useDevMode ? _pageWarnings : null
+	}
+
 	// These all return elements and their related info
 
 	this.getNextLandmarkElementInfo = function() {
@@ -757,6 +761,16 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		useDevMode = use
 	}
 
+	this.getCurrentlySelectedIndex = function() {
+		return currentlySelectedIndex
+	}
+
+	// TODO: Rename this and the above
+	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
+		return landmarksList[index]
+	}
+
+	this.handleMutations = handleMutations
 	this.debugHandleMutations = debugWrap(handleMutations)
 	this.debugMutationHandlingTimes = () => debugMutationHandlingTimes
 	this.clearDebugMutationHandlingTimes = () => debugMutationHandlingTimes = []
