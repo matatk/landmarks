@@ -3,14 +3,66 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Test automatically added landmarks</title>
+<style>
+body { font-size: 1.2rem; }
+
+#container {
+	display: flex;
+	gap: 3rem;
+}
+
+#gird {
+	display: grid;
+	gap: 0.5rem;
+	grid-template-columns: max-content max-content;
+	justify-items: end;
+	align-items: center;
+}
+
+input:focus,
+input:hover,
+button:focus,
+button:hover { outline: 2px solid orange; }
+
+button, input { font-size: inherit; }
+input { width: 5rem; }
+</style>
 </head>
 <body>
 	<h1>Test automatically added landmarks</h1>
-	<p>This can be used to test dynamic updates and also to ensure that mutations are only observed on visible pages. It adds a landmark every two seconds.</p>
-	<div id="landmarks-pool"></div>
+
+	<div id="container">
+		<div>
+			<h2>Form</h2>
+			<div id="gird">
+				<label for="per-group">Landmarks per group:</label>
+				<input id="per-group" value="5">
+				<label for="intra-group">Intra-group delay:</label>
+				<input id="intra-group" value="500">
+				<label for="inter-group">Inter-group delay:</label>
+				<input id="inter-group" value="3000">
+			</div>
+			<p><button onclick="update()">Update</button> <button onclick="pause()">Pause</button></p>
+			<p id="info" aria-live="polite"></p>
+		</div>
+		<div id="landmarks-pool"></div>
+	</div>
+
 	<script>
 const pool = document.getElementById('landmarks-pool')
 let count = 0
+let startNextGroupTimeout = null
+let clearInfoTimeout = null
+
+let landmarksPerGroup = 0
+let intraGroupDelay = 0
+let interGroupDelay = 0
+
+function update() {
+	landmarksPerGroup = parseInt(document.getElementById('per-group').value)
+	intraGroupDelay = parseInt(document.getElementById('intra-group').value)
+	interGroupDelay = parseInt(document.getElementById('inter-group').value)
+}
 
 function createLandmark() {
 	console.log('createLandmark()')
@@ -31,15 +83,36 @@ function createLandmark() {
 }
 
 function createLandmarksGroup() {
-	console.log('Starting a group')
-	createLandmark()
-	setTimeout(createLandmark,  750 - 20)
-	setTimeout(createLandmark, 1125 - 20)
-	setTimeout(() => console.log('Finished a group'), 1125 - 20 + 10)
-	setTimeout(createLandmarksGroup, 1125 - 20 + 4000)
+	console.log('Starting a group', landmarksPerGroup, intraGroupDelay, interGroupDelay)
+	for (let i = 0; i < landmarksPerGroup; i++) {
+		setTimeout(createLandmark, intraGroupDelay * i)
+	}
+	const waitForEndOfGroup = (landmarksPerGroup * intraGroupDelay) + 10
+	setTimeout(() => console.log('Finished a group'), waitForEndOfGroup)
+	startNextGroupTimeout = setTimeout(
+		createLandmarksGroup, waitForEndOfGroup + interGroupDelay)
 }
 
-setTimeout(createLandmarksGroup, 2000)
+function logInfo(message) {
+	const info = document.getElementById('info')
+	info.innerText = message
+	clearTimeout(clearInfoTimeout)
+	setTimeout(() => info.innerText = '', 4000)
+}
+
+function pause() {
+	if (startNextGroupTimeout) {
+		logInfo('Stopping after any active group')
+		clearTimeout(startNextGroupTimeout)
+		startNextGroupTimeout = null
+	} else {
+		logInfo('Restarting')
+		createLandmarksGroup()
+	}
+}
+
+update()
+startNextGroupTimeout = setTimeout(createLandmarksGroup, interGroupDelay)
 	</script>
 </body>
 </html>

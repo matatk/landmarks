@@ -381,6 +381,7 @@ browser.runtime.onMessage.addListener(function(message, sender) {
 			withActiveTab(tab => sendToDevToolsForTab(tab.id, message))
 			break
 		case 'mutation-info':
+		case 'mutation-info-window':
 		case 'page-warnings':
 			sendToDevToolsForTab(sender.tab.id, message)
 	}

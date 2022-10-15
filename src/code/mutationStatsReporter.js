@@ -7,8 +7,63 @@ export default function MutationStatsReporter() {
 	let nonMutationScans = 0
 	let pauseTime = null
 	let lastScanDuration = null
-
+	let numScanDurationReports = 0  // TODO: harmonise with content scr.
+	let averageScanDuration = 0
+	let prettyAverageScanDuration = 0
 	let quiet = true
+
+	const LIMIT = 10
+
+	const mutationsPerSecond = []
+	const mutationsLimitSecondAverages = []
+	let mutationsInWindow = 0
+	let mutationsLastSecondCount = 0
+
+	const checkedPerSecond = []
+	const checkedLimitSecondAverages = []
+	let checkedInWindow = 0
+	let checkedLastSecondCount = 0
+
+	for (let i = 0; i < LIMIT; i++) {
+		mutationsPerSecond.push(0)
+		mutationsLimitSecondAverages.push(0)
+
+		checkedPerSecond.push(0)
+		checkedLimitSecondAverages.push(0)
+	}
+
+	function updateLastTen() {
+		const start = performance.now()
+		mutationsInWindow -= mutationsPerSecond.shift()
+		mutationsInWindow += mutationsLastSecondCount
+		mutationsPerSecond.push(mutationsLastSecondCount)
+		mutationsLastSecondCount = 0
+		const mutationsAverage = mutationsInWindow / LIMIT
+		mutationsLimitSecondAverages.shift()
+		mutationsLimitSecondAverages.push(mutationsAverage)
+
+		checkedInWindow -= checkedPerSecond.shift()
+		checkedInWindow += checkedLastSecondCount
+		checkedPerSecond.push(checkedLastSecondCount)
+		checkedLastSecondCount = 0
+		const checkedAverage = checkedInWindow / LIMIT
+		checkedLimitSecondAverages.shift()
+		checkedLimitSecondAverages.push(checkedAverage)
+
+		if (!quiet) {
+			browser.runtime.sendMessage({
+				name: 'mutation-info-window', data: {
+					'mutations-per-second': mutationsPerSecond,
+					'average-mutations': mutationsLimitSecondAverages,
+					'checked-per-second': checkedPerSecond,
+					'average-checked': checkedLimitSecondAverages
+				}
+			})
+		}
+		// console.log('took:', performance.now() - start)
+	}
+
+	setInterval(updateLastTen, 1e3)
 
 
 	//
@@ -35,10 +90,12 @@ export default function MutationStatsReporter() {
 
 	this.incrementTotalMutations = function() {
 		totalMutations += 1
+		mutationsLastSecondCount += 1
 	}
 
 	this.incrementCheckedMutations = function() {
 		checkedMutations += 1
+		checkedLastSecondCount += 1
 	}
 
 	this.incrementMutationScans = function() {
@@ -57,7 +114,12 @@ export default function MutationStatsReporter() {
 
 	this.setLastScanDuration = function(duration) {
 		lastScanDuration = Math.round(duration)  // Chrome is precise
+		averageScanDuration =
+			(numScanDurationReports * averageScanDuration + lastScanDuration) /
+			++numScanDurationReports
+		prettyAverageScanDuration = averageScanDuration.toFixed(1)
 		if (!quiet) _sendDurationUpdate()
+		if (!quiet) console.log('is last greater than average duration?', lastScanDuration > averageScanDuration)
 	}
 
 	// Only these two public send methods are exposed because the mutation info
@@ -107,7 +169,8 @@ export default function MutationStatsReporter() {
 	function _sendDurationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'duration': lastScanDuration
+				'duration': lastScanDuration,
+				'average': prettyAverageScanDuration
 			}
 		})
 	}

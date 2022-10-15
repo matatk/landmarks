@@ -148,6 +148,22 @@ div.warning > p {
 	padding: 1rem;
 }
 
+table {
+	border-collapse: collapse;
+	table-layout: fixed;
+	width: 100%;
+}
+
+td {
+	border: 1px solid gray;
+	text-align: right;
+}
+
+td.warning {
+	font-weight: bold;
+	color: red;
+}
+
 /* FIXME: DRY with common.css —- it's still in there because common.css is also
  * used on the home page */
 .visually-hidden {
