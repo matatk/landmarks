@@ -361,6 +361,8 @@ function messageHandlerCore(message) {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
 		handleMutationMessage(message.data)
+	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info-window') {
+		handleMutationWindowMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'page-warnings') {
 		handlePageWarningsMessage(message.data)
 	}
@@ -383,6 +385,17 @@ function handleToggleStateMessage(state) {
 function handleMutationMessage(data) {
 	for (const key in data) {
 		document.getElementById(key).textContent = data[key]
+	}
+}
+
+function handleMutationWindowMessage(data) {
+	for (const key in data) {
+		const table = document.getElementById(key)
+		const row = table.querySelector('tr')
+		for (let i = 0; i < data[key].length; i++) {
+			row.children[i].innerText = data[key][i]
+			row.children[i].className = data[key][i] > 1 ? 'warning' : ''
+		}
 	}
 }
 

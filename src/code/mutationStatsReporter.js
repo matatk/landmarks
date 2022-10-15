@@ -7,8 +7,38 @@ export default function MutationStatsReporter() {
 	let nonMutationScans = 0
 	let pauseTime = null
 	let lastScanDuration = null
-
 	let quiet = true
+
+	const LIMIT = 10
+	const mutationsPerSecond = []
+	const windowAveragePerSecond = []
+	let mutationsInWindow = 0
+	let lastSecondCount = 0
+
+	for (let i = 0; i < LIMIT; i++) {
+		mutationsPerSecond.push(0)
+		windowAveragePerSecond.push(0)
+	}
+
+	function updateLastTen() {
+		mutationsInWindow -= mutationsPerSecond.shift()
+		mutationsInWindow += lastSecondCount
+		mutationsPerSecond.push(lastSecondCount)
+		lastSecondCount = 0
+		const average = mutationsInWindow / 10
+		windowAveragePerSecond.shift()
+		windowAveragePerSecond.push(average)
+		if (!quiet) {
+			browser.runtime.sendMessage({
+				name: 'mutation-info-window', data: {
+					'mutations-per-second': mutationsPerSecond,
+					'average-mutations': windowAveragePerSecond
+				}
+			})
+		}
+	}
+
+	setInterval(updateLastTen, 1e3)
 
 
 	//
@@ -35,6 +65,7 @@ export default function MutationStatsReporter() {
 
 	this.incrementTotalMutations = function() {
 		totalMutations += 1
+		lastSecondCount += 1
 	}
 
 	this.incrementCheckedMutations = function() {
