@@ -10,32 +10,54 @@ export default function MutationStatsReporter() {
 	let quiet = true
 
 	const LIMIT = 10
+
 	const mutationsPerSecond = []
-	const windowAveragePerSecond = []
+	const mutationsLimitSecondAverages = []
 	let mutationsInWindow = 0
-	let lastSecondCount = 0
+	let mutationsLastSecondCount = 0
+
+	const checkedPerSecond = []
+	const checkedLimitSecondAverages = []
+	let checkedInWindow = 0
+	let checkedLastSecondCount = 0
 
 	for (let i = 0; i < LIMIT; i++) {
 		mutationsPerSecond.push(0)
-		windowAveragePerSecond.push(0)
+		mutationsLimitSecondAverages.push(0)
+
+		checkedPerSecond.push(0)
+		checkedLimitSecondAverages.push(0)
 	}
 
 	function updateLastTen() {
+		const start = performance.now()
 		mutationsInWindow -= mutationsPerSecond.shift()
-		mutationsInWindow += lastSecondCount
-		mutationsPerSecond.push(lastSecondCount)
-		lastSecondCount = 0
-		const average = mutationsInWindow / 10
-		windowAveragePerSecond.shift()
-		windowAveragePerSecond.push(average)
+		mutationsInWindow += mutationsLastSecondCount
+		mutationsPerSecond.push(mutationsLastSecondCount)
+		mutationsLastSecondCount = 0
+		const mutationsAverage = mutationsInWindow / LIMIT
+		mutationsLimitSecondAverages.shift()
+		mutationsLimitSecondAverages.push(mutationsAverage)
+
+		checkedInWindow -= checkedPerSecond.shift()
+		checkedInWindow += checkedLastSecondCount
+		checkedPerSecond.push(checkedLastSecondCount)
+		checkedLastSecondCount = 0
+		const checkedAverage = checkedInWindow / LIMIT
+		checkedLimitSecondAverages.shift()
+		checkedLimitSecondAverages.push(checkedAverage)
+
 		if (!quiet) {
 			browser.runtime.sendMessage({
 				name: 'mutation-info-window', data: {
 					'mutations-per-second': mutationsPerSecond,
-					'average-mutations': windowAveragePerSecond
+					'average-mutations': mutationsLimitSecondAverages,
+					'checked-per-second': checkedPerSecond,
+					'average-checked': checkedLimitSecondAverages
 				}
 			})
 		}
+		// console.log('took:', performance.now() - start)
 	}
 
 	setInterval(updateLastTen, 1e3)
@@ -65,11 +87,12 @@ export default function MutationStatsReporter() {
 
 	this.incrementTotalMutations = function() {
 		totalMutations += 1
-		lastSecondCount += 1
+		mutationsLastSecondCount += 1
 	}
 
 	this.incrementCheckedMutations = function() {
 		checkedMutations += 1
+		checkedLastSecondCount += 1
 	}
 
 	this.incrementMutationScans = function() {

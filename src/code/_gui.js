@@ -394,7 +394,7 @@ function handleMutationWindowMessage(data) {
 		const row = table.querySelector('tr')
 		for (let i = 0; i < data[key].length; i++) {
 			row.children[i].innerText = data[key][i]
-			row.children[i].className = data[key][i] > 1 ? 'warning' : ''
+			row.children[i].className = data[key][i] >= 1 ? 'warning' : ''
 		}
 	}
 }
