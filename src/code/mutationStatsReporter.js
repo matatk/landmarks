@@ -7,6 +7,9 @@ export default function MutationStatsReporter() {
 	let nonMutationScans = 0
 	let pauseTime = null
 	let lastScanDuration = null
+	let numScanDurationReports = 0  // TODO: harmonise with content scr.
+	let averageScanDuration = 0
+	let prettyAverageScanDuration = 0
 	let quiet = true
 
 	const LIMIT = 10
@@ -111,7 +114,12 @@ export default function MutationStatsReporter() {
 
 	this.setLastScanDuration = function(duration) {
 		lastScanDuration = Math.round(duration)  // Chrome is precise
+		averageScanDuration =
+			(numScanDurationReports * averageScanDuration + lastScanDuration) /
+			++numScanDurationReports
+		prettyAverageScanDuration = averageScanDuration.toFixed(1)
 		if (!quiet) _sendDurationUpdate()
+		if (!quiet) console.log('is last greater than average duration?', lastScanDuration > averageScanDuration)
 	}
 
 	// Only these two public send methods are exposed because the mutation info
@@ -161,7 +169,8 @@ export default function MutationStatsReporter() {
 	function _sendDurationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'duration': lastScanDuration
+				'duration': lastScanDuration,
+				'average': prettyAverageScanDuration
 			}
 		})
 	}

@@ -42,7 +42,8 @@ input { width: 5rem; }
 				<label for="inter-group">Inter-group delay:</label>
 				<input id="inter-group" value="3000">
 			</div>
-			<p><button onclick="update()">Update</button></p>
+			<p><button onclick="update()">Update</button> <button onclick="pause()">Pause</button></p>
+			<p id="info" aria-live="polite"></p>
 		</div>
 		<div id="landmarks-pool"></div>
 	</div>
@@ -50,6 +51,8 @@ input { width: 5rem; }
 	<script>
 const pool = document.getElementById('landmarks-pool')
 let count = 0
+let startNextGroupTimeout = null
+let clearInfoTimeout = null
 
 let landmarksPerGroup = 0
 let intraGroupDelay = 0
@@ -80,17 +83,36 @@ function createLandmark() {
 }
 
 function createLandmarksGroup() {
-	console.log('Starting a group')
+	console.log('Starting a group', landmarksPerGroup, intraGroupDelay, interGroupDelay)
 	for (let i = 0; i < landmarksPerGroup; i++) {
 		setTimeout(createLandmark, intraGroupDelay * i)
 	}
 	const waitForEndOfGroup = (landmarksPerGroup * intraGroupDelay) + 10
 	setTimeout(() => console.log('Finished a group'), waitForEndOfGroup)
-	setTimeout(createLandmarksGroup, waitForEndOfGroup + interGroupDelay)
+	startNextGroupTimeout = setTimeout(
+		createLandmarksGroup, waitForEndOfGroup + interGroupDelay)
+}
+
+function logInfo(message) {
+	const info = document.getElementById('info')
+	info.innerText = message
+	clearTimeout(clearInfoTimeout)
+	setTimeout(() => info.innerText = '', 4000)
+}
+
+function pause() {
+	if (startNextGroupTimeout) {
+		logInfo('Stopping after any active group')
+		clearTimeout(startNextGroupTimeout)
+		startNextGroupTimeout = null
+	} else {
+		logInfo('Restarting')
+		createLandmarksGroup()
+	}
 }
 
 update()
-setTimeout(createLandmarksGroup, interGroupDelay)
+startNextGroupTimeout = setTimeout(createLandmarksGroup, interGroupDelay)
 	</script>
 </body>
 </html>
