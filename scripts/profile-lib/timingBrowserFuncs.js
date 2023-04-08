@@ -69,28 +69,24 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 
 // Housekeeping
 
-// TODO: More tests!
-//       - Change a label
-//       - Remove a label
-//       - Change a role
-//       - Hide or show non-landmark content
-//       - Hide or show landmark content
+// FIXME: More tests!
+//       - Change a label (aria-labelledby / aria-label)
+//       - Remove a label (aria-labelledby / aria-label)
+//       - Change a role (role)
+//       - Hide or show non-landmark content (really?)
+//       - Hide or show landmark content (aria-hidden / CSS?)
 
 export const mutationTests = {
 	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
 	mutationTestAddSimpleLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
-	mutationTestRemoveRandomLandmark
+	mutationTestRemoveRandomLandmark,
+	mutationTestRemoveRandomElement
 }
 
-export const mutationTestsNeedingIndex = new Set([
+export const mutationTestsNeedingLandmarks = new Set([
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark
-])
-
-export const mutationTestsNeedingLandmarks = new Set([
-	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
-	mutationTestAddSimpleLandmarkAtEndOfBody
 ])
 
 export function mutationSetup(useHeuristics) {
@@ -189,6 +185,23 @@ function mutationTestRemoveRandomLandmark(index) {
 		window.pNext = picked.nextSibling
 		window.pParent = picked.parentNode
 		picked.remove()
+		window.backup = picked
+	} else {
+		window.cleanUp(() => {
+			window.pParent.insertBefore(window.backup, window.pNext)
+		})
+	}
+}
+
+function mutationTestRemoveRandomElement(runTest) {
+	if (runTest) {
+		const elements = document.body.getElementsByTagName('*')
+		const index = Math.floor(Math.random() * elements.length)
+		const picked = elements[index]
+		// TODO: DRY with the above
+		window.pNext = picked.nextSibling
+		window.pParent = picked.parentNode
+		picked.parentNode.removeChild(picked)
 		window.backup = picked
 	} else {
 		window.cleanUp(() => {

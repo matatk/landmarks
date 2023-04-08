@@ -33,7 +33,7 @@ export default function MutationStatsReporter() {
 	}
 
 	function updateLastTen() {
-		const start = performance.now()
+		// const start = performance.now()
 		mutationsInWindow -= mutationsPerSecond.shift()
 		mutationsInWindow += mutationsLastSecondCount
 		mutationsPerSecond.push(mutationsLastSecondCount)

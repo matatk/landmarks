@@ -20,7 +20,6 @@ import {
 	landmarkScan,
 	mutationSetup,
 	mutationTests,
-	mutationTestsNeedingIndex,
 	mutationTestsNeedingLandmarks,
 	getAlreadyFoundLandmarks,
 	getLandmarksAfterFullScan,
@@ -220,7 +219,7 @@ async function runScansOnSite(browser, site, quietness, {
 		//       wait between mutations.
 		for (const [ name, func ] of Object.entries(mutationTests)) {
 			const msg = '\t' + name
-			if (landmarks.length === 0 && !mutationTestsNeedingLandmarks.has(func)) {
+			if (landmarks.length === 0 && mutationTestsNeedingLandmarks.has(func)) {
 				console.log(msg, '(skipping; no landmarks)')
 				continue
 			} else {
@@ -228,7 +227,7 @@ async function runScansOnSite(browser, site, quietness, {
 			}
 
 			for (let i = 0; i < loops; i++) {
-				if (mutationTestsNeedingIndex.has(func)) {
+				if (mutationTestsNeedingLandmarks.has(func)) {
 					const index = Math.floor(Math.random() * landmarks.length)
 					await page.evaluate(func, index)
 				} else {
