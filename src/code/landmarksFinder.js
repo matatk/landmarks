@@ -506,16 +506,20 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// TODO: Find out where we are and put our results into the tree.
 			// TODO: This needs a page that contains a landmark that has both
 			//       landmark and non-landmark children.
+			/*
 			console.log('subtree root', info.debug)
 			console.log('subtree level',
 				'"' + info.contains.map(i => i.debug).join(',') + '"')
+			*/
 			for (const added of mutation.addedNodes) {  // TODO: perf
-				console.log('added', added.tagName)
+				// console.log('added', added.tagName)
 				const before = getIndexOfLandmarkBefore2(added, info.contains)
 				const after = getIndexOfLandmarkAfter2(added, info.contains)
+				/*
 				console.log(added.tagName,
 					'last one before:', before, info.contains[before]?.debug,
 					'first one after:', after, info.contains[after]?.debug)
+				*/
 			}
 		}
 
@@ -577,8 +581,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
+	// TODO: test and improve performance
 	function handleAttributeMutation(mutation) {
-		console.log(mutation)
+		// console.log(mutation)
 		find()
 	}
 

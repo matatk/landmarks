@@ -69,7 +69,7 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 
 // Housekeeping
 
-// TODO: More tests!
+// FIXME: More tests!
 //       - Change a label
 //       - Remove a label
 //       - Change a role
@@ -80,17 +80,13 @@ export const mutationTests = {
 	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
 	mutationTestAddSimpleLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
-	mutationTestRemoveRandomLandmark
+	mutationTestRemoveRandomLandmark,
+	mutationTestRemoveRandomElement
 }
 
-export const mutationTestsNeedingIndex = new Set([
+export const mutationTestsNeedingLandmarks = new Set([
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark
-])
-
-export const mutationTestsNeedingLandmarks = new Set([
-	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
-	mutationTestAddSimpleLandmarkAtEndOfBody
 ])
 
 export function mutationSetup(useHeuristics) {
@@ -189,6 +185,23 @@ function mutationTestRemoveRandomLandmark(index) {
 		window.pNext = picked.nextSibling
 		window.pParent = picked.parentNode
 		picked.remove()
+		window.backup = picked
+	} else {
+		window.cleanUp(() => {
+			window.pParent.insertBefore(window.backup, window.pNext)
+		})
+	}
+}
+
+function mutationTestRemoveRandomElement(runTest) {
+	if (runTest) {
+		const elements = document.body.getElementsByTagName('*')
+		const index = Math.floor(Math.random() * elements.length)
+		const picked = elements[index]
+		// TODO: DRY with the above
+		window.pNext = picked.nextSibling
+		window.pParent = picked.parentNode
+		picked.parentNode.removeChild(picked)
 		window.backup = picked
 	} else {
 		window.cleanUp(() => {
