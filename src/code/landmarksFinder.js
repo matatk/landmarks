@@ -388,19 +388,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					getLandmarks(mutation.addedNodes[i], landmarksTree)
 				}
 
-				// FIXME: DRY with regenerateListAndIndexes ?
-				if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
-				if (useDevMode) developerModeChecks()
-
-				for (let i = 0; i < landmarksList.length; i++) {
-					landmarksList[i].index = i
-					// FIXME: test
-					landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
-				}
-				// TODO: why needed? overwritten when full scan asked for!?
-				cachedFilteredTree = null
-				cachedAllInfos = null
-				cachedAllElementInfos = null
+				regenerateListIndicesSelectors()
 			}
 			return  // don't need to worry about removing when 0 landmarks
 		}
@@ -447,18 +435,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				}
 			}
 
-			// TODO: This used to check that everything had been processed (by counting) but that seems wrong.0
-			if (processed) {
-				cachedFilteredTree = null
-				cachedAllInfos = null
-				cachedAllElementInfos = null
-				regenerateListAndIndexes()
-				// TODO: delay this until after everything else, or it may be done twice
-				for (const landmark of landmarksList) {  // TODO: perf
-					landmark.selector = createSelector(landmark.element)
-				}
-				return  // FIXME: what if nodes were added too?
-			}
+			if (processed) regenerateListIndicesSelectors()
 		}
 
 
@@ -539,12 +516,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				// FIXME: DRY with above
 			}
 
-			regenerateListAndIndexes()  // FIXME: do this across removed AND added
+			regenerateListIndicesSelectors()  // FIXME: do this across removed AND added
 		}
-
-		cachedFilteredTree = null
-		cachedAllInfos = null
-		cachedAllElementInfos = null
 	}
 
 	function nextNotInSubTree(subTreeStartIndex) {
@@ -591,7 +564,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return current
 	}
 
-	function regenerateListAndIndexes() {
+	function regenerateListIndicesSelectors() {
 		// TODO: test different string syntax for performance
 		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
@@ -610,7 +583,14 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
+			// TODO: When is this needed?
+			//       - if we only added or removed landmarks AFTER this one.
+			landmarksList[i].selector = createSelector(landmarksList[i].element)
 		}
+
+		cachedFilteredTree = null
+		cachedAllInfos = null
+		cachedAllElementInfos = null
 	}
 
 	// TODO: test and improve performance
