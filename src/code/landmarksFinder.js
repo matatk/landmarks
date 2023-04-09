@@ -490,6 +490,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// From the parent landmark (if any), work out which subtree level we're at
 			// TODO: WHAT IF the attr was malformed? falling back to the landmarkslist may not work?
 			const index = foundLandmarkElementIndex(found)
+			if (index) console.log('info:', landmarksList[index].debug)
 			// console.log('index', index)
 			const subtreeLevel = index !== null ? landmarksList[index].contains : landmarksTree
 
@@ -522,14 +523,32 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 						'first one after:', after, info.contains[after]?.debug)
 					*/
 					// Any landmarks found need to be added here.
-					//console.log(subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
+					console.log('before splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
 					const newBitOfLevel = []
-					const previousNext = previousLandmarkEntry.next
-					previousLandmarkEntry = subtreeLevel[before]
+					let startInsertingAt
+					if (before === null) {
+						startInsertingAt = 0
+						if (index !== null) {
+							previousLandmarkEntry = landmarksList[index]
+						} else {
+							previousLandmarkEntry = landmarksList[0]  // FIXME: do we ever get here? test inserting at start of body
+						}
+					} else {
+						startInsertingAt = before + 1
+						previousLandmarkEntry = subtreeLevel[before]
+					}
+					const [lastEntryInSubTree, previousNext] = nextAfterEntrySubtree(previousLandmarkEntry)
+					console.log('pL', previousLandmarkEntry?.debug)
+					console.log('last in pL tree:', lastEntryInSubTree?.debug)
+					console.log('pN', previousNext?.debug)
 					getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
-					subtreeLevel.splice(before + 1, 0, ...newBitOfLevel)
+					subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
+					console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
 					if (newBitOfLevel.length) {
 						// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
+						lastEntryInSubTree.next = newBitOfLevel[0]
+						console.log('last in pL tree:', lastEntryInSubTree?.debug)
+						console.log('last in pL tree\'s revised next:', lastEntryInSubTree?.next?.debug)
 						newBitOfLevel.at(-1).next = previousNext
 					}
 				// }
@@ -585,6 +604,21 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 		}
 		return next
+	}
+
+	function nextAfterEntrySubtree(entry) {
+		const subTreeRoot = entry.element
+		let rels
+		let previous = entry
+		let next = entry
+		do {
+			previous = next
+			next = next.next
+			if (next === null) return [previous, null]
+			rels = subTreeRoot.compareDocumentPosition(next.element)
+		// eslint-disable-next-line no-bitwise
+		} while(rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY)
+		return [previous, next]
 	}
 
 	function regenerateListAndIndexes() {
@@ -651,6 +685,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	// TODO: DRY with getIndexOfLandmarkBefore()? Test performance.
+	// FIXME: if all of them are _after_ return -1 (makes calling code easier)
 	function getIndexOfLandmarkBefore2(element, list) {
 		for (let i = list.length - 1; i >= 0; i--) {
 			const rels =
