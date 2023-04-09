@@ -77,6 +77,8 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 //       - Hide or show landmark content (aria-hidden / CSS?)
 
 export const mutationTests = {
+	mutationTestAddSimpleNonLandmarkElementAtStartOfBody,
+	mutationTestAddSimpleLandmarkAtStartOfBody,
 	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
 	mutationTestAddSimpleLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
@@ -141,6 +143,27 @@ export function mutationAfterEach() {
 }
 
 // Simulated mutations
+
+function mutationTestAddSimpleNonLandmarkElementAtStartOfBody(runTest) {
+	if (runTest) {
+		window.notALandmark = document.createElement('DIV')
+		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
+		document.body.insertBefore(window.notALandmark, document.body.firstChild)
+	} else {
+		window.cleanUp(() => window.notALandmark.remove())
+	}
+}
+
+function mutationTestAddSimpleLandmarkAtStartOfBody(runTest) {
+	if (runTest) {
+		window.addedLandmark = document.createElement('ASIDE')
+		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
+		window.addedLandmark.appendChild(document.createTextNode('forty-two'))
+		document.body.insertBefore(window.addedLandmark, document.body.firstChild)
+	} else {
+		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
 
 function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
 	if (runTest) {

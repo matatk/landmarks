@@ -515,17 +515,19 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				if (before === null) {
 					startInsertingAt = 0
 					if (index !== null) {
+						console.log('index is', index)
 						previousLandmarkEntry = landmarksList[index]
 					} else {
-						previousLandmarkEntry = landmarksList[0]  // FIXME: do we ever get here? test inserting at start of body
+						console.log('index is null')
+						previousLandmarkEntry = null
 					}
 				} else {
 					startInsertingAt = before + 1
 					previousLandmarkEntry = subtreeLevel[before]
 				}
-				const lastEntryInSubTree = lastEntryInsideEntrySubtree(previousLandmarkEntry)
+				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
 				const copyOfPLE = previousLandmarkEntry
-				const previousNext = lastEntryInSubTree.next
+				const previousNext = lastEntryInSubTree ? lastEntryInSubTree.next : null
 				console.log('pL', previousLandmarkEntry?.debug)
 				console.log('pL.next', previousLandmarkEntry?.next?.debug)
 				console.log('last in pL tree:', lastEntryInSubTree?.debug)
