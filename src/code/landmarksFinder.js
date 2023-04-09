@@ -373,18 +373,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
-	// FIXME: What about when a valid landmark has its labelling element
-	//        removed? (keep track of all labelling elements? a bit much?)
+	// FIXME: Test labelling element being removed.
 	//  NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
-		/*
-		console.log(' ')
-		console.log('added', [...mutation.addedNodes].map(n => n.tagName).join(','), '(' + mutation.addedNodes.length + ')')
-		console.log('removed', [...mutation.removedNodes].map(n => n.tagName).join(','), '(' + mutation.removedNodes.length + ')')
-		console.log('targ', mutation.target.tagName, mutation.target.getAttribute('role'))
-		*/
-
-
 		//
 		// Quick path for when there are no landmarks, and stuff is added
 		//
@@ -479,22 +470,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (mutation.addedNodes.length) {
 			// Find the nearest parent landmark, if any
 			let found = mutation.target
-			// console.log(mutation.type, mutation.target.tagName)
-			// console.log('looking...')
 			while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
-				// console.log('found', found.tagName, found.id, found.getAttribute('role'), found.getAttribute(LANDMARK_INDEX_ATTR))
 				found = found.parentNode
 			}
-			console.log('found', found.tagName)
 
 			// From the parent landmark (if any), work out which subtree level we're at
 			// TODO: WHAT IF the attr was malformed? falling back to the landmarkslist may not work?
 			const index = foundLandmarkElementIndex(found)
-			if (index) {
-				console.log('info:', landmarksList[index].debug)
-			} else {
-				console.log('info: NONE')
-			}
 			const subtreeLevel = index !== null ? landmarksList[index].contains : landmarksTree
 
 			function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level) {
@@ -509,16 +491,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// and replacing, any siblings.
 			if (subtreeLevel.length) {
 				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
-				console.log('before splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
 				const newBitOfLevel = []
 				let startInsertingAt
 				if (before === null) {
 					startInsertingAt = 0
 					if (index !== null) {
-						console.log('index is', index)
 						previousLandmarkEntry = landmarksList[index]
 					} else {
-						console.log('index is null')
 						previousLandmarkEntry = null
 					}
 				} else {
@@ -526,23 +505,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					previousLandmarkEntry = subtreeLevel[before]
 				}
 				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
-				const copyOfPLE = previousLandmarkEntry
 				const previousNext = lastEntryInSubTree ? lastEntryInSubTree.next : null
-				console.log('pL', previousLandmarkEntry?.debug)
-				console.log('pL.next', previousLandmarkEntry?.next?.debug)
-				console.log('last in pL tree:', lastEntryInSubTree?.debug)
-				console.log('pN', previousNext?.debug)
 				previousLandmarkEntry = lastEntryInSubTree
 				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
 				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
-				console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
 				if (newBitOfLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
 					if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
-					console.log('last in pL tree:', lastEntryInSubTree?.debug)
-					console.log('last in pL tree\'s revised next:', lastEntryInSubTree?.next?.debug)
-					console.log('orig pL', copyOfPLE?.debug)
-					console.log('orig pL.next', copyOfPLE?.next?.debug)
 					if (startInsertingAt == 0) {
 						newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
 					} else {
@@ -550,9 +519,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					}
 				}
 			} else {
-				console.log('whole level')
-				// TODO: What does it mean to be here?
-				//       It means that there are no sibling landmarks to the (potential) ones to be added.
 				// Any landmarks found can just be added to the level (list).
 				if (index === null) {
 					previousLandmarkEntry = landmarksList[0]
@@ -565,7 +531,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					}
 				}
 				const previousNext = previousLandmarkEntry?.next
-				console.log('previousLandmarkEntry', previousLandmarkEntry.element.tagName)
 				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, subtreeLevel)
 				if (subtreeLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
@@ -574,20 +539,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				// FIXME: DRY with above
 			}
 
-			// FIXME: Need a better way to find end of subtree.
-			// Find the correct pointer to the landmark that comes after this
-			// subtree (which may be deep).
-			//const next = nextNotInSubTree(index)
-
-			// previousLandmarkEntry.next = next
-
-			// debugTree()
-
 			regenerateListAndIndexes()  // FIXME: do this across removed AND added
 		}
-
-		console.log('end of handleChildListMutation')
-		console.log(landmarksList.length)
 
 		cachedFilteredTree = null
 		cachedAllInfos = null
@@ -646,12 +599,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		landmarksList = []
 		walk(landmarksList, landmarksTree)
-		console.log('walked, len', landmarksList.length)
 
 		if (landmarksTree.length) {
 			// FIXME: hideous globals :-S
 			previousLandmarkEntry = lastEntryAfter(landmarksList.at(-1))
-			console.log('pL (last in tree)', previousLandmarkEntry.debug)
 			previousLandmarkEntry.next = landmarksTree[0]
 		}
 		if (useDevMode) developerModeChecks()
@@ -693,22 +644,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		while (entry) {
 			// FIXME: is this clause used?
 			if (entry.element.isConnected) {
-				console.log('walk', entry.debug)
 				list.push(entry)
 			}
 			entry = entry.next
 		}
-	}
-
-	// TODO: DRY with getIndexOfLandmarkAfter()? Test performance.
-	function getIndexOfLandmarkAfter2(element, list) {
-		for (let i = 0; i < list.length; i++) {
-			const rels =
-				element.compareDocumentPosition(list[i].element)
-			// eslint-disable-next-line no-bitwise
-			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
-		}
-		return null
 	}
 
 	// TODO: DRY with getIndexOfLandmarkBefore()? Test performance.
