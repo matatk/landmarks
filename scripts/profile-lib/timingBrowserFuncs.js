@@ -70,11 +70,11 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Housekeeping
 
 // FIXME: More tests!
-//       - Change a label
-//       - Remove a label
-//       - Change a role
-//       - Hide or show non-landmark content
-//       - Hide or show landmark content
+//       - Change a label (aria-labelledby / aria-label)
+//       - Remove a label (aria-labelledby / aria-label)
+//       - Change a role (role)
+//       - Hide or show non-landmark content (really?)
+//       - Hide or show landmark content (aria-hidden / CSS?)
 
 export const mutationTests = {
 	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,

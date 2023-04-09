@@ -425,49 +425,44 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 
 		//
-		// Quick path for when a landmark region is removed
+		// Landmarks, or nodes containing landmarks, being removed
 		//
 
-		// Deal specifically with when a landmark is removed
-		// TODO: How likely is it that precisely a landmark will be removed?
 		if (mutation.removedNodes.length) {
-			let processed = 0
+			let processed = false
 
 			for (const removed of mutation.removedNodes) {  // TODO: perf
-				if (!removed.hasAttribute(LANDMARK_INDEX_ATTR)) continue
-				const index = foundLandmarkElementIndex(removed)
-				if (index === null) continue
-				const info = landmarksList[index]
-				const level = info.level
-
-				let levelIndex = null
-				for (let i = 0; i < level.length; i++) {
-					if (level[i].element === removed) {
-						levelIndex = i
-						break
+				// TODO: How likely is it that precisely a landmark will be removed?
+				if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
+					removeLandmarkFromTree(removed)
+					processed = true
+				} else {
+					let previous = null
+					let current = null
+					while ((current = removed.querySelector(`[${LANDMARK_INDEX_ATTR}]`)) !== null) {
+						// If the next one we find was inside the previous one; it's already been processed.
+						if (previous) {
+							const rels = previous.compareDocumentPosition(current)
+							// eslint-disable-next-line no-bitwise
+							if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
+								current.removeAttribute(LANDMARK_INDEX_ATTR)
+								continue
+							}
+						}
+						removeLandmarkFromTree(current)
+						processed = true
+						current.removeAttribute(LANDMARK_INDEX_ATTR)
+						previous = current
 					}
 				}
-
-				const next = levelIndex < level.length - 1
-					? level[levelIndex + 1]
-					: nextNotInSubTree(index)
-
-				level.splice(levelIndex, 1)
-
-				if (index > 0) {
-					landmarksList[index - 1].next = next
-				} else {
-					// The first thing in the tree was removed
-				}
-
-				processed += 1
 			}
 
-			if (processed === mutation.removedNodes.length) {
+			if (processed) {
 				cachedFilteredTree = null
 				cachedAllInfos = null
 				cachedAllElementInfos = null
-				tidyUpStuff()
+				regenerateListAndIndexes()
+				// TODO: delay this until after everything else, or it may be done twice
 				for (const landmark of landmarksList) {  // TODO: perf
 					landmark.selector = createSelector(landmark.element)
 				}
@@ -477,28 +472,34 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 
 		//
-		// We have a subtree with added and/or removed nodes
+		// Work out the subtree for added or removed nodes
 		//
 
 		// Find the nearest parent landmark
 		// TODO: this may not narrow things down too much; find also the sibling landmarks, to help cut down on scanning.
 
 		let found = mutation.target
+		console.log(mutation.type, mutation.target.tagName)
+		console.log('looking...')
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
+			console.log(`found`, found.tagName, found.id, found.getAttribute('role'), found.getAttribute(LANDMARK_INDEX_ATTR))
 			found = found.parentNode
 		}
 
 		if (found === doc.body) {
+			console.log('body')
 			find()  // TODO: try to remove the need for find()s
 			return
 		}
 
 		const index = foundLandmarkElementIndex(found)
+		console.log('index', index)
 		if (index === null) {
 			find()  // TODO: try to remove the need for find()s
 			return
 		}
 		const info = landmarksList[index]
+		console.log(info)
 
 		// If we got here, we now have a subtree to target.
 
@@ -544,7 +545,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		// debugTree()
 
-		tidyUpStuff()
+		regenerateListAndIndexes()
 	}
 
 	function nextNotInSubTree(subTreeStartIndex) {
@@ -563,7 +564,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return next
 	}
 
-	function tidyUpStuff() {
+	function regenerateListAndIndexes() {
 		// TODO: test different string syntax for performance
 		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
@@ -634,6 +635,34 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
 		return null
+	}
+
+	function removeLandmarkFromTree(landmarkElement) {
+		const index = foundLandmarkElementIndex(landmarkElement)
+		if (index === null) return
+		const info = landmarksList[index]
+		const level = info.level
+
+		// FIXME: PERF: If we were using a real tree, with pointers, this would not be needed.
+		let levelIndex = null
+		for (let i = 0; i < level.length; i++) {
+			if (level[i].element === landmarkElement) {
+				levelIndex = i
+				break
+			}
+		}
+
+		const next = levelIndex < level.length - 1
+			? level[levelIndex + 1]
+			: nextNotInSubTree(index)
+
+		level.splice(levelIndex, 1)
+
+		if (index > 0) {
+			landmarksList[index - 1].next = next
+		} else {
+			// The first thing in the tree was removed
+		}
 	}
 
 	let debugMutationHandlingTimes = []
