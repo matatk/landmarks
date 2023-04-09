@@ -150,6 +150,20 @@ export function getValidExplicitRole(value) {
 	return null
 }
 
+export function getRole(element) {
+	// Elements with explicitly-set rolees
+	const rawRoleValue = element.getAttribute('role')
+	const explicitRole = rawRoleValue
+		? getValidExplicitRole(rawRoleValue)
+		: null
+	const hasExplicitRole = explicitRole !== null
+
+	// Support HTML5 elements' native roles
+	const role = explicitRole ?? getRoleFromTagNameAndContainment(element)
+
+	return { hasExplicitRole, role }
+}
+
 export function getARIAProvidedLabel(doc, element) {
 	let label = null
 

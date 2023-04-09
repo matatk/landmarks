@@ -70,22 +70,32 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Housekeeping
 
 // FIXME: More tests!
-//       - Change a label (aria-labelledby / aria-label)
-//       - Remove a label (aria-labelledby / aria-label)
-//       - Change a role (role)
-//       - Hide or show non-landmark content (really?)
-//       - Hide or show landmark content (aria-hidden / CSS?)
+// - Change a label - NOTE: Currently covered by the re-computation of labels each time.
+//   + contents of aria-labelledby element
+//   + aria-label of landmark
+//   + aria-label of aria-labelledby element?
+//   + aria-label of element within aria-labelledby element?
+// - Hide or show landmark content (aria-hidden / CSS?)
+// - Hide or show non-landmark content (really?)
 
 export const mutationTests = {
-	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
-	mutationTestAddSimpleLandmarkAtEndOfBody,
+	mutationTestAddNonLandmarkElementAtStartOfBody,
+	mutationTestAddLandmarkAtStartOfBody,
+	mutationTestAddNonLandmarkElementAtEndOfBody,
+	mutationTestAddLandmarkAtEndOfBody,
+	mutationTestAddNonLandmarkElementRandomly,
 	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestChangeRoleOfRandomLandmark,
+	mutationTestChangeRoleDescriptionOfRandomLandmark,
 	mutationTestRemoveRandomLandmark,
-	mutationTestRemoveRandomElement
+	mutationTestRemoveRandomElement,
+	mutationTestRemoveRandomLabellingElement,  // TODO: needs labelling elements to exist
 }
 
 export const mutationTestsNeedingLandmarks = new Set([
 	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestChangeRoleOfRandomLandmark,
+	mutationTestChangeRoleDescriptionOfRandomLandmark,
 	mutationTestRemoveRandomLandmark
 ])
 
@@ -103,8 +113,10 @@ export function mutationSetup(useHeuristics) {
 			childList: true,
 			subtree: true,
 			attributeFilter: [
-				'aria-label',
-				'aria-labelledby',
+				// FIXME REALLY DRY
+				// handled by always recomputing label 'aria-label',
+				// handled by always recomputing label 'aria-labelledby',
+				'aria-roledescription',
 				'class',
 				'hidden',
 				'role',
@@ -142,7 +154,28 @@ export function mutationAfterEach() {
 
 // Simulated mutations
 
-function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
+function mutationTestAddNonLandmarkElementAtStartOfBody(runTest) {
+	if (runTest) {
+		window.notALandmark = document.createElement('DIV')
+		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
+		document.body.insertBefore(window.notALandmark, document.body.firstChild)
+	} else {
+		window.cleanUp(() => window.notALandmark.remove())
+	}
+}
+
+function mutationTestAddLandmarkAtStartOfBody(runTest) {
+	if (runTest) {
+		window.addedLandmark = document.createElement('ASIDE')
+		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
+		window.addedLandmark.appendChild(document.createTextNode('forty-two'))
+		document.body.insertBefore(window.addedLandmark, document.body.firstChild)
+	} else {
+		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+function mutationTestAddNonLandmarkElementAtEndOfBody(runTest) {
 	if (runTest) {
 		window.notALandmark = document.createElement('DIV')
 		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
@@ -152,7 +185,7 @@ function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
 	}
 }
 
-function mutationTestAddSimpleLandmarkAtEndOfBody(runTest) {
+function mutationTestAddLandmarkAtEndOfBody(runTest) {
 	if (runTest) {
 		window.addedLandmark = document.createElement('ASIDE')
 		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
@@ -160,6 +193,21 @@ function mutationTestAddSimpleLandmarkAtEndOfBody(runTest) {
 		document.body.appendChild(window.addedLandmark)
 	} else {
 		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+function mutationTestAddNonLandmarkElementRandomly(runTest) {
+	if (runTest) {
+		window.notALandmark = document.createElement('DIV')
+		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
+
+		const elements = document.body.getElementsByTagName('*')
+		const index = Math.floor(Math.random() * elements.length)
+		const picked = elements[index]
+
+		picked.appendChild(window.notALandmark)
+	} else {
+		window.cleanUp(() => window.notALandmark.remove())
 	}
 }
 
@@ -174,6 +222,42 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 		parent.appendChild(window.addedLandmark)
 	} else {
 		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+function mutationTestChangeRoleOfRandomLandmark(index) {
+	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
+		window.picked
+			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.previousRole = window.picked.getAttribute('role')
+		window.picked.setAttribute('role', 'complementary')  // FIXME: _change_ role
+	} else {
+		window.cleanUp(() => {
+			if (window.previousRole !== null && window.previousRole !== '') {
+				window.picked.setAttribute('role', window.previousRole)
+			} else {
+				window.picked.removeAttribute('role')
+			}
+		})
+	}
+}
+
+function mutationTestChangeRoleDescriptionOfRandomLandmark(index) {
+	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
+		window.picked
+			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.previousRoleDescription = window.picked.getAttribute('aria-roledescription')
+		window.picked.setAttribute('aria-roledescription', 'forty-two')  // FIXME: _change_ role
+	} else {
+		window.cleanUp(() => {
+			if (window.previousRoleDescription !== null && window.previousRoleDescription !== '') {
+				window.picked.setAttribute('aria-roledescription', window.previousRoleDescription)
+			} else {
+				window.picked.removeAttribute('aria-roledescription')
+			}
+		})
 	}
 }
 
@@ -198,7 +282,7 @@ function mutationTestRemoveRandomElement(runTest) {
 		const elements = document.body.getElementsByTagName('*')
 		const index = Math.floor(Math.random() * elements.length)
 		const picked = elements[index]
-		// TODO: DRY with the above
+
 		window.pNext = picked.nextSibling
 		window.pParent = picked.parentNode
 		picked.parentNode.removeChild(picked)
@@ -206,6 +290,32 @@ function mutationTestRemoveRandomElement(runTest) {
 	} else {
 		window.cleanUp(() => {
 			window.pParent.insertBefore(window.backup, window.pNext)
+		})
+	}
+}
+
+// NOTE: This may not remove the element that labels an actual landmark.
+function mutationTestRemoveRandomLabellingElement(runTest) {
+	if (runTest) {
+		const elements = []
+		for (const labelled of document.body.querySelectorAll('[aria-labelledby]')) {
+			for (const id of labelled.getAttribute('aria-labelledby').split(/\s+/)) {
+				const labeller = document.getElementById(id)
+				if (labeller) elements.push(labeller)
+			}
+		}
+		if (elements.length) {
+			const index = Math.floor(Math.random() * elements.length)
+			const picked = elements[index]
+
+			window.pNext = picked.nextSibling
+			window.pParent = picked.parentNode
+			picked.parentNode.removeChild(picked)
+			window.backup = picked
+		}
+	} else {
+		window.cleanUp(() => {
+			if (window.backup) window.pParent.insertBefore(window.backup, window.pNext)
 		})
 	}
 }

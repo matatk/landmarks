@@ -9,7 +9,7 @@ import { dirname, goToAndSettle, pageSetUp, startTracing } from './utils.js'
 // Making a trace to test mutation guarding in the debug extension
 //
 
-export function doTraceWithAndWithoutGuarding(quietness, debugBuildNote) {
+export function doTraceWithAndWithoutGuarding(runtimeMessagesOnly, quietness, debugBuildNote) {
 	console.log(`${debugBuildNote}\n`)
 	puppeteer.launch({
 		headless: false,  // needed to support extensions
@@ -18,21 +18,21 @@ export function doTraceWithAndWithoutGuarding(quietness, debugBuildNote) {
 			'--load-extension=build/chrome/'
 		]
 	}).then(async browser => {
-		const page = await pageSetUp(browser, true, quietness)
-		await singleRun(page, 'trace--no-guarding.json', 600, 0)
+		const page = await pageSetUp(browser, true, runtimeMessagesOnly ? null : quietness)
+		await singleRun(page, 'trace--no-guarding.json', 600, 0, runtimeMessagesOnly ? quietness : null)
 		console.log()
-		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3)
+		await singleRun(page, 'trace--triggering-guarding.json', 400, 1e3, runtimeMessagesOnly ? quietness : null)
 		await browser.close()
 	})
 }
 
-async function singleRun(page, traceName, pauseBetweenClicks, postDelay) {
+async function singleRun(page, traceName, pauseBetweenClicks, postDelay, quietness) {
 	const testPage = 'manual-test-injected-landmarks.html'
 	const testUrl = 'file://' + path.join(dirname, '..', 'test', testPage)
 	const selectors = [ '#outer-injector', '#inner-injector', '#the-cleaner' ]
 
 	console.log(`Making ${traceName}`)
-	await goToAndSettle(page, testUrl)
+	await goToAndSettle(page, testUrl, quietness)
 	await startTracing(page, traceName)
 
 	console.log(`Clicking buttons (pause: ${pauseBetweenClicks})`)

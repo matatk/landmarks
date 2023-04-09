@@ -9,7 +9,7 @@ const delayAfterInsertingLandmark = 1e3  // Used in the landmarks trace
 // Trace the insertion of landmarks into a page over time
 //
 
-export function doLandmarkInsertionRuns(sites, landmarks, runs, quietness) {
+export function doLandmarkInsertionRuns(sites, landmarks, runs, quietness, runtimeMessagesOnly) {
 	puppeteer.launch({
 		headless: false,  // needed to support extensions
 		args: [
@@ -19,12 +19,12 @@ export function doLandmarkInsertionRuns(sites, landmarks, runs, quietness) {
 	}).then(async browser => {
 		for (const site of sites) {
 			console.log(`Tracing on ${site}...\n`)
-			const page = await pageSetUp(browser, true, quietness)
+			const page = await pageSetUp(browser, true, runtimeMessagesOnly ? null : quietness)
 
 			for (let run = 0; run < runs; run++) {
 				console.log(`Run ${run}`)
 				const traceName = `trace--${site}--${landmarks}--run${run}.json`
-				await load(page, site)
+				await load(page, site, runtimeMessagesOnly ? quietness : null)
 				await startTracing(page, traceName)
 
 				console.log('Adding landmarks stage (if applicable)...')

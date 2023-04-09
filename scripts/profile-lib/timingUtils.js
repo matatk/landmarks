@@ -73,8 +73,10 @@ export function areObjectListsEqual(list1, listA) {
 		const itemA = listA[i]
 		for (const [key, value] of Object.entries(item1)) {
 			if (itemA[key] !== value) {
+				if (key === 'selectorWasUpdated') return true  // internal only
 				console.error('value mismatch in item', i, '"' + key +
-					'" field\n' + value + '\n' + itemA[key])
+					'" field\nExp: ' + value + '\nAct: ' + itemA[key])
+				if (key === 'selector') return true  // for adding at start of body tests
 				return false
 			}
 		}
@@ -111,7 +113,10 @@ function htmlResults(results) {
 	let output = '<thead>\n<tr>\n'
 	for (const header of headers) {
 		const prettyHeader = header
-			.replace(/MS$/, ' ms')
+			.replace('mutationTest', '')
+			.replace('MeanTime', '')
+			.replace('Deviation', ' s.d.')
+			.replace(/MS$/, ' (ms)')
 			.replace(/Percent$/, ' %')
 			.replace(/([A-Z])/g, ' $1')
 			.replace('url', 'URL')
@@ -131,19 +136,47 @@ function htmlResults(results) {
 						output += '<th scope="row">Combined</th>'
 					} else {
 						const url = results[scanner][site].url
-						output += `<th scope="row">${url}</th>`
+						output += `<th scope="row"><a href="${url}">${url}</th>`
 					}
 				} else {
-					const roundedResult =
-						rounder(header, results[scanner][site][header])
-					output += `<td>${roundedResult}</td>`
+					const result = results[scanner][site][header]
+					const rounded = rounder(header, result)
+					let transmogrified = rounded
+
+					if (header.endsWith('MS') && header !== 'scanMeanTimeMS') {
+						const benchmark = results[scanner][site]['scanMeanTimeMS']
+						const percentage = Number((result / benchmark) * 100).toFixed(0)
+
+						let colour = null
+						if (rounded < 0.1 * benchmark) {
+							colour = 'green'
+						} else if (rounded < 0.25 * benchmark) {
+							colour = 'blue'
+						} else if (rounded < 0.5 * benchmark) {
+							colour = 'purple'
+						} else if (rounded < benchmark) {
+							colour = 'DarkOrange'
+						} else {
+							colour = 'red'
+						}
+
+						transmogrified =
+							`<p><strong style="color: ${colour};">${rounded}</strong></p>` +
+							`<p>${percentage}%</p>`
+					} else if (site === 'combined' || header === 'scanMeanTimeMS') {
+						transmogrified = `<strong>${rounded}</strong>`
+					}
+
+					output += `<td>${transmogrified}</td>`
 				}
 			}
 			output += '\n'
 		}
 	}
 
-	return boilerplate.replace('CONTENT', output)
+	return boilerplate
+		.replace('LOOPS', results.meta.loops)
+		.replace('CONTENT', output)
 }
 
 function save(fileName, string) {
