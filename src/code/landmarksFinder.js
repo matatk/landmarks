@@ -490,8 +490,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// From the parent landmark (if any), work out which subtree level we're at
 			// TODO: WHAT IF the attr was malformed? falling back to the landmarkslist may not work?
 			const index = foundLandmarkElementIndex(found)
-			if (index) console.log('info:', landmarksList[index].debug)
-			// console.log('index', index)
+			if (index) {
+				console.log('info:', landmarksList[index].debug)
+			} else {
+				console.log('info: NONE')
+			}
 			const subtreeLevel = index !== null ? landmarksList[index].contains : landmarksTree
 
 			function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level) {
@@ -505,53 +508,40 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// siblings (or we'd be inside of them). We can avoid scanning inside,
 			// and replacing, any siblings.
 			if (subtreeLevel.length) {
-				// TODO: Find out where we are and put our results into the tree.
-				// TODO: This needs a page that contains a landmark that has both
-				//       landmark and non-landmark children.
-				/*
-				console.log('subtree root', info.debug)
-				console.log('subtree level',
-					'"' + info.contains.map(i => i.debug).join(',') + '"')
-				*/
-				// for (const added of mutation.addedNodes) {  // TODO: perf
-					// console.log('added', added.tagName)
-					const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
-					// const after = getIndexOfLandmarkAfter2(added, info.contains)
-					/*
-					console.log(added.tagName,
-						'last one before:', before, info.contains[before]?.debug,
-						'first one after:', after, info.contains[after]?.debug)
-					*/
-					// Any landmarks found need to be added here.
-					console.log('before splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
-					const newBitOfLevel = []
-					let startInsertingAt
-					if (before === null) {
-						startInsertingAt = 0
-						if (index !== null) {
-							previousLandmarkEntry = landmarksList[index]
-						} else {
-							previousLandmarkEntry = landmarksList[0]  // FIXME: do we ever get here? test inserting at start of body
-						}
+				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
+				console.log('before splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
+				const newBitOfLevel = []
+				let startInsertingAt
+				if (before === null) {
+					startInsertingAt = 0
+					if (index !== null) {
+						previousLandmarkEntry = landmarksList[index]
 					} else {
-						startInsertingAt = before + 1
-						previousLandmarkEntry = subtreeLevel[before]
+						previousLandmarkEntry = landmarksList[0]  // FIXME: do we ever get here? test inserting at start of body
 					}
-					const [lastEntryInSubTree, previousNext] = nextAfterEntrySubtree(previousLandmarkEntry)
-					console.log('pL', previousLandmarkEntry?.debug)
+				} else {
+					startInsertingAt = before + 1
+					previousLandmarkEntry = subtreeLevel[before]
+				}
+				const lastEntryInSubTree = lastEntryInsideEntrySubtree(previousLandmarkEntry)
+				const copyOfPLE = previousLandmarkEntry
+				const previousNext = lastEntryInSubTree.next
+				console.log('pL', previousLandmarkEntry?.debug)
+				console.log('pL.next', previousLandmarkEntry?.next?.debug)
+				console.log('last in pL tree:', lastEntryInSubTree?.debug)
+				console.log('pN', previousNext?.debug)
+				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
+				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
+				console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
+				if (newBitOfLevel.length) {
+					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
+					lastEntryInSubTree.next = newBitOfLevel[0]
 					console.log('last in pL tree:', lastEntryInSubTree?.debug)
-					console.log('pN', previousNext?.debug)
-					getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
-					subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
-					console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
-					if (newBitOfLevel.length) {
-						// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
-						lastEntryInSubTree.next = newBitOfLevel[0]
-						console.log('last in pL tree:', lastEntryInSubTree?.debug)
-						console.log('last in pL tree\'s revised next:', lastEntryInSubTree?.next?.debug)
-						newBitOfLevel.at(-1).next = previousNext
-					}
-				// }
+					console.log('last in pL tree\'s revised next:', lastEntryInSubTree?.next?.debug)
+					console.log('orig pL', copyOfPLE.debug)
+					console.log('orig pL.next', copyOfPLE.next.debug)
+					newBitOfLevel.at(-1).next = previousNext
+				}
 			} else {
 				console.log('whole level')
 				// TODO: What does it mean to be here?
@@ -606,19 +596,32 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return next
 	}
 
-	function nextAfterEntrySubtree(entry) {
+	function lastEntryInsideEntrySubtree(entry) {
 		const subTreeRoot = entry.element
-		let rels
-		let previous = entry
-		let next = entry
-		do {
-			previous = next
-			next = next.next
-			if (next === null) return [previous, null]
-			rels = subTreeRoot.compareDocumentPosition(next.element)
-		// eslint-disable-next-line no-bitwise
-		} while(rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY)
-		return [previous, next]
+		let lastKnownContainedEntry = entry
+		let current = entry
+
+		while (current.next) {
+			current = current.next
+			const rels = subTreeRoot.compareDocumentPosition(current.element)
+			// eslint-disable-next-line no-bitwise
+			if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
+				lastKnownContainedEntry = current
+			} else {
+				return lastKnownContainedEntry
+			}
+		}
+
+		return lastKnownContainedEntry
+	}
+
+	// NOTE: 'runs' to the end of the tree from the given point - doesn't check containment on purpose
+	function lastEntryAfter(entry) {
+		let current = entry
+		while (current.next) {
+			current = current.next
+		}
+		return current
 	}
 
 	function regenerateListAndIndexes() {
@@ -630,7 +633,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		landmarksList = []
 		walk(landmarksList, landmarksTree)
 
-		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
+		if (landmarksTree.length) {
+			// FIXME: hideous globals :-S
+			previousLandmarkEntry = lastEntryAfter(landmarksList.at(-1))
+			previousLandmarkEntry.next = landmarksTree[0]
+		}
 		if (useDevMode) developerModeChecks()
 
 		for (let i = 0; i < landmarksList.length; i++) {
@@ -668,6 +675,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function walk(list, root) {
 		let entry = root?.[0]
 		while (entry) {
+			// FIXME: is this clause used?
 			if (entry.element.isConnected) list.push(entry)
 			entry = entry.next
 		}
