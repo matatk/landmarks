@@ -530,6 +530,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				console.log('pL.next', previousLandmarkEntry?.next?.debug)
 				console.log('last in pL tree:', lastEntryInSubTree?.debug)
 				console.log('pN', previousNext?.debug)
+				previousLandmarkEntry = lastEntryInSubTree
 				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
 				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
 				console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
@@ -578,6 +579,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 			regenerateListAndIndexes()  // FIXME: do this across removed AND added
 		}
+
+		console.log('end of handleChildListMutation')
+		console.log(landmarksList.length)
+
+		cachedFilteredTree = null
+		cachedAllInfos = null
+		cachedAllElementInfos = null
 	}
 
 	function nextNotInSubTree(subTreeStartIndex) {
@@ -632,10 +640,12 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		landmarksList = []
 		walk(landmarksList, landmarksTree)
+		console.log('walked, len', landmarksList.length)
 
 		if (landmarksTree.length) {
 			// FIXME: hideous globals :-S
 			previousLandmarkEntry = lastEntryAfter(landmarksList.at(-1))
+			console.log('pL (last in tree)', previousLandmarkEntry.debug)
 			previousLandmarkEntry.next = landmarksTree[0]
 		}
 		if (useDevMode) developerModeChecks()
@@ -676,7 +686,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		let entry = root?.[0]
 		while (entry) {
 			// FIXME: is this clause used?
-			if (entry.element.isConnected) list.push(entry)
+			if (entry.element.isConnected) {
+				console.log('walk', entry.debug)
+				list.push(entry)
+			}
 			entry = entry.next
 		}
 	}
