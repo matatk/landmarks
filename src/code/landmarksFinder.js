@@ -538,12 +538,16 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				console.log('after splice', subtreeLevel.length, subtreeLevel.map(x => x.element.tagName).join(','), 'before', before)
 				if (newBitOfLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
-					lastEntryInSubTree.next = newBitOfLevel[0]
+					if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
 					console.log('last in pL tree:', lastEntryInSubTree?.debug)
 					console.log('last in pL tree\'s revised next:', lastEntryInSubTree?.next?.debug)
-					console.log('orig pL', copyOfPLE.debug)
-					console.log('orig pL.next', copyOfPLE.next.debug)
-					newBitOfLevel.at(-1).next = previousNext
+					console.log('orig pL', copyOfPLE?.debug)
+					console.log('orig pL.next', copyOfPLE?.next?.debug)
+					if (startInsertingAt == 0) {
+						newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
+					} else {
+						newBitOfLevel.at(-1).next = previousNext
+					}
 				}
 			} else {
 				console.log('whole level')
