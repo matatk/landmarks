@@ -103,7 +103,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (useHeuristics) tryHeuristics()
 
 		getLandmarks(doc.body.parentNode, landmarksTree)
-		if (landmarksTree.length) previousLandmarkEntry.next = landmarksTree[0]
+		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 
 		for (let i = 0; i < landmarksList.length; i++) {
@@ -398,8 +398,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		// Universally-needed stuff for the rest of the thing
 		//
 
-		// NOTE: It's still set to the proper end of the tree.
-		previousLandmarkEntry.next = null  // stop at end of tree walk
+		landmarksList.at(-1).next = null  // stop at end of tree walk
 
 
 		//
@@ -555,15 +554,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return lastKnownContainedEntry
 	}
 
-	// NOTE: 'runs' to the end of the tree from the given point - doesn't check containment on purpose
-	function lastEntryAfter(entry) {
-		let current = entry
-		while (current.next) {
-			current = current.next
-		}
-		return current
-	}
-
 	function regenerateListIndicesSelectors() {
 		// TODO: test different string syntax for performance
 		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
@@ -573,11 +563,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		landmarksList = []
 		walk(landmarksList, landmarksTree)
 
-		if (landmarksTree.length) {
-			// FIXME: hideous globals :-S
-			previousLandmarkEntry = lastEntryAfter(landmarksList.at(-1))
-			previousLandmarkEntry.next = landmarksTree[0]
-		}
+		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 
 		for (let i = 0; i < landmarksList.length; i++) {
