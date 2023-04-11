@@ -394,7 +394,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (landmarksList.length === 0) {
 			// FIXME: DRY with subtreeLevel added nodes below?
 			if (mutation.addedNodes.length) {
-				if (useHeuristics) tryHeuristics()
+				if (useHeuristics) tryHeuristics()  // NOTE: only after haindling mutation - but that means OK here
 				for (let i = 0; i < mutation.addedNodes.length; i++) {
 					getLandmarks(mutation.addedNodes[i], landmarksTree)
 				}
@@ -422,9 +422,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			for (const removed of mutation.removedNodes) {  // TODO: perf
 				// TODO: How likely is it that precisely a landmark will be removed?
 				if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
+					// A landmark was removed
 					removeLandmarkFromTree(removed)
 					processed = true
 				} else {
+					// A non-landmark was removed; find and remove the landmarks within
 					let previous = null
 					let current = null
 					while ((current = removed.querySelector(`[${LANDMARK_INDEX_ATTR}]`)) !== null) {
@@ -462,36 +464,32 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 
 			// From the parent landmark (if any), work out which subtree level we're at
-			// TODO: WHAT IF the attr was malformed? falling back to the landmarkslist may not work?
 			const index = foundLandmarkElementIndex(found)
-			const subtreeLevel = index !== null ? landmarksList[index].contains : landmarksTree
+			if (!found.hasAttribute(LANDMARK_INDEX_ATTR) || index === null) {
+				find()  // FIXME: TEST
+				return
+			}
+			const subtreeLevel = landmarksList[index].contains
 
 			// If there are other landmarks at this level of the tree, they're
 			// siblings (or we'd be inside of them). We can avoid scanning inside,
 			// and replacing, any siblings.
 			if (subtreeLevel.length) {
 				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
+
+				const startInsertingAt = before === null ? 0 : before + 1
+				const previousLandmarkEntry = before === null ? landmarksList[index] : subtreeLevel[before]
+				const lastEntryInSubTree = lastEntryInsideEntrySubtree(previousLandmarkEntry)
+				const previousNext = lastEntryInSubTree.next
+
 				const newBitOfLevel = []
-				let startInsertingAt
-				let previousLandmarkEntry
-				if (before === null) {
-					startInsertingAt = 0
-					if (index !== null) {
-						previousLandmarkEntry = landmarksList[index]
-					} else {
-						previousLandmarkEntry = null
-					}
-				} else {
-					startInsertingAt = before + 1
-					previousLandmarkEntry = subtreeLevel[before]
-				}
-				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
-				const previousNext = lastEntryInSubTree ? lastEntryInSubTree.next : null
-				previousLandmarkEntry = lastEntryInSubTree
-				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel, previousLandmarkEntry)
+				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel, lastEntryInSubTree)
 				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
+
 				if (newBitOfLevel.length) {
-					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
+					// NOTE: what was previousLandmarkEntry before this
+					//       patching-up scan will've been wired up to point ot
+					//       the start.
 					if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
 					if (startInsertingAt === 0) {
 						newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
@@ -501,33 +499,22 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				}
 			} else {
 				// Any landmarks found can just be added to the level (list).
-				let previousLandmarkEntry
-				if (index === null) {
-					previousLandmarkEntry = landmarksList[0]
-				} else {
-					for (let i = 0; i < landmarksList.length; i++) {
-						if (landmarksList[i].element === found) {
-							previousLandmarkEntry = landmarksList[i]
-							break
-						}
-					}
-				}
+				const previousLandmarkEntry = landmarksList.find(entry => entry.element === found)
 				const previousNext = previousLandmarkEntry?.next
 				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, subtreeLevel, previousLandmarkEntry)
 				if (subtreeLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
 					subtreeLevel.at(-1).next = previousNext
 				}
-				// FIXME: DRY with above
 			}
 
-			regenerateListIndicesSelectors()  // FIXME: do this across removed AND added
+			regenerateListIndicesSelectors()  // FIXME: do this across removed AND added OR at least do the doesn't-need-selector-updating flag thing
 		}
 	}
 
 	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
 		const origLen = level.length
-		if (useHeuristics) tryHeuristics()  // FIXME: should we?
+		if (useHeuristics) tryHeuristics()  // FIXME: should we? - NO, DO IT AFTER HANDLING MUTATION
 		for (let i = 0; i < addedNodes.length; i++) {
 			// FIXME: Test
 			if (level.length === origLen) {
@@ -606,7 +593,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	// FIXME: test
 	function foundLandmarkElementIndex(candidate) {
-		if (!candidate.hasAttribute(LANDMARK_INDEX_ATTR)) return null  // FIXME: addd for handling addednOdes mutation - should this check be done there?
 		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
 		if (isNaN(number)) {
 			console.error(`Index ${number} from attribute is NaN`)
