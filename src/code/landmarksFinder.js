@@ -1,4 +1,6 @@
 // FIXME: if useHeuristics changes, undo the guessing!
+// FIXME: flag elements added on the last getLandmarks() pass, so that the
+//        selector only needs to be computed for the other ones.
 import {
 	isVisuallyHidden,
 	isSemantiallyHidden,
@@ -30,6 +32,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//   selector (string)               -- CSS selector path of element
 	//   element (HTML*Element)          -- in-memory element
 	//   guessed (bool)                  -- landmark was gathered by heuristic
+	//   contains (self[])               -- array of child landmarks
+	//   debug (string)                  -- tagName and role for element
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
 	let landmarksTree = []  // point of truth
@@ -80,7 +84,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// Finding landmarks
 	//
 
+	// TODO: DRY with regenerateListIndicesSelectors()
 	function find() {
+		// TODO: test different string syntax for performance
+		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
+			el.removeAttribute(LANDMARK_INDEX_ATTR)
+		}
+
 		landmarksTree = []
 		landmarksList = []
 		cachedFilteredTree = null
@@ -103,13 +113,13 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		getLandmarks(doc.body.parentNode, landmarksTree)
 		if (useDevMode) developerModeChecks()
 
+		landmarksList = []
+		walk(landmarksList, landmarksTree)
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
 			// FIXME: test
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
 		}
-
-		walk([], landmarksTree)
 
 		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 	}
@@ -154,7 +164,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 
 			thisLevel.push(thisLandmarkEntry)
-			landmarksList.push(thisLandmarkEntry)
 
 			if (useDevMode) {
 				thisLandmarkEntry.warnings = []
