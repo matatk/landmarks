@@ -144,7 +144,9 @@ function htmlResults(results) {
 		}
 	}
 
-	return boilerplate.replace('CONTENT', output)
+	return boilerplate
+		.replace('LOOPS', results.meta.loops)
+		.replace('CONTENT', output)
 }
 
 function save(fileName, string) {

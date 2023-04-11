@@ -67,11 +67,15 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Mutation handling
 //
 
+// FIXME: on wikipedia article, remove random element, a labelling element can
+//        get removed and it fails (expected) BUT the FULL test results show
+//        the lack of the label, and the mutated contain it.
+
 // Housekeeping
 
 // FIXME: More tests!
-//       - Change a label (aria-labelledby / aria-label)
-//       - Remove a label (aria-labelledby / aria-label)
+//       - Change a label (aria-labelledby value OR element contents / aria-label)
+//       - Remove a label (aria-labelledby element / aria-label)
 //       - Change a role (role)
 //       - Hide or show non-landmark content (really?)
 //       - Hide or show landmark content (aria-hidden / CSS?)

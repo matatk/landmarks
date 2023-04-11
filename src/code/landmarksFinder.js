@@ -36,7 +36,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	let landmarksList = []  // created alongside the tree; used for focusing
 
 	// Tracking landmark finding
-	let previousLandmarkEntry = null
 	let cachedFilteredTree = null
 	let cachedAllInfos = null
 	let cachedAllElementInfos = null
@@ -84,7 +83,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	function find() {
 		landmarksTree = []
 		landmarksList = []
-		previousLandmarkEntry = null
 		cachedFilteredTree = null
 		cachedAllInfos = null
 		cachedAllElementInfos = null
@@ -103,7 +101,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		if (useHeuristics) tryHeuristics()
 
 		getLandmarks(doc.body.parentNode, landmarksTree)
-		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 
 		for (let i = 0; i < landmarksList.length; i++) {
@@ -111,11 +108,15 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// FIXME: test
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
 		}
+
+		walk([], landmarksTree)
+
+		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 	}
 
-	function getLandmarks(element, thisLevel) {
+	function getLandmarks(element, thisLevel, previousLandmarkEntry) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
-			return
+			return previousLandmarkEntry
 		}
 
 		// Elements with explicitly-set rolees
@@ -143,7 +144,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'selector': createSelector(element),
 				'guessed': element.hasAttribute(LANDMARK_GUESSED_ATTR),
 				'contains': [],
-				'previous': previousLandmarkEntry,
 				'next': null,
 				'level': thisLevel,
 				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need?
@@ -155,8 +155,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 			thisLevel.push(thisLandmarkEntry)
 			landmarksList.push(thisLandmarkEntry)
-
-			previousLandmarkEntry = thisLandmarkEntry
 
 			if (useDevMode) {
 				thisLandmarkEntry.warnings = []
@@ -190,12 +188,16 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		// to be a bug, because only one HTMLElement was returned; not an
 		// HTMLCollection. Checking for this would cause a slowdown, so
 		// ignoring for now.
+		previousLandmarkEntry = thisLandmarkEntry ?? previousLandmarkEntry
 		for (const elementChild of element.children) {  // TODO: perf
-			getLandmarks(
+			previousLandmarkEntry = getLandmarks(
 				elementChild,
-				thisLandmarkEntry?.contains ?? thisLevel
+				thisLandmarkEntry?.contains ?? thisLevel,
+				previousLandmarkEntry
 			)
 		}
+
+		return previousLandmarkEntry
 	}
 
 
@@ -462,6 +464,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
 				const newBitOfLevel = []
 				let startInsertingAt
+				let previousLandmarkEntry
 				if (before === null) {
 					startInsertingAt = 0
 					if (index !== null) {
@@ -476,7 +479,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
 				const previousNext = lastEntryInSubTree ? lastEntryInSubTree.next : null
 				previousLandmarkEntry = lastEntryInSubTree
-				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel)
+				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel, previousLandmarkEntry)
 				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
 				if (newBitOfLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
@@ -489,6 +492,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				}
 			} else {
 				// Any landmarks found can just be added to the level (list).
+				let previousLandmarkEntry
 				if (index === null) {
 					previousLandmarkEntry = landmarksList[0]
 				} else {
@@ -500,7 +504,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 					}
 				}
 				const previousNext = previousLandmarkEntry?.next
-				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, subtreeLevel)
+				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, subtreeLevel, previousLandmarkEntry)
 				if (subtreeLevel.length) {
 					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
 					subtreeLevel.at(-1).next = previousNext
@@ -512,10 +516,16 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
-	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level) {
+	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
+		const origLen = level.length
 		if (useHeuristics) tryHeuristics()  // FIXME: should we?
 		for (let i = 0; i < addedNodes.length; i++) {
-			getLandmarks(addedNodes[i], level)
+			// FIXME: Test
+			if (level.length === origLen) {
+				getLandmarks(addedNodes[i], level, pLE)
+			} else {
+				getLandmarks(addedNodes[i], level, level.at(-1))
+			}
 		}
 	}
 
