@@ -322,14 +322,19 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		return null
 	}
 
-	function getIndexOfLandmarkBefore(element) {
-		for (let i = landmarksList.length - 1; i >= 0; i--) {
+	// FIXME: if all of them are _after_ return -1 (makes calling code easier)
+	function getIndexOfLandmarkBeforeIn(element, list) {
+		for (let i = list.length - 1; i >= 0; i--) {
 			const rels =
-				element.compareDocumentPosition(landmarksList[i].element)
+				element.compareDocumentPosition(list[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
 		return null
+	}
+
+	function getIndexOfLandmarkBefore(element) {
+		return getIndexOfLandmarkBeforeIn(element, landmarksList)
 	}
 
 
@@ -477,7 +482,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			// siblings (or we'd be inside of them). We can avoid scanning inside,
 			// and replacing, any siblings.
 			if (subtreeLevel.length) {
-				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
+				const before = getIndexOfLandmarkBeforeIn(mutation.addedNodes[0], subtreeLevel)
 
 				const startInsertingAt = before === null ? 0 : before + 1
 				const previousLandmarkEntry = before === null
@@ -628,18 +633,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 			entry = entry.next
 		}
-	}
-
-	// TODO: DRY with getIndexOfLandmarkBefore()? Test performance.
-	// FIXME: if all of them are _after_ return -1 (makes calling code easier)
-	function getIndexOfLandmarkBefore2(element, list) {
-		for (let i = list.length - 1; i >= 0; i--) {
-			const rels =
-				element.compareDocumentPosition(list[i].element)
-			// eslint-disable-next-line no-bitwise
-			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
-		}
-		return null
 	}
 
 	function removeLandmarkFromTree(landmarkElement) {
