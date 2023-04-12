@@ -34,7 +34,7 @@ export async function startTracing(page, traceName) {
 	await page.waitForTimeout(500)  // TODO: needed?
 }
 
-export async function load(page, site) {
+export async function load(page, site, quietness) {
 	const cachedPage = path.resolve(path.join(cacheDir, site + '.html'))
 	const url = urls[site]
 
@@ -61,31 +61,24 @@ export async function load(page, site) {
 		const html = await page.content()
 		fs.writeFileSync(cachedPage, html)
 	}
+
+	if (quietness !== null) setMessageHandlers(page, quietness)
 }
 
-export async function goToAndSettle(page, url) {
+export async function goToAndSettle(page, url, quietness) {
 	// The 'networkidle2' event should be the end of content loading, but
 	// found that on some pages an extra wait was needed, or the number of
 	// elements found on the page varied a lot.
 	await page.goto(url, { waitUntil: 'networkidle2' })
 	console.log('Page loaded; settling...')
 	await page.waitForTimeout(pageSettleDelay)
+	if (quietness !== null) setMessageHandlers(page, quietness)
 }
 
 export async function pageSetUp(browser, gui, quietness) {
 	const page = await browser.newPage()
 
-	if (quietness < 1) {
-		page.on('console', msg => console.log('>', msg.text()))
-		page.on('requestfailed', request => {
-			console.log(request.failure().errorText, request.url())
-		})
-	}
-	if (quietness < 2) {
-		page.on('pageerror', error => {
-			console.log(error.message)
-		})
-	}
+	if (quietness !== null) setMessageHandlers(page, quietness)
 
 	if (gui) {
 		await page.waitForTimeout(guiDelayBeforeTabSwitch)
@@ -93,4 +86,28 @@ export async function pageSetUp(browser, gui, quietness) {
 	}
 
 	return page
+}
+
+function setMessageHandlers(page, quietness) {
+	if (quietness < 1) {
+		page.on('requestfailed', request => {
+			console.log(request.failure().errorText, request.url())
+		})
+	}
+
+	if (quietness < 2) {
+		page.on('console', msg => {
+			if (msg.type() === 'log') console.log('CL>', msg.text())
+		})
+	}
+
+	if (quietness < 3) {
+		page.on('console', msg => {
+			if (msg.type() === 'error') console.log('CE>', msg.text())
+		})
+	}
+
+	if (quietness < 4) page.on('error', msg => console.log('ER>', msg.text()))
+
+	if (quietness < 5) page.on('pageerror', error => console.log('PE>', error.message))
 }

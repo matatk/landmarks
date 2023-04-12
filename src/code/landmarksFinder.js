@@ -86,11 +86,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	// TODO: DRY with regenerateListIndicesSelectors()
 	function find() {
-		// TODO: test different string syntax for performance
-		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
-			el.removeAttribute(LANDMARK_INDEX_ATTR)
-		}
-
 		landmarksTree = []
 		landmarksList = []
 		cachedFilteredTree = null
@@ -112,6 +107,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		getLandmarks(doc.body.parentNode, landmarksTree)
 		if (useDevMode) developerModeChecks()
+
+		// TODO: test different string syntax for performance
+		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
+			el.removeAttribute(LANDMARK_INDEX_ATTR)
+		}
 
 		landmarksList = []
 		walk(landmarksList, landmarksTree)

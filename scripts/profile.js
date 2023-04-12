@@ -37,7 +37,13 @@ function main() {
 			alias: 'q',
 			type: 'boolean',
 			count: true,
-			description: "(1) Don't print out browser console and request failed messages (do print errors); (2) Don't print out any browser messages (except unhandled exceptions); (3) Don't print out results AND don't write any results files (i.e. imples -F) when using the 'time' command."
+			description: "Don't print: (1) netrequest failures; (2) console.log messages; (3) console.error messages; (4) Errors; (5) page Errors."
+		})
+		.option('runtime-messages-only', {
+			alias: 'R',
+			type: 'boolean',
+			count: false,
+			description: "Don't show messages generated during page load"
 		})
 		.command(
 			'trace',
@@ -165,7 +171,8 @@ function main() {
 				pages,
 				argv.landmarks,
 				argv.runs,
-				argv.quiet)
+				argv.quiet,
+				argv.runtimeMessagesOnly)
 			break
 		case 'time':
 			doTimeLandmarksFinding(
@@ -176,10 +183,11 @@ function main() {
 				argv.mutate,
 				argv.withoutHeuristicsToo,
 				argv.quiet,
+				argv.runtimeMessagesOnly,
 				argv.noFileWrite)
 			break
 		case 'guarding':
-			doTraceWithAndWithoutGuarding(argv.quiet, debugBuildNote)
+			doTraceWithAndWithoutGuarding(argv.runtimeMessagesOnly, argv.quiet, debugBuildNote)
 	}
 }
 

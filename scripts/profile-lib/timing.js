@@ -44,7 +44,7 @@ const selectInteractives =
 //   quietness (count)     -- how quiet should we be?
 //   noFileWrite (bool)    -- do NOT write results to disk
 
-export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness, noFileWrite) {
+export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMutations, without, quietness, runtimeMessagesOnly, noFileWrite) {
 	const options = { loops, doScan, doFocus, doMutations }
 	const finderPath = await wrapLandmarksFinder()
 	const findersDevModes = { 'Standard': false, 'Developer': true }
@@ -59,23 +59,23 @@ export async function doTimeLandmarksFinding(sites, loops, doScan, doFocus, doMu
 			console.log()
 			console.log(`With scanner ${finder}...`)
 			fullResults[finder] =
-				await timeScannerOnSites(browser, sites, options, quietness)
+				await timeScannerOnSites(browser, sites, options, runtimeMessagesOnly, quietness)
 			if (without) {
 				options.useHeuristics = false
 				const finderPrettyName = finder + ' (without heuristics)'
 				console.log()
 				console.log(`With scanner ${finderPrettyName}...`)
 				fullResults[finderPrettyName] =
-					await timeScannerOnSites(browser, sites, options, quietness)
+					await timeScannerOnSites(browser, sites, options, runtimeMessagesOnly, quietness)
 			}
 		}
 
 		await browser.close()
-		if (quietness < 3) printAndSaveResults(fullResults, !noFileWrite)
+		printAndSaveResults(fullResults, !noFileWrite)
 	})
 }
 
-async function timeScannerOnSites(browser, sites, options, quietness) {
+async function timeScannerOnSites(browser, sites, options, runtimeMessagesOnly, quietness) {
 	const finderResults = {}
 	let totalElements = 0
 	let totalInteractiveElements = 0
@@ -93,7 +93,7 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 
 	for (const site of sites) {
 		const { siteResults, siteRawResults } =
-			await runScansOnSite(browser, site, quietness, options)
+			await runScansOnSite(browser, site, runtimeMessagesOnly, quietness, options)
 
 		totalElements += siteResults.numElements
 		totalInteractiveElements += siteResults.numInteractiveElements
@@ -159,16 +159,16 @@ async function timeScannerOnSites(browser, sites, options, quietness) {
 	return finderResults
 }
 
-async function runScansOnSite(browser, site, quietness, {
+async function runScansOnSite(browser, site, runtimeMessagesOnly, quietness, {
 	loops, finderPath, doScan, doFocus, doMutations, useHeuristics, useDevMode
 }) {
-	const page = await pageSetUp(browser, false, quietness)
+	const page = await pageSetUp(browser, false, runtimeMessagesOnly ? null : quietness)
 	const results = { 'url': urls[site] }
 	const rawResults = {}
 
 	console.log()
 	console.log(`Loading ${site}...`)
-	await load(page, site)
+	await load(page, site, runtimeMessagesOnly ? quietness : null)
 
 	console.log('Injecting script...')
 	await page.addScriptTag({ path: finderPath })
