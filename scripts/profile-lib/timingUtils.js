@@ -73,9 +73,10 @@ export function areObjectListsEqual(list1, listA) {
 		const itemA = listA[i]
 		for (const [key, value] of Object.entries(item1)) {
 			if (itemA[key] !== value) {
+				if (key === 'selectorWasUpdated') return true  // internal only
 				console.error('value mismatch in item', i, '"' + key +
 					'" field\n' + value + '\n' + itemA[key])
-				if (key === 'selector') return true  // NOTE: for adding at start of body tests
+				if (key === 'selector') return true  // for adding at start of body tests
 				return false
 			}
 		}

@@ -34,6 +34,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	//   guessed (bool)                  -- landmark was gathered by heuristic
 	//   contains (self[])               -- array of child landmarks
 	//   debug (string)                  -- tagName and role for element
+	//   selectorWasUpdated (bool)       -- flag to reduce load
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
 	let landmarksTree = []  // point of truth
@@ -117,8 +118,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		walk(landmarksList, landmarksTree)
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
-			// FIXME: test
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
+			// NOTE: We did a full find, so we don't need to update any selectors.
 		}
 
 		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
@@ -152,6 +153,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				'label': label,
 				'element': element,
 				'selector': createSelector(element),
+				'selectorWasUpdated': true,
 				'guessed': element.hasAttribute(LANDMARK_GUESSED_ATTR),
 				'contains': [],
 				'next': null,
@@ -578,9 +580,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
-			// TODO: When is this needed?
-			//       - if we only added or removed landmarks AFTER this one.
-			landmarksList[i].selector = createSelector(landmarksList[i].element)
+			if (!landmarksList[i].selectorWasUpdated) {
+				landmarksList[i].selector = createSelector(landmarksList[i].element)
+			} else {
+				landmarksList[i].selectorWasUpdated = false
+			}
 		}
 
 		cachedFilteredTree = null
