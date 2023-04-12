@@ -348,7 +348,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		for (const entry of subtree) {  // TODO: perf?
 			// eslint-disable-next-line no-unused-vars
-			const { contains, element, previous, next, debug, level, ...info } = entry
+			const { contains, element, previous, next, debug, level, selectorWasUpdated, ...info } = entry
 			const filteredEntry = { ...info }
 
 			// NOTE: Guessed landmarks aren't given a 'contains' property
