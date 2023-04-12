@@ -465,11 +465,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 			// From the parent landmark (if any), work out which subtree level we're at
 			const index = foundLandmarkElementIndex(found)
-			if (!found.hasAttribute(LANDMARK_INDEX_ATTR) || index === null) {
+			if (found !== doc.body && index === null) {
 				find()  // FIXME: TEST
 				return
 			}
-			const subtreeLevel = landmarksList[index].contains
+			const subtreeLevel = found === doc.body ? landmarksTree : landmarksList[index].contains
 
 			// If there are other landmarks at this level of the tree, they're
 			// siblings (or we'd be inside of them). We can avoid scanning inside,
@@ -478,9 +478,11 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				const before = getIndexOfLandmarkBefore2(mutation.addedNodes[0], subtreeLevel)
 
 				const startInsertingAt = before === null ? 0 : before + 1
-				const previousLandmarkEntry = before === null ? landmarksList[index] : subtreeLevel[before]
-				const lastEntryInSubTree = lastEntryInsideEntrySubtree(previousLandmarkEntry)
-				const previousNext = lastEntryInSubTree.next
+				const previousLandmarkEntry = before === null
+					? found === doc.body ? null : landmarksList[index]
+					: subtreeLevel[before]
+				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
+				const previousNext = lastEntryInSubTree?.next
 
 				const newBitOfLevel = []
 				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel, lastEntryInSubTree)
@@ -593,7 +595,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	// FIXME: test
 	function foundLandmarkElementIndex(candidate) {
-		const number = Number(candidate.getAttribute(LANDMARK_INDEX_ATTR))
+		const value = candidate.getAttribute(LANDMARK_INDEX_ATTR)
+		if (value === null) return null
+		const number = Number(value)
 		if (isNaN(number)) {
 			console.error(`Index ${number} from attribute is NaN`)
 			return null
