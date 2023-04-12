@@ -481,7 +481,8 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 				const previousLandmarkEntry = before === null
 					? found === doc.body ? null : landmarksList[index]
 					: subtreeLevel[before]
-				const lastEntryInSubTree = previousLandmarkEntry ? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
+				const lastEntryInSubTree = previousLandmarkEntry
+					? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
 				const previousNext = lastEntryInSubTree?.next
 
 				const newBitOfLevel = []
