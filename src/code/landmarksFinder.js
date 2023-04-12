@@ -392,7 +392,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	}
 
 	// FIXME: Test labelling element being removed.
-	//  NOTE: Sometimes this appears to get both additions and removals.
+	// NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
 		//
 		// Quick path for when there are no landmarks, and stuff is added
@@ -424,37 +424,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		//
 
 		if (mutation.removedNodes.length) {
-			let processed = false
-
-			for (const removed of mutation.removedNodes) {  // TODO: perf
-				// TODO: How likely is it that precisely a landmark will be removed?
-				if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
-					// A landmark was removed
-					removeLandmarkFromTree(removed)
-					processed = true
-				} else {
-					// A non-landmark was removed; find and remove the landmarks within
-					let previous = null
-					let current = null
-					while ((current = removed.querySelector(`[${LANDMARK_INDEX_ATTR}]`)) !== null) {
-						// If the next one we find was inside the previous one; it's already been processed.
-						if (previous) {
-							const rels = previous.compareDocumentPosition(current)
-							// eslint-disable-next-line no-bitwise
-							if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
-								current.removeAttribute(LANDMARK_INDEX_ATTR)
-								continue
-							}
-						}
-						removeLandmarkFromTree(current)
-						processed = true
-						current.removeAttribute(LANDMARK_INDEX_ATTR)
-						previous = current
-					}
-				}
-			}
-
-			if (processed) regenerateListIndicesSelectors()
+			handleChildListMutationRemove(mutation.removedNodes)
 		}
 
 
@@ -464,62 +434,100 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 		// NOTE: Assumes addedNodes are encountered in DOM order.
 		if (mutation.addedNodes.length) {
-			// Find the nearest parent landmark, if any
-			let found = mutation.target
-			while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
-				found = found.parentNode
-			}
-
-			// From the parent landmark (if any), work out which subtree level we're at
-			const index = foundLandmarkElementIndex(found)
-			if (found !== doc.body && index === null) {
-				find()  // FIXME: TEST
-				return
-			}
-			const subtreeLevel = found === doc.body ? landmarksTree : landmarksList[index].contains
-
-			// If there are other landmarks at this level of the tree, they're
-			// siblings (or we'd be inside of them). We can avoid scanning inside,
-			// and replacing, any siblings.
-			if (subtreeLevel.length) {
-				const before = getIndexOfLandmarkBeforeIn(mutation.addedNodes[0], subtreeLevel)
-
-				const startInsertingAt = before === null ? 0 : before + 1
-				const previousLandmarkEntry = before === null
-					? found === doc.body ? null : landmarksList[index]
-					: subtreeLevel[before]
-				const lastEntryInSubTree = previousLandmarkEntry
-					? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
-				const previousNext = lastEntryInSubTree?.next
-
-				const newBitOfLevel = []
-				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, newBitOfLevel, lastEntryInSubTree)
-				subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
-
-				if (newBitOfLevel.length) {
-					// NOTE: what was previousLandmarkEntry before this
-					//       patching-up scan will've been wired up to point ot
-					//       the start.
-					if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
-					if (startInsertingAt === 0) {
-						newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
-					} else {
-						newBitOfLevel.at(-1).next = previousNext
-					}
-				}
-			} else {
-				// Any landmarks found can just be added to the level (list).
-				const previousLandmarkEntry = landmarksList.find(entry => entry.element === found)
-				const previousNext = previousLandmarkEntry?.next
-				getLandmarksForSubtreeLevelOrPartThereof(mutation.addedNodes, subtreeLevel, previousLandmarkEntry)
-				if (subtreeLevel.length) {
-					// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
-					subtreeLevel.at(-1).next = previousNext
-				}
-			}
-
-			regenerateListIndicesSelectors()  // FIXME: do this across removed AND added OR at least do the doesn't-need-selector-updating flag thing
+			handleChildListMutationAdd(mutation.target, mutation.addedNodes)
 		}
+	}
+
+	function handleChildListMutationRemove(removedNodes) {
+		let processed = false
+
+		for (const removed of removedNodes) {  // TODO: perf
+			// TODO: How likely is it that precisely a landmark will be removed?
+			if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
+				// A landmark was removed
+				removeLandmarkFromTree(removed)
+				processed = true
+			} else {
+				// A non-landmark was removed; find and remove the landmarks within
+				let previous = null
+				let current = null
+				while ((current = removed.querySelector(`[${LANDMARK_INDEX_ATTR}]`)) !== null) {
+					// If the next one we find was inside the previous one; it's already been processed.
+					if (previous) {
+						const rels = previous.compareDocumentPosition(current)
+						// eslint-disable-next-line no-bitwise
+						if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
+							current.removeAttribute(LANDMARK_INDEX_ATTR)
+							continue
+						}
+					}
+					removeLandmarkFromTree(current)
+					processed = true
+					current.removeAttribute(LANDMARK_INDEX_ATTR)
+					previous = current
+				}
+			}
+		}
+
+		if (processed) regenerateListIndicesSelectors()
+	}
+
+	function handleChildListMutationAdd(target, addedNodes) {
+		// Find the nearest parent landmark, if any
+		let found = target
+		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
+			found = found.parentNode
+		}
+
+		// From the parent landmark (if any), work out which subtree level we're at
+		const index = foundLandmarkElementIndex(found)
+		if (found !== doc.body && index === null) {
+			find()  // FIXME: TEST
+			return
+		}
+		const subtreeLevel = found === doc.body ? landmarksTree : landmarksList[index].contains
+
+		// If there are other landmarks at this level of the tree, they're
+		// siblings (or we'd be inside of them). We can avoid scanning inside,
+		// and replacing, any siblings.
+		if (subtreeLevel.length) {
+			const before = getIndexOfLandmarkBeforeIn(addedNodes[0], subtreeLevel)
+
+			const startInsertingAt = before === null ? 0 : before + 1
+			const previousLandmarkEntry = before === null
+				? found === doc.body ? null : landmarksList[index]
+				: subtreeLevel[before]
+			const lastEntryInSubTree = previousLandmarkEntry
+				? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
+			const previousNext = lastEntryInSubTree?.next
+
+			const newBitOfLevel = []
+			getLandmarksForSubtreeLevelOrPartThereof(addedNodes, newBitOfLevel, lastEntryInSubTree)
+			subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
+
+			if (newBitOfLevel.length) {
+				// NOTE: what was previousLandmarkEntry before this
+				//       patching-up scan will've been wired up to point ot
+				//       the start.
+				if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
+				if (startInsertingAt === 0) {
+					newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
+				} else {
+					newBitOfLevel.at(-1).next = previousNext
+				}
+			}
+		} else {
+			// Any landmarks found can just be added to the level (list).
+			const previousLandmarkEntry = landmarksList.find(entry => entry.element === found)
+			const previousNext = previousLandmarkEntry?.next
+			getLandmarksForSubtreeLevelOrPartThereof(addedNodes, subtreeLevel, previousLandmarkEntry)
+			if (subtreeLevel.length) {
+				// NOTE: what was previousLandmarkEntry will've been wired up to point ot the start.
+				subtreeLevel.at(-1).next = previousNext
+			}
+		}
+
+		regenerateListIndicesSelectors()  // FIXME: do this across removed AND added OR at least do the doesn't-need-selector-updating flag thing
 	}
 
 	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
