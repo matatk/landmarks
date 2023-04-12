@@ -394,9 +394,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 	// FIXME: Test labelling element being removed.
 	// NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
-		//
-		// Quick path for when there are no landmarks, and stuff is added
-		//
+		// Quick path for when there are no landmarks
 
 		if (landmarksList.length === 0) {
 			// FIXME: DRY with subtreeLevel added nodes below?
@@ -411,31 +409,24 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			return  // don't need to worry about removing when 0 landmarks
 		}
 
-
-		//
-		// Universally-needed stuff for the rest of the thing
-		//
+		// The slower path
 
 		landmarksList.at(-1).next = null  // stop at end of tree walk
-
-
-		//
-		// Landmarks, or nodes containing landmarks, being removed
-		//
+		let processed = false
 
 		if (mutation.removedNodes.length) {
-			handleChildListMutationRemove(mutation.removedNodes)
+			processed = handleChildListMutationRemove(mutation.removedNodes)
 		}
-
-
-		//
-		// Work out the subtree for added nodes
-		//
 
 		// NOTE: Assumes addedNodes are encountered in DOM order.
 		if (mutation.addedNodes.length) {
-			handleChildListMutationAdd(mutation.target, mutation.addedNodes)
+			processed = handleChildListMutationAdd(mutation.target, mutation.addedNodes)
 		}
+
+		// FIXME: what happens if we didn't process anything, to the selector
+		//        update thing? I think it is still working right becuase the
+		//        tests got faster...
+		if (processed) regenerateListIndicesSelectors()
 	}
 
 	function handleChildListMutationRemove(removedNodes) {
@@ -469,7 +460,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 		}
 
-		if (processed) regenerateListIndicesSelectors()
+		return processed
 	}
 
 	function handleChildListMutationAdd(target, addedNodes) {
@@ -527,7 +518,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			}
 		}
 
-		regenerateListIndicesSelectors()  // FIXME: do this across removed AND added OR at least do the doesn't-need-selector-updating flag thing
+		return true  // FIXME: work out if we actually added any landmarks
 	}
 
 	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
