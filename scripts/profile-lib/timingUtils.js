@@ -113,6 +113,9 @@ function htmlResults(results) {
 	let output = '<thead>\n<tr>\n'
 	for (const header of headers) {
 		const prettyHeader = header
+			.replace('mutationTest', '')
+			.replace('MeanTime', '')
+			.replace('Deviation', ' sd')
 			.replace(/MS$/, ' ms')
 			.replace(/Percent$/, ' %')
 			.replace(/([A-Z])/g, ' $1')
@@ -133,12 +136,38 @@ function htmlResults(results) {
 						output += '<th scope="row">Combined</th>'
 					} else {
 						const url = results[scanner][site].url
-						output += `<th scope="row">${url}</th>`
+						output += `<th scope="row"><a href="${url}">${url}</th>`
 					}
 				} else {
-					const roundedResult =
-						rounder(header, results[scanner][site][header])
-					output += `<td>${roundedResult}</td>`
+					const result = results[scanner][site][header]
+					const rounded = rounder(header, result)
+					let transmogrified = rounded
+
+					if (header.endsWith('MS') && header !== 'scanMeanTimeMS') {
+						const benchmark = results[scanner][site]['scanMeanTimeMS']
+						const multiplier = Number(result / benchmark).toFixed(1)
+
+						let colour = null
+						if (rounded < 0.1 * benchmark) {
+							colour = 'green'
+						} else if (rounded < 0.25 * benchmark) {
+							colour = 'blue'
+						} else if (rounded < 0.5 * benchmark) {
+							colour = 'purple'
+						} else if (rounded < benchmark) {
+							colour = 'DarkOrange'
+						} else {
+							colour = 'red'
+						}
+
+						transmogrified =
+							`<p><strong style="color: ${colour};">${rounded}</strong></p>` +
+							`<p>${multiplier}</p>`
+					} else if (site === 'combined' || header === 'scanMeanTimeMS') {
+						transmogrified = `<strong>${rounded}</strong>`
+					}
+
+					output += `<td>${transmogrified}</td>`
 				}
 			}
 			output += '\n'

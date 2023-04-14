@@ -81,10 +81,10 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 //       - Hide or show landmark content (aria-hidden / CSS?)
 
 export const mutationTests = {
-	mutationTestAddSimpleNonLandmarkElementAtStartOfBody,
-	mutationTestAddSimpleLandmarkAtStartOfBody,
-	mutationTestAddSimpleNonLandmarkElementAtEndOfBody,
-	mutationTestAddSimpleLandmarkAtEndOfBody,
+	mutationTestAddNonLandmarkElementAtStartOfBody,
+	mutationTestAddLandmarkAtStartOfBody,
+	mutationTestAddNonLandmarkElementAtEndOfBody,
+	mutationTestAddLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark,
 	mutationTestRemoveRandomElement
@@ -148,7 +148,7 @@ export function mutationAfterEach() {
 
 // Simulated mutations
 
-function mutationTestAddSimpleNonLandmarkElementAtStartOfBody(runTest) {
+function mutationTestAddNonLandmarkElementAtStartOfBody(runTest) {
 	if (runTest) {
 		window.notALandmark = document.createElement('DIV')
 		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
@@ -158,7 +158,7 @@ function mutationTestAddSimpleNonLandmarkElementAtStartOfBody(runTest) {
 	}
 }
 
-function mutationTestAddSimpleLandmarkAtStartOfBody(runTest) {
+function mutationTestAddLandmarkAtStartOfBody(runTest) {
 	if (runTest) {
 		window.addedLandmark = document.createElement('ASIDE')
 		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
@@ -169,7 +169,7 @@ function mutationTestAddSimpleLandmarkAtStartOfBody(runTest) {
 	}
 }
 
-function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
+function mutationTestAddNonLandmarkElementAtEndOfBody(runTest) {
 	if (runTest) {
 		window.notALandmark = document.createElement('DIV')
 		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
@@ -179,7 +179,7 @@ function mutationTestAddSimpleNonLandmarkElementAtEndOfBody(runTest) {
 	}
 }
 
-function mutationTestAddSimpleLandmarkAtEndOfBody(runTest) {
+function mutationTestAddLandmarkAtEndOfBody(runTest) {
 	if (runTest) {
 		window.addedLandmark = document.createElement('ASIDE')
 		window.addedLandmark.setAttribute('aria-label', 'TEST LANDMARK')
