@@ -115,8 +115,8 @@ function htmlResults(results) {
 		const prettyHeader = header
 			.replace('mutationTest', '')
 			.replace('MeanTime', '')
-			.replace('Deviation', ' sd')
-			.replace(/MS$/, ' ms')
+			.replace('Deviation', ' s.d.')
+			.replace(/MS$/, ' (ms)')
 			.replace(/Percent$/, ' %')
 			.replace(/([A-Z])/g, ' $1')
 			.replace('url', 'URL')
@@ -145,7 +145,7 @@ function htmlResults(results) {
 
 					if (header.endsWith('MS') && header !== 'scanMeanTimeMS') {
 						const benchmark = results[scanner][site]['scanMeanTimeMS']
-						const multiplier = Number(result / benchmark).toFixed(1)
+						const percentage = Number((result / benchmark) * 100).toFixed(0)
 
 						let colour = null
 						if (rounded < 0.1 * benchmark) {
@@ -162,7 +162,7 @@ function htmlResults(results) {
 
 						transmogrified =
 							`<p><strong style="color: ${colour};">${rounded}</strong></p>` +
-							`<p>${multiplier}</p>`
+							`<p>${percentage}%</p>`
 					} else if (site === 'combined' || header === 'scanMeanTimeMS') {
 						transmogrified = `<strong>${rounded}</strong>`
 					}
