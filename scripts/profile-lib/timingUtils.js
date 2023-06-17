@@ -75,7 +75,7 @@ export function areObjectListsEqual(list1, listA) {
 			if (itemA[key] !== value) {
 				if (key === 'selectorWasUpdated') return true  // internal only
 				console.error('value mismatch in item', i, '"' + key +
-					'" field\n' + value + '\n' + itemA[key])
+					'" field\nExp: ' + value + '\nAct: ' + itemA[key])
 				if (key === 'selector') return true  // for adding at start of body tests
 				return false
 			}

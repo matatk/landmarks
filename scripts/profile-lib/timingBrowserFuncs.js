@@ -67,18 +67,17 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Mutation handling
 //
 
-// FIXME: on wikipedia article, remove random element, a labelling element can
-//        get removed and it fails (expected) BUT the FULL test results show
-//        the lack of the label, and the mutated contain it.
-
 // Housekeeping
 
 // FIXME: More tests!
-//       - Change a label (aria-labelledby value OR element contents / aria-label)
-//       - Remove a label (aria-labelledby element / aria-label)
+//       - Change a label:
+//         + contents of aria-labelledby element
+//         + aria-label of landmark
+//         + aria-label of aria-labelledby element?
+//         + aria-label of element within aria-labelledby element?
 //       - Change a role (role)
-//       - Hide or show non-landmark content (really?)
 //       - Hide or show landmark content (aria-hidden / CSS?)
+//       - Hide or show non-landmark content (really?)
 
 export const mutationTests = {
 	mutationTestAddNonLandmarkElementAtStartOfBody,
@@ -87,7 +86,8 @@ export const mutationTests = {
 	mutationTestAddLandmarkAtEndOfBody,
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark,
-	mutationTestRemoveRandomElement
+	mutationTestRemoveRandomElement,
+	mutationTestRemoveRandomLabellingElement,
 }
 
 export const mutationTestsNeedingLandmarks = new Set([
@@ -225,7 +225,7 @@ function mutationTestRemoveRandomElement(runTest) {
 		const elements = document.body.getElementsByTagName('*')
 		const index = Math.floor(Math.random() * elements.length)
 		const picked = elements[index]
-		// TODO: DRY with the above
+
 		window.pNext = picked.nextSibling
 		window.pParent = picked.parentNode
 		picked.parentNode.removeChild(picked)
@@ -233,6 +233,35 @@ function mutationTestRemoveRandomElement(runTest) {
 	} else {
 		window.cleanUp(() => {
 			window.pParent.insertBefore(window.backup, window.pNext)
+		})
+	}
+}
+
+// NOTE: This may not remove the element that labels an actual landmark.
+function mutationTestRemoveRandomLabellingElement(runTest) {
+	if (runTest) {
+		const elements = []
+		for (const labelled of document.body.querySelectorAll('[aria-labelledby]')) {
+			for (const id of labelled.getAttribute('aria-labelledby').split(/\s+/)) {
+				const labeller = document.getElementById(id)
+				if (labeller) elements.push(labeller)
+			}
+		}
+		if (elements.length) {
+			// console.log('found', elements.length, 'labelling elements')
+			const index = Math.floor(Math.random() * elements.length)
+			const picked = elements[index]
+
+			window.pNext = picked.nextSibling
+			window.pParent = picked.parentNode
+			picked.parentNode.removeChild(picked)
+			window.backup = picked
+		} else {
+			// console.log('No valid labelling elements')
+		}
+	} else {
+		window.cleanUp(() => {
+			if (window.backup) window.pParent.insertBefore(window.backup, window.pNext)
 		})
 	}
 }
