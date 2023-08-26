@@ -13,3 +13,4 @@ _site
 .nyc_output
 coverage
 scripts/profile-cache
+src/code/*.js
