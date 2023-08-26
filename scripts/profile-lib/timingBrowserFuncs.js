@@ -248,7 +248,6 @@ function mutationTestRemoveRandomLabellingElement(runTest) {
 			}
 		}
 		if (elements.length) {
-			// console.log('found', elements.length, 'labelling elements')
 			const index = Math.floor(Math.random() * elements.length)
 			const picked = elements[index]
 
@@ -256,8 +255,6 @@ function mutationTestRemoveRandomLabellingElement(runTest) {
 			window.pParent = picked.parentNode
 			picked.parentNode.removeChild(picked)
 			window.backup = picked
-		} else {
-			// console.log('No valid labelling elements')
 		}
 	} else {
 		window.cleanUp(() => {

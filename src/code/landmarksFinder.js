@@ -391,7 +391,6 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		}
 	}
 
-	// FIXME: Test labelling element being removed.
 	// NOTE: Sometimes this appears to get both additions and removals.
 	function handleChildListMutation(mutation) {
 		// Quick path for when there are no landmarks
@@ -426,7 +425,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		// FIXME: what happens if we didn't process anything, to the selector
 		//        update thing? I think it is still working right becuase the
 		//        tests got faster...
-		if (processed) regenerateListIndicesSelectors()
+		// FIXME: used to only do this if we processed some stuff, but if a labelleing element was removed or modified, we need to do it anyway...
+		// if (processed) regenerateListIndicesSelectors()
+		regenerateListIndicesSelectors()
 	}
 
 	function handleChildListMutationRemove(removedNodes) {
@@ -584,11 +585,15 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
+
 			if (!landmarksList[i].selectorWasUpdated) {
 				landmarksList[i].selector = createSelector(landmarksList[i].element)
 			} else {
 				landmarksList[i].selectorWasUpdated = false
 			}
+
+			// TODO: Can we avoid the need to do this for all elements?
+			landmarksList[i].label = getARIAProvidedLabel(doc, landmarksList[i].element)
 		}
 
 		cachedFilteredTree = null
