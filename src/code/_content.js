@@ -323,24 +323,6 @@ function observeMutations() {
 	})
 }
 
-function observeMutationsAndHandleViaTree() {
-	// TODO: DRY with profile (timing) script
-	observer.observe(document, {
-		attributes: true,
-		childList: true,
-		subtree: true,
-		attributeFilter: [
-			// handled by always recomputing label 'aria-label',
-			// handled by always recomputing label 'aria-labelledby',
-			'aria-roledescription',
-			'class',
-			'hidden',
-			'role',
-			'style'
-		]
-	})
-}
-
 function cancelObserverReconnectionScan() {
 	if (observerReconnectionScanTimer) {
 		clearTimeout(observerReconnectionScanTimer)
