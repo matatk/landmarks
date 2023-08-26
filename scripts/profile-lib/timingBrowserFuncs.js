@@ -70,24 +70,26 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Housekeeping
 
 // FIXME: More tests!
-//       - Change a label:
-//         + contents of aria-labelledby element
-//         + aria-label of landmark
-//         + aria-label of aria-labelledby element?
-//         + aria-label of element within aria-labelledby element?
-//       - Change a role (role)
-//       - Hide or show landmark content (aria-hidden / CSS?)
-//       - Hide or show non-landmark content (really?)
+//
+// - Change a label - NOTE: Currently covered by the re-computation of labels each time.
+//   + contents of aria-labelledby element
+//   + aria-label of landmark
+//   + aria-label of aria-labelledby element?
+//   + aria-label of element within aria-labelledby element?
+// - Change a role (role)
+// - Hide or show landmark content (aria-hidden / CSS?)
+// - Hide or show non-landmark content (really?)
 
 export const mutationTests = {
 	mutationTestAddNonLandmarkElementAtStartOfBody,
 	mutationTestAddLandmarkAtStartOfBody,
 	mutationTestAddNonLandmarkElementAtEndOfBody,
 	mutationTestAddLandmarkAtEndOfBody,
+	mutationTestAddNonLandmarkElementRandomly,
 	mutationTestAddLandmarkWithinRandomLandmark,
 	mutationTestRemoveRandomLandmark,
 	mutationTestRemoveRandomElement,
-	mutationTestRemoveRandomLabellingElement,
+	mutationTestRemoveRandomLabellingElement,  // TODO: needs labelling elements to exist
 }
 
 export const mutationTestsNeedingLandmarks = new Set([
@@ -187,6 +189,21 @@ function mutationTestAddLandmarkAtEndOfBody(runTest) {
 		document.body.appendChild(window.addedLandmark)
 	} else {
 		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+function mutationTestAddNonLandmarkElementRandomly(runTest) {
+	if (runTest) {
+		window.notALandmark = document.createElement('DIV')
+		window.notALandmark.appendChild(document.createTextNode('not a landmark'))
+
+		const elements = document.body.getElementsByTagName('*')
+		const index = Math.floor(Math.random() * elements.length)
+		const picked = elements[index]
+
+		picked.appendChild(window.notALandmark)
+	} else {
+		window.cleanUp(() => window.notALandmark.remove())
 	}
 }
 
