@@ -70,13 +70,11 @@ export function landmarkNav(times, selectInteractives, dir, useHeuristics) {
 // Housekeeping
 
 // FIXME: More tests!
-//
 // - Change a label - NOTE: Currently covered by the re-computation of labels each time.
 //   + contents of aria-labelledby element
 //   + aria-label of landmark
 //   + aria-label of aria-labelledby element?
 //   + aria-label of element within aria-labelledby element?
-// - Change a role (role)
 // - Hide or show landmark content (aria-hidden / CSS?)
 // - Hide or show non-landmark content (really?)
 
@@ -87,6 +85,8 @@ export const mutationTests = {
 	mutationTestAddLandmarkAtEndOfBody,
 	mutationTestAddNonLandmarkElementRandomly,
 	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestChangeRoleOfRandomLandmark,
+	mutationTestChangeRoleDescriptionOfRandomLandmark,
 	mutationTestRemoveRandomLandmark,
 	mutationTestRemoveRandomElement,
 	mutationTestRemoveRandomLabellingElement,  // TODO: needs labelling elements to exist
@@ -94,6 +94,8 @@ export const mutationTests = {
 
 export const mutationTestsNeedingLandmarks = new Set([
 	mutationTestAddLandmarkWithinRandomLandmark,
+	mutationTestChangeRoleOfRandomLandmark,
+	mutationTestChangeRoleDescriptionOfRandomLandmark,
 	mutationTestRemoveRandomLandmark
 ])
 
@@ -111,8 +113,10 @@ export function mutationSetup(useHeuristics) {
 			childList: true,
 			subtree: true,
 			attributeFilter: [
-				'aria-label',
-				'aria-labelledby',
+				// FIXME REALLY DRY
+				// handled by always recomputing label 'aria-label',
+				// handled by always recomputing label 'aria-labelledby',
+				'aria-roledescription',
 				'class',
 				'hidden',
 				'role',
@@ -218,6 +222,42 @@ function mutationTestAddLandmarkWithinRandomLandmark(index) {
 		parent.appendChild(window.addedLandmark)
 	} else {
 		window.cleanUp(() => window.addedLandmark.remove())
+	}
+}
+
+function mutationTestChangeRoleOfRandomLandmark(index) {
+	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
+		window.picked
+			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.previousRole = window.picked.getAttribute('role')
+		window.picked.setAttribute('role', 'complementary')  // FIXME: _change_ role
+	} else {
+		window.cleanUp(() => {
+			if (window.previousRole !== null && window.previousRole !== '') {
+				window.picked.setAttribute('role', window.previousRole)
+			} else {
+				window.picked.removeAttribute('role')
+			}
+		})
+	}
+}
+
+function mutationTestChangeRoleDescriptionOfRandomLandmark(index) {
+	if (index !== null) {
+		// TODO: getLandmarkElementInfo() has side effects?
+		window.picked
+			= window.landmarksFinder.getLandmarkElementInfo(index).element
+		window.previousRoleDescription = window.picked.getAttribute('aria-roledescription')
+		window.picked.setAttribute('aria-roledescription', 'forty-two')  // FIXME: _change_ role
+	} else {
+		window.cleanUp(() => {
+			if (window.previousRoleDescription !== null && window.previousRoleDescription !== '') {
+				window.picked.setAttribute('aria-roledescription', window.previousRoleDescription)
+			} else {
+				window.picked.removeAttribute('aria-roledescription')
+			}
+		})
 	}
 }
 

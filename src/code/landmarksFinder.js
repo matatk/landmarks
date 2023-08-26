@@ -4,12 +4,11 @@
 import {
 	isVisuallyHidden,
 	isSemantiallyHidden,
-	getValidExplicitRole,
-	getRoleFromTagNameAndContainment,
 	getARIAProvidedLabel,
 	isLandmark,
 	getRoleDescription,
-	createSelector
+	createSelector,
+    getRole
 } from './landmarksFinderDOMUtils.js'
 
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
@@ -130,15 +129,9 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			return previousLandmarkEntry
 		}
 
-		// Elements with explicitly-set rolees
-		const rawRoleValue = element.getAttribute('role')
-		const explicitRole = rawRoleValue
-			? getValidExplicitRole(rawRoleValue)
-			: null
-		const hasExplicitRole = explicitRole !== null
-
-		// Support HTML5 elements' native roles
-		const role = explicitRole ?? getRoleFromTagNameAndContainment(element)
+		// Get implicit or explicit role
+		// TODO: Perf: needed to speed this up? How?
+		const { hasExplicitRole, role } = getRole(element)
 
 		// The element may or may not have a label
 		const label = getARIAProvidedLabel(doc, element)
@@ -474,6 +467,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		// From the parent landmark (if any), work out which subtree level we're at
 		const index = foundLandmarkElementIndex(found)
 		if (found !== doc.body && index === null) {
+			console.error("Can't find tree level; full find() needed")
 			find()  // FIXME: TEST
 			return
 		}
@@ -603,8 +597,35 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 
 	// TODO: test and improve performance
 	function handleAttributeMutation(mutation) {
-		console.log(mutation)
-		find()
+		if (mutation.target.hasAttribute(LANDMARK_INDEX_ATTR)) {
+			const index = foundLandmarkElementIndex(mutation.target)
+			if (index !== null) {
+				switch (mutation.attributeName) {
+					case 'role':
+						const { hasExplicitRole, role } = getRole(mutation.target)
+						if (isLandmark(role, hasExplicitRole, landmarksList[index].label)) {
+							landmarksList[index].role = role
+							// FIXME: DRY with getLandmarks() or remove:
+							landmarksList[index].debug = mutation.target.tagName + '(' + role + ')'
+						} else {
+							// FIXME: remove landmark
+							throw Error("Remove landmark (but not its children)")
+						}
+						break
+					case 'aria-roledescription':
+						landmarksList[index].roleDescription = mutation.target.getAttribute('aria-roledescription')
+						break
+				}
+			} else {
+				// FIXME
+				throw Error("Couldn't find landmark index!")
+			}
+		}
+
+		// FIXME: DRY with regenerateListIndicesSelectors() or something?
+		cachedFilteredTree = null
+		cachedAllInfos = null
+		cachedAllElementInfos = null
 	}
 
 	// FIXME: test
