@@ -1,11 +1,11 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import translate from './translate'
-import landmarkName from './landmarkName'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults'
-import { isContentScriptablePage } from './isContent'
-import { withActiveTab } from './withTabs'
+import translate from './translate.js'
+import landmarkName from './landmarkName.js'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults.js'
+import { isContentScriptablePage } from './isContent.js'
+import { withActiveTab } from './withTabs.js'
 
 let closePopupOnActivate = INTERFACE === 'popup'
 	? defaultFunctionalSettings.closePopupOnActivate
@@ -17,13 +17,13 @@ const _sidebarNote = {
 		cta: function() {
 			browser.runtime.openOptionsPage()
 		},
-		showOrHide: function(wasDismissed) {
+		showOrHide: function(wasDismissed: boolean) {
 			// Whether to show the message depends on the interface too
 			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 				if (items.interface === 'popup' && !wasDismissed) {
-					showNote('note-ui')
+					document.getElementById('note-ui').hidden = false
 				} else {
-					hideNote('note-ui')
+					document.getElementById('note-ui').hidden = true
 				}
 			})
 		}
@@ -40,11 +40,19 @@ const _updateNote = {
 	}
 }
 
-const notes = (INTERFACE === 'sidebar')
+interface Note {
+	id: string
+	cta: () => void
+	showOrHide?: (wasDismissed: boolean) => void
+}
+
+type Notes = Record<string, Note>;
+
+const notes: Notes = (INTERFACE === 'sidebar')
 	? Object.assign({}, _sidebarNote, _updateNote)
 	: _updateNote
 
-let port = null
+let port: chrome.runtime.Port | null = null
 
 
 //
@@ -55,7 +63,7 @@ let port = null
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree) {
+function handleLandmarksMessage(tree: LandmarkTreeEntry) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -67,7 +75,7 @@ function handleLandmarksMessage(tree) {
 			showAllContainer.style.display = 'none'
 		} else {
 			display.appendChild(processTree(tree))
-			showAllContainer.style.display = null
+			showAllContainer.style.display = ''
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('forbiddenPage'))
@@ -75,8 +83,8 @@ function handleLandmarksMessage(tree) {
 	}
 }
 
-function processTree(treeLevel) {
-	const thisLevelList = document.createElement('UL')
+function processTree(treeLevel: LandmarkTreeEntry[]) {
+	const thisLevelList = document.createElement('ul')
 
 	for (const landmark of treeLevel) {
 		thisLevelList.appendChild(
@@ -86,7 +94,7 @@ function processTree(treeLevel) {
 	return thisLevelList
 }
 
-function processTreeLevelItem(landmark) {
+function processTreeLevelItem(landmark: LandmarkTreeEntry) {
 	// Create the <li> for this landmark
 	const item = document.createElement('li')
 
@@ -120,7 +128,9 @@ function processTreeLevelItem(landmark) {
 		// whilst unlikely, this might happen before the content script has
 		// learnt that DevTools are open.
 		if (landmark.hasOwnProperty('warnings')) {
+			// @ts-ignore FIXME any way to make this obviously OK given prev line?
 			if (landmark.warnings.length > 0) {
+			// @ts-ignore FIXME any way to make this obviously OK given above check?
 				addElementWarnings(item, landmark, landmark.warnings)
 			}
 		} else {
@@ -135,7 +145,7 @@ function processTreeLevelItem(landmark) {
 	return item
 }
 
-function addInspectButton(root, landmark) {
+function addInspectButton(root: HTMLElement, landmark: LandmarkTreeEntry) {
 	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
@@ -150,7 +160,7 @@ function addInspectButton(root, landmark) {
 	root.appendChild(inspectButton)
 }
 
-function addElementWarnings(root, landmark, array) {
+function addElementWarnings(root: HTMLElement, landmark: LandmarkTreeEntry, array: PageWarning[]) {
 	const details = document.createElement('details')
 	details.className = 'tooltip'
 	const summary = document.createElement('summary')
@@ -163,21 +173,21 @@ function addElementWarnings(root, landmark, array) {
 }
 
 // TODO: Is there a DOM API for this?
-function removeChildNodes(element) {
+function removeChildNodes(element: HTMLElement) {
 	while (element.firstChild) {
 		element.removeChild(element.firstChild)
 	}
 }
 
 // Append text paragraph to the given element
-function addText(element, message) {
+function addText(element: HTMLElement, message: string) {
 	const newPara = document.createElement('p')
 	const newParaText = document.createTextNode(message)
 	newPara.appendChild(newParaText)
 	element.appendChild(newPara)
 }
 
-function makeLandmarkButton(onClick, shower, hider, text) {
+function makeLandmarkButton(onClick: () => void, shower: () => void, hider: () => void, text: string) {
 	const button = document.createElement('button')
 	button.appendChild(document.createTextNode(text))
 	button.addEventListener('click', onClick)
@@ -188,7 +198,7 @@ function makeLandmarkButton(onClick, shower, hider, text) {
 	return button
 }
 
-function makeInspectButton(onClick, text, cssClass, context) {
+function makeInspectButton(onClick: () => void, text: string, cssClass: string, context: string) {
 	const button = document.createElement('button')
 	button.className = cssClass
 	button.setAttribute('aria-label', text + ' ' + context)
@@ -201,7 +211,7 @@ function makeInspectButton(onClick, text, cssClass, context) {
 // Showing page warnings in DevTools
 //
 
-function handlePageWarningsMessage(warnings) {
+function handlePageWarningsMessage(warnings: PageWarning[]) {
 	const container = document.getElementById('page-warnings-container')
 	if (warnings.length === 0) {
 		container.hidden = true
@@ -213,7 +223,7 @@ function handlePageWarningsMessage(warnings) {
 	}
 }
 
-function makeWarnings(root, warningKeys) {
+function makeWarnings(root: HTMLElement, warningKeys: PageWarning[]) {
 	if (warningKeys.length > 1) {
 		const list = document.createElement('ul')
 		for (const warningKey of warningKeys) {
@@ -238,35 +248,29 @@ function makeWarnings(root, warningKeys) {
 // Note wrangling
 //
 
-function showNote(id) {
-	document.getElementById(id).hidden = false
-}
-
-function hideNote(id) {
-	document.getElementById(id).hidden = true
-}
-
-function showOrHideNote(note, dismissed) {
+function showOrHideNote(note: Note, dismissed: boolean) {
 	if (note.showOrHide) {
 		note.showOrHide(dismissed)
 	} else if (dismissed) {
-		hideNote(note.id)
+		// @ts-ignore FIXME
+		document.getElementById(note.id).hidden = true
 	} else {
-		showNote(note.id)
+		// @ts-ignore FIXME
+		document.getElementById(note.id).hidden = true
 	}
 }
 
 // Sidebar-specific: handle the user changing their UI preference (the sidebar
 // may be open, so the note needs to be shown/hidden in real-time).
-function reflectInterfaceChange(ui) {
+function reflectInterfaceChange(ui: 'sidebar' | 'popup') {
 	browser.storage.sync.get(
 		defaultDismissedSidebarNotAlone,
 		function(items) {
 			if (items.dismissedSidebarNotAlone === false) {
 				switch (ui) {
-					case 'sidebar': hideNote('note-ui')
+					case 'sidebar': document.getElementById('note-ui').hidden = true
 						break
-					case 'popup': showNote('note-ui')
+					case 'popup': document.getElementById('note-ui').hidden = false
 						break
 					default:
 						throw Error(`Unexpected interface type "${ui}".`)
@@ -279,7 +283,9 @@ function setupNotes() {
 	for (const [dismissalSetting, note] of Object.entries(notes)) {
 		const ctaId = `${note.id}-cta`
 		const dismissId = `${note.id}-dismiss`
+		// @ts-ignore FIXME
 		document.getElementById(ctaId).addEventListener('click', note.cta)
+		// @ts-ignore FIXME
 		document.getElementById(dismissId).addEventListener(
 			'click', function() {
 				browser.storage.sync.set({ [dismissalSetting]: true })
@@ -290,14 +296,8 @@ function setupNotes() {
 		if (INTERFACE === 'sidebar') {
 			if (changes.hasOwnProperty('interface')) {
 				reflectInterfaceChange(changes.interface.newValue ??
+					// @ts-ignore FIXME
 					defaultInterfaceSettings.interface)
-			}
-		}
-
-		if (INTERFACE === 'devtools') {
-			if ('handleMutationsViaTree' in changes) {
-				document.getElementById('handle-mutations-via-tree').innerText =
-					changes.handleMutationsViaTree.newValue
 			}
 		}
 
@@ -324,7 +324,7 @@ function setupNotes() {
 // Management
 //
 
-function makeEventHandlers(linkName) {
+function makeEventHandlers(linkName: 'help' | 'settings') {
 	const link = document.getElementById(linkName)
 	const core = () => {
 		browser.runtime.sendMessage({ name: `open-${linkName}` })
@@ -338,35 +338,42 @@ function makeEventHandlers(linkName) {
 }
 
 // TODO: this leaves an anonymous code block in the devtools script
-function send(message) {
+function send(message: string | object) {
 	if (INTERFACE === 'devtools') {
 		const messageWithTabId = Object.assign({}, message, {
 			from: browser.devtools.inspectedWindow.tabId
 		})
+		// @ts-ignore FIXME
 		port.postMessage(messageWithTabId)
 	} else {
+		// @ts-ignore FIXME
 		withActiveTab(tab => browser.tabs.sendMessage(tab.id, message))
 	}
 }
 
-function debugSend(what) {
+function debugSend(what: string) {
 	const message = { name: 'debug', info: what }
 	if (INTERFACE === 'devtools') {
+		// @ts-ignore FIXME: fix message definitions
 		message.from = `devtools ${browser.devtools.inspectedWindow.tabId}`
+		// @ts-ignore FIXME
 		port.postMessage(message)
 	} else {
+		// @ts-ignore FIXME: fix message definitions
 		message.from = INTERFACE
 		browser.runtime.sendMessage(message)
 	}
 }
 
-function messageHandlerCore(message) {
+// FIXME: Narrow the types of message
+function messageHandlerCore(message: MessageForBackgroundScript) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.tree)
 		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
+		// FIXME: The message from the msr called 'mutation-info' doesn't match the structure of the typed one.
 		handleMutationMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info-window') {
 		handleMutationWindowMessage(message.data)
@@ -375,7 +382,7 @@ function messageHandlerCore(message) {
 	}
 }
 
-function handleToggleStateMessage(state) {
+function handleToggleStateMessage(state: ToggleState) {
 	const box = document.getElementById('show-all')
 	switch(state) {
 		case 'selected':
@@ -389,18 +396,28 @@ function handleToggleStateMessage(state) {
 	}
 }
 
-function handleMutationMessage(data) {
+function handleMutationMessage(data: MutationInfoMessageData) {
 	for (const key in data) {
+		// @ts-ignore FIXME
 		document.getElementById(key).textContent = data[key]
+	}
+	if ('duration' in data && 'average' in data) {
+		document.getElementById('was-last-scan-longer-than-average').innerText = 
+			// @ts-ignore FIXME
+			data.duration > data.average ? 'yes' : 'no'
 	}
 }
 
-function handleMutationWindowMessage(data) {
+function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
 	for (const key in data) {
 		const table = document.getElementById(key)
+		// @ts-ignore FIXME
 		const row = table.querySelector('tr')
+		// @ts-ignore FIXME
 		for (let i = 0; i < data[key].length; i++) {
+		// @ts-ignore FIXME
 			row.children[i].innerText = data[key][i]
+			// @ts-ignore FIXME
 			row.children[i].className = data[key][i] >= 1 ? 'warning' : ''
 		}
 	}
@@ -429,7 +446,7 @@ function startupDevTools() {
 
 	port.postMessage({
 		name: 'init',
-		tabId: browser.devtools.inspectedWindow.tabId
+		from: browser.devtools.inspectedWindow.tabId
 	})
 
 	// The checking for if the page is scriptable is done at the other end.
@@ -440,7 +457,7 @@ function startupDevTools() {
 	// TODO: Eventually remove, after sorting out mutation handling
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('handleMutationsViaTree' in changes) {
-			document.getElementById('handle-mutations-via-tree').innerText =
+			document.getElementById('handling-mutations-via-tree').innerText =
 				changes.handleMutationsViaTree.newValue
 		}
 	})
@@ -461,6 +478,7 @@ function startupPopupOrSidebar() {
 		withActiveTab(tab => {
 			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
+				// @ts-ignore FIXME
 				messageHandlerCore(message, sender)
 			}
 		})
@@ -469,12 +487,16 @@ function startupPopupOrSidebar() {
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
 	withActiveTab(tab =>
-		browser.tabs.get(tab.id, function(tab) {
+		browser.tabs.get(tab.id!, function(tab) {
+		// @ts-ignore FIXME
 			if (!isContentScriptablePage(tab.url)) {
+				// @ts-ignore FIXME
 				handleLandmarksMessage(null)
 				return
 			}
+			// @ts-ignore FIXME
 			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
+			// @ts-ignore FIXME
 			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
 		}))
 
@@ -488,7 +510,7 @@ function startupPopupOrSidebar() {
 		// only the pop-up is affected, and the user almost certainly won't
 		// change a pop-up-related setting whilst a pop-up is open.
 		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-			closePopupOnActivate = items['closePopupOnActivate']
+			closePopupOnActivate = items.closePopupOnActivate
 		})
 	}
 }

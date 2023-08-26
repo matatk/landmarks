@@ -1,7 +1,7 @@
-import handlePopulateCommandsMessage from './keyboardShortcutTableMaker'
-import translate from './translate'
+import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
+import translate from './translate.js'
 
-function messageHandler(message) {
+function messageHandler(message: PopulateCommandsMessage) {
 	if (message.name !== 'populate-commands') return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(
@@ -22,7 +22,7 @@ function includeVersionNumber() {
 
 function reflectInstallOrUpdate() {
 	// Move the appropriate section to the top
-	const fragment = window.location.hash.substr(2)
+	const fragment = window.location.hash.slice(2)
 	let sectionToMove = null
 
 	switch (fragment) {
@@ -46,8 +46,8 @@ function main() {
 	browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER === 'firefox') {
-		document.getElementById('open-browser-shortcuts-settings')
-			.parentElement.remove()
+		document.getElementById('shortcuts-button-wrapper')
+			.remove()
 	} else {
 		document.getElementById('keyboard-shortcuts-instructions-firefox')
 			.remove()

@@ -1,4 +1,4 @@
-export default function landmarkName(landmark) {
+export default function landmarkName(landmark: LandmarkListEntry | LandmarkTreeEntry) {
 	const roleName = landmark.roleDescription
 		? landmark.roleDescription
 		: processRole(landmark.role)
@@ -13,8 +13,8 @@ export default function landmarkName(landmark) {
 }
 
 // Fetch the user-friendly name for a role
-function processRole(role) {
-	const capRole = base => (base.charAt(0).toUpperCase() + base.slice(1))
+function processRole(role: string) {
+	const capRole = (base: string) => (base.charAt(0).toUpperCase() + base.slice(1))
 
 	return browser.i18n.getMessage('role' +
 		(role.startsWith('doc-') ? capRole(role.slice(4)) : capRole(role)))

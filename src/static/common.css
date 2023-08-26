@@ -50,10 +50,10 @@ button,
 input,
 select {
 	font-size: inherit;
-	border-color: var(--text-1);
 	background-color: var(--background-1);
 	color: var(--text-1);
 	border: var(--standard-control-line);
+	border-color: var(--text-1);
 }
 
 button {

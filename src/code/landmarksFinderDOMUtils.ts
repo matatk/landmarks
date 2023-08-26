@@ -81,7 +81,7 @@ const implicitRoles = Object.freeze({
 // This can only check an element's direct styles. We just stop recursing
 // into elements that are hidden. That's why the heuristics don't call this
 // function (they don't check all of a guessed landmark's parent elements).
-export function isVisuallyHidden(win, element) {
+export function isVisuallyHidden(win: Window, element: Element) {
 	if (element.hasAttribute('hidden')) return true
 
 	const style = win.getComputedStyle(element)
@@ -92,7 +92,7 @@ export function isVisuallyHidden(win, element) {
 	return false
 }
 
-export function isSemantiallyHidden(element) {
+export function isSemantiallyHidden(element: Element) {
 	if (element.getAttribute('aria-hidden') === 'true'
 		|| element.hasAttribute('inert')) {
 		return true
@@ -100,13 +100,13 @@ export function isSemantiallyHidden(element) {
 	return false
 }
 
-export function getRoleFromTagNameAndContainment(element) {
+export function getRoleFromTagNameAndContainment(element: Element) {
 	const name = element.tagName
 	let role = null
 
 	if (name) {
 		if (implicitRoles.hasOwnProperty(name)) {
-			role = implicitRoles[name]
+			role = implicitRoles[name as keyof typeof implicitRoles]
 		}
 
 		// <header> and <footer> elements have some containment-
@@ -121,20 +121,21 @@ export function getRoleFromTagNameAndContainment(element) {
 	return role
 }
 
-export function isChildOfTopLevelSection(element) {
-	let ancestor = element.parentNode
+// NOTE: Changed parentNode to parentElement
+export function isChildOfTopLevelSection(element: Element) {
+	let ancestor = element.parentElement
 
 	while (ancestor !== null) {
 		if (nonBodySectioningElementsAndMain.includes(ancestor.tagName)) {
 			return false
 		}
-		ancestor = ancestor.parentNode
+		ancestor = ancestor.parentElement
 	}
 
 	return true
 }
 
-export function getValidExplicitRole(value) {
+export function getValidExplicitRole(value: string) {
 	if (value) {
 		if (value.indexOf(' ') >= 0) {
 			const roles = value.split(' ')
@@ -150,7 +151,7 @@ export function getValidExplicitRole(value) {
 	return null
 }
 
-export function getRole(element) {
+export function getRole(element: Element) {
 	// Elements with explicitly-set rolees
 	const rawRoleValue = element.getAttribute('role')
 	const explicitRole = rawRoleValue
@@ -164,7 +165,7 @@ export function getRole(element) {
 	return { hasExplicitRole, role }
 }
 
-export function getARIAProvidedLabel(doc, element) {
+export function getARIAProvidedLabel(doc: Document, element: Element) {
 	let label = null
 
 	// TODO general whitespace test?
@@ -173,6 +174,8 @@ export function getARIAProvidedLabel(doc, element) {
 	if (idRefs !== null && idRefs.length > 0) {
 		const innerTexts = Array.from(idRefs.split(' '), idRef => {
 			const labelElement = doc.getElementById(idRef)
+			// TODO: don't call func if no element?
+			// TODO: if no element, add a warning?
 			return getInnerText(labelElement)
 		})
 		label = innerTexts.join(' ')
@@ -185,7 +188,8 @@ export function getARIAProvidedLabel(doc, element) {
 	return label
 }
 
-export function getInnerText(element) {
+// TODO: don't accept null elements here
+export function getInnerText(element: HTMLElement | null) {
 	let text = null
 
 	if (element) {
@@ -198,7 +202,7 @@ export function getInnerText(element) {
 	return text
 }
 
-export function isLandmark(role, explicitRole, label) {
+export function isLandmark(role: string, explicitRole: boolean, label: string | null) {
 	// <section> and <form> are only landmarks when labelled.
 	// <div role="form"> is always a landmark.
 	if (role === 'region' || (role === 'form' && !explicitRole)) {
@@ -207,16 +211,17 @@ export function isLandmark(role, explicitRole, label) {
 	return true  // already a valid role if we were called
 }
 
-export function getRoleDescription(element) {
+// NOTE: To please TS, added the !roleDescription check. Perf?
+export function getRoleDescription(element: Element) {
 	const roleDescription = element.getAttribute('aria-roledescription')
 	// TODO make this a general whitespace check?
-	if (/^\s*$/.test(roleDescription)) {
+	if (!roleDescription || /^\s*$/.test(roleDescription)) {
 		return null
 	}
 	return roleDescription
 }
 
-export function createSelector(element) {
+export function createSelector(element: Element) {
 	const reversePath = []
 	let node = element
 
@@ -234,6 +239,7 @@ export function createSelector(element) {
 			// we'll need to include an nth-child bit on the end of the
 			// selector part for this element.
 			const siblingElementTagNames =
+				// @ts-ignore TODO
 				Array.from(node.parentNode.children, x => x.tagName)
 			const uniqueSiblingElementTagNames =
 				[...new Set(siblingElementTagNames)]  // Array API is neater
@@ -250,6 +256,7 @@ export function createSelector(element) {
 				> uniqueSiblingElementTagNames.length) {
 				const siblingNumber =
 					Array.prototype.indexOf.call(
+						// @ts-ignore TODO
 						node.parentNode.children, node) + 1
 
 				description += ':nth-child(' + siblingNumber + ')'
@@ -258,6 +265,7 @@ export function createSelector(element) {
 
 		reversePath.push(description)
 		if (id) break
+		// @ts-ignore TODO
 		node = node.parentNode
 	}
 

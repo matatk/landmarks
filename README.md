@@ -64,6 +64,8 @@ You can build and run the current code locally as follows.
 
 3.  Run the tests and build script to create versions of the extension for all browsers with `npm run build:all`.
 
+    *Note:* You need to run `scripts/generate-valid-elements.ts` first, and whenever the source code changes. This checks the static HTML for various `id`s that the code refers to, and tells TypeScript that they exist. Some `id`s are computed dynamically, though, and can't currently be checked. This step will eventually be integrated into the build process.
+
     The built versions of the extension are placed in `build/<browser>/` directories and ZIP files for each will be created in the root of the checked-out repository.
 
 4.  To load and use the extension locally in your browser...

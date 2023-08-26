@@ -2,32 +2,52 @@
 // User preferences
 //
 
-export const defaultBorderSettings = /* #__PURE__ */Object.freeze({
+interface BorderSettings {
+	borderType: 'momentary' | 'persistent' | 'none'
+	borderColour: string
+	borderFontSize: string
+}
+
+export const defaultBorderSettings: BorderSettings = {
 	borderType: 'momentary',
 	borderColour: '#ff2f92',
 	borderFontSize: '16'
-})
+} as const
 
-export const defaultInterfaceSettings =
+interface InterfaceSettings {
+	interface: 'popup' | 'sidebar'
+}
+
+export const defaultInterfaceSettings: InterfaceSettings | null =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
-		? /* #__PURE__ */Object.freeze({ interface: 'popup' })
+		? { interface: 'popup' } as const
 		: null
 
-export const defaultFunctionalSettings = /* #__PURE__ */Object.freeze({
+interface FunctionalitySettings {
+	guessLandmarks: boolean,
+	closePopupOnActivate: boolean,
+	handleMutationsViaTree: boolean
+}
+
+export const defaultFunctionalSettings: FunctionalitySettings = {
 	guessLandmarks: true,
 	closePopupOnActivate: false,
 	handleMutationsViaTree: false
-})
+}
 
-export const defaultSettings =
+type Settings =
+	BorderSettings & InterfaceSettings & FunctionalitySettings |
+	BorderSettings & FunctionalitySettings
+
+export const defaultSettings: Settings =
 	(BROWSER === 'firefox' || BROWSER === 'opera')
-		? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
+		? Object.assign({},
 			defaultBorderSettings,
 			defaultInterfaceSettings,
-			defaultFunctionalSettings))
-		: /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
+			defaultFunctionalSettings)
+		: Object.assign({},
 			defaultBorderSettings,
-			defaultFunctionalSettings))
+			defaultFunctionalSettings)
 
 
 //

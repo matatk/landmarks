@@ -1,3 +1,4 @@
 build/
 _site/
 scripts/profile-cache/wrappedLandmarksFinder*.js
+src/code/*.js

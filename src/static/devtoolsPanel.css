@@ -1,15 +1,3 @@
-@-moz-document url-prefix("") {
-	/* Hacks for Firefox */
-
-	/* The font is not resizable on Firefox—whilst the text size on other
-	   panels does grow when zooming, I've never managed to make this work
-	   here. Not sure if it's me or Firefox's in-built CSS.
-
-	   Refs: <https://stackoverflow.com/q/27273389/1485308> and
-	   <https://bugzilla.mozilla.org/show_bug.cgi?id=1319367> */
-	html { font-size: 12px; }
-}
-
 :root {
 	--text: black;
 	--bkg: white;

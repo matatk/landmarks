@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// FIXME: When linting, use recommended-type-checked for TypeScript stuff after sorting out messages.
 import path from 'path'
 import fs from 'fs'
 
@@ -7,13 +8,13 @@ import chalk from 'chalk'
 import dependencyTree from 'dependency-tree'
 import prettier from 'rollup-plugin-prettier'
 import fse from 'fs-extra'
-import glob from 'glob'
+import { glob } from 'glob'
 import merge from 'deepmerge'
-import replace from 'replace-in-file'
+import { replaceInFileSync } from 'replace-in-file'
 import { rollup } from 'rollup'
 import sharp from 'sharp'
 import strip from '@rollup/plugin-strip'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import linter from 'addons-linter'
@@ -115,7 +116,7 @@ function logStep(name) {
 
 function doReplace(files, from, to, message) {
 	try {
-		const results = replace.sync({
+		const results = replaceInFileSync({
 			'files': files,
 			'from': from,
 			'to': to
@@ -327,11 +328,16 @@ async function bundleCode(browser, debug) {
 	// Run each bundle we need to make through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
-		const bundle = await rollup(options.input)
-		await bundle.write(options.output)
-		const basename = path.basename(options.output.file)
-		const builtScript = path.join(pathToBuild(browser), basename)
-		fs.copyFileSync(options.output.file, builtScript)
+		try {
+			const bundle = await rollup(options.input)
+			await bundle.write(options.output)
+			const basename = path.basename(options.output.file)
+			const builtScript = path.join(pathToBuild(browser), basename)
+			fs.copyFileSync(options.output.file, builtScript)
+		} catch(err) {
+			console.error(err)
+			process.exit(42)
+		}
 	}
 }
 

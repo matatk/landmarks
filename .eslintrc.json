@@ -1,12 +1,13 @@
 {
   "extends": "eslint:recommended",
   "env": {
-    "browser": true,
+    "browser": false,
     "es6": true,
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2020
+    "ecmaVersion": 2022,
+    "project": true
   },
   "reportUnusedDisableDirectives": true,
   "root": true,
@@ -15,39 +16,43 @@
       "files": [
         "scripts/*.js",
         "scripts/profile-lib/*.js",
-        "src/assemble/*.js",
-        "src/code/*.js",
         "test/test*.js"
       ],
       "parserOptions": {
         "sourceType": "module"
+      },
+      "env": {
+        "browser": true,
+        "node": true
       }
     },
     {
-      "files": ["src/**/*.js"],
+      "files": ["src/static/*.js"],
+      "globals": {
+        "browser": "readonly"
+      },
       "env": {
         "browser": true,
         "node": false
       }
     },
     {
-      "files": ["src/code/*.js", "src/static/*.js"],
-      "globals": {
-        "browser": "readonly"
-      }
-    },
-    {
-      "files": ["src/assemble/*.js"],
-      "globals": {
-        "MODE": "readonly"
-      }
-    },
-    {
-      "files": ["src/code/*.js"],
-      "globals": {
-        "BROWSER": "readonly",
-        "INTERFACE": "readonly",
-        "DEBUG": "readonly"
+      "files": "src/code/*.ts",
+      "parser": "@typescript-eslint/parser",
+      "extends": [
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/stylistic-type-checked",
+        "plugin:compat/recommended"
+      ],
+      "env": {
+        "browser": true,
+        "node": false
+      },
+      "rules": {
+        "no-undef": "off",
+        "compat/compat": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/no-unused-vars": "warn"
       }
     }
   ],
