@@ -28,6 +28,10 @@ const options = [{
 	name: 'closePopupOnActivate',
 	kind: 'boolean',
 	element: document.getElementById('close-popup-on-activate')
+}, {
+	name: 'handleMutationsViaTree',
+	kind: 'boolean',
+	element: document.getElementById('handle-mutations-via-tree')
 }]
 
 function restoreOptions() {

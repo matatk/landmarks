@@ -107,13 +107,11 @@ export function mutationSetup(useHeuristics) {
 
 	function startObserving() {
 		// TODO: DRY with content script
-		// FIXME: doesn't include roledescription
 		observer.observe(document, {
 			attributes: true,
 			childList: true,
 			subtree: true,
 			attributeFilter: [
-				// FIXME REALLY DRY
 				// handled by always recomputing label 'aria-label',
 				// handled by always recomputing label 'aria-labelledby',
 				'aria-roledescription',

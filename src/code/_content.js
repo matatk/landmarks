@@ -22,6 +22,8 @@ const highlightLastTouchTimes = new Map()
 const highlightTimeouts = new Map()
 const LIMITER = 350
 
+let handleMutationsViaTree = null
+
 
 //
 // Extension message management
@@ -310,7 +312,6 @@ function createMutationObserver() {
 }
 
 function observeMutations() {
-	// TODO: DRY with profile (timing) script
 	// FIXME: doesn't include roledescription
 	observer.observe(document, {
 		attributes: true,
@@ -318,6 +319,24 @@ function observeMutations() {
 		subtree: true,
 		attributeFilter: [
 			'class', 'style', 'hidden', 'role', 'aria-labelledby', 'aria-label'
+		]
+	})
+}
+
+function observeMutationsAndHandleViaTree() {
+	// TODO: DRY with profile (timing) script
+	observer.observe(document, {
+		attributes: true,
+		childList: true,
+		subtree: true,
+		attributeFilter: [
+			// handled by always recomputing label 'aria-label',
+			// handled by always recomputing label 'aria-labelledby',
+			'aria-roledescription',
+			'class',
+			'hidden',
+			'role',
+			'style'
 		]
 	})
 }
@@ -376,6 +395,11 @@ function startUpTasks() {
 				findLandmarks(noop, noop)
 			}
 		}
+
+		if ('handleMutationsViaTree' in changes) {
+			handleMutationsViaTree = changes.handleMutationsViaTree.newValue
+			debugSend(`handle mutation via tree: ${handleMutationsViaTree}`)
+		}
 	})
 
 	createMutationObserver()
@@ -393,5 +417,7 @@ function startUpTasks() {
 debugSend(`starting - ${window.location}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 	landmarksFinder.useHeuristics(items.guessLandmarks)
+	handleMutationsViaTree = items.handleMutationsViaTree
+	debugSend(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)
 	startUpTasks()
 })
