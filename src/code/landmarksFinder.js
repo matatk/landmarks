@@ -8,7 +8,7 @@ import {
 	isLandmark,
 	getRoleDescription,
 	createSelector,
-    getRole
+	getRole
 } from './landmarksFinderDOMUtils.js'
 
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
@@ -418,9 +418,12 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 		// FIXME: what happens if we didn't process anything, to the selector
 		//        update thing? I think it is still working right becuase the
 		//        tests got faster...
-		// FIXME: used to only do this if we processed some stuff, but if a labelleing element was removed or modified, we need to do it anyway...
-		// if (processed) regenerateListIndicesSelectors()
-		regenerateListIndicesSelectors()
+		if (processed) {
+			regenerateListIndicesSelectors()
+		} else {
+			// FIXME: used to only do this if we processed some stuff, but if a labelleing element was removed or modified, we need to do it anyway...
+			regenerateListIndicesSelectors()
+		}
 	}
 
 	function handleChildListMutationRemove(removedNodes) {
@@ -601,7 +604,7 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 			const index = foundLandmarkElementIndex(mutation.target)
 			if (index !== null) {
 				switch (mutation.attributeName) {
-					case 'role':
+					case 'role': {
 						const { hasExplicitRole, role } = getRole(mutation.target)
 						if (isLandmark(role, hasExplicitRole, landmarksList[index].label)) {
 							landmarksList[index].role = role
@@ -609,9 +612,10 @@ export default function LandmarksFinder(win, _useHeuristics, _useDevMode) {
 							landmarksList[index].debug = mutation.target.tagName + '(' + role + ')'
 						} else {
 							// FIXME: remove landmark
-							throw Error("Remove landmark (but not its children)")
+							throw Error('Remove landmark (but not its children)')
 						}
 						break
+					}
 					case 'aria-roledescription':
 						landmarksList[index].roleDescription = mutation.target.getAttribute('aria-roledescription')
 						break
