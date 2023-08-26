@@ -120,6 +120,14 @@
     "message": "Instead of having to manually close the pop-up before continuing to navigate the page, turning this on closes the pop-up automatically."
   },
 
+  "prefsHandleMutationsViaTree": {
+    "message": "Handle mutations via tree (experimental)"
+  },
+
+  "prefsHandleMutationsViaTreeInfo": {
+    "message": "Try out the under-development new way of handling changes on the page: changes are handled more efficiently, without a full-page scan, as soon as they arise. Eventually this will become the default, but only after the performance is tuned. It's likely that a back-off will be introduced, as with the current method of handling changes to the page."
+  },
+
   "prefsHeadingReset": {
     "message": "Resetting stuff"
   },
