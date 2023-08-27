@@ -1,34 +1,39 @@
 import { defaultBorderSettings } from './defaults.js'
 import type BorderDrawer from './borderDrawer.js'
 
-export default function ElementFocuser(doc: Document, borderDrawer: typeof BorderDrawer) {
-	const momentaryBorderTime = 2000
+const momentaryBorderTime = 2000
 
-	let borderType = defaultBorderSettings.borderType  // cached for simplicity
-	let managingBorders = true  // draw and remove borders by default
+export default class ElementFocuser {
+	borderType = defaultBorderSettings.borderType  // cached for simplicity
+	managingBorders = true  // draw and remove borders by default
 
-	let currentElementInfo = null
-	let borderRemovalTimer = null
+	currentElementInfo: object | null = null
+	borderRemovalTimer: number | null = null
 
+	borderDrawer: BorderDrawer
 
-	//
-	// Options handling
-	//
+	constructor(borderDrawer: BorderDrawer) {
+		this.borderDrawer = borderDrawer
 
-	// Take a local copy of the border type option at the start (this means
-	// that 'gets' of options don't need to be done asynchronously in the rest
-	// of the code).
-	browser.storage.sync.get(defaultBorderSettings, function(items) {
-		borderType = items['borderType']
-	})
+		//
+		// Options handling
+		//
 
-	browser.storage.onChanged.addListener(function(changes) {
-		if ('borderType' in changes) {
-			borderType =
-				changes.borderType.newValue ?? defaultBorderSettings.borderType
-			borderTypeChange()
-		}
-	})
+		// Take a local copy of the border type option at the start (this means
+		// that 'gets' of options don't need to be done asynchronously in the rest
+		// of the code).
+		browser.storage.sync.get(defaultBorderSettings, items => {
+			this.borderType = items['borderType']
+		})
+
+		browser.storage.onChanged.addListener(changes => {
+			if ('borderType' in changes) {
+				this.borderType =
+					changes.borderType.newValue ?? defaultBorderSettings.borderType
+				this.#borderTypeChange()
+			}
+		})
+	}
 
 
 	//
@@ -41,8 +46,8 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	this.focusElement = function(elementInfo) {
-		if (managingBorders) this.clear()
+	focusElement(elementInfo) {
+		if (this.managingBorders) this.clear()
 
 		// Ensure that the element is focusable
 		const originalTabindex = elementInfo.element.getAttribute('tabindex')
@@ -54,13 +59,13 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 		elementInfo.element.focus()
 
 		// Add the border and set a timer to remove it (if required by user)
-		if (managingBorders && borderType !== 'none') {
-			borderDrawer.addBorder(elementInfo)
+		if (this.managingBorders && this.borderType !== 'none') {
+			this.borderDrawer.addBorder(elementInfo)
 
-			if (borderType === 'momentary') {
-				clearTimeout(borderRemovalTimer)
-				borderRemovalTimer = setTimeout(function() {
-					borderDrawer.removeBorderOn(currentElementInfo.element)
+			if (this.borderType === 'momentary') {
+				clearTimeout(this.borderRemovalTimer)
+				this.borderRemovalTimer = setTimeout(() => {
+					this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
 				}, momentaryBorderTime)
 			}
 		}
@@ -72,7 +77,7 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 			elementInfo.element.setAttribute('tabindex', '0')
 		}
 
-		currentElementInfo = elementInfo
+		this.currentElementInfo = elementInfo
 	}
 
 	// By default, this object will ask for borders to be drawn and removed
@@ -80,24 +85,24 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 	// it shouldn't (i.e. because all borders are being shown, and managed by
 	// other code) then this can be turned off - though it will still manage
 	// element focusing.
-	this.manageBorders = function(canManageBorders) {
-		managingBorders = canManageBorders
+	manageBorders(canManageBorders: boolean) {
+		this.managingBorders = canManageBorders
 		if (!canManageBorders) {
-			clearTimeout(borderRemovalTimer)
-		} else if (borderType === 'persistent') {
+			clearTimeout(this.borderRemovalTimer)
+		} else if (this.borderType === 'persistent') {
 			// When we stop showing all landmarks at once, ensure the last
 			// single one is put back if it was permanent.
-			borderDrawer.addBorder(currentElementInfo)
+			this.borderDrawer.addBorder(this.currentElementInfo)
 		}
 	}
 
-	this.isManagingBorders = function() {
-		return managingBorders
+	isManagingBorders() {
+		return this.managingBorders
 	}
 
-	this.clear = function() {
-		if (currentElementInfo) {
-			resetEverything()
+	clear() {
+		if (this.currentElementInfo) {
+			this.#resetEverything()
 		}
 	}
 
@@ -106,10 +111,10 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 	// Note: this doesn't call the border drawer to refresh all borders, as
 	//       this object is mainly concerned with just the current one, but
 	//       after a mutation, any borders that are drawn should be refreshed.
-	this.refreshFocusedElement = function() {
-		if (currentElementInfo) {
-			if (!doc.body.contains(currentElementInfo.element)) {
-				resetEverything()
+	refreshFocusedElement() {
+		if (this.currentElementInfo) {
+			if (!document.body.contains(this.currentElementInfo.element)) {
+				this.#resetEverything()
 			}
 		}
 	}
@@ -120,19 +125,19 @@ export default function ElementFocuser(doc: Document, borderDrawer: typeof Borde
 	//
 
 	// Used internally when we know we have a currently selected element
-	function resetEverything() {
-		clearTimeout(borderRemovalTimer)
-		borderDrawer.removeBorderOn(currentElementInfo.element)
-		currentElementInfo = null
+	#resetEverything() {
+		clearTimeout(this.borderRemovalTimer)
+		this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
+		this.currentElementInfo = null
 	}
 
 	// Should a border be added/removed?
-	function borderTypeChange() {
-		if (currentElementInfo && managingBorders) {
-			if (borderType === 'persistent') {
-				borderDrawer.addBorder(currentElementInfo)
+	#borderTypeChange() {
+		if (this.currentElementInfo && this.managingBorders) {
+			if (this.borderType === 'persistent') {
+				this.borderDrawer.addBorder(this.currentElementInfo)
 			} else {
-				borderDrawer.removeBorderOn(currentElementInfo.element)
+				this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
 			}
 		}
 	}

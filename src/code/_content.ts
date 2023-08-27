@@ -1,3 +1,4 @@
+// FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
 import './compatibility'
 import LandmarksFinder from './landmarksFinder.js'
 import ElementFocuser from './elementFocuser.js'
@@ -9,8 +10,8 @@ import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
 const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
-const borderDrawer = new BorderDrawer(window, document, contrastChecker)
-const elementFocuser = new ElementFocuser(document, borderDrawer)
+const borderDrawer = new BorderDrawer(contrastChecker)
+const elementFocuser = new ElementFocuser(borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler((pause: number) => msr.setPauseTime(pause))
 const noop = () => {}

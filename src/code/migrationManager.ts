@@ -1,5 +1,5 @@
 type Settings = {
-	[key: string]: any
+	[key: string]: string | number | undefined
 	version?: number
 }
 
@@ -7,7 +7,6 @@ type Migrations = {
 	[key: number]: (settings: Settings) => void
 }
 
-/* eslint-disable no-prototype-builtins */
 export default class MigrationManager {
 	#migrations: Migrations
 

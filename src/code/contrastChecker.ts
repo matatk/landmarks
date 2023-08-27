@@ -20,13 +20,13 @@ export default class ContrastChecker {
 	}
 }
 
-const channelStringPositions = { r: 1, g: 3, b: 5 } as const
+const channelStringPositions = { r: 1, g: 3, b: 5 }
 
 type RGB = typeof channelStringPositions
 
 function hexToRGB(hex: string) {
-	const rgb = {}
-	for (const channel in channelStringPositions) {
+	const rgb: RGB = { r: 0, g: 0, b: 0 }
+	for (const channel of Object.keys(channelStringPositions) as Array<keyof typeof channelStringPositions>) {
 		const chanHex = hex.substr(channelStringPositions[channel], 2)
 		rgb[channel] = parseInt('0x' + chanHex)
 	}
@@ -34,7 +34,7 @@ function hexToRGB(hex: string) {
 	return rgb
 }
 
-function sRGB(rgb) {
+function sRGB(rgb: RGB) {
 	return {
 		r: rgb.r / 255,
 		g: rgb.g / 255,
@@ -42,10 +42,10 @@ function sRGB(rgb) {
 	}
 }
 
-function transmogrify(sRGB: RGB): RGB {
-	const transmogrified = {}
+function transmogrify(sRGB: RGB) {
+	const transmogrified: RGB = { r: 0, g: 0, b: 0 }
 
-	for (const channel in sRGB) {
+	for (const channel of Object.keys(sRGB) as Array<keyof typeof sRGB>) {
 		if (sRGB[channel] <= 0.03928) {
 			transmogrified[channel] = sRGB[channel] / 12.92
 		} else {

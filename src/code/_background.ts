@@ -50,7 +50,7 @@ function setBrowserActionState(tabId: number, url: string) {
 	}
 }
 
-function sendToDevToolsForTab(tabId: number, message: any) {
+function sendToDevToolsForTab(tabId: number, message: object) {
 	if (devtoolsConnections.hasOwnProperty(tabId)) {
 		devtoolsConnections[tabId].postMessage(message)
 	}

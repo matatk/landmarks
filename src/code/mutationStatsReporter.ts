@@ -33,6 +33,7 @@ export default class MutationStatsReporter {
 			this.checkedLimitSecondAverages.push(0)
 		}
 
+		// FIXME: try bind?
 		setInterval(() => this.#updateLastTen(), 1e3)
 	}
 

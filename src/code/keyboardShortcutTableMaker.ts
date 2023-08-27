@@ -40,12 +40,13 @@ function makeHTML(structure: StructuralElement, root: HTMLElement) {
 				case 'content':
 					newElement.appendChild(document.createTextNode(structure[key] as keyof typeof structure))
 					break
-				case 'contains':
+				case 'contains': {
 					const container = structure[key] ?? []
 					for (const contained of container) {
 						makeHTML(contained, newElement ? newElement : root)
 					}
 					break
+				}
 				default:
 					throw Error(`Unexpected structure key "${key}" encountered.`)
 			}
@@ -64,7 +65,7 @@ function addCommandRowAndReportIfMissing(command: chrome.commands.Command) {
 		: command.description
 
 	// Work out the command's shortcut
-	let shortcutCellElement: StructuralElement = { kind: 'element', element: 'td' }
+	const shortcutCellElement: StructuralElement = { kind: 'element', element: 'td' }
 
 	if (command.shortcut) {
 		// Firefox gives "Alt+Shift+N" but Chrome (& Opera & Edge) gives ⌥⇧N

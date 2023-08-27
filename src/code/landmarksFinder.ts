@@ -340,7 +340,6 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		const filteredLevel = []
 
 		for (const entry of subtree) {  // TODO: perf?
-			// eslint-disable-next-line no-unused-vars
 			const { contains, element, previous, next, debug, level, selectorWasUpdated, ...info } = entry
 			const filteredEntry = { ...info }
 
@@ -712,7 +711,6 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 	let debugTreeString = '\n'
 
-	// eslint-disable-next-line no-unused-vars
 	function debugTree() {
 		debugTreeCore(landmarksTree, 0)
 		console.log(debugTreeString)
@@ -726,7 +724,6 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	}
 
 	function infoString(entry) {
-		// eslint-disable-next-line no-unused-vars
 		const { previous, next, element, contains, level, ...info } = entry
 		return JSON.stringify(info, null, 2)
 	}
@@ -736,109 +733,117 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Public API
 	//
 
-	this.find = find
-	this.getNumberOfLandmarks = () => landmarksList.length
+	return {
+		find: find,
 
-	// This includes the selector, warnings, everything except the element.
-	// Used by the UI.
-	// FIXME: actually only used by debugging stuff, which needs to use tree instead...
-	this.allInfos = function() {
-		if (!cachedAllInfos) {
-			cachedAllInfos = landmarksList.map(entry => {
-				// eslint-disable-next-line no-unused-vars
-				const { element, contains, previous, next, level, ...info } = entry
-				return info
-			})
-		}
-		return cachedAllInfos
-	}
+		getNumberOfLandmarks: () => landmarksList.length,
 
-	// As above, but also including the element. Used by the borderDrawer.
-	this.allElementsInfos = function() {
-		if (!cachedAllElementInfos) {
-			cachedAllElementInfos = landmarksList.map(entry => {
-				// eslint-disable-next-line no-unused-vars
-				const { contains, previous, next, level, ...info } = entry
-				return info
-			})
-		}
-		return cachedAllElementInfos
-	}
-
-	// Just the tree structure, in serialisable form
-	this.tree = function() {
-		if (!cachedFilteredTree) {
-			cachedFilteredTree = filterTree(landmarksTree)
-		}
-		return cachedFilteredTree
-	}
-
-	this.pageResults = function() {
-		return useDevMode ? _pageWarnings : null
-	}
-
-	// These all return elements and their related info
-
-	this.getNextLandmarkElementInfo = function() {
-		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const index = getIndexOfLandmarkAfter(doc.activeElement)
-			if (index !== null) {
-				return updateSelectedAndReturnElementInfo(index)
+		// This includes the selector, warnings, everything except the element.
+		// Used by the UI.
+		// FIXME: actually only used by debugging stuff, which needs to use tree instead...
+		allInfos: function() {
+			if (!cachedAllInfos) {
+				cachedAllInfos = landmarksList.map(entry => {
+					const { element, contains, previous, next, level, ...info } = entry
+					return info
+				})
 			}
-		}
-		return updateSelectedAndReturnElementInfo(
-			(currentlySelectedIndex + 1) % landmarksList.length)
-	}
+			return cachedAllInfos
+		},
 
-	this.getPreviousLandmarkElementInfo = function() {
-		if (doc.activeElement !== null && doc.activeElement !== doc.body) {
-			const index = getIndexOfLandmarkBefore(doc.activeElement)
-			if (index !== null) {
-				return updateSelectedAndReturnElementInfo(index)
+		// As above, but also including the element. Used by the borderDrawer.
+		allElementsInfos: function() {
+			if (!cachedAllElementInfos) {
+				cachedAllElementInfos = landmarksList.map(entry => {
+					const { contains, previous, next, level, ...info } = entry
+					return info
+				})
 			}
+			return cachedAllElementInfos
+		},
+
+		// Just the tree structure, in serialisable form
+		tree: function() {
+			if (!cachedFilteredTree) {
+				cachedFilteredTree = filterTree(landmarksTree)
+			}
+			return cachedFilteredTree
+		},
+
+		pageResults: function() {
+			return useDevMode ? _pageWarnings : null
+		},
+
+		// These all return elements and their related info
+
+		getNextLandmarkElementInfo: function() {
+			if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+				const index = getIndexOfLandmarkAfter(doc.activeElement)
+				if (index !== null) {
+					return updateSelectedAndReturnElementInfo(index)
+				}
+			}
+			return updateSelectedAndReturnElementInfo(
+				(currentlySelectedIndex + 1) % landmarksList.length)
+		},
+
+		getPreviousLandmarkElementInfo: function() {
+			if (doc.activeElement !== null && doc.activeElement !== doc.body) {
+				const index = getIndexOfLandmarkBefore(doc.activeElement)
+				if (index !== null) {
+					return updateSelectedAndReturnElementInfo(index)
+				}
+			}
+			return updateSelectedAndReturnElementInfo(
+				(currentlySelectedIndex <= 0) ?
+					landmarksList.length - 1 : currentlySelectedIndex - 1)
+		},
+
+		getLandmarkElementInfo: function(index) {
+			return updateSelectedAndReturnElementInfo(index)
+		},
+
+		// If pages are naughty and have more than one 'main' region, we cycle
+		// betwixt them.
+		getMainElementInfo: function() {
+			if (mainElementIndices.length > 0) {
+				mainIndexPointer =
+					(mainIndexPointer + 1) % mainElementIndices.length
+				const mainElementIndex = mainElementIndices[mainIndexPointer]
+				return updateSelectedAndReturnElementInfo(mainElementIndex)
+			}
+			return null
+		},
+
+		useHeuristics: function(use) {
+			checkBoolean(useHeuristics, use)
+			useHeuristics = use
+		},
+
+		useDevMode: function(use) {
+			checkBoolean(useDevMode, use)
+			useDevMode = use
+		},
+
+		getCurrentlySelectedIndex: function() {
+			return currentlySelectedIndex
+		},
+
+		// TODO: Rename this and the above
+		getLandmarkElementInfoWithoutUpdatingIndex: function(index) {
+			return landmarksList[index]
+		},
+
+		handleMutations: handleMutations,
+
+		debugHandleMutations: debugWrap(handleMutations),
+
+		debugMutationHandlingTimes: function() {
+			return debugMutationHandlingTimes
+		},
+
+		clearDebugMutationHandlingTimes: function() {
+			debugMutationHandlingTimes = []
 		}
-		return updateSelectedAndReturnElementInfo(
-			(currentlySelectedIndex <= 0) ?
-				landmarksList.length - 1 : currentlySelectedIndex - 1)
 	}
-
-	this.getLandmarkElementInfo = function(index) {
-		return updateSelectedAndReturnElementInfo(index)
-	}
-
-	// If pages are naughty and have more than one 'main' region, we cycle
-	// betwixt them.
-	this.getMainElementInfo = function() {
-		if (mainElementIndices.length > 0) {
-			mainIndexPointer =
-				(mainIndexPointer + 1) % mainElementIndices.length
-			const mainElementIndex = mainElementIndices[mainIndexPointer]
-			return updateSelectedAndReturnElementInfo(mainElementIndex)
-		}
-		return null
-	}
-
-	this.useHeuristics = function(use) {
-		checkBoolean(useHeuristics, use)
-		useHeuristics = use
-	}
-
-	this.useDevMode = function(use) {
-		checkBoolean(useDevMode, use)
-		useDevMode = use
-	}
-
-	this.getCurrentlySelectedIndex = function() {
-		return currentlySelectedIndex
-	}
-
-	// TODO: Rename this and the above
-	this.getLandmarkElementInfoWithoutUpdatingIndex = function(index) {
-		return landmarksList[index]
-	}
-
-	this.handleMutations = handleMutations
-	this.debugHandleMutations = debugWrap(handleMutations)
-	this.debugMutationHandlingTimes = () => debugMutationHandlingTimes
-	this.clearDebugMutationHandlingTimes = () => debugMutationHandlingTimes = []
 }

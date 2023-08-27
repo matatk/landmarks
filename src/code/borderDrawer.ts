@@ -2,62 +2,68 @@ import landmarkName from './landmarkName.js'
 import { defaultBorderSettings } from './defaults.js'
 import type ContrastChecker from './contrastChecker.js'
 
-export default function BorderDrawer(win: Window, doc: Document, contrastChecker: ContrastChecker) {
-	const borderWidthPx = 4
+const borderWidthPx = 4
 
-	const borderedElements = new Map()
-	let borderColour = defaultBorderSettings.borderColour      // cached locally
-	let borderFontSize = defaultBorderSettings.borderFontSize  // cached locally
-	let labelFontColour = null  // computed based on border colour
-	let madeDOMChanges = false
+export default class BorderDrawer {
+	borderedElements = new Map()
+	borderColour = defaultBorderSettings.borderColour      // cached locally
+	borderFontSize = defaultBorderSettings.borderFontSize  // cached locally
+	labelFontColour = null  // computed based on border colour
+	madeDOMChanges = false
+	contrastChecker: ContrastChecker
 
+	constructor(contrastChecker: ContrastChecker) {
+		this.contrastChecker = contrastChecker
+
+		// NOTE: Needed for when other code asks if we made changes
+		this.hasMadeDOMChanges = this.hasMadeDOMChanges.bind(this)
+
+		window.addEventListener('resize', this.#resizeHandler.bind(this))
+
+		//
+		// Options handling
+		//
+
+		// Take a local copy of relevant options at the start (this means that
+		// 'gets' of options don't need to be done asynchronously in the rest of
+		// the code). This also computes the initial label font colour (as it
+		// depends on the border colour, which forms the label's background).
+		browser.storage.sync.get(defaultBorderSettings, items => {
+			this.borderColour = items['borderColour']
+			this.borderFontSize = items['borderFontSize']
+			this.#updateLabelFontColour()
+		})
+
+		browser.storage.onChanged.addListener(changes => {
+			let needUpdate = false
+			if ('borderColour' in changes) {
+				this.borderColour = changes.borderColour.newValue
+				needUpdate = true
+			}
+			if ('borderFontSize' in changes) {
+				this.borderFontSize = changes.borderFontSize.newValue
+				needUpdate = true
+			}
+			if (needUpdate) {
+				this.#updateLabelFontColour()
+				this.#redrawBordersAndLabels()
+			}
+		})
+	}
 
 	//
 	// Window resize handling
 	//
 
-	function resizeHandler() {
-		for (const [element, related] of borderedElements) {
-			if (doc.body.contains(element)) {
-				sizeBorderAndLabel(element, related.border, related.label)
+	#resizeHandler() {
+		for (const [element, related] of this.borderedElements) {
+			if (document.body.contains(element)) {
+				this.#sizeBorderAndLabel(element, related.border, related.label)
 			} else {
-				removeBorderAndDelete(element)
+				this.#removeBorderAndDelete(element)
 			}
 		}
 	}
-
-	win.addEventListener('resize', resizeHandler)
-
-
-	//
-	// Options handling
-	//
-
-	// Take a local copy of relevant options at the start (this means that
-	// 'gets' of options don't need to be done asynchronously in the rest of
-	// the code). This also computes the initial label font colour (as it
-	// depends on the border colour, which forms the label's background).
-	browser.storage.sync.get(defaultBorderSettings, function(items) {
-		borderColour = items['borderColour']
-		borderFontSize = items['borderFontSize']
-		updateLabelFontColour()
-	})
-
-	browser.storage.onChanged.addListener(function(changes) {
-		let needUpdate = false
-		if ('borderColour' in changes) {
-			borderColour = changes.borderColour.newValue
-			needUpdate = true
-		}
-		if ('borderFontSize' in changes) {
-			borderFontSize = changes.borderFontSize.newValue
-			needUpdate = true
-		}
-		if (needUpdate) {
-			updateLabelFontColour()
-			redrawBordersAndLabels()
-		}
-	})
 
 
 	//
@@ -71,14 +77,14 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 	//       again (as may happen if the page changes whilst we're displaying
 	//       all elements, and try to add any new ones) that the existing
 	//       elements' labels won't have changed.
-	this.addBorder = function(elementInfo) {
-		if (!borderedElements.has(elementInfo.element)) {
-			drawBorderAndLabel(
+	addBorder(elementInfo) {
+		if (!this.borderedElements.has(elementInfo.element)) {
+			this.#drawBorderAndLabel(
 				elementInfo.element,
 				landmarkName(elementInfo),
-				borderColour,
-				labelFontColour,  // computed as a result of settings
-				borderFontSize,
+				this.borderColour,
+				this.labelFontColour,  // computed as a result of settings
+				this.borderFontSize,
 				elementInfo.guessed)
 		}
 	}
@@ -86,10 +92,10 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 	// Add the landmark border and label for several elements, and remove any
 	// borders associated with elements that currently have borders but aren't
 	// in this set. Takes an array of element info objects, as detailed above.
-	this.replaceCurrentBordersWithElements = function(elementInfoList) {
+	replaceCurrentBordersWithElements(elementInfoList) {
 		const elementsToAdd = elementInfoList.map(info => info.element)
 
-		for (const elementWithBorder of borderedElements.keys()) {
+		for (const elementWithBorder of this.borderedElements.keys()) {
 			if (!elementsToAdd.includes(elementWithBorder)) {
 				this.removeBorderOn(elementWithBorder)
 			}
@@ -100,29 +106,29 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 		}
 	}
 
-	this.removeBorderOn = function(element) {
-		if (borderedElements.has(element)) {
-			removeBorderAndDelete(element)
+	removeBorderOn(element) {
+		if (this.borderedElements.has(element)) {
+			this.#removeBorderAndDelete(element)
 		}
 	}
 
-	this.removeAllBorders = function() {
-		for (const element of borderedElements.keys()) {
-			removeBorderAndDelete(element)
+	removeAllBorders() {
+		for (const element of this.borderedElements.keys()) {
+			this.#removeBorderAndDelete(element)
 		}
 	}
 
 	// Did we just make changes to a border? If so, report this, so that the
 	// mutation observer can ignore it.
-	this.hasMadeDOMChanges = function() {
-		const didChanges = madeDOMChanges
-		madeDOMChanges = false
+	hasMadeDOMChanges() {
+		const didChanges = this.madeDOMChanges
+		this.madeDOMChanges = false
 		return didChanges
 	}
 
 	// In case it's detected that an element may've moved due to mutations
-	this.refreshBorders = function() {
-		resizeHandler()
+	refreshBorders() {
+		this.#resizeHandler()
 	}
 
 
@@ -132,13 +138,13 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it; position and style them appropriately
-	function drawBorderAndLabel(
+	#drawBorderAndLabel(
 		element, label, colour, fontColour, fontSize, guessed) {
 		const zIndex = 10000000
 
-		const labelContent = doc.createTextNode(label)
+		const labelContent = document.createTextNode(label)
 
-		const borderDiv = doc.createElement('div')
+		const borderDiv = document.createElement('div')
 		const style = guessed ? 'dashed' : 'solid'
 		borderDiv.style.border = borderWidthPx + 'px ' + style + ' ' + colour
 		borderDiv.style.boxSizing = 'border-box'
@@ -149,7 +155,7 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 		borderDiv.style.position = 'absolute'
 		borderDiv.style.zIndex = zIndex
 
-		const labelDiv = doc.createElement('div')
+		const labelDiv = document.createElement('div')
 		labelDiv.style.backgroundColor = colour
 		labelDiv.style.border = 'none'
 		labelDiv.style.boxSizing = 'border-box'
@@ -169,12 +175,12 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 
 		labelDiv.appendChild(labelContent)
 
-		doc.body.appendChild(borderDiv)
-		doc.body.appendChild(labelDiv)
-		madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
-		sizeBorderAndLabel(element, borderDiv, labelDiv)
+		document.body.appendChild(borderDiv)
+		document.body.appendChild(labelDiv)
+		this.madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
+		this.#sizeBorderAndLabel(element, borderDiv, labelDiv)
 
-		borderedElements.set(element, {
+		this.borderedElements.set(element, {
 			'border': borderDiv,
 			'label': labelDiv,
 			'guessed': guessed
@@ -184,12 +190,12 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 	// Given an element on the page and elements acting as the border and
 	// label, size the border, and position the label, appropriately for the
 	// element
-	function sizeBorderAndLabel(element, border, label) {
+	#sizeBorderAndLabel(element, border, label) {
 		const elementBounds = element.getBoundingClientRect()
-		const elementTopEdgeStyle = win.scrollY + elementBounds.top + 'px'
-		const elementLeftEdgeStyle = win.scrollX + elementBounds.left + 'px'
-		const elementRightEdgeStyle = doc.documentElement.clientWidth -
-			(win.scrollX + elementBounds.right) + 'px'
+		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
+		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
+		const elementRightEdgeStyle = document.documentElement.clientWidth -
+			(window.scrollX + elementBounds.right) + 'px'
 
 		border.style.left = elementLeftEdgeStyle
 		border.style.top = elementTopEdgeStyle
@@ -214,43 +220,43 @@ export default function BorderDrawer(win: Window, doc: Document, contrastChecker
 			label.style.left = elementLeftEdgeStyle
 		}
 
-		madeDOMChanges = true  // seems to be in the right place
+		this.madeDOMChanges = true  // seems to be in the right place
 	}
 
-	function removeBorderAndDelete(element) {
-		removeBorderAndLabelFor(element)
-		borderedElements.delete(element)
+	#removeBorderAndDelete(element) {
+		this.#removeBorderAndLabelFor(element)
+		this.borderedElements.delete(element)
 	}
 
 	// Remove known-existing DOM nodes for the border and label
 	// Note: does not remove the record of the element, so as to avoid an
 	//       infinite loop when redrawing borders.
 	//       TODO fix this with .keys()?
-	function removeBorderAndLabelFor(element) {
-		const related = borderedElements.get(element)
+	#removeBorderAndLabelFor(element) {
+		const related = this.borderedElements.get(element)
 		related.border.remove()
 		related.label.remove()
-		madeDOMChanges = true
+		this.madeDOMChanges = true
 	}
 
 	// Work out if the label font colour should be black or white
-	function updateLabelFontColour() {
-		labelFontColour = contrastChecker.foregroundTextColour(
-			borderColour,
-			borderFontSize,
+	#updateLabelFontColour() {
+		this.labelFontColour = this.contrastChecker.foregroundTextColour(
+			this.borderColour,
+			this.borderFontSize,
 			true)  // the font is always bold
 	}
 
-	function redrawBordersAndLabels() {
-		for (const [element, related] of borderedElements) {
+	#redrawBordersAndLabels() {
+		for (const [element, related] of this.borderedElements) {
 			const labelText = related.label.innerText
-			removeBorderAndLabelFor(element)
-			drawBorderAndLabel(
+			this.#removeBorderAndLabelFor(element)
+			this.#drawBorderAndLabel(
 				element,
 				labelText,
-				borderColour,
-				labelFontColour,  // computed as a result of settings
-				borderFontSize,
+				this.borderColour,
+				this.labelFontColour,  // computed as a result of settings
+				this.borderFontSize,
 				related.guessed)
 		}
 	}
