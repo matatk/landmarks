@@ -327,11 +327,16 @@ async function bundleCode(browser, debug) {
 	// Run each bundle we need to make through rollup, terser and esformatter.
 
 	for (const options of bundleOptions) {
-		const bundle = await rollup(options.input)
-		await bundle.write(options.output)
-		const basename = path.basename(options.output.file)
-		const builtScript = path.join(pathToBuild(browser), basename)
-		fs.copyFileSync(options.output.file, builtScript)
+		try {
+			const bundle = await rollup(options.input)
+			await bundle.write(options.output)
+			const basename = path.basename(options.output.file)
+			const builtScript = path.join(pathToBuild(browser), basename)
+			fs.copyFileSync(options.output.file, builtScript)
+		} catch(err) {
+			console.error(err)
+			process.exit(42)
+		}
 	}
 }
 
