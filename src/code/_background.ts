@@ -1,13 +1,13 @@
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import contentScriptInjector from './contentScriptInjector'
-import { isContentScriptablePage } from './isContent'
-import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults'
-import { withActiveTab, withAllTabs } from './withTabs'
-import MigrationManager from './migrationManager'
+import contentScriptInjector from './contentScriptInjector.js'
+import { isContentScriptablePage } from './isContent.js'
+import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults.js'
+import { withActiveTab, withAllTabs } from './withTabs.js'
+import MigrationManager from './migrationManager.js'
 
 const devtoolsConnections = {}
-const startupCode = []
+const startupCode: (() => void)[]  = []
 let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 
 
@@ -15,7 +15,7 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
-function debugLog(thing, sender) {
+function debugLog(thing: string | LandmarksMessage, sender?: chrome.runtime.MessageSender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
 		console.log('bkg:', thing)
@@ -41,7 +41,7 @@ function debugLog(thing, sender) {
 	}
 }
 
-function setBrowserActionState(tabId, url) {
+function setBrowserActionState(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		browser.browserAction.enable(tabId)
 	} else {
@@ -49,7 +49,7 @@ function setBrowserActionState(tabId, url) {
 	}
 }
 
-function sendToDevToolsForTab(tabId, message) {
+function sendToDevToolsForTab(tabId: number, message) {
 	if (devtoolsConnections.hasOwnProperty(tabId)) {
 		devtoolsConnections[tabId].postMessage(message)
 	}
@@ -60,11 +60,11 @@ function sendToDevToolsForTab(tabId, message) {
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab(id, message) {
+function wrappedSendToTab(id: number, message: LandmarksMessage) {
 	browser.tabs.sendMessage(id, message, () => browser.runtime.lastError)
 }
 
-function updateGUIs(tabId, url) {
+function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting info`)
 		wrappedSendToTab(tabId, { name: 'get-landmarks' })
@@ -85,10 +85,10 @@ function updateGUIs(tabId, url) {
 // Setting up and handling DevTools connections
 //
 
-function devtoolsListenerMaker(port) {
+function devtoolsListenerMaker(port: chrome.runtime.Port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
-	return function(message) {
+	return function(message: LandmarksMessage) {
 		debugLog(message)
 		switch (message.name) {
 			case 'init':
@@ -331,7 +331,7 @@ function openHelpPage(openInSameTab) {
 	}
 }
 
-browser.runtime.onMessage.addListener(function(message, sender) {
+browser.runtime.onMessage.addListener(function(message: LandmarksMessage, sender: chrome.runtime.MessageSender) {
 	debugLog(message, sender)
 	switch (message.name) {
 		// Content

@@ -1,24 +1,36 @@
+type Settings = {
+	[key: string]: any
+	version?: number
+}
+
+type Migrations = {
+	[key: number]: (settings: Settings) => void
+}
+
 /* eslint-disable no-prototype-builtins */
-export default function MigrationManager(migrations) {
-	function getVersion(settings) {
-		if (!settings.hasOwnProperty('version')) {
-			return 0
-		}
-		return settings.version
+export default class MigrationManager {
+	#migrations: Migrations
+
+	constructor(migrations: Migrations) {
+		this.#migrations = migrations
 	}
 
-	function isMigrationNeeded(startingVersion) {
-		return startingVersion < Number(Object.keys(migrations).pop())
+	#getVersion(settings: Settings) {
+		return settings.version ?? 0
 	}
 
-	this.migrate = function(settings) {
+	#isMigrationNeeded(startingVersion: number) {
+		return startingVersion < Number(Object.keys(this.#migrations).pop())
+	}
+
+	migrate(settings: Settings) {
 		if (Object.keys(settings).length === 0) return false
-		const startingVersion = getVersion(settings)
-		if (isMigrationNeeded(startingVersion)) {
-			for (const key in migrations) {
+		const startingVersion = this.#getVersion(settings)
+		if (this.#isMigrationNeeded(startingVersion)) {
+			for (const key in this.#migrations) {
 				const toVersion = Number(key)
 				if (toVersion > startingVersion) {
-					migrations[toVersion](settings)
+					this.#migrations[toVersion](settings)
 					settings.version = toVersion
 				}
 			}

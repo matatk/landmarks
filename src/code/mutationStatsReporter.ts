@@ -1,125 +1,125 @@
+const LIMIT = 10
+
 // TODO: make this like the mutation observer—disconnect when DevTools isn't
 //       open? (Would need to manage expectations in that case.)
-export default function MutationStatsReporter() {
-	let totalMutations = 0
-	let checkedMutations = 0
-	let mutationScans = 0
-	let nonMutationScans = 0
-	let pauseTime = null
-	let lastScanDuration = null
-	let numScanDurationReports = 0  // TODO: harmonise with content scr.
-	let averageScanDuration = 0
-	let prettyAverageScanDuration = 0
-	let quiet = true
+export default class MutationStatsReporter {
+	totalMutations = 0
+	checkedMutations = 0
+	mutationScans = 0
+	nonMutationScans = 0
+	pauseTime: number | null = null
+	lastScanDuration: number | null = null
+	numScanDurationReports = 0  // TODO: harmonise with content scr.
+	averageScanDuration = 0
+	prettyAverageScanDuration = '0'
+	quiet = true
 
-	const LIMIT = 10
+	mutationsPerSecond: number[] = []
+	mutationsLimitSecondAverages: number[] = []
+	mutationsInWindow = 0
+	mutationsLastSecondCount = 0
 
-	const mutationsPerSecond = []
-	const mutationsLimitSecondAverages = []
-	let mutationsInWindow = 0
-	let mutationsLastSecondCount = 0
+	checkedPerSecond: number[] = []
+	checkedLimitSecondAverages: number[] = []
+	checkedInWindow = 0
+	checkedLastSecondCount = 0
 
-	const checkedPerSecond = []
-	const checkedLimitSecondAverages = []
-	let checkedInWindow = 0
-	let checkedLastSecondCount = 0
+	constructor() {
+		for (let i = 0; i < LIMIT; i++) {
+			this.mutationsPerSecond.push(0)
+			this.mutationsLimitSecondAverages.push(0)
 
-	for (let i = 0; i < LIMIT; i++) {
-		mutationsPerSecond.push(0)
-		mutationsLimitSecondAverages.push(0)
+			this.checkedPerSecond.push(0)
+			this.checkedLimitSecondAverages.push(0)
+		}
 
-		checkedPerSecond.push(0)
-		checkedLimitSecondAverages.push(0)
+		setInterval(this.updateLastTen, 1e3)
 	}
 
-	function updateLastTen() {
-		// const start = performance.now()
-		mutationsInWindow -= mutationsPerSecond.shift()
-		mutationsInWindow += mutationsLastSecondCount
-		mutationsPerSecond.push(mutationsLastSecondCount)
-		mutationsLastSecondCount = 0
-		const mutationsAverage = mutationsInWindow / LIMIT
-		mutationsLimitSecondAverages.shift()
-		mutationsLimitSecondAverages.push(mutationsAverage)
+	updateLastTen() {
+		this.mutationsInWindow -= this.mutationsPerSecond.shift() ?? 0
+		this.mutationsInWindow += this.mutationsLastSecondCount
+		this.mutationsPerSecond.push(this.mutationsLastSecondCount)
+		this.mutationsLastSecondCount = 0
+		const mutationsAverage = this.mutationsInWindow / LIMIT
+		this.mutationsLimitSecondAverages.shift()
+		this.mutationsLimitSecondAverages.push(mutationsAverage)
 
-		checkedInWindow -= checkedPerSecond.shift()
-		checkedInWindow += checkedLastSecondCount
-		checkedPerSecond.push(checkedLastSecondCount)
-		checkedLastSecondCount = 0
-		const checkedAverage = checkedInWindow / LIMIT
-		checkedLimitSecondAverages.shift()
-		checkedLimitSecondAverages.push(checkedAverage)
+		this.checkedInWindow -= this.checkedPerSecond.shift() ?? 0
+		this.checkedInWindow += this.checkedLastSecondCount
+		this.checkedPerSecond.push(this.checkedLastSecondCount)
+		this.checkedLastSecondCount = 0
+		const checkedAverage = this.checkedInWindow / LIMIT
+		this.checkedLimitSecondAverages.shift()
+		this.checkedLimitSecondAverages.push(checkedAverage)
 
-		if (!quiet) {
+		if (!this.quiet) {
 			browser.runtime.sendMessage({
 				name: 'mutation-info-window', data: {
-					'mutations-per-second': mutationsPerSecond,
-					'average-mutations': mutationsLimitSecondAverages,
-					'checked-per-second': checkedPerSecond,
-					'average-checked': checkedLimitSecondAverages
+					'mutations-per-second': this.mutationsPerSecond,
+					'average-mutations': this.mutationsLimitSecondAverages,
+					'checked-per-second': this.checkedPerSecond,
+					'average-checked': this.checkedLimitSecondAverages
 				}
 			})
 		}
-		// console.log('took:', performance.now() - start)
 	}
-
-	setInterval(updateLastTen, 1e3)
 
 
 	//
 	// Public API
 	//
 
-	this.reset = function() {
-		totalMutations = 0
-		checkedMutations = 0
-		mutationScans = 0
-		nonMutationScans = 0
-		pauseTime = null
-		lastScanDuration = null
+	reset() {
+		this.totalMutations = 0
+		this.checkedMutations = 0
+		this.mutationScans = 0
+		this.nonMutationScans = 0
+		this.pauseTime = null
+		this.lastScanDuration = null
 	}
 
-	this.beQuiet = function() {
-		quiet = true
+	beQuiet() {
+		this.quiet = true
 	}
 
-	this.beVerbose = function() {
-		quiet = false
-		_sendAllUpdates()
+	beVerbose() {
+		this.quiet = false
+		this.#sendAllUpdates()
 	}
 
-	this.incrementTotalMutations = function() {
-		totalMutations += 1
-		mutationsLastSecondCount += 1
+	incrementTotalMutations() {
+		this.totalMutations += 1
+		this.mutationsLastSecondCount += 1
 	}
 
-	this.incrementCheckedMutations = function() {
-		checkedMutations += 1
-		checkedLastSecondCount += 1
+	incrementCheckedMutations() {
+		this.checkedMutations += 1
+		this.checkedLastSecondCount += 1
 	}
 
-	this.incrementMutationScans = function() {
-		mutationScans += 1
+	incrementMutationScans() {
+		this.mutationScans += 1
 	}
 
-	this.incrementNonMutationScans = function() {
-		nonMutationScans += 1
-		if (!quiet) _sendNonMutationScansUpdate()
+	incrementNonMutationScans() {
+		this.nonMutationScans += 1
+		if (!this.quiet) this.#sendNonMutationScansUpdate()
 	}
 
-	this.setPauseTime = function(time) {
-		pauseTime = time
-		if (!quiet) _sendPauseTimeUpdate()
+	setPauseTime(time: number) {
+		this.pauseTime = time
+		if (!this.quiet) this.#sendPauseTimeUpdate()
 	}
 
-	this.setLastScanDuration = function(duration) {
-		lastScanDuration = Math.round(duration)  // Chrome is precise
-		averageScanDuration =
-			(numScanDurationReports * averageScanDuration + lastScanDuration) /
-			++numScanDurationReports
-		prettyAverageScanDuration = averageScanDuration.toFixed(1)
-		if (!quiet) _sendDurationUpdate()
-		if (!quiet) console.log('is last greater than average duration?', lastScanDuration > averageScanDuration)
+	setLastScanDuration(duration: number) {
+		this.lastScanDuration = Math.round(duration)  // Chrome is precise
+		this.averageScanDuration =
+			(this.numScanDurationReports * this.averageScanDuration + this.lastScanDuration) /
+			++this.numScanDurationReports
+		this.prettyAverageScanDuration = this.averageScanDuration.toFixed(1)
+		if (!this.quiet) this.#sendDurationUpdate()
+		if (!this.quiet) console.log('is last greater than average duration?', this.lastScanDuration > this.averageScanDuration)
 	}
 
 	// Only these two public send methods are exposed because the mutation info
@@ -127,12 +127,12 @@ export default function MutationStatsReporter() {
 	// and possible scan. Also quite high-traffic perhaps, so cutting down on
 	// the times this info is sent is important.
 
-	this.sendMutationUpdate = function() {
-		if (!quiet) _sendMutationUpdate()
+	sendMutationUpdate() {
+		if (!this.quiet) this.#sendMutationUpdate()
 	}
 
-	this.sendAllUpdates = function() {
-		if (!quiet) _sendAllUpdates()
+	sendAllUpdates() {
+		if (!this.quiet) this.#sendAllUpdates()
 	}
 
 
@@ -140,45 +140,45 @@ export default function MutationStatsReporter() {
 	// Private API
 	//
 
-	function _sendMutationUpdate() {
+	#sendMutationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'mutations': totalMutations,
-				'checks': checkedMutations,
-				'mutationScans': mutationScans
+				'mutations': this.totalMutations,
+				'checks': this.checkedMutations,
+				'mutationScans': this.mutationScans
 			}
 		})
 	}
 
-	function _sendNonMutationScansUpdate() {
+	#sendNonMutationScansUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'nonMutationScans': nonMutationScans
+				'nonMutationScans': this.nonMutationScans
 			}
 		})
 	}
 
-	function _sendPauseTimeUpdate() {
+	#sendPauseTimeUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'pause': pauseTime
+				'pause': this.pauseTime
 			}
 		})
 	}
 
-	function _sendDurationUpdate() {
+	#sendDurationUpdate() {
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
-				'duration': lastScanDuration,
-				'average': prettyAverageScanDuration
+				'duration': this.lastScanDuration,
+				'average': this.prettyAverageScanDuration
 			}
 		})
 	}
 
-	function _sendAllUpdates() {
-		_sendMutationUpdate()
-		_sendNonMutationScansUpdate()
-		_sendPauseTimeUpdate()
-		_sendDurationUpdate()
+	#sendAllUpdates() {
+		this.#sendMutationUpdate()
+		this.#sendNonMutationScansUpdate()
+		this.#sendPauseTimeUpdate()
+		this.#sendDurationUpdate()
 	}
 }

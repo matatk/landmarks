@@ -1,9 +1,9 @@
-import { isContentInjectablePage } from './isContent'
-import { withAllTabs } from './withTabs'
+import { isContentInjectablePage } from './isContent.js'
+import { withAllTabs } from './withTabs.js'
 
 const contentScriptInjector = BROWSER === 'firefox' ? null : function() {
 	// Inject content script manually
-	withAllTabs(function(tabs) {
+	withAllTabs(function(tabs: chrome.tabs.Tab[]) {
 		for (const i in tabs) {
 			if (isContentInjectablePage(tabs[i].url)) {
 				browser.tabs.executeScript(tabs[i].id, { file: 'content.js' },

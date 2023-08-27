@@ -1,70 +1,65 @@
-export default function PauseHandler(pauseTimeHook) {
-	//
-	// Constants
-	//
+type PauseTimeHook = (pauseTime: number) => void
 
-	const minPause = 500
-	const maxPause = 60000
-	const multiplier = 1.5
-	const decrement = minPause
-	const decreaseEvery = minPause * 2
+const minPause = 500
+const maxPause = 60000
+const multiplier = 1.5
+const decrement = minPause
+const decreaseEvery = minPause * 2
 
+export default class PauseHandler {
+	#pause: number = minPause
+	#lastEvent: number = Date.now()
+	#scheduledTaskTimeout: ReturnType<typeof setTimeout> | null = null
+	#decreasePauseTimeout: ReturnType<typeof setTimeout> | null = null
+	#haveIncreasedPauseAndScheduledTask = false
+	#pauseTimeHook: PauseTimeHook
 
-	//
-	// State
-	//
+	constructor(pauseTimeHook: PauseTimeHook) {
+		this.#pauseTimeHook = pauseTimeHook
+		this.#pauseTimeHook(this.#pause)
+	}
 
-	let pause = minPause
-	let lastEvent = Date.now()
-	let scheduledTaskTimeout = null
-	let decreasePauseTimeout = null
-	let haveIncreasedPauseAndScheduledTask = false
-	pauseTimeHook(pause)
-
-
-	//
-	// Private API
-	//
-
-	function increasePause() {
-		stopDecreasingPause()
-		pause = Math.floor(pause * multiplier)
-		if (pause >= maxPause) {
-			pause = maxPause
+	#increasePause() {
+		this.#stopDecreasingPause()
+		this.#pause = Math.floor(this.#pause * multiplier)
+		if (this.#pause >= maxPause) {
+			this.#pause = maxPause
 		}
-		if (DEBUG) console.timeStamp(`Increased pause to: ${pause}`)
-		pauseTimeHook(pause)
+		if (DEBUG) console.timeStamp(`Increased pause to: ${this.#pause}`)
+		this.#pauseTimeHook(this.#pause)
 	}
 
-	function decreasePause() {
-		decreasePauseTimeout = setTimeout(_decreasePause, decreaseEvery)
+	#decreasePause() {
+		this.#decreasePauseTimeout = setTimeout(this.#_decreasePause, decreaseEvery)
 	}
 
-	function _decreasePause() {
-		pause = Math.floor(pause - decrement)
-		if (pause <= minPause) {
-			pause = minPause
-			decreasePauseTimeout = null
+	#_decreasePause() {
+		this.#pause = Math.floor(this.#pause - decrement)
+		if (this.#pause <= minPause) {
+			this.#pause = minPause
+			this.#decreasePauseTimeout = null
 		} else {
-			decreasePause()
+			this.#decreasePause()
 		}
-		if (DEBUG) console.timeStamp(`Decreased pause to: ${pause}`)
-		pauseTimeHook(pause)
+		if (DEBUG) console.timeStamp(`Decreased pause to: ${this.#pause}`)
+		this.#pauseTimeHook(this.#pause)
 	}
 
-	function ceaseTimeout(timeout) {
+	#ceaseTimeout(timeout: ReturnType<typeof setTimeout> | null) {
 		if (timeout) {
 			clearTimeout(timeout)
 			timeout = null
 		}
 	}
 
-	function stopDecreasingPause() {
-		ceaseTimeout(decreasePauseTimeout)
+	// TODO: remove
+	#stopDecreasingPause() {
+		this.#ceaseTimeout(this.#decreasePauseTimeout)
 	}
 
-	function cancelScheduledTask() {
-		ceaseTimeout(scheduledTaskTimeout)
+	// TODO: remove
+	#cancelScheduledTask() {
+		this.#ceaseTimeout(this.#scheduledTaskTimeout)
 	}
 
 
@@ -73,32 +68,33 @@ export default function PauseHandler(pauseTimeHook) {
 	//
 
 	// TODO: would this be more efficient if tasks specified at init?
-	this.run = function(ignoreCheck, guardedTask, scheduledTask) {
+	run(ignoreCheck: () => boolean, guardedTask: () => void, scheduledTask: () => void) {
 		if (ignoreCheck()) return
 
 		const now = Date.now()
-		if (now > lastEvent + pause) {
+		if (now > this.#lastEvent + this.#pause) {
 			guardedTask()
-			lastEvent = now
-		} else if (!haveIncreasedPauseAndScheduledTask) {
-			increasePause()
-			if (DEBUG) console.timeStamp(`Scheduling task in: ${pause}`)
-			scheduledTaskTimeout = setTimeout(() => {
+			this.#lastEvent = now
+		} else if (!this.#haveIncreasedPauseAndScheduledTask) {
+			this.#increasePause()
+			if (DEBUG) console.timeStamp(`Scheduling task in: ${this.#pause}`)
+			this.#scheduledTaskTimeout = setTimeout(() => {
 				scheduledTask()
-				decreasePause()
-				haveIncreasedPauseAndScheduledTask = false
-			}, pause)
-			haveIncreasedPauseAndScheduledTask = true
+				this.#decreasePause()
+				this.#haveIncreasedPauseAndScheduledTask = false
+			}, this.#pause)
+			this.#haveIncreasedPauseAndScheduledTask = true
 		}
 	}
 
-	this.isPaused = function() {
-		return pause > minPause
+	// TODO: getter?
+	isPaused() {
+		return this.#pause > minPause
 	}
 
-	this.reset = function() {
-		cancelScheduledTask()
-		stopDecreasingPause()
-		pause = minPause
+	reset() {
+		this.#cancelScheduledTask()
+		this.#stopDecreasingPause()
+		this.#pause = minPause
 	}
 }

@@ -7,12 +7,12 @@ const specialPages
 	: null
 /* eslint-enable indent */
 
-export function isContentInjectablePage(url) {
+export function isContentInjectablePage(url: string) {
 	if (/^(https?|file):\/\//.test(url) && !specialPages.test(url)) return true
 	return false
 }
 
-export function isContentScriptablePage(url) {
+export function isContentScriptablePage(url: string) {
 	const isContentInjectable = isContentInjectablePage(url)
 	const isContentScriptable =
 		url.startsWith(browser.runtime.getURL('help.html')) ||
