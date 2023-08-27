@@ -1,109 +1,114 @@
 // TODO localise fully
 let allShortcutsAreSet
 
-const shortcutTableRows = [
+type StructuralElement = {
+	kind: 'element'
+	element: string
+	class?: string
+	contains?: StructuralElement[]
+	content?: string
+	tabindex?: number
+} | {
+	kind: 'text'
+	text: string
+}
+
+const shortcutTableRows: StructuralElement[] = [
 	{
+		kind: 'element',
 		element: 'tr',
 		contains: [
-			{ element: 'th', content: 'Action' },
-			{ element: 'th', content: 'Keyboard shortcut' }
+			{ kind: 'element', element: 'th', content: 'Action' },
+			{ kind: 'element', element: 'th', content: 'Keyboard shortcut' }
 		]
 	}
 ]
 
-function makeHTML(structure, root) {
-	let newElement
+function makeHTML(structure: StructuralElement, root: HTMLElement) {
+	if (structure.kind === 'element') {
+		const newElement = document.createElement(structure[structure.kind])
+		root.appendChild(newElement)
 
-	for (const key in structure) {
-		switch (key) {
-			case 'element':
-				newElement = document.createElement(structure[key])
-				root.appendChild(newElement)
-				break
-			case 'class':
-				newElement.classList.add(structure[key])
-				break
-			case 'tabindex':
-				newElement.setAttribute('tabindex', String(structure[key]))
-				break
-			case 'text':
-				root.appendChild(document.createTextNode(structure[key]))
-				break
-			case 'content':
-				newElement.appendChild(document.createTextNode(structure[key]))
-				break
-			case 'listen':
-				for (const eventHandler of structure[key]) {
-					newElement.addEventListener(
-						eventHandler.event, eventHandler.handler)
-				}
-				break
-			case 'contains':
-				for (const contained of structure[key]) {
-					makeHTML(contained, newElement ? newElement : root)
-				}
-				break
-			default:
-				throw Error(`Unexpected structure key "${key}" encountered.`)
+		for (const key in structure) {
+			switch (key) {
+				case 'class':
+					newElement.classList.add(structure[key] as keyof typeof structure)
+					break
+				case 'tabindex':
+					newElement.setAttribute('tabindex', String(structure[key]))
+					break
+				case 'content':
+					newElement.appendChild(document.createTextNode(structure[key] as keyof typeof structure))
+					break
+				case 'contains':
+					const container = structure[key] ?? []
+					for (const contained of container) {
+						makeHTML(contained, newElement ? newElement : root)
+					}
+					break
+				default:
+					throw Error(`Unexpected structure key "${key}" encountered.`)
+			}
 		}
+	} else {
+		root.append(structure['text'])
 	}
 
 	return root
 }
 
-function addCommandRowAndReportIfMissing(command) {
+function addCommandRowAndReportIfMissing(command: chrome.commands.Command) {
 	// Work out the command's friendly name
 	const action = command.name === '_execute_browser_action'
 		? 'Show pop-up'
 		: command.description
 
 	// Work out the command's shortcut
-	let shortcutCellElement
+	let shortcutCellElement: StructuralElement = { kind: 'element', element: 'td' }
 
 	if (command.shortcut) {
 		// Firefox gives "Alt+Shift+N" but Chrome (& Opera & Edge) gives ⌥⇧N
 		if (BROWSER === 'firefox') {
-			shortcutCellElement = { element: 'td', contains:
-				firefoxShortcutElements(command.shortcut)
-			}
+			shortcutCellElement.contains = firefoxShortcutElements(command.shortcut)
 		} else {
-			shortcutCellElement = { element: 'td', contains: [
-				{ element: 'kbd', content: command.shortcut }
-			]}
+			shortcutCellElement.contains = [
+				{ kind: 'element', element: 'kbd', content: command.shortcut }
+			]
 		}
 	} else {
-		shortcutCellElement = {
-			element: 'td', class: 'missing-shortcut', contains: [
-				{ text: 'Not set up' }  // TODO: localise
-			]}
+		shortcutCellElement.class = 'missing-shortcut'
+		shortcutCellElement.contains = [
+			{ kind: 'text', text: 'Not set up' }  // FIXME: localise
+		]
 		allShortcutsAreSet = false
 	}
 
 	shortcutTableRows.push({
+		kind: 'element',
 		element: 'tr',
 		contains: [
-			{ element: 'td', content: action },
+			{ kind: 'element', element: 'td', content: action },
 			shortcutCellElement
 		]
 	})
 }
 
-function firefoxShortcutElements(shortcut) {
-	const shortcutElements = []
+function firefoxShortcutElements(shortcut: string) {
+	const shortcutElements: StructuralElement[] = []
 	const shortcutParts = shortcut.split(/(\+)/)
 
 	for (const keyOrPlus of shortcutParts) {
 		if (keyOrPlus !== '+') {
-			shortcutElements.push({ element: 'kbd', content: keyOrPlus })
+			shortcutElements.push({ kind: 'element', element: 'kbd', content: keyOrPlus })
 		} else {
-			shortcutElements.push({ text: ' + ' })
+			shortcutElements.push({ kind: 'text', text: ' + ' })
 		}
 	}
 
 	return shortcutElements
 }
 
-export default function handlePopulateCommandsMessage(message, id) {
+export default function handlePopulateCommandsMessage(message: PopulateCommandsMessage, id: string) {
 	// Chrome allows only four keyboard shortcuts to be specified in the
 	// manifest; Firefox allows many.
 	//
@@ -129,8 +134,11 @@ export default function handlePopulateCommandsMessage(message, id) {
 		addCommandRowAndReportIfMissing(command)
 	}
 
-	makeHTML({ element: 'table', contains: shortcutTableRows },
-		document.getElementById(id))
+	// TODO: Compute existant ids from souce files
+	const root = document.getElementById(id)
+	if (root) {
+		makeHTML({ kind: 'element', element: 'table', contains: shortcutTableRows }, root)
+	}
 
 	return allShortcutsAreSet
 }

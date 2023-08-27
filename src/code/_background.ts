@@ -6,7 +6,7 @@ import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults.js'
 import { withActiveTab, withAllTabs } from './withTabs.js'
 import MigrationManager from './migrationManager.js'
 
-const devtoolsConnections = {}
+const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
 const startupCode: (() => void)[]  = []
 let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 
@@ -15,7 +15,7 @@ let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
-function debugLog(thing: string | LandmarksMessage, sender?: chrome.runtime.MessageSender) {
+function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevTools, sender?: chrome.runtime.MessageSender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
 		console.log('bkg:', thing)
@@ -30,6 +30,7 @@ function debugLog(thing: string | LandmarksMessage, sender?: chrome.runtime.Mess
 		}
 	} else {
 		// A general message from somewhere
+		// TODO: does this exist?
 		// eslint-disable-next-line no-lonely-if
 		if (sender && sender.tab) {
 			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
@@ -49,7 +50,7 @@ function setBrowserActionState(tabId: number, url: string) {
 	}
 }
 
-function sendToDevToolsForTab(tabId: number, message) {
+function sendToDevToolsForTab(tabId: number, message: any) {
 	if (devtoolsConnections.hasOwnProperty(tabId)) {
 		devtoolsConnections[tabId].postMessage(message)
 	}
@@ -60,7 +61,7 @@ function sendToDevToolsForTab(tabId: number, message) {
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab(id: number, message: LandmarksMessage) {
+function wrappedSendToTab(id: number, message: MessageForContentScript) {
 	browser.tabs.sendMessage(id, message, () => browser.runtime.lastError)
 }
 
@@ -88,7 +89,7 @@ function updateGUIs(tabId: number, url: string) {
 function devtoolsListenerMaker(port: chrome.runtime.Port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
-	return function(message: LandmarksMessage) {
+	return function(message: MessageFromDevTools) {
 		debugLog(message)
 		switch (message.name) {
 			case 'init':
@@ -116,7 +117,7 @@ function devtoolsListenerMaker(port: chrome.runtime.Port) {
 	}
 }
 
-function devtoolsDisconnectMaker(tabId) {
+function devtoolsDisconnectMaker(tabId: number) {
 	return function() {
 		browser.tabs.get(tabId, function(tab) {
 			if (!browser.runtime.lastError) {  // check tab was not closed
@@ -141,7 +142,7 @@ browser.runtime.onConnect.addListener(function(port) {
 	}
 })
 
-function sendDevToolsStateMessage(tabId, panelIsOpen) {
+function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 	browser.tabs.sendMessage(tabId, {
 		name: 'devtools-state',
 		state: panelIsOpen ? 'open' : 'closed'
@@ -163,7 +164,7 @@ function sendDevToolsStateMessage(tabId, panelIsOpen) {
 
 const sidebarToggle = () => browser.sidebarAction.toggle()
 
-function switchInterface(mode) {
+function switchInterface(mode: 'sidebar' | 'popup') {
 	switch (mode) {
 		case 'sidebar':
 			browser.browserAction.setPopup({ popup: '' })
@@ -283,7 +284,7 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
-function reflectUpdateDismissalState(dismissed) {
+function reflectUpdateDismissalState(dismissed: boolean) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
@@ -331,7 +332,7 @@ function openHelpPage(openInSameTab) {
 	}
 }
 
-browser.runtime.onMessage.addListener(function(message: LandmarksMessage, sender: chrome.runtime.MessageSender) {
+browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
 	debugLog(message, sender)
 	switch (message.name) {
 		// Content

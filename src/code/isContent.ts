@@ -1,13 +1,13 @@
 /* eslint-disable indent */
 const specialPages
-	= BROWSER === 'firefox' ? /^https:\/\/addons.mozilla.org/
-	: BROWSER === 'chrome' ? /^https:\/\/chrome.google.com\/webstore/
+	= BROWSER === 'chrome' ? /^https:\/\/chrome.google.com\/webstore/
 	: BROWSER === 'opera' ? /^https:\/\/addons.opera.com/
 	: BROWSER === 'edge' ? /^https:\/\/microsoftedge.microsoft.com\/addons/
-	: null
+	: /^https:\/\/addons.mozilla.org/
 /* eslint-enable indent */
 
-export function isContentInjectablePage(url: string) {
+export function isContentInjectablePage(url?: string) {
+	if (!url) return false
 	if (/^(https?|file):\/\//.test(url) && !specialPages.test(url)) return true
 	return false
 }

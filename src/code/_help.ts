@@ -1,7 +1,7 @@
-import handlePopulateCommandsMessage from './keyboardShortcutTableMaker'
-import translate from './translate'
+import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
+import translate from './translate.js'
 
-function messageHandler(message) {
+function messageHandler(message: PopulateCommandsMessage) {
 	if (message.name !== 'populate-commands') return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(

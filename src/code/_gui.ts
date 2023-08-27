@@ -294,13 +294,6 @@ function setupNotes() {
 			}
 		}
 
-		if (INTERFACE === 'devtools') {
-			if ('handleMutationsViaTree' in changes) {
-				document.getElementById('handle-mutations-via-tree').innerText =
-					changes.handleMutationsViaTree.newValue
-			}
-		}
-
 		for (const dismissalState in defaultDismissalStates) {
 			if (changes.hasOwnProperty(dismissalState)) {
 				showOrHideNote(
@@ -440,12 +433,12 @@ function startupDevTools() {
 	// TODO: Eventually remove, after sorting out mutation handling
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('handleMutationsViaTree' in changes) {
-			document.getElementById('handle-mutations-via-tree').innerText =
+			document.getElementById('spandle-mutations-via-tree').innerText =
 				changes.handleMutationsViaTree.newValue
 		}
 	})
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		document.getElementById('handle-mutations-via-tree').innerText =
+		document.getElementById('spandle-mutations-via-tree').innerText =
 			items.handleMutationsViaTree
 	})
 }

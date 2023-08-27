@@ -1,15 +1,23 @@
 // hasOwnProperty is only used on browser-provided objects
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import translate from './translate'
-import { defaultSettings, defaultDismissalStates } from './defaults'
+import translate from './translate.js'
+import { defaultSettings, defaultDismissalStates } from './defaults.js'
 
 
 //
 // Options
 //
 
-const options = [{
+type OptionBase = { name: string }
+type OptionElement = { element: HTMLInputElement }
+
+type Option =
+	{ kind: 'choice' } & OptionBase |
+	{ kind: 'individual' } & OptionBase & OptionElement |
+	{ kind: 'boolean' } & OptionBase & OptionElement
+
+const options: Option[] = [{
 	name: 'borderType',
 	kind: 'choice'
 }, {

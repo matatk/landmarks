@@ -1,3 +1,9 @@
+namespace chrome {
+	interface sidebarAction {
+		toggle: () => void
+	}
+}
+
 interface Window {
 	browser: typeof chrome
 }
@@ -35,7 +41,12 @@ type LandmarkTreeEntry = BaseLandmarkEntry & {
 	contains: LandmarkTreeEntry[]
 }
 
-type ContentScriptMessage = {
+type PopulateCommandsMessage = {
+	name: 'populate-commands'
+	commands: chrome.commands.Command[]
+}
+
+type MessageForContentScript = {
 	name: 'get-landmarks'
 } | {
 	name: 'focus-landmark'
@@ -65,7 +76,7 @@ type ContentScriptMessage = {
 	name: 'get-page-warnings'
 }
 
-type LandmarksMessage = {
+type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
 	tabId: number
@@ -88,8 +99,35 @@ type LandmarksMessage = {
 	name: 'mutation-info-window'
 } | {
 	name: 'page-warnings'
+} | {
+	name: 'debug'
+	info: string
+	from?: chrome.runtime.MessageSender
 }
 
-type LandmarksDevToolsMessage = LandmarksMessage & {
+type MessageFromDevTools = {
+	name: 'init'
+	tabId: number
+} | {
+	name: 'get-landmarks'
+	from: number
+} | {
+	name: 'get-toggle-state'
+	from: number
+} | {
+	name: 'focus-landmark'
+	from: number
+} | {
+	name: 'toggle-all-landmarks'
+	from: number
+} | {
+	name: 'get-mutation-info'
+	from: number
+} | {
+	name: 'get-page-warnings'
+	from: number
+}
+
+type LandmarksDevToolsMessage = MessageForBackgroundScript & {
 	tabId: number
 }

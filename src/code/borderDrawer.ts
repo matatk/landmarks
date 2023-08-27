@@ -1,7 +1,8 @@
-import landmarkName from './landmarkName'
-import { defaultBorderSettings } from './defaults'
+import landmarkName from './landmarkName.js'
+import { defaultBorderSettings } from './defaults.js'
+import type ContrastChecker from './contrastChecker.js'
 
-export default function BorderDrawer(win, doc, contrastChecker) {
+export default function BorderDrawer(win: Window, doc: Document, contrastChecker: ContrastChecker) {
 	const borderWidthPx = 4
 
 	const borderedElements = new Map()

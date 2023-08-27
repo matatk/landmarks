@@ -54,7 +54,7 @@ function handleHighlightMessageCore(index, action, actionParam) {
 	}
 }
 
-function messageHandler(message: ContentScriptMessage) {
+function messageHandler(message: MessageForContentScript) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':

@@ -1,6 +1,7 @@
-import { defaultBorderSettings } from './defaults'
+import { defaultBorderSettings } from './defaults.js'
+import type BorderDrawer from './borderDrawer.js'
 
-export default function ElementFocuser(doc, borderDrawer) {
+export default function ElementFocuser(doc: Document, borderDrawer: typeof BorderDrawer) {
 	const momentaryBorderTime = 2000
 
 	let borderType = defaultBorderSettings.borderType  // cached for simplicity
