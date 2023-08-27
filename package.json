@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild:all": "tsc --build && npm test",
+    "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean",
     "profile": "node scripts/profile.js",
@@ -13,7 +13,7 @@
     "start:edge": "npm run start:_core -- --source-dir build/edge --target chromium --chromium-binary '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'",
     "start:firefox": "npm run start:_core -- --source-dir build/firefox",
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
-    "pretest": "eslint .",
+    "pretest": "tsc --build && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
     "prepare": "husky install"
@@ -29,6 +29,7 @@
     "@rollup/plugin-strip": "^3.0.2",
     "@rollup/plugin-terser": "^0.4.3",
     "@types/chrome": "^0.0.244",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
     "addons-linter": "^6.12.0",
     "archiver-promise": "~1.0",
     "ava": "^5.3.1",
@@ -37,6 +38,7 @@
     "deepmerge": "~4.3",
     "dependency-tree": "^10.0.9",
     "eslint": "^8.48.0",
+    "eslint-plugin-compat": "^4.1.4",
     "fs-extra": "^11.1.1",
     "glob": "^10.3.3",
     "husky": "^8.0.3",
