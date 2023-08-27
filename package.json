@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild:all": "tsc --build tsconfig.json && npm test",
+    "prebuild:all": "tsc --build && npm test",
     "build:all": "node scripts/build.js --browser all",
     "clean:builds": "node scripts/build.js --browser all --clean",
     "profile": "node scripts/profile.js",
