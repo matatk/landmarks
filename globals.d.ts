@@ -8,7 +8,12 @@ var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
 var DEBUG: boolean
 
-type LandmarkInfoEntry = {
+type CallbackReturningElementInfo = () => LandmarkListEntry
+
+type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
+
+type BaseLandmarkEntry = {
+	type: 'landmark'
 	element: HTMLElement
 	name: string
 	selector: string
@@ -16,6 +21,48 @@ type LandmarkInfoEntry = {
 	roleDescription?: string
 	label?: string
 	guessed: boolean
+	previous: LandmarkTreeEntry
+	next: LandmarkTreeEntry
+	warnings?: PageWarning[]
+	selectorWasUpdated?: boolean
+}
+
+type LandmarkListEntry = BaseLandmarkEntry & {
+	index: number
+}
+
+type LandmarkTreeEntry = BaseLandmarkEntry & {
+	contains: LandmarkTreeEntry[]
+}
+
+type ContentScriptMessage = {
+	name: 'get-landmarks'
+} | {
+	name: 'focus-landmark'
+	index: number
+} | {
+	name: 'show-landmark'
+	index: number
+} | {
+	name: 'hide-landmark'
+	index: number
+} | {
+	name: 'next-landmark'
+} | {
+	name: 'prev-landmark'
+} | {
+	name: 'main-landmark'
+} | {
+	name: 'toggle-all-landmarks'
+} | {
+	name: 'get-toggle-state'
+} | {
+	name: 'trigger-refresh'
+} | {
+	name: 'devtools-state'
+	state: 'open' | 'closed'
+} | {
+	name: 'get-page-warnings'
 }
 
 type LandmarksMessage = {

@@ -33,36 +33,7 @@ export default class MutationStatsReporter {
 			this.checkedLimitSecondAverages.push(0)
 		}
 
-		setInterval(this.updateLastTen, 1e3)
-	}
-
-	updateLastTen() {
-		this.mutationsInWindow -= this.mutationsPerSecond.shift() ?? 0
-		this.mutationsInWindow += this.mutationsLastSecondCount
-		this.mutationsPerSecond.push(this.mutationsLastSecondCount)
-		this.mutationsLastSecondCount = 0
-		const mutationsAverage = this.mutationsInWindow / LIMIT
-		this.mutationsLimitSecondAverages.shift()
-		this.mutationsLimitSecondAverages.push(mutationsAverage)
-
-		this.checkedInWindow -= this.checkedPerSecond.shift() ?? 0
-		this.checkedInWindow += this.checkedLastSecondCount
-		this.checkedPerSecond.push(this.checkedLastSecondCount)
-		this.checkedLastSecondCount = 0
-		const checkedAverage = this.checkedInWindow / LIMIT
-		this.checkedLimitSecondAverages.shift()
-		this.checkedLimitSecondAverages.push(checkedAverage)
-
-		if (!this.quiet) {
-			browser.runtime.sendMessage({
-				name: 'mutation-info-window', data: {
-					'mutations-per-second': this.mutationsPerSecond,
-					'average-mutations': this.mutationsLimitSecondAverages,
-					'checked-per-second': this.checkedPerSecond,
-					'average-checked': this.checkedLimitSecondAverages
-				}
-			})
-		}
+		setInterval(() => this.#updateLastTen(), 1e3)
 	}
 
 
@@ -139,6 +110,35 @@ export default class MutationStatsReporter {
 	//
 	// Private API
 	//
+
+	#updateLastTen() {
+		this.mutationsInWindow -= this.mutationsPerSecond.shift() ?? 0
+		this.mutationsInWindow += this.mutationsLastSecondCount
+		this.mutationsPerSecond.push(this.mutationsLastSecondCount)
+		this.mutationsLastSecondCount = 0
+		const mutationsAverage = this.mutationsInWindow / LIMIT
+		this.mutationsLimitSecondAverages.shift()
+		this.mutationsLimitSecondAverages.push(mutationsAverage)
+
+		this.checkedInWindow -= this.checkedPerSecond.shift() ?? 0
+		this.checkedInWindow += this.checkedLastSecondCount
+		this.checkedPerSecond.push(this.checkedLastSecondCount)
+		this.checkedLastSecondCount = 0
+		const checkedAverage = this.checkedInWindow / LIMIT
+		this.checkedLimitSecondAverages.shift()
+		this.checkedLimitSecondAverages.push(checkedAverage)
+
+		if (!this.quiet) {
+			browser.runtime.sendMessage({
+				name: 'mutation-info-window', data: {
+					'mutations-per-second': this.mutationsPerSecond,
+					'average-mutations': this.mutationsLimitSecondAverages,
+					'checked-per-second': this.checkedPerSecond,
+					'average-checked': this.checkedLimitSecondAverages
+				}
+			})
+		}
+	}
 
 	#sendMutationUpdate() {
 		browser.runtime.sendMessage({

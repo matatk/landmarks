@@ -1,11 +1,11 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import translate from './translate'
-import landmarkName from './landmarkName'
+import translate from './translate.js'
+import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults'
-import { isContentScriptablePage } from './isContent'
-import { withActiveTab } from './withTabs'
+import { isContentScriptablePage } from './isContent.js'
+import { withActiveTab } from './withTabs.js'
 
 let closePopupOnActivate = INTERFACE === 'popup'
 	? defaultFunctionalSettings.closePopupOnActivate
@@ -17,7 +17,7 @@ const _sidebarNote = {
 		cta: function() {
 			browser.runtime.openOptionsPage()
 		},
-		showOrHide: function(wasDismissed) {
+		showOrHide: function(wasDismissed: boolean) {
 			// Whether to show the message depends on the interface too
 			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
 				if (items.interface === 'popup' && !wasDismissed) {
@@ -44,7 +44,7 @@ const notes = (INTERFACE === 'sidebar')
 	? Object.assign({}, _sidebarNote, _updateNote)
 	: _updateNote
 
-let port = null
+let port: chrome.runtime.Port | null = null
 
 
 //

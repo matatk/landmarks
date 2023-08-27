@@ -30,7 +30,7 @@ export default class PauseHandler {
 	}
 
 	#decreasePause() {
-		this.#decreasePauseTimeout = setTimeout(this.#_decreasePause, decreaseEvery)
+		this.#decreasePauseTimeout = setTimeout(() => this.#_decreasePause(), decreaseEvery)
 	}
 
 	#_decreasePause() {

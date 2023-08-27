@@ -1,23 +1,23 @@
 import './compatibility'
-import LandmarksFinder from './landmarksFinder'
-import ElementFocuser from './elementFocuser'
-import PauseHandler from './pauseHandler'
-import BorderDrawer from './borderDrawer'
-import ContrastChecker from './contrastChecker'
-import MutationStatsReporter from './mutationStatsReporter'
-import { defaultFunctionalSettings, defaultBorderSettings } from './defaults'
+import LandmarksFinder from './landmarksFinder.js'
+import ElementFocuser from './elementFocuser.js'
+import PauseHandler from './pauseHandler.js'
+import BorderDrawer from './borderDrawer.js'
+import ContrastChecker from './contrastChecker.js'
+import MutationStatsReporter from './mutationStatsReporter.js'
+import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
 const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(window, document, contrastChecker)
 const elementFocuser = new ElementFocuser(document, borderDrawer)
 const msr = new MutationStatsReporter()
-const pauseHandler = new PauseHandler(msr.setPauseTime)
+const pauseHandler = new PauseHandler((pause: number) => msr.setPauseTime(pause))
 const noop = () => {}
 
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
-let observerReconnectionScanTimer = null
-let observer = null
+let observerReconnectionScanTimer: ReturnType<typeof setTimeout> | null = null
+let observer: MutationObserver | null = null
 const highlightLastTouchTimes = new Map()
 const highlightTimeouts = new Map()
 const LIMITER = 350
@@ -54,7 +54,7 @@ function handleHighlightMessageCore(index, action, actionParam) {
 	}
 }
 
-function messageHandler(message) {
+function messageHandler(message: ContentScriptMessage) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
@@ -135,7 +135,7 @@ function messageHandler(message) {
 			borderDrawer.removeAllBorders()
 			findLandmarksAndSend(
 				// TODO: this willl send the non-mutation message twice
-				msr.incrementNonMutationScans, msr.sendAllUpdates)
+				() => msr.incrementNonMutationScans(), () => msr.sendAllUpdates())
 			highlightLastTouchTimes.clear()
 			highlightTimeouts.clear()
 			break
@@ -178,7 +178,7 @@ function doUpdateOutdatedResults() {
 
 	if (outOfDate === true) {
 		findLandmarksAndSend(
-			msr.incrementNonMutationScans,
+			() => msr.incrementNonMutationScans(),
 			noop)  // it already calls the send function
 		return true
 	}
@@ -194,13 +194,13 @@ function guiCheckThereAreLandmarks() {
 	return true
 }
 
-function guiCheckFocusElement(callbackReturningElementInfo) {
+function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningElementInfo) {
 	if (guiCheckThereAreLandmarks()) {
 		elementFocuser.focusElement(callbackReturningElementInfo())
 	}
 }
 
-function debugSend(what) {
+function debugSend(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
 	browser.runtime.sendMessage({ name: 'debug', info: what })
@@ -219,7 +219,7 @@ function sendLandmarks() {
 	})
 }
 
-function findLandmarks(counterIncrementFunction, updateSendFunction) {
+function findLandmarks(counterIncrementFunction: () => void, updateSendFunction: () => void) {
 	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
 	debugSend('finding landmarks')
 
@@ -238,7 +238,7 @@ function findLandmarks(counterIncrementFunction, updateSendFunction) {
 	}
 }
 
-function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
+function findLandmarksAndSend(counterIncrementFunction: () => void, updateSendFunction: () => void) {
 	findLandmarks(counterIncrementFunction, updateSendFunction)
 	sendLandmarks()
 }
@@ -248,7 +248,7 @@ function findLandmarksAndSend(counterIncrementFunction, updateSendFunction) {
 // Mutation observation
 //
 
-function shouldRefreshLandmarkss(mutations) {
+function shouldRefreshLandmarkss(mutations: MutationRecord[]) {
 	for (const mutation of mutations) {
 		if (mutation.type === 'childList') {
 			// Structural change
@@ -296,7 +296,7 @@ function createMutationObserver() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
 					debugSend('scanning due to mutation')
-					findLandmarksAndSend(msr.incrementMutationScans, noop)
+					findLandmarksAndSend(() => msr.incrementMutationScans(), noop)
 					// msr.sendMutationUpdate() called below
 				}
 			},
@@ -304,7 +304,7 @@ function createMutationObserver() {
 			function() {
 				debugSend('scheduled scan')
 				findLandmarksAndSend(
-					msr.incrementMutationScans, msr.sendMutationUpdate)
+					() => msr.incrementMutationScans(), () => msr.sendMutationUpdate())
 			})
 
 		msr.sendMutationUpdate()
@@ -339,7 +339,7 @@ function reflectPageVisibility() {
 		observerReconnectionScanTimer = setTimeout(function() {
 			debugSend('page remained visible: observing and scanning')
 			findLandmarksAndSend(
-				msr.incrementNonMutationScans, noop)  // it will send anyway
+				() => msr.incrementNonMutationScans(), noop)  // it will send anyway
 			observeMutations()
 			observerReconnectionScanTimer = null
 		}, observerReconnectionGrace)
