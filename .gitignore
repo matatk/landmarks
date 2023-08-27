@@ -14,3 +14,4 @@ _site
 coverage
 scripts/profile-cache
 src/code/*.js
+elements-that-exist.d.ts
