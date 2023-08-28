@@ -7,7 +7,7 @@ export default class ElementFocuser {
 	borderType = defaultBorderSettings.borderType  // cached for simplicity
 	managingBorders = true  // draw and remove borders by default
 
-	currentElementInfo: object | null = null
+	currentElementInfo: LandmarkListEntry | null = null
 	borderRemovalTimer: number | null = null
 
 	borderDrawer: BorderDrawer
@@ -46,7 +46,7 @@ export default class ElementFocuser {
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	focusElement(elementInfo) {
+	focusElement(elementInfo: LandmarkListEntry) {
 		if (this.managingBorders) this.clear()
 
 		// Ensure that the element is focusable

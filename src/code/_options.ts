@@ -50,7 +50,7 @@ function restoreOptions() {
 
 			switch (option.kind) {
 				case 'choice':
-					document.getElementById(`radio-${saved}`).checked = true
+					(document.getElementById(`radio-${saved}`) as HTMLInputElement).checked = true
 					break
 				case 'individual':
 					option.element.value = saved
@@ -58,8 +58,6 @@ function restoreOptions() {
 				case 'boolean':
 					option.element.checked = saved
 					break
-				default:
-					console.error(`Unexpected option kind '${option.kind}'`)
 			}
 		}
 	})
@@ -112,13 +110,13 @@ function updateResetDismissedMessagesButtonState() {
 	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in items) {
 			if (items[dismissalState] === true) {
-				button.dataset.someMessagesDismissed = true
-				feedback.innerText = null
+				button.dataset.someMessagesDismissed = String(true)
+				feedback.innerText = ''
 				return
 			}
 		}
 
-		button.dataset.someMessagesDismissed = false
+		button.dataset.someMessagesDismissed = String(false)
 		if (!feedback.innerText) {
 			feedback.innerText =
 				browser.i18n.getMessage('prefsResetMessagesNone')
@@ -134,8 +132,8 @@ function resetMessages() {
 	}
 }
 
-function dismissalStateChanged(thingChanged) {
-	return defaultDismissalStates.hasOwnProperty(thingChanged)
+function dismissalStateChanged(keyThatChanged: string) {
+	return defaultDismissalStates.hasOwnProperty(keyThatChanged)
 }
 
 function resetToDefaults() {

@@ -106,7 +106,7 @@ export function getRoleFromTagNameAndContainment(element: Element) {
 
 	if (name) {
 		if (implicitRoles.hasOwnProperty(name)) {
-			role = implicitRoles[name]
+			role = implicitRoles[name as keyof typeof implicitRoles]
 		}
 
 		// <header> and <footer> elements have some containment-
@@ -174,6 +174,8 @@ export function getARIAProvidedLabel(doc: Document, element: Element) {
 	if (idRefs !== null && idRefs.length > 0) {
 		const innerTexts = Array.from(idRefs.split(' '), idRef => {
 			const labelElement = doc.getElementById(idRef)
+			// TODO: don't call func if no element?
+			// TODO: if no element, add a warning?
 			return getInnerText(labelElement)
 		})
 		label = innerTexts.join(' ')
@@ -186,7 +188,8 @@ export function getARIAProvidedLabel(doc: Document, element: Element) {
 	return label
 }
 
-export function getInnerText(element: Element) {
+// TODO: don't accept null elements here
+export function getInnerText(element: HTMLElement | null) {
 	let text = null
 
 	if (element) {
@@ -208,10 +211,11 @@ export function isLandmark(role: string, explicitRole: boolean, label: string | 
 	return true  // already a valid role if we were called
 }
 
+// NOTE: To please TS, added the !roleDescription check. Perf?
 export function getRoleDescription(element: Element) {
 	const roleDescription = element.getAttribute('aria-roledescription')
 	// TODO make this a general whitespace check?
-	if (/^\s*$/.test(roleDescription)) {
+	if (!roleDescription || /^\s*$/.test(roleDescription)) {
 		return null
 	}
 	return roleDescription

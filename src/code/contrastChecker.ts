@@ -8,7 +8,7 @@ export default class ContrastChecker {
 		return contrast(l2, l1)
 	}
 
-	foregroundTextColour(backgroundColour: string, fontSize: number, bold: boolean) {
+	foregroundTextColour(backgroundColour: string, fontSize: number, bold: boolean): LabelFontColour {
 		const contrastWhite = this.contrastRatio('#ffffff', backgroundColour)
 		const threshold =
 			((fontSize >= 18) || (fontSize >= 14 && bold === true)) ? 3 : 4.5
@@ -26,8 +26,11 @@ type RGB = typeof channelStringPositions
 
 function hexToRGB(hex: string) {
 	const rgb: RGB = { r: 0, g: 0, b: 0 }
+
 	for (const channel of Object.keys(channelStringPositions) as Array<keyof typeof channelStringPositions>) {
-		const chanHex = hex.substr(channelStringPositions[channel], 2)
+		const start = channelStringPositions[channel]
+		const end = start + 2
+		const chanHex = hex.slice(start, end)
 		rgb[channel] = parseInt('0x' + chanHex)
 	}
 

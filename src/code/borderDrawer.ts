@@ -4,19 +4,26 @@ import type ContrastChecker from './contrastChecker.js'
 
 const borderWidthPx = 4
 
+type ElementHighlights = Map<HTMLElement, {
+	border: HTMLElement
+	label: HTMLElement
+}>
+
 export default class BorderDrawer {
-	borderedElements = new Map()
-	borderColour = defaultBorderSettings.borderColour      // cached locally
-	borderFontSize = defaultBorderSettings.borderFontSize  // cached locally
-	labelFontColour = null  // computed based on border colour
-	madeDOMChanges = false
-	contrastChecker: ContrastChecker
+	#borderedElements: ElementHighlights = new Map()
+	#borderColour = defaultBorderSettings.borderColour      // cached locally
+	#borderFontSize = defaultBorderSettings.borderFontSize  // cached locally
+	#labelFontColour!: LabelFontColour  // computed based on border colour
+	#madeDOMChanges = false
+	#contrastChecker: ContrastChecker
 
 	constructor(contrastChecker: ContrastChecker) {
-		this.contrastChecker = contrastChecker
+		this.#contrastChecker = contrastChecker
 
-		// NOTE: Needed for when other code asks if we made changes
+		// These are all called in response to messages or mutations
+		this.addBorder = this.addBorder.bind(this)
 		this.hasMadeDOMChanges = this.hasMadeDOMChanges.bind(this)
+		this.removeBorderOn = this.removeBorderOn.bind(this)
 
 		window.addEventListener('resize', this.#resizeHandler.bind(this))
 
@@ -29,19 +36,19 @@ export default class BorderDrawer {
 		// the code). This also computes the initial label font colour (as it
 		// depends on the border colour, which forms the label's background).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.borderColour = items['borderColour']
-			this.borderFontSize = items['borderFontSize']
+			this.#borderColour = items['borderColour']
+			this.#borderFontSize = items['borderFontSize']
 			this.#updateLabelFontColour()
 		})
 
 		browser.storage.onChanged.addListener(changes => {
 			let needUpdate = false
 			if ('borderColour' in changes) {
-				this.borderColour = changes.borderColour.newValue
+				this.#borderColour = changes.borderColour.newValue
 				needUpdate = true
 			}
 			if ('borderFontSize' in changes) {
-				this.borderFontSize = changes.borderFontSize.newValue
+				this.#borderFontSize = changes.borderFontSize.newValue
 				needUpdate = true
 			}
 			if (needUpdate) {
@@ -56,7 +63,7 @@ export default class BorderDrawer {
 	//
 
 	#resizeHandler() {
-		for (const [element, related] of this.borderedElements) {
+		for (const [element, related] of this.#borderedElements) {
 			if (document.body.contains(element)) {
 				this.#sizeBorderAndLabel(element, related.border, related.label)
 			} else {
@@ -64,7 +71,6 @@ export default class BorderDrawer {
 			}
 		}
 	}
-
 
 	//
 	// Public API
@@ -77,14 +83,14 @@ export default class BorderDrawer {
 	//       again (as may happen if the page changes whilst we're displaying
 	//       all elements, and try to add any new ones) that the existing
 	//       elements' labels won't have changed.
-	addBorder(elementInfo) {
-		if (!this.borderedElements.has(elementInfo.element)) {
+	addBorder(elementInfo: LandmarkListEntry) {
+		if (!this.#borderedElements.has(elementInfo.element)) {
 			this.#drawBorderAndLabel(
 				elementInfo.element,
 				landmarkName(elementInfo),
-				this.borderColour,
-				this.labelFontColour,  // computed as a result of settings
-				this.borderFontSize,
+				this.#borderColour,
+				this.#labelFontColour,  // computed as a result of settings
+				this.#borderFontSize,
 				elementInfo.guessed)
 		}
 	}
@@ -92,10 +98,10 @@ export default class BorderDrawer {
 	// Add the landmark border and label for several elements, and remove any
 	// borders associated with elements that currently have borders but aren't
 	// in this set. Takes an array of element info objects, as detailed above.
-	replaceCurrentBordersWithElements(elementInfoList) {
+	replaceCurrentBordersWithElements(elementInfoList: LandmarkListEntry[]) {
 		const elementsToAdd = elementInfoList.map(info => info.element)
 
-		for (const elementWithBorder of this.borderedElements.keys()) {
+		for (const elementWithBorder of this.#borderedElements.keys()) {
 			if (!elementsToAdd.includes(elementWithBorder)) {
 				this.removeBorderOn(elementWithBorder)
 			}
@@ -106,14 +112,14 @@ export default class BorderDrawer {
 		}
 	}
 
-	removeBorderOn(element) {
-		if (this.borderedElements.has(element)) {
+	removeBorderOn(element: HTMLElement) {
+		if (this.#borderedElements.has(element)) {
 			this.#removeBorderAndDelete(element)
 		}
 	}
 
 	removeAllBorders() {
-		for (const element of this.borderedElements.keys()) {
+		for (const element of this.#borderedElements.keys()) {
 			this.#removeBorderAndDelete(element)
 		}
 	}
@@ -121,8 +127,8 @@ export default class BorderDrawer {
 	// Did we just make changes to a border? If so, report this, so that the
 	// mutation observer can ignore it.
 	hasMadeDOMChanges() {
-		const didChanges = this.madeDOMChanges
-		this.madeDOMChanges = false
+		const didChanges = this.#madeDOMChanges
+		this.#madeDOMChanges = false
 		return didChanges
 	}
 
@@ -131,16 +137,14 @@ export default class BorderDrawer {
 		this.#resizeHandler()
 	}
 
-
 	//
 	// Private API
 	//
 
 	// Create an element on the page to act as a border for the element to be
 	// highlighted, and a label for it; position and style them appropriately
-	#drawBorderAndLabel(
-		element, label, colour, fontColour, fontSize, guessed) {
-		const zIndex = 10000000
+	#drawBorderAndLabel(element: HTMLElement, label: string, colour: string, fontColour: string, fontSize: string, guessed: boolean) {
+		const zIndex = '10000000'
 
 		const labelContent = document.createTextNode(label)
 
@@ -177,10 +181,10 @@ export default class BorderDrawer {
 
 		document.body.appendChild(borderDiv)
 		document.body.appendChild(labelDiv)
-		this.madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
+		this.#madeDOMChanges = true  // seems to be covered by sizeBorderAndLabel()
 		this.#sizeBorderAndLabel(element, borderDiv, labelDiv)
 
-		this.borderedElements.set(element, {
+		this.#borderedElements.set(element, {
 			'border': borderDiv,
 			'label': labelDiv,
 			'guessed': guessed
@@ -190,7 +194,7 @@ export default class BorderDrawer {
 	// Given an element on the page and elements acting as the border and
 	// label, size the border, and position the label, appropriately for the
 	// element
-	#sizeBorderAndLabel(element, border, label) {
+	#sizeBorderAndLabel(element: HTMLElement, border: HTMLElement, label: HTMLElement) {
 		const elementBounds = element.getBoundingClientRect()
 		const elementTopEdgeStyle = window.scrollY + elementBounds.top + 'px'
 		const elementLeftEdgeStyle = window.scrollX + elementBounds.left + 'px'
@@ -220,43 +224,47 @@ export default class BorderDrawer {
 			label.style.left = elementLeftEdgeStyle
 		}
 
-		this.madeDOMChanges = true  // seems to be in the right place
+		this.#madeDOMChanges = true  // seems to be in the right place
 	}
 
-	#removeBorderAndDelete(element) {
+	#removeBorderAndDelete(element: HTMLElement) {
 		this.#removeBorderAndLabelFor(element)
-		this.borderedElements.delete(element)
+		this.#borderedElements.delete(element)
 	}
 
 	// Remove known-existing DOM nodes for the border and label
 	// Note: does not remove the record of the element, so as to avoid an
 	//       infinite loop when redrawing borders.
 	//       TODO fix this with .keys()?
-	#removeBorderAndLabelFor(element) {
-		const related = this.borderedElements.get(element)
+	// FIXME: Maybe following on the from above, this should only be called
+	//        when we know the element exists, so there's no need to check for
+	//        it again, and if we're not modifying the map then maybe we just
+	//        pass in the relevant elements?
+	#removeBorderAndLabelFor(element: HTMLElement) {
+		const related = this.#borderedElements.get(element)
 		related.border.remove()
 		related.label.remove()
-		this.madeDOMChanges = true
+		this.#madeDOMChanges = true
 	}
 
 	// Work out if the label font colour should be black or white
 	#updateLabelFontColour() {
-		this.labelFontColour = this.contrastChecker.foregroundTextColour(
-			this.borderColour,
-			this.borderFontSize,
+		this.#labelFontColour = this.#contrastChecker.foregroundTextColour(
+			this.#borderColour,
+			parseInt(this.#borderFontSize),
 			true)  // the font is always bold
 	}
 
 	#redrawBordersAndLabels() {
-		for (const [element, related] of this.borderedElements) {
+		for (const [element, related] of this.#borderedElements) {
 			const labelText = related.label.innerText
 			this.#removeBorderAndLabelFor(element)
 			this.#drawBorderAndLabel(
 				element,
 				labelText,
-				this.borderColour,
-				this.labelFontColour,  // computed as a result of settings
-				this.borderFontSize,
+				this.#borderColour,
+				this.#labelFontColour,  // computed as a result of settings
+				this.#borderFontSize,
 				related.guessed)
 		}
 	}

@@ -8,7 +8,8 @@ import MigrationManager from './migrationManager.js'
 
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
 const startupCode: (() => void)[]  = []
-let dismissedUpdate = defaultDismissedUpdate.dismissedUpdate
+// TODO: do the typing properly
+let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 
 
 //
@@ -315,7 +316,7 @@ browser.runtime.onInstalled.addListener(function(details) {
 // Message handling
 //
 
-function openHelpPage(openInSameTab) {
+function openHelpPage(openInSameTab: boolean) {
 	const helpPage = dismissedUpdate
 		? browser.runtime.getURL('help.html')
 		: browser.runtime.getURL('help.html') + '#!update'

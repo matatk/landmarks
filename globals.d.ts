@@ -1,18 +1,20 @@
-namespace chrome {
-	interface sidebarAction {
+interface ExtraBits {
+	sidebarAction: {
 		toggle: () => void
 	}
 }
 
 interface Window {
-	browser: typeof chrome
+	browser: typeof chrome & ExtraBits
 }
 
-var browser: typeof chrome
+var browser: typeof chrome & ExtraBits
 
 var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
 var DEBUG: boolean
+
+type LabelFontColour = 'black' | 'white'
 
 type CallbackReturningElementInfo = () => LandmarkListEntry
 

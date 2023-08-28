@@ -8,7 +8,7 @@ import ContrastChecker from './contrastChecker.js'
 import MutationStatsReporter from './mutationStatsReporter.js'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
-const landmarksFinder = new LandmarksFinder(window)
+const landmarksFinder = new (LandmarksFinder as any)(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(contrastChecker)
 const elementFocuser = new ElementFocuser(borderDrawer)
@@ -19,8 +19,8 @@ const noop = () => {}
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer: ReturnType<typeof setTimeout> | null = null
 let observer: MutationObserver | null = null
-const highlightLastTouchTimes = new Map()
-const highlightTimeouts = new Map()
+const highlightLastTouchTimes: Map<number, number> = new Map()
+const highlightTimeouts: Map<number, ReturnType<typeof setTimeout>> = new Map()
 const LIMITER = 350
 
 let handleMutationsViaTree = null
@@ -30,25 +30,33 @@ let handleMutationsViaTree = null
 // Extension message management
 //
 
-function handleHighlightMessage(index, action, actionParam) {
+function handleHighlightMessage(
+	index: number,
+	action: (info: LandmarkListEntry) => void,
+	info: LandmarkListEntry
+) {
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		if (!elementFocuser.isManagingBorders() ||
 			(items.borderType === 'persistent' &&
 			landmarksFinder.getCurrentlySelectedIndex() === index)) return
-		handleHighlightMessageCore(index, action, actionParam)
+		handleHighlightMessageCore(index, action, info)
 	})
 }
 
-function handleHighlightMessageCore(index, action, actionParam) {
+function handleHighlightMessageCore(
+	index: number,
+	action: (info: LandmarkListEntry) => void,
+	info: LandmarkListEntry
+) {
 	const now = performance.now()
 	const elapsed = now - (highlightLastTouchTimes.get(index) ?? 0)
 	clearTimeout(highlightTimeouts.get(index))
 	if (elapsed > LIMITER) {
-		action(actionParam)
+		action(info)
 		highlightLastTouchTimes.set(index, now)
 	} else {
 		const timeout = setTimeout(() => {
-			action(actionParam)
+			action(info)
 			highlightLastTouchTimes.set(index, performance.now())
 		}, LIMITER - elapsed)
 		highlightTimeouts.set(index, timeout)
@@ -252,7 +260,6 @@ function findLandmarksAndSend(counterIncrementFunction: () => void, updateSendFu
 function shouldRefreshLandmarkss(mutations: MutationRecord[]) {
 	for (const mutation of mutations) {
 		if (mutation.type === 'childList') {
-			// Structural change
 			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
 				for (const node of nodes) {
 					if (node.nodeType === Node.ELEMENT_NODE) {
@@ -260,10 +267,9 @@ function shouldRefreshLandmarkss(mutations: MutationRecord[]) {
 					}
 				}
 			}
-		} else {
-			// Attribute change
+		} else if (mutation.type === 'attributes') {  // NOTE: Added this check; perf?
 			if (mutation.attributeName === 'style') {
-				if (/display|visibility/.test(mutation.target.getAttribute('style'))) {
+				if (/display|visibility/.test((mutation.target as Element).getAttribute('style') as string)) {
 					return true
 				}
 				continue

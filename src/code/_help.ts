@@ -22,7 +22,7 @@ function includeVersionNumber() {
 
 function reflectInstallOrUpdate() {
 	// Move the appropriate section to the top
-	const fragment = window.location.hash.substr(2)
+	const fragment = window.location.hash.slice(2)
 	let sectionToMove = null
 
 	switch (fragment) {
