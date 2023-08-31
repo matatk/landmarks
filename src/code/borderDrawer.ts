@@ -4,10 +4,13 @@ import type ContrastChecker from './contrastChecker.js'
 
 const borderWidthPx = 4
 
-type ElementHighlights = Map<HTMLElement, {
+type BorderInfo = {
 	border: HTMLElement
 	label: HTMLElement
-}>
+	guessed: boolean
+}
+
+type ElementHighlights = Map<HTMLElement, BorderInfo>
 
 export default class BorderDrawer {
 	#borderedElements: ElementHighlights = new Map()
@@ -227,21 +230,27 @@ export default class BorderDrawer {
 		this.#madeDOMChanges = true  // seems to be in the right place
 	}
 
+	// FIXME: Instead of having to call this with an element that's known to
+	//        have a border, we should call this with the BorderInfo (which
+	//        makes the guarnatee for us). That would also make the code more
+	//        performant.
 	#removeBorderAndDelete(element: HTMLElement) {
 		this.#removeBorderAndLabelFor(element)
 		this.#borderedElements.delete(element)
 	}
 
-	// Remove known-existing DOM nodes for the border and label
-	// Note: does not remove the record of the element, so as to avoid an
+	// Remove *known-existing* DOM nodes for the border and label
+	//
+	// NOTE: does not remove the record of the element, so as to avoid an
 	//       infinite loop when redrawing borders.
 	//       TODO fix this with .keys()?
-	// FIXME: Maybe following on the from above, this should only be called
-	//        when we know the element exists, so there's no need to check for
-	//        it again, and if we're not modifying the map then maybe we just
-	//        pass in the relevant elements?
+	//
+	// FIXME: Instead of having to call this with an element that's known to
+	//        have a border, we should call this with the BorderInfo (which
+	//        makes the guarnatee for us). That would also make the code more
+	//        performant.
 	#removeBorderAndLabelFor(element: HTMLElement) {
-		const related = this.#borderedElements.get(element)
+		const related = this.#borderedElements.get(element) as BorderInfo
 		related.border.remove()
 		related.label.remove()
 		this.#madeDOMChanges = true
