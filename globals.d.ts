@@ -48,6 +48,10 @@ type PopulateCommandsMessage = {
 	commands: chrome.commands.Command[]
 }
 
+type DebugMessage = {
+	name: 'debug'
+}
+
 type MessageForContentScript = {
 	name: 'get-landmarks'
 } | {
@@ -82,6 +86,7 @@ type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
 	tabId: number
+	tree: LandmarkTreeEntry
 } | {
 	name: 'get-devtools-state'
 } | {
@@ -95,12 +100,14 @@ type MessageForBackgroundScript = {
 	openInSameTab: boolean
 } | {
 	name: 'toggle-state-is'
-} | {
-	name: 'mutation-info'
-} | {
-	name: 'mutation-info-window'
-} | {
+	data: boolean
+} |
+	MutationInfoMessage
+|
+	MutationInfoWindowMessage
+| {
 	name: 'page-warnings'
+	data: PageWarning[]
 } | {
 	name: 'debug'
 	info: string
@@ -109,7 +116,7 @@ type MessageForBackgroundScript = {
 
 type MessageFromDevTools = {
 	name: 'init'
-	tabId: number
+	from: number
 } | {
 	name: 'get-landmarks'
 	from: number
@@ -132,4 +139,23 @@ type MessageFromDevTools = {
 
 type LandmarksDevToolsMessage = MessageForBackgroundScript & {
 	tabId: number
+}
+
+type MutationInfoWindowMessage = {
+	name: 'mutation-info-window'
+	data: {
+		'mutations-per-second': number
+		'average-mutations': number
+		'checked-per-second': number
+		'average-checked': number
+	}
+}
+
+type MutationInfoMessage = {
+	name: 'mutation-info'
+	data: {
+		'mutations': number
+		'checks': number
+		'mutationScans': number
+	}
 }

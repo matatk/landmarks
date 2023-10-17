@@ -30,40 +30,32 @@ let handleMutationsViaTree = null
 // Extension message management
 //
 
-function handleHighlightMessage(
-	index: number,
-	action: (info: LandmarkListEntry) => void,
-	info: LandmarkListEntry
-) {
+function handleHighlightMessage(index: number, action: Function) {
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		if (!elementFocuser.isManagingBorders() ||
 			(items.borderType === 'persistent' &&
 			landmarksFinder.getCurrentlySelectedIndex() === index)) return
-		handleHighlightMessageCore(index, action, info)
+		handleHighlightMessageCore(index, action)
 	})
 }
 
-function handleHighlightMessageCore(
-	index: number,
-	action: (info: LandmarkListEntry) => void,
-	info: LandmarkListEntry
-) {
+function handleHighlightMessageCore(index: number, action: Function) {
 	const now = performance.now()
 	const elapsed = now - (highlightLastTouchTimes.get(index) ?? 0)
 	clearTimeout(highlightTimeouts.get(index))
 	if (elapsed > LIMITER) {
-		action(info)
+		action()
 		highlightLastTouchTimes.set(index, now)
 	} else {
 		const timeout = setTimeout(() => {
-			action(info)
+			action()
 			highlightLastTouchTimes.set(index, performance.now())
 		}, LIMITER - elapsed)
 		highlightTimeouts.set(index, timeout)
 	}
 }
 
-function messageHandler(message: MessageForContentScript) {
+function messageHandler(message: MessageForContentScript | DebugMessage) {
 	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
@@ -80,14 +72,16 @@ function messageHandler(message: MessageForContentScript) {
 		case 'show-landmark':
 			handleHighlightMessage(
 				message.index,
-				borderDrawer.addBorder,
-				landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index))
+				() => borderDrawer.addBorder(
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index)
+				))
 			break
 		case 'hide-landmark':
 			handleHighlightMessage(
 				message.index,
-				borderDrawer.removeBorderOn,
-				landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element)
+				() => borderDrawer.removeBorderOn(
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element
+				))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
@@ -320,7 +314,7 @@ function createMutationObserver() {
 
 function observeMutations() {
 	// FIXME: doesn't include roledescription
-	observer.observe(document, {
+	observer?.observe(document, {
 		attributes: true,
 		childList: true,
 		subtree: true,
@@ -341,7 +335,7 @@ function reflectPageVisibility() {
 	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
-		observer.disconnect()
+		observer?.disconnect()
 	} else {
 		observerReconnectionScanTimer = setTimeout(function() {
 			debugSend('page remained visible: observing and scanning')
@@ -361,7 +355,7 @@ function reflectPageVisibility() {
 function disconnectHandler() {
 	console.log('Landmarks: content script disconnected ' +
 		'due to extension unload/reload.')
-	observer.disconnect()
+	observer?.disconnect()
 	document.removeEventListener('visibilitychange', reflectPageVisibility)
 }
 

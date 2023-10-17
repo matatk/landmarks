@@ -46,8 +46,8 @@ function main() {
 	browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER === 'firefox') {
-		document.getElementById('open-browser-shortcuts-settings')
-			.parentElement.remove()
+		document.getElementById('shortcuts-button-wrapper')
+			.remove()
 	} else {
 		document.getElementById('keyboard-shortcuts-instructions-firefox')
 			.remove()

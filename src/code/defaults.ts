@@ -33,7 +33,7 @@ export const defaultFunctionalSettings: FunctionalitySettings = {
 	guessLandmarks: true,
 	closePopupOnActivate: false,
 	handleMutationsViaTree: false
-} as const
+}
 
 type Settings =
 	BorderSettings & InterfaceSettings & FunctionalitySettings |

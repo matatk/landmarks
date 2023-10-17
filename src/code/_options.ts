@@ -9,7 +9,7 @@ import { defaultSettings, defaultDismissalStates } from './defaults.js'
 // Options
 //
 
-type OptionBase = { name: string }
+type OptionBase = { name: keyof typeof defaultSettings }
 type OptionElement = { element: HTMLInputElement }
 
 type Option =
@@ -73,7 +73,7 @@ function setUpOptionHandlers() {
 							[option.name]: option.element.value
 						})
 					} else {
-						option.element.value = defaultSettings[option.name]
+						option.element.value = String(defaultSettings[option.name])
 					}
 				})
 				break
@@ -90,11 +90,17 @@ function setUpOptionHandlers() {
 	}
 
 	for (const radio of document.querySelectorAll('input[type="radio"]')) {
-		radio.addEventListener('change', function() {
-			const pref = this.parentElement.parentElement
-				.getAttribute('data-pref')
+		radio.addEventListener('change', function(event: Event) {
+			const targ = event.target as HTMLInputElement
+			if (!targ.parentElement?.parentElement) {
+				throw Error('BUG: HTML structure not correct: Radios need a parent parent')
+			}
+			const pref = targ.parentElement.parentElement.getAttribute('data-pref')
+			if (!pref) {
+				throw Error('BUG: HTML structure not correct: missing data-pref attribute')
+			}
 			browser.storage.sync.set({
-				[pref]: this.value
+				[pref]: (event.target as HTMLInputElement).value
 			})
 		})
 	}
@@ -124,8 +130,8 @@ function updateResetDismissedMessagesButtonState() {
 	})
 }
 
-function resetMessages() {
-	if (this.dataset.someMessagesDismissed === String(true)) {
+function resetMessages(event: Event) {
+	if ((event.target as HTMLInputElement).dataset.someMessagesDismissed === String(true)) {
 		browser.storage.sync.set(defaultDismissalStates)
 		document.getElementById('reset-messages-feedback')
 			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')

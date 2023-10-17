@@ -8,7 +8,7 @@ export default class ElementFocuser {
 	managingBorders = true  // draw and remove borders by default
 
 	currentElementInfo: LandmarkListEntry | null = null
-	borderRemovalTimer: number | null = null
+	borderRemovalTimer: ReturnType<typeof setTimeout> | null = null
 
 	borderDrawer: BorderDrawer
 
@@ -63,9 +63,12 @@ export default class ElementFocuser {
 			this.borderDrawer.addBorder(elementInfo)
 
 			if (this.borderType === 'momentary') {
-				clearTimeout(this.borderRemovalTimer)
+				// TODO: Change the null default value to undefined?
+				clearTimeout(this.borderRemovalTimer ?? undefined)
 				this.borderRemovalTimer = setTimeout(() => {
-					this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
+					if (this.currentElementInfo) {
+						this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
+					}
 				}, momentaryBorderTime)
 			}
 		}
@@ -87,12 +90,14 @@ export default class ElementFocuser {
 	// element focusing.
 	manageBorders(canManageBorders: boolean) {
 		this.managingBorders = canManageBorders
-		if (!canManageBorders) {
+		if (!canManageBorders && this.borderRemovalTimer) {
 			clearTimeout(this.borderRemovalTimer)
 		} else if (this.borderType === 'persistent') {
 			// When we stop showing all landmarks at once, ensure the last
 			// single one is put back if it was permanent.
-			this.borderDrawer.addBorder(this.currentElementInfo)
+			if (this.currentElementInfo) {
+				this.borderDrawer.addBorder(this.currentElementInfo)
+			}
 		}
 	}
 
@@ -126,8 +131,12 @@ export default class ElementFocuser {
 
 	// Used internally when we know we have a currently selected element
 	#resetEverything() {
-		clearTimeout(this.borderRemovalTimer)
-		this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
+		if (this.borderRemovalTimer) {
+			clearTimeout(this.borderRemovalTimer)
+		}
+		if (this.currentElementInfo) {
+			this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
+		}
 		this.currentElementInfo = null
 	}
 

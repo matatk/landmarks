@@ -3,7 +3,7 @@
 import './compatibility'
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults.js'
 import { isContentScriptablePage } from './isContent.js'
 import { withActiveTab } from './withTabs.js'
 
@@ -55,7 +55,7 @@ let port: chrome.runtime.Port | null = null
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree) {
+function handleLandmarksMessage(tree: LandmarkTreeEntry) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -67,7 +67,7 @@ function handleLandmarksMessage(tree) {
 			showAllContainer.style.display = 'none'
 		} else {
 			display.appendChild(processTree(tree))
-			showAllContainer.style.display = null
+			showAllContainer.style.display = ''
 		}
 	} else {
 		addText(display, browser.i18n.getMessage('forbiddenPage'))
@@ -75,8 +75,8 @@ function handleLandmarksMessage(tree) {
 	}
 }
 
-function processTree(treeLevel) {
-	const thisLevelList = document.createElement('UL')
+function processTree(treeLevel: LandmarkTreeEntry[]) {
+	const thisLevelList = document.createElement('ul')
 
 	for (const landmark of treeLevel) {
 		thisLevelList.appendChild(
@@ -86,7 +86,7 @@ function processTree(treeLevel) {
 	return thisLevelList
 }
 
-function processTreeLevelItem(landmark) {
+function processTreeLevelItem(landmark: LandmarkTreeEntry) {
 	// Create the <li> for this landmark
 	const item = document.createElement('li')
 
@@ -135,7 +135,7 @@ function processTreeLevelItem(landmark) {
 	return item
 }
 
-function addInspectButton(root, landmark) {
+function addInspectButton(root: HTMLElement, landmark) {
 	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
@@ -150,7 +150,7 @@ function addInspectButton(root, landmark) {
 	root.appendChild(inspectButton)
 }
 
-function addElementWarnings(root, landmark, array) {
+function addElementWarnings(root: HTMLElement, landmark, array) {
 	const details = document.createElement('details')
 	details.className = 'tooltip'
 	const summary = document.createElement('summary')
@@ -163,14 +163,14 @@ function addElementWarnings(root, landmark, array) {
 }
 
 // TODO: Is there a DOM API for this?
-function removeChildNodes(element) {
+function removeChildNodes(element: HTMLElement) {
 	while (element.firstChild) {
 		element.removeChild(element.firstChild)
 	}
 }
 
 // Append text paragraph to the given element
-function addText(element, message) {
+function addText(element: HTMLElement, message: string) {
 	const newPara = document.createElement('p')
 	const newParaText = document.createTextNode(message)
 	newPara.appendChild(newParaText)
@@ -201,7 +201,7 @@ function makeInspectButton(onClick, text, cssClass, context) {
 // Showing page warnings in DevTools
 //
 
-function handlePageWarningsMessage(warnings) {
+function handlePageWarningsMessage(warnings: PageWarning[]) {
 	const container = document.getElementById('page-warnings-container')
 	if (warnings.length === 0) {
 		container.hidden = true
@@ -213,7 +213,7 @@ function handlePageWarningsMessage(warnings) {
 	}
 }
 
-function makeWarnings(root, warningKeys) {
+function makeWarnings(root: HTMLElement, warningKeys: PageWarning[]) {
 	if (warningKeys.length > 1) {
 		const list = document.createElement('ul')
 		for (const warningKey of warningKeys) {
@@ -353,7 +353,8 @@ function debugSend(what) {
 	}
 }
 
-function messageHandlerCore(message) {
+// FIXME: Narrow the types of message
+function messageHandlerCore(message: MessageForBackgroundScript) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.tree)
 		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
@@ -422,7 +423,7 @@ function startupDevTools() {
 
 	port.postMessage({
 		name: 'init',
-		tabId: browser.devtools.inspectedWindow.tabId
+		from: browser.devtools.inspectedWindow.tabId
 	})
 
 	// The checking for if the page is scriptable is done at the other end.

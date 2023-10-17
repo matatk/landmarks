@@ -16,6 +16,10 @@ let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
+function isDevToolsMessage(message: object): message is MessageFromDevTools {
+	return Object.hasOwn(message, 'from')
+}
+
 function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevTools, sender?: chrome.runtime.MessageSender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
@@ -35,7 +39,7 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		// eslint-disable-next-line no-lonely-if
 		if (sender && sender.tab) {
 			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
-		} else if (thing.from) {
+		} else if (isDevToolsMessage(thing)) {
 			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
 		} else {
 			console.log(`bkg: rx from somewhere: ${thing.name}`)
@@ -51,10 +55,12 @@ function setBrowserActionState(tabId: number, url: string) {
 	}
 }
 
-function sendToDevToolsForTab(tabId: number, message: object) {
-	if (devtoolsConnections.hasOwnProperty(tabId)) {
-		devtoolsConnections[tabId].postMessage(message)
-	}
+function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object) {
+	if (tab?.id) {
+		if (devtoolsConnections.hasOwnProperty(tab.id)) {
+			devtoolsConnections[tab.id].postMessage(message)
+		}
+	} // TODO: else: log an error or something?
 }
 
 // If the content script hasn't started yet (e.g. on browser load, restoring
@@ -94,10 +100,10 @@ function devtoolsListenerMaker(port: chrome.runtime.Port) {
 		debugLog(message)
 		switch (message.name) {
 			case 'init':
-				devtoolsConnections[message.tabId] = port
+				devtoolsConnections[message.from] = port
 				port.onDisconnect.addListener(
-					devtoolsDisconnectMaker(message.tabId))
-				sendDevToolsStateMessage(message.tabId, true)
+					devtoolsDisconnectMaker(message.from))
+				sendDevToolsStateMessage(message.from, true)
 				break
 			case 'get-landmarks':
 			case 'get-toggle-state':
@@ -108,7 +114,7 @@ function devtoolsListenerMaker(port: chrome.runtime.Port) {
 				// The DevTools panel can't check if it's on a scriptable
 				// page, so we do that here. Other GUIs check themselves.
 				browser.tabs.get(message.from, function(tab) {
-					if (isContentScriptablePage(tab.url)) {
+					if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
 						browser.tabs.sendMessage(tab.id, message)
 					} else {
 						port.postMessage({ name: 'landmarks', data: null })
@@ -122,7 +128,7 @@ function devtoolsDisconnectMaker(tabId: number) {
 	return function() {
 		browser.tabs.get(tabId, function(tab) {
 			if (!browser.runtime.lastError) {  // check tab was not closed
-				if (isContentScriptablePage(tab.url)) {
+				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
 					sendDevToolsStateMessage(tab.id, false)
 				}
 			}
@@ -206,7 +212,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
 			withActiveTab(tab => {
-				if (isContentScriptablePage(tab.url)) {
+				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
 					browser.tabs.sendMessage(tab.id, { name: command })
 				}
 			})
@@ -270,7 +276,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
 		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-		updateGUIs(tab.id, tab.url)
+		updateGUIs(tab.id!, tab.url!)
 	})
 	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 	//       back as "about:blank" which makes Landmarks think it can't run on
@@ -289,7 +295,7 @@ function reflectUpdateDismissalState(dismissed: boolean) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		browser.browserAction.setBadgeText({ text: '' })
-		withActiveTab(tab => updateGUIs(tab.id, tab.url))
+		withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
 	} else {
 		browser.browserAction.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
@@ -338,25 +344,29 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 	switch (message.name) {
 		// Content
 		case 'landmarks':
-			if (dismissedUpdate) {
+			if (sender?.tab?.id && dismissedUpdate) {
 				browser.browserAction.setBadgeText({
 					text: message.number === 0 ? '' : String(message.number),
 					tabId: sender.tab.id
 				})
 			}
-			sendToDevToolsForTab(sender.tab.id, message)
+			sendToDevToolsForTab(sender.tab, message)
 			break
 		case 'get-devtools-state':
-			sendDevToolsStateMessage(sender.tab.id,
-				devtoolsConnections.hasOwnProperty(sender.tab.id))
+			if (sender?.tab?.id) {
+				sendDevToolsStateMessage(sender.tab.id,
+					devtoolsConnections.hasOwnProperty(sender.tab.id))
+			}
 			break
 		// Help page
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
-				browser.tabs.sendMessage(sender.tab.id, {
-					name: 'populate-commands',
-					commands: commands
-				})
+				if (sender?.tab?.id) {
+					browser.tabs.sendMessage(sender.tab.id, {
+						name: 'populate-commands',
+						commands: commands
+					})
+				}
 			})
 			break
 		case 'open-configure-shortcuts':
@@ -365,7 +375,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
 					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
 					: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
-					: null
+					: ''
 				/* eslint-enable indent */
 				// Note: the Chromium URL is now chrome://extensions/shortcuts
 				//       but the original one is redirected.
@@ -380,12 +390,12 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 			break
 		// Messages that need to be passed through to DevTools only
 		case 'toggle-state-is':
-			withActiveTab(tab => sendToDevToolsForTab(tab.id, message))
+			withActiveTab(tab => sendToDevToolsForTab(tab, message))
 			break
 		case 'mutation-info':
 		case 'mutation-info-window':
 		case 'page-warnings':
-			sendToDevToolsForTab(sender.tab.id, message)
+			sendToDevToolsForTab(sender?.tab, message)
 	}
 })
 
@@ -395,8 +405,10 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 //
 
 withAllTabs(function(tabs) {
-	for (const i in tabs) {
-		setBrowserActionState(tabs[i].id, tabs[i].url)
+	for (const tab of tabs) {
+		if (tab.id && tab.url) {
+			setBrowserActionState(tab.id, tab.url)
+		}
 	}
 })
 
