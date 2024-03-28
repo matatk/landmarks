@@ -451,21 +451,34 @@ export default function LandmarksFinder(win, doc, _testUseHeuristics) {
 	function tryFindingMain() {
 		if (mainElementIndices.length === 0) {
 			for (const id of ['main', 'content', 'main-content']) {
-				if (addGuessed(doc.getElementById(id), 'main')) return
+				let element = doc.getElementById(id);
+				if (element && element.getAttribute('role') !== 'main') {
+					if (addGuessed(element, 'main')) return;
+				}
 			}
-			const classMains = doc.getElementsByClassName('main')
-			if (classMains.length === 1) addGuessed(classMains[0], 'main')
+			const classMains = doc.getElementsByClassName('main');
+			for (const guessed of classMains) {
+				if (guessed.getAttribute('role') !== 'main') {
+					addGuessed(guessed, 'main');
+				}
+			}
 		}
 	}
+	
 
 	function tryFindingNavs() {
 		if (!foundNavigationRegion) {
 			for (const id of ['navigation', 'nav']) {
-				if (addGuessed(doc.getElementById(id), 'navigation')) break
+				let element = doc.getElementById(id);
+				if(element && element.getAttribute('role') !== 'navigation') {
+					if (addGuessed(element, 'navigation')) break;
+				}
 			}
 			for (const className of ['navigation', 'nav']) {
 				for (const guessed of doc.getElementsByClassName(className)) {
-					addGuessed(guessed, 'navigation')
+					if(guessed.getAttribute('role') !== 'navigation') {
+						addGuessed(guessed, 'navigation');
+					}
 				}
 			}
 		}
