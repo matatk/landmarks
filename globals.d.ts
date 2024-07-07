@@ -25,8 +25,8 @@ type BaseLandmarkEntry = {
 	element: HTMLElement
 	selector: string
 	role: string
-	roleDescription?: string
-	label?: string
+	roleDescription: string | null
+	label: string | null
 	guessed: boolean
 	previous?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
 	next?: LandmarkTreeEntry  // TODO: should only be in Tree entry?

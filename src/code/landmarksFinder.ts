@@ -143,8 +143,8 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			thisLandmarkEntry = {
 				'type': 'landmark',
 				'role': role,
-				'roleDescription': getRoleDescription(element) ?? undefined,
-				'label': label ?? undefined,
+				'roleDescription': getRoleDescription(element) ?? null,
+				'label': label ?? null,
 				'element': element,
 				'selector': createSelector(element),
 				'selectorWasUpdated': true,
