@@ -47,8 +47,6 @@ function makeHTML(structure: StructuralElement, root: HTMLElement) {
 					}
 					break
 				}
-				default:
-					throw Error(`Unexpected structure key "${key}" encountered.`)
 			}
 		}
 	} else {
