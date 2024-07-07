@@ -4,7 +4,7 @@ switch (BROWSER) {
 	case 'chrome':
 	case 'opera':
 	case 'edge':
-			// @ts-ignore FIXME
+		// @ts-ignore FIXME
 		window.browser = window.chrome
 		break
 	default:

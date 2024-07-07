@@ -413,7 +413,7 @@ function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
 		for (let i = 0; i < data[key].length; i++) {
 		// @ts-ignore FIXME
 			row.children[i].innerText = data[key][i]
-		// @ts-ignore FIXME
+			// @ts-ignore FIXME
 			row.children[i].className = data[key][i] >= 1 ? 'warning' : ''
 		}
 	}
@@ -487,13 +487,13 @@ function startupPopupOrSidebar() {
 		browser.tabs.get(tab.id, function(tab) {
 		// @ts-ignore FIXME
 			if (!isContentScriptablePage(tab.url)) {
-		// @ts-ignore FIXME
+				// @ts-ignore FIXME
 				handleLandmarksMessage(null)
 				return
 			}
-		// @ts-ignore FIXME
+			// @ts-ignore FIXME
 			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
-		// @ts-ignore FIXME
+			// @ts-ignore FIXME
 			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
 		}))
 

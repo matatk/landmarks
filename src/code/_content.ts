@@ -8,7 +8,8 @@ import ContrastChecker from './contrastChecker.js'
 import MutationStatsReporter from './mutationStatsReporter.js'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
-const landmarksFinder = new (LandmarksFinder as any)(window)
+// @ts-ignore FIXME
+const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(contrastChecker)
 const elementFocuser = new ElementFocuser(borderDrawer)
@@ -30,7 +31,7 @@ let handleMutationsViaTree = null
 // Extension message management
 //
 
-function handleHighlightMessage(index: number, action: Function) {
+function handleHighlightMessage(index: number, action: () => void) {
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		if (!elementFocuser.isManagingBorders() ||
 			(items.borderType === 'persistent' &&
@@ -39,7 +40,7 @@ function handleHighlightMessage(index: number, action: Function) {
 	})
 }
 
-function handleHighlightMessageCore(index: number, action: Function) {
+function handleHighlightMessageCore(index: number, action: () => void) {
 	const now = performance.now()
 	const elapsed = now - (highlightLastTouchTimes.get(index) ?? 0)
 	clearTimeout(highlightTimeouts.get(index))
