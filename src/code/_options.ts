@@ -23,22 +23,27 @@ const options: Option[] = [{
 }, {
 	name: 'borderColour',
 	kind: 'individual',
+			// @ts-ignore FIXME
 	element: document.getElementById('border-colour')
 }, {
 	name: 'borderFontSize',
 	kind: 'individual',
+			// @ts-ignore FIXME
 	element: document.getElementById('border-font-size')
 }, {
 	name: 'guessLandmarks',
 	kind: 'boolean',
+			// @ts-ignore FIXME
 	element: document.getElementById('guess-landmarks')
 }, {
 	name: 'closePopupOnActivate',
 	kind: 'boolean',
+			// @ts-ignore FIXME
 	element: document.getElementById('close-popup-on-activate')
 }, {
 	name: 'handleMutationsViaTree',
 	kind: 'boolean',
+			// @ts-ignore FIXME
 	element: document.getElementById('handle-mutations-via-tree')
 }]
 
@@ -105,7 +110,9 @@ function setUpOptionHandlers() {
 		})
 	}
 
+			// @ts-ignore FIXME
 	document.getElementById('reset-messages').onclick = resetMessages
+			// @ts-ignore FIXME
 	document.getElementById('reset-to-defaults').onclick = resetToDefaults
 }
 
@@ -116,14 +123,19 @@ function updateResetDismissedMessagesButtonState() {
 	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in items) {
 			if (items[dismissalState] === true) {
+			// @ts-ignore FIXME
 				button.dataset.someMessagesDismissed = String(true)
+			// @ts-ignore FIXME
 				feedback.innerText = ''
 				return
 			}
 		}
 
+			// @ts-ignore FIXME
 		button.dataset.someMessagesDismissed = String(false)
+			// @ts-ignore FIXME
 		if (!feedback.innerText) {
+			// @ts-ignore FIXME
 			feedback.innerText =
 				browser.i18n.getMessage('prefsResetMessagesNone')
 		}
@@ -133,6 +145,7 @@ function updateResetDismissedMessagesButtonState() {
 function resetMessages(event: Event) {
 	if ((event.target as HTMLInputElement).dataset.someMessagesDismissed === String(true)) {
 		browser.storage.sync.set(defaultDismissalStates)
+			// @ts-ignore FIXME
 		document.getElementById('reset-messages-feedback')
 			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
 	}
@@ -155,6 +168,7 @@ function resetToDefaults() {
 function main() {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		options.push({
+			// @ts-ignore FIXME
 			name: 'interface',
 			kind: 'choice'
 		})

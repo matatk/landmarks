@@ -23,14 +23,13 @@ type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements
 type BaseLandmarkEntry = {
 	type: 'landmark'
 	element: HTMLElement
-	name: string
 	selector: string
 	role: string
 	roleDescription?: string
 	label?: string
 	guessed: boolean
-	previous: LandmarkTreeEntry
-	next: LandmarkTreeEntry
+	previous?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
+	next?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
 	warnings?: PageWarning[]
 	selectorWasUpdated?: boolean
 }
@@ -41,6 +40,9 @@ type LandmarkListEntry = BaseLandmarkEntry & {
 
 type LandmarkTreeEntry = BaseLandmarkEntry & {
 	contains: LandmarkTreeEntry[]
+	debug: string
+	level: LandmarkTreeEntry[]
+	index?: number
 }
 
 type PopulateCommandsMessage = {
@@ -82,6 +84,8 @@ type MessageForContentScript = {
 	name: 'get-page-warnings'
 }
 
+type ToggleState = 'selected' | 'all'
+
 type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
@@ -100,7 +104,7 @@ type MessageForBackgroundScript = {
 	openInSameTab: boolean
 } | {
 	name: 'toggle-state-is'
-	data: boolean
+	data: ToggleState
 } |
 	MutationInfoMessage
 |
@@ -143,19 +147,24 @@ type LandmarksDevToolsMessage = MessageForBackgroundScript & {
 
 type MutationInfoWindowMessage = {
 	name: 'mutation-info-window'
-	data: {
-		'mutations-per-second': number
-		'average-mutations': number
-		'checked-per-second': number
-		'average-checked': number
-	}
+	data: MutationInfoWindowMessageData
 }
+
+ type MutationInfoWindowMessageData = {
+ 	'mutations-per-second': number
+	'average-mutations': number
+	'checked-per-second': number
+	'average-checked': number
+}
+
 
 type MutationInfoMessage = {
 	name: 'mutation-info'
-	data: {
-		'mutations': number
-		'checks': number
-		'mutationScans': number
-	}
+	data: MutationInfoMessageData
+}
+
+type MutationInfoMessageData = {
+	'mutations': number
+	'checks': number
+	'mutationScans': number
 }

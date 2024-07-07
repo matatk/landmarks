@@ -1,7 +1,8 @@
 import { isContentInjectablePage } from './isContent.js'
 import { withAllTabs } from './withTabs.js'
 
-const contentScriptInjector = BROWSER === 'firefox' ? null : function() {
+// TODO: Check this is tree-shaken in Firefox builds
+export default function() {
 	// Inject content script manually
 	withAllTabs(function(tabs: chrome.tabs.Tab[]) {
 		for (const i in tabs) {
@@ -15,5 +16,3 @@ const contentScriptInjector = BROWSER === 'firefox' ? null : function() {
 		}
 	})
 }
-
-export default contentScriptInjector

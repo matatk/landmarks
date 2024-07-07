@@ -121,10 +121,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			// NOTE: We did a full find, so we don't need to update any selectors.
 		}
 
+		// @ts-ignore TODO
 		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 	}
 
-	function getLandmarks(element: Element, thisLevel: LandmarkTreeEntry[], previousLandmarkEntry?: LandmarkTreeEntry) {
+	function getLandmarks(element: HTMLElement, thisLevel: LandmarkTreeEntry[], previousLandmarkEntry?: LandmarkTreeEntry) {
 		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
 			return previousLandmarkEntry
 		}
@@ -137,19 +138,19 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		const label = getARIAProvidedLabel(doc, element)
 
 		// Add the element if it should be considered a landmark
-		let thisLandmarkEntry = null
+		let thisLandmarkEntry: LandmarkTreeEntry | null = null
 		if (role && isLandmark(role, hasExplicitRole, label)) {
 			thisLandmarkEntry = {
 				'type': 'landmark',
 				'role': role,
-				'roleDescription': getRoleDescription(element),
-				'label': label,
+				'roleDescription': getRoleDescription(element) ?? undefined,
+				'label': label ?? undefined,
 				'element': element,
 				'selector': createSelector(element),
 				'selectorWasUpdated': true,
 				'guessed': element.hasAttribute(LANDMARK_GUESSED_ATTR),
 				'contains': [],
-				'next': null,
+				'next': undefined,
 				'level': thisLevel,
 				'debug': element.tagName + '(' + role + ')'  // FIXME: un-need?
 			}
@@ -167,11 +168,12 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 					if (!_unlabelledRoleElements.has(role)) {
 						_unlabelledRoleElements.set(role, [])
 					}
+					// @ts-ignore TODO
 					_unlabelledRoleElements.get(role).push(element)
 				}
 
 				if (role === 'main' && !hasExplicitRole) {
-					_visibleMainElements.push(element as HTMLElement)
+					_visibleMainElements.push(element)
 				}
 			}
 
@@ -195,6 +197,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		previousLandmarkEntry = thisLandmarkEntry ?? previousLandmarkEntry
 		for (const elementChild of element.children) {  // TODO: perf
 			previousLandmarkEntry = getLandmarks(
+				// @ts-ignore FIXME
 				elementChild,
 				thisLandmarkEntry?.contains ?? thisLevel,
 				previousLandmarkEntry
@@ -223,10 +226,12 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		for (const landmark of landmarksList) {  // TODO: perf
 			if (_visibleMainElements.length > 1
 				&& _visibleMainElements.includes(landmark.element)) {
+				// @ts-ignore TODO
 				landmark.warnings.push('lintManyVisibleMainElements')
 			}
 
 			if (_duplicateUnlabelledWarnings.has(landmark.element)) {
+				// @ts-ignore TODO
 				landmark.warnings.push(
 					_duplicateUnlabelledWarnings.get(landmark.element))
 			}
@@ -265,6 +270,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 
 		const classMains = doc.getElementsByClassName('main')
+		// @ts-ignore FIXME
 		if (classMains.length === 1 && classMains[0].innerText) {
 			classMains[0].setAttribute('role', 'main')
 			classMains[0].setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -287,6 +293,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		for (const className of ['navigation', 'nav']) {
 			// TODO: perf?
 			for (const element of doc.getElementsByClassName(className)) {
+				// @ts-ignore FIXME
 				if (element.innerText) {
 					element.setAttribute('role', 'navigation')
 					element.setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -309,6 +316,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		for (let i = 0; i < landmarksList.length; i++) {
 			const rels =
 				element.compareDocumentPosition(landmarksList[i].element)
+			// @ts-ignore FIXME
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
@@ -320,6 +328,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		for (let i = list.length - 1; i >= 0; i--) {
 			const rels =
 				element.compareDocumentPosition(list[i].element)
+			// @ts-ignore TODO
 			// eslint-disable-next-line no-bitwise
 			if (rels & win.Node.DOCUMENT_POSITION_PRECEDING) return i
 		}
@@ -349,6 +358,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 				: []
 
 			if (filteredContains.length > 0) {
+				// @ts-ignore FIXME
 				filteredEntry.contains = filteredContains
 			}
 
@@ -392,7 +402,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			if (mutation.addedNodes.length) {
 				if (useHeuristics) tryHeuristics()  // NOTE: only after haindling mutation - but that means OK here
 				for (let i = 0; i < mutation.addedNodes.length; i++) {
-					getLandmarks(mutation.addedNodes[i], landmarksTree)
+					// TODO: This pleases TS but is fiddly
+					const thing = mutation.addedNodes[i]
+					if (isHTMLElement(thing)) {
+						getLandmarks(thing, landmarksTree)
+					}
 				}
 
 				regenerateListIndicesSelectors()
@@ -402,6 +416,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		// The slower path
 
+		// @ts-ignore (there are items in the list if we got here)
 		landmarksList.at(-1).next = null  // stop at end of tree walk
 		let processed = false
 
@@ -411,6 +426,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		// NOTE: Assumes addedNodes are encountered in DOM order.
 		if (mutation.addedNodes.length) {
+			// @ts-ignore FIXME these could be Nodes
 			processed = handleChildListMutationAdd(mutation.target, mutation.addedNodes)
 		}
 
@@ -425,10 +441,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
-	function handleChildListMutationRemove(removedNodes: Node[]) {
+	function handleChildListMutationRemove(removedNodes: NodeList) {
 		let processed = false
 
 		for (const removed of removedNodes) {  // TODO: perf
+			if (!isHTMLElement(removed)) continue
 			// TODO: How likely is it that precisely a landmark will be removed?
 			if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
 				// A landmark was removed
@@ -443,7 +460,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 					if (previous) {
 						const rels = previous.compareDocumentPosition(current)
 						// eslint-disable-next-line no-bitwise
-						if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
+						if (rels & Node.DOCUMENT_POSITION_CONTAINED_BY) {
 							current.removeAttribute(LANDMARK_INDEX_ATTR)
 							continue
 						}
@@ -459,10 +476,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return processed
 	}
 
-	function handleChildListMutationAdd(target: Element, addedNodes: Node[]) {
+	function handleChildListMutationAdd(target: Element, addedNodes: NodeList) {
 		// Find the nearest parent landmark, if any
 		let found = target
 		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
+			// @ts-ignore FIXME
 			found = found.parentNode
 		}
 
@@ -471,36 +489,45 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		if (found !== doc.body && index === null) {
 			console.error("Can't find tree level; full find() needed")
 			find()  // FIXME: TEST
-			return
+			return false // FIXME: is this what I intended to return when a find() had to be done?
 		}
+		// @ts-ignore FIXME: should we check for index === null?
 		const subtreeLevel = found === doc.body ? landmarksTree : landmarksList[index].contains
 
 		// If there are other landmarks at this level of the tree, they're
 		// siblings (or we'd be inside of them). We can avoid scanning inside,
 		// and replacing, any siblings.
 		if (subtreeLevel.length) {
+			// @ts-ignore FIXME could be Node
 			const before = getIndexOfLandmarkBeforeIn(addedNodes[0], subtreeLevel)
 
 			const startInsertingAt = before === null ? 0 : before + 1
 			const previousLandmarkEntry = before === null
+			// @ts-ignore FIXME
 				? found === doc.body ? null : landmarksList[index]
 				: subtreeLevel[before]
 			const lastEntryInSubTree = previousLandmarkEntry
 				? lastEntryInsideEntrySubtree(previousLandmarkEntry) : null
 			const previousNext = lastEntryInSubTree?.next
 
+			// @ts-ignore FIXME
 			const newBitOfLevel = []
+			// @ts-ignore FIXME
 			getLandmarksForSubtreeLevelOrPartThereof(addedNodes, newBitOfLevel, lastEntryInSubTree)
+			// @ts-ignore FIXME
 			subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
 
 			if (newBitOfLevel.length) {
 				// NOTE: what was previousLandmarkEntry before this
 				//       patching-up scan will've been wired up to point ot
 				//       the start.
+			// @ts-ignore FIXME
 				if (lastEntryInSubTree) lastEntryInSubTree.next = newBitOfLevel[0]
 				if (startInsertingAt === 0) {
+			// @ts-ignore FIXME
 					newBitOfLevel.at(-1).next = subtreeLevel[newBitOfLevel.length]
 				} else {
+			// @ts-ignore FIXME
 					newBitOfLevel.at(-1).next = previousNext
 				}
 			}
@@ -518,6 +545,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return true  // FIXME: work out if we actually added any landmarks
 	}
 
+			// @ts-ignore FIXME
 	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
 		const origLen = level.length
 		if (useHeuristics) tryHeuristics()  // FIXME: should we? - NO, DO IT AFTER HANDLING MUTATION
@@ -538,7 +566,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			const listNext = landmarksList[i]
 			const rels = element.compareDocumentPosition(listNext.element)
 			// eslint-disable-next-line no-bitwise
-			const contained = rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY
+			const contained = rels & Node.DOCUMENT_POSITION_CONTAINED_BY
 			if (!contained) {
 				next = listNext
 				break
@@ -556,7 +584,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			current = current.next
 			const rels = subTreeRoot.compareDocumentPosition(current.element)
 			// eslint-disable-next-line no-bitwise
-			if (rels & win.Node.DOCUMENT_POSITION_CONTAINED_BY) {
+			if (rels & Node.DOCUMENT_POSITION_CONTAINED_BY) {
 				lastKnownContainedEntry = current
 			} else {
 				return lastKnownContainedEntry
@@ -575,11 +603,13 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		landmarksList = []
 		walk(landmarksList, landmarksTree)
 
+		// @ts-ignore FIXME
 		if (landmarksList.length) landmarksList.at(-1).next = landmarksTree[0]
 		if (useDevMode) developerModeChecks()
 
 		for (let i = 0; i < landmarksList.length; i++) {
 			landmarksList[i].index = i
+			// @ts-ignore FIXME
 			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, i)
 
 			if (!landmarksList[i].selectorWasUpdated) {
@@ -589,6 +619,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			}
 
 			// TODO: Can we avoid the need to do this for all elements?
+			// @ts-ignore FIXME
 			landmarksList[i].label = getARIAProvidedLabel(doc, landmarksList[i].element)
 		}
 
@@ -597,22 +628,24 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		cachedAllElementInfos = null
 	}
 
-	// FIXME: does this only tell if it's an Element?
 	function isHTMLElement(node: Node): node is HTMLElement {
 		return node.nodeType === Node.ELEMENT_NODE
 	}
 
 	function handleAttributeMutation(mutation: MutationRecord) {
-		const el = mutation.target as Element  // TODO: remove need for/do more cleverly
+		const el = mutation.target as HTMLElement  // TODO: remove need for/do more cleverly
 		if (el.hasAttribute(LANDMARK_INDEX_ATTR)) {
 			const index = foundLandmarkElementIndex(el)
 			if (index !== null) {
 				switch (mutation.attributeName) {
 					case 'role': {
 						const { hasExplicitRole, role } = getRole(el)
+			// @ts-ignore FIXME
 						if (isLandmark(role, hasExplicitRole, landmarksList[index].label)) {
+			// @ts-ignore FIXME
 							landmarksList[index].role = role
 							// FIXME: DRY with getLandmarks() or remove:
+			// @ts-ignore FIXME
 							landmarksList[index].debug = el.tagName + '(' + role + ')'
 						} else {
 							// FIXME: remove landmark
@@ -621,6 +654,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 						break
 					}
 					case 'aria-roledescription':
+			// @ts-ignore FIXME
 						landmarksList[index].roleDescription = el.getAttribute('aria-roledescription')
 						break
 				}
@@ -662,8 +696,10 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		while (entry) {
 			// FIXME: is this clause used?
 			if (entry.element.isConnected) {
+			// @ts-ignore FIXME
 				list.push(entry)
 			}
+			// @ts-ignore FIXME
 			entry = entry.next
 		}
 	}
@@ -672,6 +708,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		const index = foundLandmarkElementIndex(landmarkElement)
 		if (index === null) return
 		const info = landmarksList[index]
+			// @ts-ignore FIXME
 		const level = info.level
 
 		// FIXME: PERF: If we were using a real tree, with pointers, this would not be needed.
@@ -683,7 +720,9 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			}
 		}
 
+			// @ts-ignore FIXME
 		const next = levelIndex < level.length - 1
+			// @ts-ignore FIXME
 			? level[levelIndex + 1]
 			: nextNotInSubTree(index)
 
@@ -696,9 +735,12 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
+			// @ts-ignore FIXME
 	let debugMutationHandlingTimes = []
 
+			// @ts-ignore FIXME
 	function debugWrap(func) {
+			// @ts-ignore FIXME
 		return function(...args) {
 			const start = win.performance.now()
 			func(...args)
@@ -716,6 +758,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		console.log(debugTreeString)
 	}
 
+			// @ts-ignore FIXME
 	function debugTreeCore(tree, depth) {
 		for (const thing of tree) {
 			debugTreeString += '~ '.repeat(depth) + infoString(thing) + '\n'
@@ -723,6 +766,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
+			// @ts-ignore FIXME
 	function infoString(entry) {
 		const { previous, next, element, contains, level, ...info } = entry
 		return JSON.stringify(info, null, 2)
@@ -743,7 +787,9 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		// FIXME: actually only used by debugging stuff, which needs to use tree instead...
 		allInfos: function() {
 			if (!cachedAllInfos) {
+			// @ts-ignore FIXME
 				cachedAllInfos = landmarksList.map(entry => {
+			// @ts-ignore FIXME
 					const { element, contains, previous, next, level, ...info } = entry
 					return info
 				})
@@ -755,6 +801,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		allElementsInfos: function() {
 			if (!cachedAllElementInfos) {
 				cachedAllElementInfos = landmarksList.map(entry => {
+			// @ts-ignore FIXME
 					const { contains, previous, next, level, ...info } = entry
 					return info
 				})
@@ -765,6 +812,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		// Just the tree structure, in serialisable form
 		tree: function() {
 			if (!cachedFilteredTree) {
+			// @ts-ignore FIXME
 				cachedFilteredTree = filterTree(landmarksTree)
 			}
 			return cachedFilteredTree
@@ -799,6 +847,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 					landmarksList.length - 1 : currentlySelectedIndex - 1)
 		},
 
+			// @ts-ignore FIXME
 		getLandmarkElementInfo: function(index) {
 			return updateSelectedAndReturnElementInfo(index)
 		},
@@ -815,12 +864,16 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			return null
 		},
 
+			// @ts-ignore FIXME
 		useHeuristics: function(use) {
+			// @ts-ignore FIXME
 			checkBoolean(useHeuristics, use)
 			useHeuristics = use
 		},
 
+			// @ts-ignore FIXME
 		useDevMode: function(use) {
+			// @ts-ignore FIXME
 			checkBoolean(useDevMode, use)
 			useDevMode = use
 		},
@@ -830,6 +883,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		},
 
 		// TODO: Rename this and the above
+			// @ts-ignore FIXME
 		getLandmarkElementInfoWithoutUpdatingIndex: function(index) {
 			return landmarksList[index]
 		},
@@ -839,6 +893,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		debugHandleMutations: debugWrap(handleMutations),
 
 		debugMutationHandlingTimes: function() {
+			// @ts-ignore FIXME
 			return debugMutationHandlingTimes
 		},
 

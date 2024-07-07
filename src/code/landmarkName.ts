@@ -1,4 +1,4 @@
-export default function landmarkName(landmark: LandmarkListEntry) {
+export default function landmarkName(landmark: LandmarkListEntry | LandmarkTreeEntry) {
 	const roleName = landmark.roleDescription
 		? landmark.roleDescription
 		: processRole(landmark.role)

@@ -420,6 +420,7 @@ browser.storage.onChanged.addListener(function(changes) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		if (changes.hasOwnProperty('interface')) {
 			switchInterface(changes.interface.newValue
+				// @ts-ignore TODO
 				?? defaultInterfaceSettings.interface)
 		}
 	}

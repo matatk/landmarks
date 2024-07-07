@@ -48,7 +48,8 @@
       },
       "rules": {
         "no-undef": "off",
-        "compat/compat": "warn"
+        "compat/compat": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn"
       }
     }
   ],
