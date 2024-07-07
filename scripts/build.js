@@ -9,7 +9,7 @@ import prettier from 'rollup-plugin-prettier'
 import fse from 'fs-extra'
 import { glob } from 'glob'
 import merge from 'deepmerge'
-import replace from 'replace-in-file'
+import { replaceInFileSync } from 'replace-in-file'
 import { rollup } from 'rollup'
 import sharp from 'sharp'
 import strip from '@rollup/plugin-strip'
@@ -115,7 +115,7 @@ function logStep(name) {
 
 function doReplace(files, from, to, message) {
 	try {
-		const results = replace.sync({
+		const results = replaceInFileSync({
 			'files': files,
 			'from': from,
 			'to': to
