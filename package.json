@@ -54,6 +54,7 @@
     "stats-lite": "~2.2",
     "stylelint": "^16.6.1",
     "stylelint-config-standard": "^36.0.1",
+    "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "yargs": "^17.7.2"
   }

@@ -91,7 +91,6 @@ export default class MutationStatsReporter {
 			++this.numScanDurationReports
 		this.prettyAverageScanDuration = this.averageScanDuration.toFixed(1)
 		if (!this.quiet) this.#sendDurationUpdate()
-		if (!this.quiet) console.log('is last greater than average duration?', this.lastScanDuration > this.averageScanDuration)
 	}
 
 	// Only these two public send methods are exposed because the mutation info

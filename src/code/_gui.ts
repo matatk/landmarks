@@ -375,6 +375,7 @@ function messageHandlerCore(message: MessageForBackgroundScript) {
 	} else if (message.name === 'toggle-state-is') {
 		handleToggleStateMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
+		// FIXME: The message from the msr called 'mutation-info' doesn't match the structure of the typed one.
 		handleMutationMessage(message.data)
 	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info-window') {
 		handleMutationWindowMessage(message.data)
@@ -401,6 +402,11 @@ function handleMutationMessage(data: MutationInfoMessageData) {
 	for (const key in data) {
 		// @ts-ignore FIXME
 		document.getElementById(key).textContent = data[key]
+	}
+	if ('duration' in data && 'average' in data) {
+		document.getElementById('was-last-scan-longer-than-average').innerText = 
+			// @ts-ignore FIXME
+			data.duration > data.average ? 'yes' : 'no'
 	}
 }
 
@@ -453,12 +459,12 @@ function startupDevTools() {
 	// TODO: Eventually remove, after sorting out mutation handling
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('handleMutationsViaTree' in changes) {
-			document.getElementById('spandle-mutations-via-tree').innerText =
+			document.getElementById('handling-mutations-via-tree').innerText =
 				changes.handleMutationsViaTree.newValue
 		}
 	})
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		document.getElementById('spandle-mutations-via-tree').innerText =
+		document.getElementById('handle-mutations-via-tree').innerText =
 			items.handleMutationsViaTree
 	})
 }
