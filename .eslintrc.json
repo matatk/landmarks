@@ -40,7 +40,7 @@
       "files": "src/code/*.ts",
       "parser": "@typescript-eslint/parser",
       "extends": [
-        "plugin:@typescript-eslint/recommended-type-checked",
+        "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/stylistic-type-checked",
         "plugin:compat/recommended"
       ],

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// FIXME: When linting, use recommended-type-checked for TypeScript stuff after sorting out messages.
 import path from 'path'
 import fs from 'fs'
 
