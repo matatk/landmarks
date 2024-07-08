@@ -1,11 +1,9 @@
-type Settings = {
+interface Settings {
 	[key: string]: string | number | undefined
 	version?: number
 }
 
-type Migrations = {
-	[key: number]: (settings: Settings) => void
-}
+type Migrations = Record<number, (settings: Settings) => void>;
 
 export default class MigrationManager {
 	#migrations: Migrations

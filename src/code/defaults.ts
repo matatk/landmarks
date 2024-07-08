@@ -2,7 +2,7 @@
 // User preferences
 //
 
-type BorderSettings = {
+interface BorderSettings {
 	borderType: 'momentary' | 'persistent' | 'none'
 	borderColour: string
 	borderFontSize: string
@@ -14,7 +14,7 @@ export const defaultBorderSettings: BorderSettings = {
 	borderFontSize: '16'
 } as const
 
-type InterfaceSettings = {
+interface InterfaceSettings {
 	interface: 'popup' | 'sidebar'
 }
 
@@ -23,7 +23,7 @@ export const defaultInterfaceSettings: InterfaceSettings | null =
 		? { interface: 'popup' } as const
 		: null
 
-type FunctionalitySettings = {
+interface FunctionalitySettings {
 	guessLandmarks: boolean,
 	closePopupOnActivate: boolean,
 	handleMutationsViaTree: boolean

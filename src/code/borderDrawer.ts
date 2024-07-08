@@ -4,7 +4,7 @@ import type ContrastChecker from './contrastChecker.js'
 
 const borderWidthPx = 4
 
-type BorderInfo = {
+interface BorderInfo {
 	border: HTMLElement
 	label: HTMLElement
 	guessed: boolean
@@ -39,8 +39,8 @@ export default class BorderDrawer {
 		// the code). This also computes the initial label font colour (as it
 		// depends on the border colour, which forms the label's background).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.#borderColour = items['borderColour']
-			this.#borderFontSize = items['borderFontSize']
+			this.#borderColour = items.borderColour
+			this.#borderFontSize = items.borderFontSize
 			this.#updateLabelFontColour()
 		})
 
@@ -250,7 +250,7 @@ export default class BorderDrawer {
 	//        makes the guarnatee for us). That would also make the code more
 	//        performant.
 	#removeBorderAndLabelFor(element: HTMLElement) {
-		const related = this.#borderedElements.get(element) as BorderInfo
+		const related = this.#borderedElements.get(element)!
 		related.border.remove()
 		related.label.remove()
 		this.#madeDOMChanges = true

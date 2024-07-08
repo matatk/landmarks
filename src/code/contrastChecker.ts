@@ -27,7 +27,7 @@ type RGB = typeof channelStringPositions
 function hexToRGB(hex: string) {
 	const rgb: RGB = { r: 0, g: 0, b: 0 }
 
-	for (const channel of Object.keys(channelStringPositions) as Array<keyof typeof channelStringPositions>) {
+	for (const channel of Object.keys(channelStringPositions) as (keyof typeof channelStringPositions)[]) {
 		const start = channelStringPositions[channel]
 		const end = start + 2
 		const chanHex = hex.slice(start, end)
@@ -48,7 +48,7 @@ function sRGB(rgb: RGB) {
 function transmogrify(sRGB: RGB) {
 	const transmogrified: RGB = { r: 0, g: 0, b: 0 }
 
-	for (const channel of Object.keys(sRGB) as Array<keyof typeof sRGB>) {
+	for (const channel of Object.keys(sRGB) as (keyof typeof sRGB)[]) {
 		if (sRGB[channel] <= 0.03928) {
 			transmogrified[channel] = sRGB[channel] / 12.92
 		} else {

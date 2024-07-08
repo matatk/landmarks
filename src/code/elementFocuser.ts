@@ -23,7 +23,7 @@ export default class ElementFocuser {
 		// that 'gets' of options don't need to be done asynchronously in the rest
 		// of the code).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.borderType = items['borderType']
+			this.borderType = items.borderType
 		})
 
 		browser.storage.onChanged.addListener(changes => {

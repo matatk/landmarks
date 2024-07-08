@@ -20,8 +20,8 @@ const noop = () => {}
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer: ReturnType<typeof setTimeout> | null = null
 let observer: MutationObserver | null = null
-const highlightLastTouchTimes: Map<number, number> = new Map()
-const highlightTimeouts: Map<number, ReturnType<typeof setTimeout>> = new Map()
+const highlightLastTouchTimes = new Map<number, number>()
+const highlightTimeouts = new Map<number, ReturnType<typeof setTimeout>>()
 const LIMITER = 350
 
 let handleMutationsViaTree = null
@@ -264,7 +264,7 @@ function shouldRefreshLandmarkss(mutations: MutationRecord[]) {
 			}
 		} else if (mutation.type === 'attributes') {  // NOTE: Added this check; perf?
 			if (mutation.attributeName === 'style') {
-				if (/display|visibility/.test((mutation.target as Element).getAttribute('style') as string)) {
+				if (/display|visibility/.test((mutation.target as Element).getAttribute('style')!)) {
 					return true
 				}
 				continue

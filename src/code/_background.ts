@@ -26,7 +26,7 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		console.log('bkg:', thing)
 	} else if (thing.name === 'debug') {
 		// Debug message from somewhere
-		if (sender && sender.tab) {
+		if (sender?.tab) {
 			console.log(`${sender.tab.id}: ${thing.info}`)
 		} else if (thing.from) {
 			console.log(`${thing.from}: ${thing.info}`)
@@ -37,7 +37,7 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		// A general message from somewhere
 		// TODO: does this exist?
 		// eslint-disable-next-line no-lonely-if
-		if (sender && sender.tab) {
+		if (sender?.tab) {
 			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
 		} else if (isDevToolsMessage(thing)) {
 			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)

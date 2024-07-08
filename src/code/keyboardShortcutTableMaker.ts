@@ -50,7 +50,7 @@ function makeHTML(structure: StructuralElement, root: HTMLElement) {
 			}
 		}
 	} else {
-		root.append(structure['text'])
+		root.append(structure.text)
 	}
 
 	return root

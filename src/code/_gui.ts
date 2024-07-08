@@ -40,15 +40,13 @@ const _updateNote = {
 	}
 }
 
-type Note = {
+interface Note {
 	id: string
 	cta: () => void
 	showOrHide?: (wasDismissed: boolean) => void
 }
 
-type Notes = {
-	[noteName: string]: Note
-}
+type Notes = Record<string, Note>;
 
 const notes: Notes = (INTERFACE === 'sidebar')
 	? Object.assign({}, _sidebarNote, _updateNote)
@@ -489,7 +487,7 @@ function startupPopupOrSidebar() {
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
 	withActiveTab(tab =>
-		browser.tabs.get(tab.id as number, function(tab) {
+		browser.tabs.get(tab.id!, function(tab) {
 		// @ts-ignore FIXME
 			if (!isContentScriptablePage(tab.url)) {
 				// @ts-ignore FIXME
@@ -512,7 +510,7 @@ function startupPopupOrSidebar() {
 		// only the pop-up is affected, and the user almost certainly won't
 		// change a pop-up-related setting whilst a pop-up is open.
 		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-			closePopupOnActivate = items['closePopupOnActivate']
+			closePopupOnActivate = items.closePopupOnActivate
 		})
 	}
 }

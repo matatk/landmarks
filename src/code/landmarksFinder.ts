@@ -46,7 +46,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 	// Tracking landmark finding in developer mode
 	let _pageWarnings: PageWarning[] = []
-	const _unlabelledRoleElements: Map<string, Element[]> = new Map()
+	const _unlabelledRoleElements = new Map<string, Element[]>()
 	let _visibleMainElements: HTMLElement[] = []
 
 
@@ -105,7 +105,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		// FIXME: only on page startup?
 		if (useHeuristics) tryHeuristics()
 
-		getLandmarks(doc.body.parentElement as HTMLElement, landmarksTree)
+		getLandmarks(doc.body.parentElement!, landmarksTree)
 		if (useDevMode) developerModeChecks()
 
 		// TODO: test different string syntax for performance

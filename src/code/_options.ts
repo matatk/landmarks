@@ -9,8 +9,8 @@ import { defaultSettings, defaultDismissalStates } from './defaults.js'
 // Options
 //
 
-type OptionBase = { name: keyof typeof defaultSettings }
-type OptionElement = { element: HTMLInputElement }
+interface OptionBase { name: keyof typeof defaultSettings }
+interface OptionElement { element: HTMLInputElement }
 
 type Option =
 	{ kind: 'choice' } & OptionBase |
