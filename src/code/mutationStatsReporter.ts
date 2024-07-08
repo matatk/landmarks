@@ -130,6 +130,7 @@ export default class MutationStatsReporter {
 		this.checkedLimitSecondAverages.push(checkedAverage)
 
 		if (!this.quiet) {
+			// FIXME: Type this?
 			browser.runtime.sendMessage({
 				name: 'mutation-info-window', data: {
 					'mutations-per-second': this.mutationsPerSecond,
@@ -142,6 +143,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendMutationUpdate() {
+		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'mutations': this.totalMutations,
@@ -152,6 +154,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendNonMutationScansUpdate() {
+		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'nonMutationScans': this.nonMutationScans
@@ -160,6 +163,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendPauseTimeUpdate() {
+		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'pause': this.pauseTime
@@ -168,6 +172,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendDurationUpdate() {
+		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'duration': this.lastScanDuration,

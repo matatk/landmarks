@@ -326,6 +326,14 @@
     "message": "Number of milliseconds the last landmark scan took."
   },
 
+  "statsAverageDurationTerm": {
+    "message": "Average scan took:"
+  },
+
+  "statsAverageDurationDefinition": {
+    "message": "Number of milliseconds the average landmark scan took."
+  },
+
   "statsDefine": {
     "message": "Define"
   },
