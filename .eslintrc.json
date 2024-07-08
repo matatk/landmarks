@@ -6,7 +6,8 @@
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2022
+    "ecmaVersion": 2022,
+    "project": true
   },
   "reportUnusedDisableDirectives": true,
   "root": true,
@@ -39,7 +40,8 @@
       "files": "src/code/*.ts",
       "parser": "@typescript-eslint/parser",
       "extends": [
-        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-type-checked",
+        "plugin:@typescript-eslint/stylistic-type-checked",
         "plugin:compat/recommended"
       ],
       "env": {

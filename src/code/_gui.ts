@@ -489,8 +489,7 @@ function startupPopupOrSidebar() {
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
 	withActiveTab(tab =>
-		// @ts-ignore FIXME
-		browser.tabs.get(tab.id, function(tab) {
+		browser.tabs.get(tab.id as number, function(tab) {
 		// @ts-ignore FIXME
 			if (!isContentScriptablePage(tab.url)) {
 				// @ts-ignore FIXME
