@@ -3,6 +3,7 @@
 export default function translate() {
 	for(const element of (document.querySelectorAll('[data-message]'))) {
 		element.appendChild(document.createTextNode(
+			// @ts-ignore FIXME
 			browser.i18n.getMessage(element.dataset.message)))
 	}
 }
