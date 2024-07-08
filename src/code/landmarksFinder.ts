@@ -262,7 +262,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		for (const id of ['main', 'content', 'main-content']) {
 			const element = doc.getElementById(id)
-			if (element && element.innerText) {
+			if (element?.innerText) {
 				element.setAttribute('role', 'main')
 				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
 				return
@@ -283,7 +283,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		for (const id of ['navigation', 'nav']) {
 			const element = doc.getElementById(id)
-			if (element && element.innerText) {
+			if (element?.innerText) {
 				element.setAttribute('role', 'navigation')
 				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
 				break
@@ -402,6 +402,8 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			// FIXME: DRY with subtreeLevel added nodes below?
 			if (mutation.addedNodes.length) {
 				if (useHeuristics) tryHeuristics()  // NOTE: only after haindling mutation - but that means OK here
+				// FIXME: check performance with a for-of loop
+				// eslint-disable-next-line
 				for (let i = 0; i < mutation.addedNodes.length; i++) {
 					// TODO: This pleases TS but is fiddly
 					const thing = mutation.addedNodes[i]
@@ -550,6 +552,8 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	function getLandmarksForSubtreeLevelOrPartThereof(addedNodes, level, pLE) {
 		const origLen = level.length
 		if (useHeuristics) tryHeuristics()  // FIXME: should we? - NO, DO IT AFTER HANDLING MUTATION
+		// FIXME: check performance with a for-of loop
+		// eslint-disable-next-line
 		for (let i = 0; i < addedNodes.length; i++) {
 			// FIXME: Test
 			if (level.length === origLen) {

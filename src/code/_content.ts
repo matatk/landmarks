@@ -15,6 +15,8 @@ const borderDrawer = new BorderDrawer(contrastChecker)
 const elementFocuser = new ElementFocuser(borderDrawer)
 const msr = new MutationStatsReporter()
 const pauseHandler = new PauseHandler((pause: number) => msr.setPauseTime(pause))
+// FIXME find another way
+// eslint-disable-next-line
 const noop = () => {}
 
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
