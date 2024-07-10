@@ -180,13 +180,16 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
 			if (currentlySelectedElement === element) {
+				// FIXME: not working also?
 				currentlySelectedIndex = landmarksList.length - 1
 			}
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
 			if (role === 'main') {
+				// FIXME: not working because we're only populating the list later?
 				mainElementIndices.push(landmarksList.length - 1)
+				// FIXME: push the element to a list of main elements instead? Should only store reference.
 			}
 		}
 
