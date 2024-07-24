@@ -41,7 +41,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-compat": "^5.0.0",
     "fs-extra": "^11.2.0",
-    "glob": "^10.4.3",
+    "glob": "^11.0.0",
     "husky": "^9.1.1",
     "jsdom": "^24.1.1",
     "page-structural-semantics-scanner-tests": "git+https://git@github.com/matatk/page-structural-semantics-scanner-tests.git#0.8.0",
