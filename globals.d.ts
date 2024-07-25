@@ -112,10 +112,12 @@ type MessageForBackgroundScript = {
 | {
 	name: 'page-warnings'
 	data: PageWarning[]
-} | {
+} | DebugMessageForBackgroundScript
+
+type DebugMessageForBackgroundScript = {
 	name: 'debug'
 	info: string
-	from?: chrome.runtime.MessageSender
+	from?: chrome.runtime.MessageSender | string // TODO: using the MessageSender part?
 }
 
 type MessageFromDevTools = {
@@ -150,13 +152,12 @@ type MutationInfoWindowMessage = {
 	data: MutationInfoWindowMessageData
 }
 
- type MutationInfoWindowMessageData = {
- 	'mutations-per-second': number
-	'average-mutations': number
-	'checked-per-second': number
-	'average-checked': number
+type MutationInfoWindowMessageData = {
+	'average-checked': number[]
+	'average-mutations': number[]
+	'checked-per-second': number[]
+	'mutations-per-second': number[]
 }
-
 
 type MutationInfoMessage = {
 	name: 'mutation-info'
@@ -164,7 +165,11 @@ type MutationInfoMessage = {
 }
 
 type MutationInfoMessageData = {
-	'mutations': number
-	'checks': number
-	'mutationScans': number
+	'average'?: number
+	'checks'?: number
+	'duration'?: number
+	'mutationScans'?: number
+	'mutations'?: number
+	'nonMutationScans'?: number
+	'pause'?: number
 }

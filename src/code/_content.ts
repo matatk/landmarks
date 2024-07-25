@@ -8,7 +8,7 @@ import ContrastChecker from './contrastChecker.js'
 import MutationStatsReporter from './mutationStatsReporter.js'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
-// @ts-ignore FIXME
+// @ts-expect-error TODO convert to class and check it's still as performant
 const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(contrastChecker)

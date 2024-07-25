@@ -7,11 +7,10 @@ export default class MutationStatsReporter {
 	checkedMutations = 0
 	mutationScans = 0
 	nonMutationScans = 0
-	pauseTime: number | null = null
-	lastScanDuration: number | null = null
+	pauseTime?: number
+	lastScanDuration?: number
 	numScanDurationReports = 0  // TODO: harmonise with content scr.
 	averageScanDuration = 0
-	prettyAverageScanDuration = '0'
 	quiet = true
 
 	mutationsPerSecond: number[] = []
@@ -47,8 +46,8 @@ export default class MutationStatsReporter {
 		this.checkedMutations = 0
 		this.mutationScans = 0
 		this.nonMutationScans = 0
-		this.pauseTime = null
-		this.lastScanDuration = null
+		this.pauseTime = undefined
+		this.lastScanDuration = undefined
 	}
 
 	beQuiet() {
@@ -89,7 +88,6 @@ export default class MutationStatsReporter {
 		this.averageScanDuration =
 			(this.numScanDurationReports * this.averageScanDuration + this.lastScanDuration) /
 			++this.numScanDurationReports
-		this.prettyAverageScanDuration = this.averageScanDuration.toFixed(1)
 		if (!this.quiet) this.#sendDurationUpdate()
 	}
 
@@ -129,7 +127,6 @@ export default class MutationStatsReporter {
 		this.checkedLimitSecondAverages.push(checkedAverage)
 
 		if (!this.quiet) {
-			// FIXME: Type this?
 			browser.runtime.sendMessage({
 				name: 'mutation-info-window', data: {
 					'mutations-per-second': this.mutationsPerSecond,
@@ -137,47 +134,43 @@ export default class MutationStatsReporter {
 					'checked-per-second': this.checkedPerSecond,
 					'average-checked': this.checkedLimitSecondAverages
 				}
-			})
+			} satisfies MutationInfoWindowMessage)
 		}
 	}
 
 	#sendMutationUpdate() {
-		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'mutations': this.totalMutations,
 				'checks': this.checkedMutations,
 				'mutationScans': this.mutationScans
 			}
-		})
+		} satisfies MutationInfoMessage)
 	}
 
 	#sendNonMutationScansUpdate() {
-		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'nonMutationScans': this.nonMutationScans
 			}
-		})
+		} satisfies MutationInfoMessage)
 	}
 
 	#sendPauseTimeUpdate() {
-		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'pause': this.pauseTime
 			}
-		})
+		} satisfies MutationInfoMessage)
 	}
 
 	#sendDurationUpdate() {
-		// FIXME: Type this?
 		browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'duration': this.lastScanDuration,
-				'average': this.prettyAverageScanDuration
+				'average': this.averageScanDuration
 			}
-		})
+		} satisfies MutationInfoMessage)
 	}
 
 	#sendAllUpdates() {
