@@ -1,14 +1,8 @@
-interface ExtraBits {
+var browser: typeof chrome & {
 	sidebarAction: {
 		toggle: () => void
 	}
 }
-
-interface Window {
-	browser: typeof chrome & ExtraBits
-}
-
-var browser: typeof chrome & ExtraBits
 
 var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'

@@ -239,8 +239,7 @@ export function createSelector(element: Element) {
 			// we'll need to include an nth-child bit on the end of the
 			// selector part for this element.
 			const siblingElementTagNames =
-				// @ts-ignore TODO
-				Array.from(node.parentNode.children, x => x.tagName)
+				Array.from(node.parentNode!.children, x => x.tagName)
 			const uniqueSiblingElementTagNames =
 				[...new Set(siblingElementTagNames)]  // Array API is neater
 
@@ -256,8 +255,7 @@ export function createSelector(element: Element) {
 				> uniqueSiblingElementTagNames.length) {
 				const siblingNumber =
 					Array.prototype.indexOf.call(
-						// @ts-ignore TODO
-						node.parentNode.children, node) + 1
+						node.parentNode!.children, node) + 1
 
 				description += ':nth-child(' + siblingNumber + ')'
 			}
@@ -265,8 +263,7 @@ export function createSelector(element: Element) {
 
 		reversePath.push(description)
 		if (id) break
-		// @ts-ignore TODO
-		node = node.parentNode
+		node = node.parentNode as Element // FIXME
 	}
 
 	return reversePath.reverse().join(' > ')

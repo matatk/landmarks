@@ -4,7 +4,7 @@ switch (BROWSER) {
 	case 'chrome':
 	case 'opera':
 	case 'edge':
-		// @ts-ignore FIXME
+		// @ts-expect-error Firefox and Opera add sidebarAction (per global defns)
 		window.browser = window.chrome
 		break
 	default:
