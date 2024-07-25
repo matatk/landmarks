@@ -2,8 +2,16 @@
 // User preferences
 //
 
+const BORDER_TYPES = [ 'momentary', 'persistent', 'none' ] as const
+
+type BorderType = typeof BORDER_TYPES[number]
+
+export function isBorderType(value: unknown): value is BorderType {
+	return BORDER_TYPES.includes(value as BorderType)
+}
+
 interface BorderSettings {
-	borderType: 'momentary' | 'persistent' | 'none'
+	borderType: BorderType
 	borderColour: string
 	borderFontSize: string
 }
@@ -14,8 +22,16 @@ export const defaultBorderSettings: BorderSettings = {
 	borderFontSize: '16'
 } as const
 
+const INTERFACE_TYPES = [ 'popup', 'sidebar' ] as const
+
+type InterfaceType = typeof INTERFACE_TYPES[number]
+
+export function isInterfaceType(value: unknown): value is InterfaceType {
+	return INTERFACE_TYPES.includes(value as InterfaceType)
+}
+
 interface InterfaceSettings {
-	interface: 'popup' | 'sidebar'
+	interface: InterfaceType
 }
 
 export const defaultInterfaceSettings: InterfaceSettings | null =
@@ -33,7 +49,7 @@ export const defaultFunctionalSettings: FunctionalitySettings = {
 	guessLandmarks: true,
 	closePopupOnActivate: false,
 	handleMutationsViaTree: false
-}
+} as const
 
 type Settings =
 	BorderSettings & InterfaceSettings & FunctionalitySettings |

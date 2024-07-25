@@ -1,14 +1,8 @@
-interface ExtraBits {
+var browser: typeof chrome & {
 	sidebarAction: {
 		toggle: () => void
 	}
 }
-
-interface Window {
-	browser: typeof chrome & ExtraBits
-}
-
-var browser: typeof chrome & ExtraBits
 
 var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
@@ -16,11 +10,15 @@ var DEBUG: boolean
 
 type LabelFontColour = 'black' | 'white'
 
-type CallbackReturningElementInfo = () => LandmarkListEntry
+// NOTE: the content script checks there are landmarks
+type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined
 
 type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
 
-type BaseLandmarkEntry = {
+// NOTE: The '| null' pattern is used to keep the shape of the objects consistent, for perf.
+// TODO: Check whether switching to '<key>?: <primary-type>' definitions affects perf.
+// TODO: ...and adjust the '?' properties accordingly.
+type LandmarkEntry = {
 	type: 'landmark'
 	element: HTMLElement
 	selector: string
@@ -28,30 +26,29 @@ type BaseLandmarkEntry = {
 	roleDescription: string | null
 	label: string | null
 	guessed: boolean
-	previous?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
-	next?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
+	previous?: LandmarkEntry  // TODO: should only be in Tree entry?
+	next?: LandmarkEntry  // TODO: should only be in Tree entry?
 	warnings?: PageWarning[]
 	selectorWasUpdated?: boolean
-}
-
-type LandmarkListEntry = BaseLandmarkEntry & {
-	index: number
-}
-
-type LandmarkTreeEntry = BaseLandmarkEntry & {
-	contains: LandmarkTreeEntry[]
+	index?: number  // NOTE: only on list entries
+	contains: LandmarkEntry[]
 	debug: string
-	level: LandmarkTreeEntry[]
+	level: LandmarkEntry[]
 	index?: number
+}
+
+type LandmarkElementInfo = Pick<LandmarkEntry, "element" | "role" | "roleDescription" | "label" | "guessed">
+type LandmarkInfo = Omit<LandmarkElementInfo, "element">
+
+type FilteredLandmarkEntry = Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next" | "contains">
+
+interface FilteredLandmarkTreeEntry extends Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next"> {
+	contains: FilteredLandmarkTreeEntry[]
 }
 
 type PopulateCommandsMessage = {
 	name: 'populate-commands'
 	commands: chrome.commands.Command[]
-}
-
-type DebugMessage = {
-	name: 'debug'
 }
 
 type MessageForContentScript = {
@@ -90,7 +87,7 @@ type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
 	tabId: number
-	tree: LandmarkTreeEntry
+	tree: LandmarkEntry
 } | {
 	name: 'get-devtools-state'
 } | {
@@ -112,10 +109,15 @@ type MessageForBackgroundScript = {
 | {
 	name: 'page-warnings'
 	data: PageWarning[]
-} | {
+} | DebugMessage
+
+type DebugMessageFor = typeof INTERFACE | 'content'
+
+type DebugMessage = {
 	name: 'debug'
 	info: string
-	from?: chrome.runtime.MessageSender
+	from: DebugMessageFor
+	forTabId?: number
 }
 
 type MessageFromDevTools = {
@@ -150,13 +152,12 @@ type MutationInfoWindowMessage = {
 	data: MutationInfoWindowMessageData
 }
 
- type MutationInfoWindowMessageData = {
- 	'mutations-per-second': number
-	'average-mutations': number
-	'checked-per-second': number
-	'average-checked': number
+type MutationInfoWindowMessageData = {
+	'average-checked': number[]
+	'average-mutations': number[]
+	'checked-per-second': number[]
+	'mutations-per-second': number[]
 }
-
 
 type MutationInfoMessage = {
 	name: 'mutation-info'
@@ -164,7 +165,11 @@ type MutationInfoMessage = {
 }
 
 type MutationInfoMessageData = {
-	'mutations': number
-	'checks': number
-	'mutationScans': number
+	'average'?: number
+	'checks'?: number
+	'duration'?: number
+	'mutationScans'?: number
+	'mutations'?: number
+	'nonMutationScans'?: number
+	'pause'?: number
 }

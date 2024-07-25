@@ -2,6 +2,7 @@ import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
 function messageHandler(message: PopulateCommandsMessage) {
+	// FIXME: this check is needed, but the types make it look like it isn't
 	if (message.name !== 'populate-commands') return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(
@@ -43,7 +44,7 @@ function main() {
 	translate()  // to refer to the "go to main" command; main and nav regions
 
 	browser.runtime.onMessage.addListener(messageHandler)
-	browser.runtime.sendMessage({ name: 'get-commands' })
+	void browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER === 'firefox') {
 		document.getElementById('shortcuts-button-wrapper')
@@ -52,9 +53,9 @@ function main() {
 		document.getElementById('keyboard-shortcuts-instructions-firefox')
 			.remove()
 		document.getElementById('open-browser-shortcuts-settings')
-			.addEventListener(
-				'click', () => browser.runtime.sendMessage({
-					name: 'open-configure-shortcuts' }))
+			.addEventListener('click', () => {
+				void browser.runtime.sendMessage({ name: 'open-configure-shortcuts' })
+			})
 	}
 
 	includeVersionNumber()

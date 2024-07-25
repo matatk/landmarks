@@ -39,19 +39,19 @@ export default class BorderDrawer {
 		// the code). This also computes the initial label font colour (as it
 		// depends on the border colour, which forms the label's background).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.#borderColour = items.borderColour
-			this.#borderFontSize = items.borderFontSize
+			this.#borderColour = String(items.borderColour)  // TODO: TS: Wouldn't they be returned as strings?
+			this.#borderFontSize = String(items.borderFontSize)  // TODO: TS: Wouldn't they be returned as strings?
 			this.#updateLabelFontColour()
 		})
 
 		browser.storage.onChanged.addListener(changes => {
 			let needUpdate = false
 			if ('borderColour' in changes) {
-				this.#borderColour = changes.borderColour.newValue
+				this.#borderColour = String(changes.borderColour.newValue) // TODO: TS: wouldn't they be returned as strings?
 				needUpdate = true
 			}
 			if ('borderFontSize' in changes) {
-				this.#borderFontSize = changes.borderFontSize.newValue
+				this.#borderFontSize = String(changes.borderFontSize.newValue) // TODO: TS: wouldn't they be returned as strings?
 				needUpdate = true
 			}
 			if (needUpdate) {
@@ -86,7 +86,7 @@ export default class BorderDrawer {
 	//       again (as may happen if the page changes whilst we're displaying
 	//       all elements, and try to add any new ones) that the existing
 	//       elements' labels won't have changed.
-	addBorder(elementInfo: LandmarkListEntry) {
+	addBorder(elementInfo: LandmarkElementInfo) {
 		if (!this.#borderedElements.has(elementInfo.element)) {
 			this.#drawBorderAndLabel(
 				elementInfo.element,
@@ -101,7 +101,7 @@ export default class BorderDrawer {
 	// Add the landmark border and label for several elements, and remove any
 	// borders associated with elements that currently have borders but aren't
 	// in this set. Takes an array of element info objects, as detailed above.
-	replaceCurrentBordersWithElements(elementInfoList: LandmarkListEntry[]) {
+	replaceCurrentBordersWithElements(elementInfoList: LandmarkElementInfo[]) {
 		const elementsToAdd = elementInfoList.map(info => info.element)
 
 		for (const elementWithBorder of this.#borderedElements.keys()) {

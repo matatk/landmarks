@@ -8,7 +8,6 @@ import ContrastChecker from './contrastChecker.js'
 import MutationStatsReporter from './mutationStatsReporter.js'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
-// @ts-ignore FIXME
 const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(contrastChecker)
@@ -59,7 +58,7 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 }
 
 function messageHandler(message: MessageForContentScript | DebugMessage) {
-	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
+	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -89,13 +88,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
-			guiCheckFocusElement(landmarksFinder.getNextLandmarkElementInfo)
+			guiCheckFocusElement(() => landmarksFinder.getNextLandmarkElementInfo())
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
-			guiCheckFocusElement(
-				landmarksFinder.getPreviousLandmarkElementInfo)
+			guiCheckFocusElement(() => landmarksFinder.getPreviousLandmarkElementInfo())
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
@@ -123,7 +121,7 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			}
 			// eslint-disable-this-line no-fallthrough
 		case 'get-toggle-state':
-			browser.runtime.sendMessage({
+			void browser.runtime.sendMessage({
 				name: 'toggle-state-is',
 				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
 			})
@@ -147,23 +145,21 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				debugSend('change scanner to dev')
+				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
 			} else if (message.state === 'closed') {
-				debugSend('change scanner to std')
+				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
-			} else {
-				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
-				debugSend('doc visible; scanning')
+				debugSendContent('doc visible; scanning')
 				findLandmarks(noop, noop)
 			}
 			break
 		case 'get-page-warnings':
-			browser.runtime.sendMessage({
+			void browser.runtime.sendMessage({
 				name: 'page-warnings',
 				data: landmarksFinder.pageResults()
 			})
@@ -173,12 +169,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 function doUpdateOutdatedResults() {
 	let outOfDate = false
 	if (observerReconnectionScanTimer !== null) {
-		debugSend('out-of-date: was awaiting reconnection; re-observing now')
+		debugSendContent('out-of-date: was awaiting reconnection; re-observing now')
 		cancelObserverReconnectionScan()
 		observeMutations()
 		outOfDate = true
 	} else if (pauseHandler.isPaused()) {
-		debugSend('out-of-date: scanning pause > default')
+		debugSendContent('out-of-date: scanning pause > default')
 		outOfDate = true
 	}
 
@@ -188,7 +184,7 @@ function doUpdateOutdatedResults() {
 			noop)  // it already calls the send function
 		return true
 	}
-	debugSend('landmarks are up-to-date')
+	debugSendContent('landmarks are up-to-date')
 	return false
 }
 
@@ -202,14 +198,14 @@ function guiCheckThereAreLandmarks() {
 
 function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningElementInfo) {
 	if (guiCheckThereAreLandmarks()) {
-		elementFocuser.focusElement(callbackReturningElementInfo())
+		elementFocuser.focusElement(callbackReturningElementInfo()!)
 	}
 }
 
-function debugSend(what: string) {
+function debugSendContent(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	browser.runtime.sendMessage({ name: 'debug', info: what })
+	void browser.runtime.sendMessage({ name: 'debug', info: what, from: 'content' } satisfies DebugMessage)
 }
 
 
@@ -218,7 +214,7 @@ function debugSend(what: string) {
 //
 
 function sendLandmarks() {
-	browser.runtime.sendMessage({
+	void browser.runtime.sendMessage({
 		name: 'landmarks',
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
@@ -227,7 +223,7 @@ function sendLandmarks() {
 
 function findLandmarks(counterIncrementFunction: () => void, updateSendFunction: () => void) {
 	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
-	debugSend('finding landmarks')
+	debugSendContent('finding landmarks')
 
 	const start = performance.now()
 	landmarksFinder.find()
@@ -294,19 +290,21 @@ function createMutationObserver() {
 		// (which happens in e.g. Google Docs)
 		pauseHandler.run(
 			// Ignore border-drawing mutations
+			// FIXME: address this by some way other than ignoring
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			borderDrawer.hasMadeDOMChanges,
 			// Guarded task
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					debugSend('scanning due to mutation')
+					debugSendContent('scanning due to mutation')
 					findLandmarksAndSend(() => msr.incrementMutationScans(), noop)
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
-				debugSend('scheduled scan')
+				debugSendContent('scheduled scan')
 				findLandmarksAndSend(
 					() => msr.incrementMutationScans(), () => msr.sendMutationUpdate())
 			})
@@ -335,13 +333,13 @@ function cancelObserverReconnectionScan() {
 }
 
 function reflectPageVisibility() {
-	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + window.location)
+	debugSendContent((document.hidden ? 'hidden' : 'shown') + ' ' + String(window.location))
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
 		observer?.disconnect()
 	} else {
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('page remained visible: observing and scanning')
+			debugSendContent('page remained visible: observing and scanning')
 			findLandmarksAndSend(
 				() => msr.incrementNonMutationScans(), noop)  // it will send anyway
 			observeMutations()
@@ -374,7 +372,7 @@ function startUpTasks() {
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('guessLandmarks' in changes) {
-			const setting = changes.guessLandmarks.newValue ??
+			const setting = Boolean(changes.guessLandmarks.newValue) ??  // TODO: TS: check before and ignore?
 				defaultFunctionalSettings.guessLandmarks
 			if (setting !== changes.guessLandmarks.oldValue) {
 				landmarksFinder.useHeuristics(setting)
@@ -383,27 +381,27 @@ function startUpTasks() {
 		}
 
 		if ('handleMutationsViaTree' in changes) {
-			handleMutationsViaTree = changes.handleMutationsViaTree.newValue
-			debugSend(`handle mutation via tree: ${handleMutationsViaTree}`)
+			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue) // TODO: check before and ignore?
+			debugSendContent(`handle mutation via tree: ${handleMutationsViaTree}`)
 		}
 	})
 
 	createMutationObserver()
 	if (!document.hidden) {
-		debugSend('document visible at startup; observing')
+		debugSendContent('document visible at startup; observing')
 		observeMutations()
 	}
 
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
-debugSend(`starting - ${window.location}`)
+debugSendContent(`starting - ${window.location.toString()}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 	landmarksFinder.useHeuristics(items.guessLandmarks)
-	handleMutationsViaTree = items.handleMutationsViaTree
-	debugSend(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)
+	handleMutationsViaTree = Boolean(items.handleMutationsViaTree)
+	debugSendContent(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)
 	startUpTasks()
 })

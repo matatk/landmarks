@@ -1,3 +1,5 @@
+// NOTE: This system won't catch the problem whereby an id that exists is
+//       referenced, but it's not the one that was _meant_ to be referenced.
 import { globSync } from 'glob'
 import { readFileSync, writeFileSync } from 'node:fs'
 

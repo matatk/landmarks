@@ -3,7 +3,7 @@
 import './compatibility'
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults.js'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
 import { isContentScriptablePage } from './isContent.js'
 import { withActiveTab } from './withTabs.js'
 
@@ -15,7 +15,7 @@ const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
 		id: 'note-ui',
 		cta: function() {
-			browser.runtime.openOptionsPage()
+			void browser.runtime.openOptionsPage()
 		},
 		showOrHide: function(wasDismissed: boolean) {
 			// Whether to show the message depends on the interface too
@@ -34,7 +34,7 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			browser.runtime.sendMessage({ name: 'open-help' })
+			void browser.runtime.sendMessage({ name: 'open-help' })
 			if (INTERFACE === 'popup') window.close()
 		}
 	}
@@ -52,7 +52,7 @@ const notes: Notes = (INTERFACE === 'sidebar')
 	? Object.assign({}, _sidebarNote, _updateNote)
 	: _updateNote
 
-let port: chrome.runtime.Port | null = null
+let port: chrome.runtime.Port
 
 
 //
@@ -63,7 +63,7 @@ let port: chrome.runtime.Port | null = null
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree: LandmarkTreeEntry) {
+function handleLandmarksMessage(tree: LandmarkEntry | null) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -83,7 +83,7 @@ function handleLandmarksMessage(tree: LandmarkTreeEntry) {
 	}
 }
 
-function processTree(treeLevel: LandmarkTreeEntry[]) {
+function processTree(treeLevel: LandmarkEntry[]) {
 	const thisLevelList = document.createElement('ul')
 
 	for (const landmark of treeLevel) {
@@ -94,7 +94,7 @@ function processTree(treeLevel: LandmarkTreeEntry[]) {
 	return thisLevelList
 }
 
-function processTreeLevelItem(landmark: LandmarkTreeEntry) {
+function processTreeLevelItem(landmark: LandmarkEntry) {
 	// Create the <li> for this landmark
 	const item = document.createElement('li')
 
@@ -128,13 +128,11 @@ function processTreeLevelItem(landmark: LandmarkTreeEntry) {
 		// whilst unlikely, this might happen before the content script has
 		// learnt that DevTools are open.
 		if (landmark.hasOwnProperty('warnings')) {
-			// @ts-ignore FIXME any way to make this obviously OK given prev line?
-			if (landmark.warnings.length > 0) {
-			// @ts-ignore FIXME any way to make this obviously OK given above check?
-				addElementWarnings(item, landmark, landmark.warnings)
+			if (landmark.warnings!.length > 0) {
+				addElementWarnings(item, landmark, landmark.warnings!)
 			}
 		} else {
-			debugSend('no warnings for ' + landmark.role)
+			debugSendGui('no warnings for ' + landmark.role)
 		}
 	}
 
@@ -145,7 +143,7 @@ function processTreeLevelItem(landmark: LandmarkTreeEntry) {
 	return item
 }
 
-function addInspectButton(root: HTMLElement, landmark: LandmarkTreeEntry) {
+function addInspectButton(root: HTMLElement, landmark: LandmarkEntry) {
 	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
@@ -160,7 +158,7 @@ function addInspectButton(root: HTMLElement, landmark: LandmarkTreeEntry) {
 	root.appendChild(inspectButton)
 }
 
-function addElementWarnings(root: HTMLElement, landmark: LandmarkTreeEntry, array: PageWarning[]) {
+function addElementWarnings(root: HTMLElement, landmark: LandmarkEntry, array: PageWarning[]) {
 	const details = document.createElement('details')
 	details.className = 'tooltip'
 	const summary = document.createElement('summary')
@@ -252,52 +250,42 @@ function showOrHideNote(note: Note, dismissed: boolean) {
 	if (note.showOrHide) {
 		note.showOrHide(dismissed)
 	} else if (dismissed) {
-		// @ts-ignore FIXME
-		document.getElementById(note.id).hidden = true
+		document.getElementById(note.id)!.hidden = true
 	} else {
-		// @ts-ignore FIXME
-		document.getElementById(note.id).hidden = true
+		document.getElementById(note.id)!.hidden = true
 	}
 }
 
 // Sidebar-specific: handle the user changing their UI preference (the sidebar
 // may be open, so the note needs to be shown/hidden in real-time).
 function reflectInterfaceChange(ui: 'sidebar' | 'popup') {
-	browser.storage.sync.get(
-		defaultDismissedSidebarNotAlone,
-		function(items) {
-			if (items.dismissedSidebarNotAlone === false) {
-				switch (ui) {
-					case 'sidebar': document.getElementById('note-ui').hidden = true
-						break
-					case 'popup': document.getElementById('note-ui').hidden = false
-						break
-					default:
-						throw Error(`Unexpected interface type "${ui}".`)
-				}
+	browser.storage.sync.get(defaultDismissedSidebarNotAlone, function(items) {
+		if (items.dismissedSidebarNotAlone === false) {
+			if (ui === 'sidebar') {
+				document.getElementById('note-ui').hidden = true
+			} else {
+				document.getElementById('note-ui').hidden = false
 			}
-		})
+		}
+	})
 }
 
 function setupNotes() {
 	for (const [dismissalSetting, note] of Object.entries(notes)) {
 		const ctaId = `${note.id}-cta`
 		const dismissId = `${note.id}-dismiss`
-		// @ts-ignore FIXME
-		document.getElementById(ctaId).addEventListener('click', note.cta)
-		// @ts-ignore FIXME
-		document.getElementById(dismissId).addEventListener(
+		document.getElementById(ctaId)!.addEventListener('click', note.cta)
+		document.getElementById(dismissId)!.addEventListener(
 			'click', function() {
-				browser.storage.sync.set({ [dismissalSetting]: true })
+				void browser.storage.sync.set({ [dismissalSetting]: true })
 			})
 	}
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if (INTERFACE === 'sidebar') {
-			if (changes.hasOwnProperty('interface')) {
+			if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
 				reflectInterfaceChange(changes.interface.newValue ??
-					// @ts-ignore FIXME
-					defaultInterfaceSettings.interface)
+					defaultInterfaceSettings!.interface)
 			}
 		}
 
@@ -305,7 +293,7 @@ function setupNotes() {
 			if (changes.hasOwnProperty(dismissalState)) {
 				showOrHideNote(
 					notes[dismissalState],
-					changes[dismissalState].newValue)
+					Boolean(changes[dismissalState].newValue))  // TODO: ensure at source and ignore, or check here
 			}
 		}
 	})
@@ -313,7 +301,7 @@ function setupNotes() {
 	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in defaultDismissalStates) {
 			if (notes.hasOwnProperty(dismissalState)) {
-				showOrHideNote(notes[dismissalState], items[dismissalState])
+				showOrHideNote(notes[dismissalState], Boolean(items[dismissalState]))  // TODO: ensure at source and ignore, or check here
 			}
 		}
 	})
@@ -327,7 +315,7 @@ function setupNotes() {
 function makeEventHandlers(linkName: 'help' | 'settings') {
 	const link = document.getElementById(linkName)
 	const core = () => {
-		browser.runtime.sendMessage({ name: `open-${linkName}` })
+		void browser.runtime.sendMessage({ name: `open-${linkName}` })
 		if (INTERFACE === 'popup') window.close()
 	}
 
@@ -343,29 +331,31 @@ function send(message: string | object) {
 		const messageWithTabId = Object.assign({}, message, {
 			from: browser.devtools.inspectedWindow.tabId
 		})
-		// @ts-ignore FIXME
 		port.postMessage(messageWithTabId)
 	} else {
-		// @ts-ignore FIXME
-		withActiveTab(tab => browser.tabs.sendMessage(tab.id, message))
+		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
+		withActiveTab(tab => {
+			void browser.tabs.sendMessage(tab.id!, message)
+		})
 	}
 }
 
-function debugSend(what: string) {
-	const message = { name: 'debug', info: what }
+function debugSendGui(what: string) {
+	const message: DebugMessage = INTERFACE === 'devtools' 
+		? { name: 'debug', info: what, from: 'devtools', forTabId: browser.devtools.inspectedWindow.tabId }
+		: { name: 'debug', info: what, from: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		// @ts-ignore FIXME: fix message definitions
-		message.from = `devtools ${browser.devtools.inspectedWindow.tabId}`
-		// @ts-ignore FIXME
 		port.postMessage(message)
 	} else {
-		// @ts-ignore FIXME: fix message definitions
 		message.from = INTERFACE
-		browser.runtime.sendMessage(message)
+		void browser.runtime.sendMessage(message)
 	}
 }
 
-// FIXME: Narrow the types of message
+function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgroundScript {
+	return typeof thing === 'object'
+}
+
 function messageHandlerCore(message: MessageForBackgroundScript) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.tree)
@@ -384,41 +374,29 @@ function messageHandlerCore(message: MessageForBackgroundScript) {
 
 function handleToggleStateMessage(state: ToggleState) {
 	const box = document.getElementById('show-all')
-	switch(state) {
-		case 'selected':
-			box.checked = false
-			break
-		case 'all':
-			box.checked = true
-			break
-		default:
-			throw Error(`Unexpected toggle state "${state}" given.`)
-	}
+	box.checked = state === 'selected' ? false : true
 }
 
 function handleMutationMessage(data: MutationInfoMessageData) {
 	for (const key in data) {
-		// @ts-ignore FIXME
-		document.getElementById(key).textContent = data[key]
+		const string = key === 'average'
+			? data[key as keyof typeof data]!.toFixed(1)
+			: String(data[key as keyof typeof data]!)
+		document.getElementById(key)!.textContent = string
 	}
 	if ('duration' in data && 'average' in data) {
 		document.getElementById('was-last-scan-longer-than-average').innerText = 
-			// @ts-ignore FIXME
-			data.duration > data.average ? 'yes' : 'no'
+			data.duration! > data.average! ? 'yes' : 'no'
 	}
 }
 
 function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
 	for (const key in data) {
-		const table = document.getElementById(key)
-		// @ts-ignore FIXME
-		const row = table.querySelector('tr')
-		// @ts-ignore FIXME
-		for (let i = 0; i < data[key].length; i++) {
-		// @ts-ignore FIXME
-			row.children[i].innerText = data[key][i]
-			// @ts-ignore FIXME
-			row.children[i].className = data[key][i] >= 1 ? 'warning' : ''
+		const table = document.getElementById(key)!
+		const row = table.querySelector('tr')!
+		for (let i = 0; i < data[key as keyof typeof data].length; i++) {
+			(row.children[i] as HTMLElement).innerText = String(data[key as keyof typeof data][i])
+			row.children[i].className = data[key as keyof typeof data][i] >= 1 ? 'warning' : ''
 		}
 	}
 }
@@ -458,12 +436,12 @@ function startupDevTools() {
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('handleMutationsViaTree' in changes) {
 			document.getElementById('handling-mutations-via-tree').innerText =
-				changes.handleMutationsViaTree.newValue
+				String(changes.handleMutationsViaTree.newValue)
 		}
 	})
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		document.getElementById('handle-mutations-via-tree').innerText =
-			items.handleMutationsViaTree
+		document.getElementById('handling-mutations-via-tree').innerText =
+			String(items.handleMutationsViaTree)
 	})
 }
 
@@ -478,26 +456,24 @@ function startupPopupOrSidebar() {
 		withActiveTab(tab => {
 			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
-				// @ts-ignore FIXME
-				messageHandlerCore(message, sender)
+				if (isMessageForBackgroundScript(message)) {
+					messageHandlerCore(message)
+				}
 			}
 		})
 	})
 
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
+	// TODO: might this ever be called when the active tab doesn't have an id/url?
 	withActiveTab(tab =>
 		browser.tabs.get(tab.id!, function(tab) {
-		// @ts-ignore FIXME
-			if (!isContentScriptablePage(tab.url)) {
-				// @ts-ignore FIXME
+			if (!isContentScriptablePage(tab.url!)) {
 				handleLandmarksMessage(null)
 				return
 			}
-			// @ts-ignore FIXME
-			browser.tabs.sendMessage(tab.id, { name: 'get-landmarks' })
-			// @ts-ignore FIXME
-			browser.tabs.sendMessage(tab.id, { name: 'get-toggle-state' })
+			void browser.tabs.sendMessage(tab.id!, { name: 'get-landmarks' })
+			void browser.tabs.sendMessage(tab.id!, { name: 'get-toggle-state' })
 		}))
 
 	document.getElementById('version').innerText =
@@ -510,7 +486,7 @@ function startupPopupOrSidebar() {
 		// only the pop-up is affected, and the user almost certainly won't
 		// change a pop-up-related setting whilst a pop-up is open.
 		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-			closePopupOnActivate = items.closePopupOnActivate
+			closePopupOnActivate = Boolean(items.closePopupOnActivate)
 		})
 	}
 }
@@ -527,7 +503,7 @@ function main() {
 	})
 
 	translate()
-	debugSend('started up')
+	debugSendGui('started up')
 }
 
 main()

@@ -1,4 +1,5 @@
-import { defaultBorderSettings } from './defaults.js'
+import { defaultBorderSettings, isBorderType } from './defaults.js'
+
 import type BorderDrawer from './borderDrawer.js'
 
 const momentaryBorderTime = 2000
@@ -7,7 +8,7 @@ export default class ElementFocuser {
 	borderType = defaultBorderSettings.borderType  // cached for simplicity
 	managingBorders = true  // draw and remove borders by default
 
-	currentElementInfo: LandmarkListEntry | null = null
+	currentElementInfo?: LandmarkElementInfo
 	borderRemovalTimer: ReturnType<typeof setTimeout> | null = null
 
 	borderDrawer: BorderDrawer
@@ -23,11 +24,11 @@ export default class ElementFocuser {
 		// that 'gets' of options don't need to be done asynchronously in the rest
 		// of the code).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.borderType = items.borderType
+			if (isBorderType(items.borderType)) this.borderType = items.borderType
 		})
 
 		browser.storage.onChanged.addListener(changes => {
-			if ('borderType' in changes) {
+			if ('borderType' in changes && isBorderType(changes.borderType.newValue)) {
 				this.borderType =
 					changes.borderType.newValue ?? defaultBorderSettings.borderType
 				this.#borderTypeChange()
@@ -46,7 +47,7 @@ export default class ElementFocuser {
 	// Note: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
-	focusElement(elementInfo: LandmarkListEntry) {
+	focusElement(elementInfo: LandmarkElementInfo) {
 		if (this.managingBorders) this.clear()
 
 		// Ensure that the element is focusable
@@ -137,7 +138,7 @@ export default class ElementFocuser {
 		if (this.currentElementInfo) {
 			this.borderDrawer.removeBorderOn(this.currentElementInfo.element)
 		}
-		this.currentElementInfo = null
+		this.currentElementInfo = undefined
 	}
 
 	// Should a border be added/removed?
