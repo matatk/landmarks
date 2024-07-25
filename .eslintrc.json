@@ -50,9 +50,7 @@
       },
       "rules": {
         "no-undef": "off",
-        "compat/compat": "warn",
-        "@typescript-eslint/ban-ts-comment": "warn",
-        "@typescript-eslint/no-unused-vars": "warn"
+        "compat/compat": "warn"
       }
     }
   ],
