@@ -24,6 +24,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Found landmarks
 	//
 
+	// FIXME: switch to types for documenting this
 	// Each member of these data structures is an object of the form:
 	//   role (string)                   -- the ARIA role
 	//   roleDescription (string | null) -- custom role description
@@ -355,17 +356,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			// FIXME remove this:
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { contains, element, previous, next, debug, level, selectorWasUpdated, ...info } = entry
-			const filteredEntry: FilteredLandmarkTreeEntry = { contains: [], ...info }
-
-			// NOTE: Guessed landmarks aren't given a 'contains' property
-			const filteredContains = Array.isArray(entry.contains)
-				? filterTree(entry.contains)
-				: []
-
-			if (filteredContains.length > 0) {
-				filteredEntry.contains = filteredContains
-			}
-
+			const filteredEntry: FilteredLandmarkTreeEntry = { contains: filterTree(contains), ...info }
 			filteredLevel.push(filteredEntry)
 		}
 

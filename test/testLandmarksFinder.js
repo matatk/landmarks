@@ -185,7 +185,11 @@ function removeStuffCore(landmarks) {
 	for (const landmark of landmarks) {
 		delete landmark.index
 		delete landmark.warnings
-		if (landmark.contains) removeStuff(landmark.contains)
+		if (landmark.contains.length) {
+			removeStuff(landmark.contains)
+		} else {
+			delete landmark.contains
+		}
 	}
 }
 
