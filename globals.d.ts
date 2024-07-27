@@ -10,33 +10,33 @@ var DEBUG: boolean
 
 type LabelFontColour = 'black' | 'white'
 
-type CallbackReturningElementInfo = () => LandmarkListEntry
+type CallbackReturningElementInfo = () =>LandmarkEntry
 
 type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
 
-type BaseLandmarkEntry = {
+type LandmarkEntry = {
 	type: 'landmark'
 	element: HTMLElement
 	selector: string
 	role: string
-	roleDescription: string | null
-	label: string | null
+	roleDescription: string | null  // TODO: switch to ? syntax
+	label: string | null  // TODO: switch to ? syntax
 	guessed: boolean
-	previous?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
-	next?: LandmarkTreeEntry  // TODO: should only be in Tree entry?
+	previous?: LandmarkEntry  // TODO: should only be in Tree entry?
+	next?: LandmarkEntry  // TODO: should only be in Tree entry?
 	warnings?: PageWarning[]
 	selectorWasUpdated?: boolean
-}
-
-type LandmarkListEntry = BaseLandmarkEntry & {
-	index: number
-}
-
-type LandmarkTreeEntry = BaseLandmarkEntry & {
-	contains: LandmarkTreeEntry[]
+	index?: number  // NOTE: only on list entries
+	contains: LandmarkEntry[]
 	debug: string
-	level: LandmarkTreeEntry[]
+	level: LandmarkEntry[]
 	index?: number
+}
+
+type FilteredLandmarkEntry = Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next" | "contains">
+
+interface FilteredLandmarkTreeEntry extends Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next"> {
+	contains: FilteredLandmarkTreeEntry[]
 }
 
 type PopulateCommandsMessage = {
@@ -84,7 +84,7 @@ type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
 	tabId: number
-	tree: LandmarkTreeEntry
+	tree: LandmarkEntry
 } | {
 	name: 'get-devtools-state'
 } | {

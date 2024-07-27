@@ -63,7 +63,7 @@ let port: chrome.runtime.Port
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree: LandmarkTreeEntry | null) {
+function handleLandmarksMessage(tree: LandmarkEntry | null) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -83,7 +83,7 @@ function handleLandmarksMessage(tree: LandmarkTreeEntry | null) {
 	}
 }
 
-function processTree(treeLevel: LandmarkTreeEntry[]) {
+function processTree(treeLevel: LandmarkEntry[]) {
 	const thisLevelList = document.createElement('ul')
 
 	for (const landmark of treeLevel) {
@@ -94,7 +94,7 @@ function processTree(treeLevel: LandmarkTreeEntry[]) {
 	return thisLevelList
 }
 
-function processTreeLevelItem(landmark: LandmarkTreeEntry) {
+function processTreeLevelItem(landmark: LandmarkEntry) {
 	// Create the <li> for this landmark
 	const item = document.createElement('li')
 
@@ -143,7 +143,7 @@ function processTreeLevelItem(landmark: LandmarkTreeEntry) {
 	return item
 }
 
-function addInspectButton(root: HTMLElement, landmark: LandmarkTreeEntry) {
+function addInspectButton(root: HTMLElement, landmark: LandmarkEntry) {
 	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
@@ -158,7 +158,7 @@ function addInspectButton(root: HTMLElement, landmark: LandmarkTreeEntry) {
 	root.appendChild(inspectButton)
 }
 
-function addElementWarnings(root: HTMLElement, landmark: LandmarkTreeEntry, array: PageWarning[]) {
+function addElementWarnings(root: HTMLElement, landmark: LandmarkEntry, array: PageWarning[]) {
 	const details = document.createElement('details')
 	details.className = 'tooltip'
 	const summary = document.createElement('summary')

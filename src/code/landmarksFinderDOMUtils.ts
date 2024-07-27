@@ -81,7 +81,7 @@ const implicitRoles = Object.freeze({
 // This can only check an element's direct styles. We just stop recursing
 // into elements that are hidden. That's why the heuristics don't call this
 // function (they don't check all of a guessed landmark's parent elements).
-export function isVisuallyHidden(win: Window, element: Element) {
+export function isVisuallyHidden(win: Window, element: HTMLElement) {
 	if (element.hasAttribute('hidden')) return true
 
 	const style = win.getComputedStyle(element)
@@ -92,7 +92,7 @@ export function isVisuallyHidden(win: Window, element: Element) {
 	return false
 }
 
-export function isSemantiallyHidden(element: Element) {
+export function isSemantiallyHidden(element: HTMLElement) {
 	if (element.getAttribute('aria-hidden') === 'true'
 		|| element.hasAttribute('inert')) {
 		return true
@@ -100,7 +100,7 @@ export function isSemantiallyHidden(element: Element) {
 	return false
 }
 
-export function getRoleFromTagNameAndContainment(element: Element) {
+export function getRoleFromTagNameAndContainment(element: HTMLElement) {
 	const name = element.tagName
 	let role = null
 
@@ -122,7 +122,7 @@ export function getRoleFromTagNameAndContainment(element: Element) {
 }
 
 // NOTE: Changed parentNode to parentElement
-export function isChildOfTopLevelSection(element: Element) {
+export function isChildOfTopLevelSection(element: HTMLElement) {
 	let ancestor = element.parentElement
 
 	while (ancestor !== null) {
@@ -151,7 +151,7 @@ export function getValidExplicitRole(value: string) {
 	return null
 }
 
-export function getRole(element: Element) {
+export function getRole(element: HTMLElement) {
 	// Elements with explicitly-set rolees
 	const rawRoleValue = element.getAttribute('role')
 	const explicitRole = rawRoleValue
@@ -165,7 +165,7 @@ export function getRole(element: Element) {
 	return { hasExplicitRole, role }
 }
 
-export function getARIAProvidedLabel(doc: Document, element: Element) {
+export function getARIAProvidedLabel(doc: Document, element: HTMLElement) {
 	let label = null
 
 	// TODO general whitespace test?
@@ -212,7 +212,7 @@ export function isLandmark(role: string, explicitRole: boolean, label: string | 
 }
 
 // NOTE: To please TS, added the !roleDescription check. Perf?
-export function getRoleDescription(element: Element) {
+export function getRoleDescription(element: HTMLElement) {
 	const roleDescription = element.getAttribute('aria-roledescription')
 	// TODO make this a general whitespace check?
 	if (!roleDescription || /^\s*$/.test(roleDescription)) {
@@ -221,7 +221,7 @@ export function getRoleDescription(element: Element) {
 	return roleDescription
 }
 
-export function createSelector(element: Element) {
+export function createSelector(element: HTMLElement) {
 	const reversePath = []
 	let node = element
 
@@ -263,7 +263,7 @@ export function createSelector(element: Element) {
 
 		reversePath.push(description)
 		if (id) break
-		node = node.parentNode as Element // FIXME
+		node = node.parentNode as HTMLElement // FIXME
 	}
 
 	return reversePath.reverse().join(' > ')

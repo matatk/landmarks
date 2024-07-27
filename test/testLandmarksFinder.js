@@ -153,6 +153,7 @@ function testSpecificLandmarksFinder(runName, checks, heuristics, developer) {
 	for (const check of Object.values(checks)) {
 		test(runName + ': ' + check.meta.name, t => {
 			const dom = new JSDOM(check.fixture)
+			global.Node = dom.window.Node
 
 			// Expose jsdom's existing textContent method, tweaked, as innerText
 			// https://github.com/jsdom/jsdom/issues/1245#issuecomment-445848341
