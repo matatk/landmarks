@@ -1,4 +1,5 @@
-import { defaultBorderSettings } from './defaults.js'
+import { defaultBorderSettings, isBorderType } from './defaults.js'
+
 import type BorderDrawer from './borderDrawer.js'
 
 const momentaryBorderTime = 2000
@@ -23,11 +24,11 @@ export default class ElementFocuser {
 		// that 'gets' of options don't need to be done asynchronously in the rest
 		// of the code).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.borderType = items.borderType
+			if (isBorderType(items.borderType)) this.borderType = items.borderType
 		})
 
 		browser.storage.onChanged.addListener(changes => {
-			if ('borderType' in changes) {
+			if ('borderType' in changes && isBorderType(changes.borderType.newValue)) {
 				this.borderType =
 					changes.borderType.newValue ?? defaultBorderSettings.borderType
 				this.#borderTypeChange()

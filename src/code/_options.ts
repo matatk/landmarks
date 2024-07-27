@@ -46,17 +46,15 @@ function restoreOptions() {
 	browser.storage.sync.get(defaultSettings, function(items) {
 		for (const option of options) {
 			const name = option.name
-			const saved = items[name]
-
 			switch (option.kind) {
 				case 'choice':
-					(document.getElementById(`radio-${saved}`) as HTMLInputElement).checked = true
+					(document.getElementById(`radio-${items[name]}`) as HTMLInputElement).checked = true
 					break
 				case 'individual':
-					option.element.value = saved
+					option.element.value = String(items[name])
 					break
 				case 'boolean':
-					option.element.checked = saved
+					option.element.checked = Boolean(items[name])
 					break
 			}
 		}

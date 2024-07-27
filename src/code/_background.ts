@@ -16,6 +16,7 @@ let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 // Utilities
 //
 
+// FIXME: really the best way? Also, message should be unknown?
 function isDevToolsMessage(message: object): message is MessageFromDevTools {
 	return Object.hasOwn(message, 'from')
 }

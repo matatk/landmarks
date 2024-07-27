@@ -3,7 +3,7 @@
 import './compatibility'
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
-import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings } from './defaults.js'
+import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
 import { isContentScriptablePage } from './isContent.js'
 import { withActiveTab } from './withTabs.js'
 
@@ -288,8 +288,8 @@ function setupNotes() {
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if (INTERFACE === 'sidebar') {
-			if (changes.hasOwnProperty('interface')) {
-				reflectInterfaceChange(changes.interface!.newValue ??
+			if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
+				reflectInterfaceChange(changes.interface.newValue ??
 					defaultInterfaceSettings!.interface)
 			}
 		}
@@ -298,7 +298,7 @@ function setupNotes() {
 			if (changes.hasOwnProperty(dismissalState)) {
 				showOrHideNote(
 					notes[dismissalState],
-					changes[dismissalState].newValue)
+					Boolean(changes[dismissalState].newValue))  // TODO: ensure at source and ignore, or check here
 			}
 		}
 	})
@@ -306,7 +306,7 @@ function setupNotes() {
 	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in defaultDismissalStates) {
 			if (notes.hasOwnProperty(dismissalState)) {
-				showOrHideNote(notes[dismissalState], items[dismissalState])
+				showOrHideNote(notes[dismissalState], Boolean(items[dismissalState]))  // TODO: ensure at source and ignore, or check here
 			}
 		}
 	})
@@ -339,7 +339,9 @@ function send(message: string | object) {
 		port.postMessage(messageWithTabId)
 	} else {
 		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
-		withActiveTab(tab => browser.tabs.sendMessage(tab.id!, message))
+		withActiveTab(tab => {
+			browser.tabs.sendMessage(tab.id!, message)
+		})
 	}
 }
 
@@ -352,6 +354,10 @@ function debugSend(what: string) {
 		message.from = INTERFACE
 		browser.runtime.sendMessage(message)
 	}
+}
+
+function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgroundScript {
+	return typeof thing === 'object'
 }
 
 // FIXME: Narrow the types of message
@@ -444,12 +450,12 @@ function startupDevTools() {
 	browser.storage.onChanged.addListener(function(changes) {
 		if ('handleMutationsViaTree' in changes) {
 			document.getElementById('handling-mutations-via-tree').innerText =
-				changes.handleMutationsViaTree.newValue
+				String(changes.handleMutationsViaTree.newValue)
 		}
 	})
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 		document.getElementById('handle-mutations-via-tree').innerText =
-			items.handleMutationsViaTree
+			String(items.handleMutationsViaTree)
 	})
 }
 
@@ -464,7 +470,9 @@ function startupPopupOrSidebar() {
 		withActiveTab(tab => {
 			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
-				messageHandlerCore(message)
+				if (isMessageForBackgroundScript(message)) {
+					messageHandlerCore(message)
+				}
 			}
 		})
 	})
@@ -492,7 +500,7 @@ function startupPopupOrSidebar() {
 		// only the pop-up is affected, and the user almost certainly won't
 		// change a pop-up-related setting whilst a pop-up is open.
 		browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-			closePopupOnActivate = items.closePopupOnActivate
+			closePopupOnActivate = Boolean(items.closePopupOnActivate)
 		})
 	}
 }

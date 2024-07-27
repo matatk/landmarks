@@ -237,15 +237,17 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 				landmark.warnings.push('lintManyVisibleMainElements')
 			}
 
+			// FIXME: There must be a bettger way than checking, then telling TS we checked
 			if (_duplicateUnlabelledWarnings.has(landmark.element)) {
 				landmark.warnings.push(
-					_duplicateUnlabelledWarnings.get(landmark.element))
+					_duplicateUnlabelledWarnings.get(landmark.element)!)
 			}
 		}
 	}
 
 	function getDuplicateUnlabelledWarnings() {
-		const _duplicateUnlabelledWarnings = new Map()
+		// TODO: Make HTMLElement
+		const _duplicateUnlabelledWarnings = new Map<Element, PageWarning>()
 		for (const elements of _unlabelledRoleElements.values()) {  // TODO: prf
 			if (elements.length > 1) {
 				for (const element of elements) {  // TODO: prf
@@ -454,6 +456,8 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 				// A non-landmark was removed; find and remove the landmarks within
 				let previous = null
 				let current = null
+				// FIXME - if this is not ignored, another error happens
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				while ((current = removed.querySelector(`[${LANDMARK_INDEX_ATTR}]`)! as HTMLElement) !== null) {
 					// If the next one we find was inside the previous one; it's already been processed.
 					if (previous) {
@@ -478,7 +482,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// TODO: perf of doing this
 	// TODO: inline this - check perf
 	function htmlElementsFromNodes(nodes: NodeList): HTMLElement[] {
-		return Array.from(nodes).filter(isHTMLElement) as HTMLElement[]
+		return Array.from(nodes).filter(isHTMLElement)
 	}
 
 	function handleChildListMutationAdd(target: HTMLElement, addedNodes: NodeList) {
