@@ -365,8 +365,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return filteredLevel
 	}
 
-	// FIXME un-need this by way of TS?
-	function checkBoolean(name: string, value: unknown) {
+	function isBoolean(name: string, value: unknown): asserts value is boolean {
 		if (typeof value !== 'boolean') {
 			throw Error(`${name}() given ${typeof value} value: ${value}`)
 		}
@@ -880,13 +879,13 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			return null
 		},
 
-		useHeuristics: function(use: boolean) {
-			checkBoolean('useHeuristics', use)
+		useHeuristics: function(use: unknown) {
+			isBoolean('useHeuristics', use)
 			useHeuristics = use
 		},
 
-		useDevMode: function(use: boolean) {
-			checkBoolean('useDevMode', use)
+		useDevMode: function(use: unknown) {
+			isBoolean('useDevMode', use)
 			useDevMode = use
 		},
 

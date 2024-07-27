@@ -2,7 +2,7 @@
 import './compatibility'
 import contentScriptInjector from './contentScriptInjector.js'
 import { isContentScriptablePage } from './isContent.js'
-import { defaultInterfaceSettings, defaultDismissedUpdate } from './defaults.js'
+import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
 import { withActiveTab, withAllTabs } from './withTabs.js'
 import MigrationManager from './migrationManager.js'
 
@@ -30,6 +30,8 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		if (sender?.tab) {
 			console.log(`${sender.tab.id}: ${thing.info}`)
 		} else if (thing.from) {
+			// FIXME: sort out messages
+			// eslint-disable-next-line @typescript-eslint/no-base-to-string
 			console.log(`${thing.from}: ${thing.info}`)
 		} else {
 			console.log(`extension page: ${thing.info}`)
@@ -196,7 +198,13 @@ function switchInterface(mode: 'sidebar' | 'popup') {
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
 	startupCode.push(function() {
 		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-			switchInterface(items.interface)
+			// TODO: Is this the right way to do falling back to default? If so, DRY.
+			if (isInterfaceType(items.interface)) {
+				switchInterface(items.interface)
+			} else {
+				// FIXME: how to know that interface is there if browser matches?
+				switchInterface(defaultInterfaceSettings!.interface)
+			}
 		})
 	})
 }
@@ -305,14 +313,18 @@ function reflectUpdateDismissalState(dismissed: boolean) {
 
 startupCode.push(function() {
 	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
-		reflectUpdateDismissalState(items.dismissedUpdate)
+		reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
 	})
 })
 
 browser.runtime.onInstalled.addListener(function(details) {
+	// TODO: False positive?
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 	if (details.reason === 'install') {
 		browser.tabs.create({ url: 'help.html#!install' })
 		browser.storage.sync.set({ 'dismissedUpdate': true })
+	// TODO: False positive?
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 	} else if (details.reason === 'update') {
 		browser.storage.sync.set({ 'dismissedUpdate': false })
 	}
@@ -332,8 +344,9 @@ function openHelpPage(openInSameTab: boolean) {
 		browser.tabs.update({ url: helpPage })
 	} else {
 		// When opened from GUIs, it should open in a new tab
-		withActiveTab(tab =>
-			browser.tabs.create({ url: helpPage, openerTabId: tab.id }))
+		withActiveTab(tab => {
+			browser.tabs.create({ url: helpPage, openerTabId: tab.id })
+		})
 	}
 	if (!dismissedUpdate) {
 		browser.storage.sync.set({ 'dismissedUpdate': true })
@@ -419,7 +432,8 @@ if (BROWSER !== 'firefox') {
 
 browser.storage.onChanged.addListener(function(changes) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		if (changes.hasOwnProperty('interface')) {
+		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
+		if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
 			switchInterface(changes.interface.newValue
 				// @ts-expect-error defaultInterfaceSettings will have this value
 				?? defaultInterfaceSettings.interface)
@@ -429,7 +443,7 @@ browser.storage.onChanged.addListener(function(changes) {
 	if (changes.hasOwnProperty('dismissedUpdate')) {
 		// Changing _to_ false means either we've already dismissed and have
 		// since reset the messages, OR we have just been updated.
-		reflectUpdateDismissalState(changes.dismissedUpdate.newValue)
+		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
 	}
 })
 
