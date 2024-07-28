@@ -10,7 +10,8 @@ var DEBUG: boolean
 
 type LabelFontColour = 'black' | 'white'
 
-type CallbackReturningElementInfo = () =>LandmarkEntry
+// NOTE: the content script checks there are landmarks
+type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined
 
 type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
 
@@ -32,6 +33,9 @@ type LandmarkEntry = {
 	level: LandmarkEntry[]
 	index?: number
 }
+
+type LandmarkElementInfo = Pick<LandmarkEntry, "element" | "role" | "roleDescription" | "label" | "guessed">
+type LandmarkInfo = Omit<LandmarkElementInfo, "element">
 
 type FilteredLandmarkEntry = Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next" | "contains">
 

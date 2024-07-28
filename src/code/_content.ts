@@ -8,9 +8,6 @@ import ContrastChecker from './contrastChecker.js'
 import MutationStatsReporter from './mutationStatsReporter.js'
 import { defaultFunctionalSettings, defaultBorderSettings } from './defaults.js'
 
-// @ts-expect-error TODO convert to class and check it's still as performant
-// FIXME remove when class
-// eslint-disable-next-line
 const landmarksFinder = new LandmarksFinder(window)
 const contrastChecker = new ContrastChecker()
 const borderDrawer = new BorderDrawer(contrastChecker)
@@ -39,8 +36,6 @@ function handleHighlightMessage(index: number, action: () => void) {
 	browser.storage.sync.get(defaultBorderSettings, function(items) {
 		if (!elementFocuser.isManagingBorders() ||
 			(items.borderType === 'persistent' &&
-			// FIXME remove when class
-			// eslint-disable-next-line
 			landmarksFinder.getCurrentlySelectedIndex() === index)) return
 		handleHighlightMessageCore(index, action)
 	})
@@ -74,16 +69,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			// of the keyboard shortcuts (if landmarks are present)
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() =>
-				// FIXME remove when class
-				// eslint-disable-next-line
 				landmarksFinder.getLandmarkElementInfo(message.index))
 			break
 		case 'show-landmark':
 			handleHighlightMessage(
 				message.index,
 				() => borderDrawer.addBorder(
-					// FIXME remove when class
-					// eslint-disable-next-line
 					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index)
 				))
 			break
@@ -91,35 +82,24 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			handleHighlightMessage(
 				message.index,
 				() => borderDrawer.removeBorderOn(
-					// FIXME remove when class
-					// eslint-disable-next-line
 					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element
 				))
 			break
 		case 'next-landmark':
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
-			// FIXME remove when class
-			// eslint-disable-next-line
-			guiCheckFocusElement(landmarksFinder.getNextLandmarkElementInfo)
+			guiCheckFocusElement(() => landmarksFinder.getNextLandmarkElementInfo())
 			break
 		case 'prev-landmark':
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
-			guiCheckFocusElement(
-				// FIXME remove when class
-				// eslint-disable-next-line
-				landmarksFinder.getPreviousLandmarkElementInfo)
+			guiCheckFocusElement(() => landmarksFinder.getPreviousLandmarkElementInfo())
 			break
 		case 'main-landmark': {
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
-			// FIXME remove when class
-			// eslint-disable-next-line
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
 			if (mainElementInfo) {
-				// FIXME remove when class
-				// eslint-disable-next-line
 				elementFocuser.focusElement(mainElementInfo)
 			} else {
 				alert(browser.i18n.getMessage('noMainLandmarkFound'))
@@ -133,8 +113,6 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				if (elementFocuser.isManagingBorders()) {
 					elementFocuser.manageBorders(false)
 					borderDrawer.replaceCurrentBordersWithElements(
-						// FIXME remove when class
-						// eslint-disable-next-line
 						landmarksFinder.allElementsInfos())
 				} else {
 					borderDrawer.removeAllBorders()
@@ -168,14 +146,10 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 		case 'devtools-state':
 			if (message.state === 'open') {
 				debugSend('change scanner to dev')
-				// FIXME remove when class
-				// eslint-disable-next-line
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
 			} else if (message.state === 'closed') {
 				debugSend('change scanner to std')
-				// FIXME remove when class
-				// eslint-disable-next-line
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
 			} else {
@@ -189,8 +163,6 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 		case 'get-page-warnings':
 			browser.runtime.sendMessage({
 				name: 'page-warnings',
-				// FIXME remove when class
-				// eslint-disable-next-line
 				data: landmarksFinder.pageResults()
 			})
 	}
@@ -219,8 +191,6 @@ function doUpdateOutdatedResults() {
 }
 
 function guiCheckThereAreLandmarks() {
-	// FIXME remove when class
-	// eslint-disable-next-line
 	if (landmarksFinder.getNumberOfLandmarks() === 0) {
 		alert(browser.i18n.getMessage('noLandmarksFound'))
 		return false
@@ -230,7 +200,7 @@ function guiCheckThereAreLandmarks() {
 
 function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningElementInfo) {
 	if (guiCheckThereAreLandmarks()) {
-		elementFocuser.focusElement(callbackReturningElementInfo())
+		elementFocuser.focusElement(callbackReturningElementInfo()!)
 	}
 }
 
@@ -248,11 +218,7 @@ function debugSend(what: string) {
 function sendLandmarks() {
 	browser.runtime.sendMessage({
 		name: 'landmarks',
-		// FIXME remove when class
-		// eslint-disable-next-line
 		tree: landmarksFinder.tree(),
-		// FIXME remove when class
-		// eslint-disable-next-line
 		number: landmarksFinder.getNumberOfLandmarks()
 	})
 }
@@ -262,8 +228,6 @@ function findLandmarks(counterIncrementFunction: () => void, updateSendFunction:
 	debugSend('finding landmarks')
 
 	const start = performance.now()
-	// FIXME remove when class
-	// eslint-disable-next-line
 	landmarksFinder.find()
 	msr.setLastScanDuration(performance.now() - start)
 
@@ -274,8 +238,6 @@ function findLandmarks(counterIncrementFunction: () => void, updateSendFunction:
 	borderDrawer.refreshBorders()
 	if (!elementFocuser.isManagingBorders()) {
 		borderDrawer.replaceCurrentBordersWithElements(
-			// FIXME remove when class
-			// eslint-disable-next-line
 			landmarksFinder.allElementsInfos())
 	}
 }
@@ -415,8 +377,6 @@ function startUpTasks() {
 			const setting = Boolean(changes.guessLandmarks.newValue) ??  // TODO: TS: check before and ignore?
 				defaultFunctionalSettings.guessLandmarks
 			if (setting !== changes.guessLandmarks.oldValue) {
-				// FIXME: remove when class
-				// eslint-disable-next-line
 				landmarksFinder.useHeuristics(setting)
 				findLandmarks(noop, noop)
 			}
@@ -442,8 +402,6 @@ function startUpTasks() {
 
 debugSend(`starting - ${window.location}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-	// FIXME: remove when class
-	// eslint-disable-next-line
 	landmarksFinder.useHeuristics(items.guessLandmarks)
 	handleMutationsViaTree = Boolean(items.handleMutationsViaTree)
 	debugSend(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)

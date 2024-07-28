@@ -86,7 +86,7 @@ export default class BorderDrawer {
 	//       again (as may happen if the page changes whilst we're displaying
 	//       all elements, and try to add any new ones) that the existing
 	//       elements' labels won't have changed.
-	addBorder(elementInfo: LandmarkEntry) {
+	addBorder(elementInfo: LandmarkElementInfo) {
 		if (!this.#borderedElements.has(elementInfo.element)) {
 			this.#drawBorderAndLabel(
 				elementInfo.element,
@@ -101,7 +101,7 @@ export default class BorderDrawer {
 	// Add the landmark border and label for several elements, and remove any
 	// borders associated with elements that currently have borders but aren't
 	// in this set. Takes an array of element info objects, as detailed above.
-	replaceCurrentBordersWithElements(elementInfoList: LandmarkEntry[]) {
+	replaceCurrentBordersWithElements(elementInfoList: LandmarkElementInfo[]) {
 		const elementsToAdd = elementInfoList.map(info => info.element)
 
 		for (const elementWithBorder of this.#borderedElements.keys()) {

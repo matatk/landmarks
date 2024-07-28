@@ -14,10 +14,24 @@ import {
 const LANDMARK_INDEX_ATTR = 'data-landmark-index'
 const LANDMARK_GUESSED_ATTR = 'data-landmark-guessed'
 
-export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _useDevMode?: boolean) {
-	const doc = win.document
-	let useHeuristics = _useHeuristics  // parameter is only used by tests
-	let useDevMode = _useDevMode        // parameter is only used by tests
+function isHTMLElement(node: Node): node is HTMLElement {
+	return node.nodeType === Node.ELEMENT_NODE
+}
+
+function isBoolean(name: string, value: unknown): asserts value is boolean {
+	if (typeof value !== 'boolean') {
+		throw Error(`${name}() given ${typeof value} value: ${value}`)
+	}
+}
+
+
+export default class LandmarksFinder {
+	#win: Window
+	#doc: Document
+	#useHeuristics: boolean  // parameter is only used by tests
+	#useDevMode: boolean     // parameter is only used by tests
+	#debugMutationHandlingTimes: number[] = []
+	#debugTreeString = '\n'  // FIXME clear when?
 
 
 	//
@@ -37,46 +51,55 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	//   selectorWasUpdated (bool)       -- flag to reduce load
 	// and, in developer mode:
 	//   warnings [string]               -- list of warnings about this element
-	let landmarksTree: LandmarkEntry[] = []  // point of truth
-	let landmarksList: LandmarkEntry[] = []  // created alongside the tree; used for focusing
+	#landmarksTree!: LandmarkEntry[]
+	#landmarksList!: LandmarkEntry[]
 
 	// Tracking landmark finding
 	// TODO: switch to ? syntax and undefined
-	let cachedFilteredTree: FilteredLandmarkTreeEntry[] | null = null // FIXME: switch to ?
-	let cachedAllInfos: FilteredLandmarkEntry[] | null = null // FIXME: switch to ?
-	let cachedAllElementInfos: FilteredLandmarkEntry[] | null = null // FIXME: switch to ?
+	#cachedFilteredTree!: FilteredLandmarkTreeEntry[]
+	#cachedAllInfos!: FilteredLandmarkEntry[]
+	#cachedAllElementInfos!: LandmarkElementInfo[]
 
 	// Tracking landmark finding in developer mode
-	let _pageWarnings: PageWarning[] = []
-	const _unlabelledRoleElements = new Map<string, Element[]>()
-	let _visibleMainElements: HTMLElement[] = []
+	#pageWarnings!: PageWarning[]
+	#unlabelledRoleElements: Map<string, Element[]>
+	#visibleMainElements!: HTMLElement[]
 
 
 	//
 	// Keeping track of landmark navigation
 	//
 
-	let currentlySelectedIndex: number     // the landmark currently having focus/border
-	let mainElementIndices: number[] = []  // if we find <main> or role="main" elements
-	let mainIndexPointer: number           // allows us to cylce through main regions
+	#currentlySelectedIndex!: number     // the landmark currently having focus/border
+	#mainElementIndices!: number[]  // if we find <main> or role="main" ele
+	#mainIndexPointer!: number           // allows us to cylce through main regions
 
 	// Keep a reference to the currently-selected element in case the page
 	// changes and the landmark is still there, but has moved within the list.
-	let currentlySelectedElement: HTMLElement
+	#currentlySelectedElement!: HTMLElement
 
-	function updateSelectedAndReturnElementInfo(index: number) {
+	constructor(win: Window, _useHeuristics?: boolean, _useDevMode?: boolean) {	
+		this.#win = win
+		this.#doc = win.document
+		this.#useDevMode = Boolean(_useDevMode)
+		this.#useHeuristics = Boolean(_useHeuristics)
+		this.#unlabelledRoleElements = new Map()
+		this.reset() // https://github.com/microsoft/TypeScript/issues/21132
+	}
+
+	updateSelectedAndReturnElementInfo(index: number) {
 		// TODO: Don't need an index check, as we trust the source. Does that
 		//       mean we also don't need the length check?
 		// TODO: The return can be massively simplified, rite?
-		if (landmarksList.length === 0) return
-		currentlySelectedIndex = index
-		currentlySelectedElement = landmarksList[index].element
+		if (this.#landmarksList.length === 0) return
+		this.#currentlySelectedIndex = index
+		this.#currentlySelectedElement = this.#landmarksList[index].element
 		return {
-			element: currentlySelectedElement,
-			role: landmarksList[index].role,
-			roleDescription: landmarksList[index].roleDescription,
-			label: landmarksList[index].label,
-			guessed: landmarksList[index].guessed
+			element: this.#currentlySelectedElement,
+			role: this.#landmarksList[index].role,
+			roleDescription: this.#landmarksList[index].roleDescription,
+			label: this.#landmarksList[index].label,
+			guessed: this.#landmarksList[index].guessed
 			// No need to send the selector or warnings
 		}
 	}
@@ -86,48 +109,52 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Finding landmarks
 	//
 
-	// TODO: DRY with regenerateListIndicesSelectors()
-	function find() {
-		landmarksTree = []
-		landmarksList = []
-		cachedFilteredTree = null
-		cachedAllInfos = null
-		cachedAllElementInfos = null
+	reset() {
+		this.#landmarksTree = []
+		this.#landmarksList = []
+		this.#cachedFilteredTree = []
+		this.#cachedAllInfos = []
+		this.#cachedAllElementInfos = []
 
-		if (useDevMode) {
-			_pageWarnings = []
-			_unlabelledRoleElements.clear()
-			_visibleMainElements = []
+		if (this.#useDevMode) {
+			this.#pageWarnings = []
+			this.#unlabelledRoleElements.clear()
+			this.#visibleMainElements = []
 		}
 
-		mainElementIndices = []
-		mainIndexPointer = -1
-		currentlySelectedIndex = -1
+		this.#mainElementIndices = []
+		this.#mainIndexPointer = -1
+		this.#currentlySelectedIndex = -1
+	}
+
+	// TODO: DRY with regenerateListIndicesSelectors()
+	find() {
+		this.reset()
 
 		// FIXME: only on page startup?
-		if (useHeuristics) tryHeuristics()
+		if (this.#useHeuristics) this.tryHeuristics()
 
-		getLandmarks(doc.body.parentElement!, landmarksTree)
-		if (useDevMode) developerModeChecks()
+		this.getLandmarks(this.#doc.body.parentElement!, this.#landmarksTree)
+		if (this.#useDevMode) this.developerModeChecks()
 
 		// TODO: test different string syntax for performance
-		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
+		for (const el of this.#doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
 		}
 
-		landmarksList = []
-		walk(landmarksList, landmarksTree)
-		for (let i = 0; i < landmarksList.length; i++) {
-			landmarksList[i].index = i
-			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, String(i))
+		this.#landmarksList = []
+		this.walk(this.#landmarksList, this.#landmarksTree)
+		for (let i = 0; i < this.#landmarksList.length; i++) {
+			this.#landmarksList[i].index = i
+			this.#landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, String(i))
 			// NOTE: We did a full find, so we don't need to update any selectors.
 		}
 
-		if (landmarksList.length) landmarksList.at(-1)!.next = landmarksTree[0]
+		if (this.#landmarksList.length) this.#landmarksList.at(-1)!.next = this.#landmarksTree[0]
 	}
 
-	function getLandmarks(element: HTMLElement, thisLevel: LandmarkEntry[], previousLandmarkEntry?: LandmarkEntry) {
-		if (isVisuallyHidden(win, element) || isSemantiallyHidden(element)) {
+	getLandmarks(element: HTMLElement, thisLevel: LandmarkEntry[], previousLandmarkEntry?: LandmarkEntry) {
+		if (isVisuallyHidden(this.#win, element) || isSemantiallyHidden(element)) {
 			return previousLandmarkEntry
 		}
 
@@ -136,7 +163,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		const { hasExplicitRole, role } = getRole(element)
 
 		// The element may or may not have a label
-		const label = getARIAProvidedLabel(doc, element)
+		const label = getARIAProvidedLabel(this.#doc, element)
 
 		// Add the element if it should be considered a landmark
 		let thisLandmarkEntry: LandmarkEntry | null = null
@@ -162,33 +189,33 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 			thisLevel.push(thisLandmarkEntry)
 
-			if (useDevMode) {
+			if (this.#useDevMode) {
 				thisLandmarkEntry.warnings = []
 
 				if (!label) {
-					if (!_unlabelledRoleElements.has(role)) {
-						_unlabelledRoleElements.set(role, [])
+					if (!this.#unlabelledRoleElements.has(role)) {
+						this.#unlabelledRoleElements.set(role, [])
 					}
-					_unlabelledRoleElements.get(role)!.push(element)
+					this.#unlabelledRoleElements.get(role)!.push(element)
 				}
 
 				if (role === 'main' && !hasExplicitRole) {
-					_visibleMainElements.push(element)
+					this.#visibleMainElements.push(element)
 				}
 			}
 
 			// Was this element selected before we were called (i.e.
 			// before the page was dynamically updated)?
-			if (currentlySelectedElement === element) {
+			if (this.#currentlySelectedElement === element) {
 				// FIXME: not working also?
-				currentlySelectedIndex = landmarksList.length - 1
+				this.#currentlySelectedIndex = this.#landmarksList.length - 1
 			}
 
 			// There should only be one main region, but pages may be bad and
 			// wrong, so catch 'em all...
 			if (role === 'main') {
 				// FIXME: not working because we're only populating the list later?
-				mainElementIndices.push(landmarksList.length - 1)
+				this.#mainElementIndices.push(this.#landmarksList.length - 1)
 				// FIXME: push the element to a list of main elements instead? Should only store reference.
 			}
 		}
@@ -200,7 +227,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		previousLandmarkEntry = thisLandmarkEntry ?? previousLandmarkEntry
 		for (const elementChild of element.children) {  // TODO: perf
 			if (!isHTMLElement(elementChild)) continue  // TODO: perf
-			previousLandmarkEntry = getLandmarks(
+			previousLandmarkEntry = this.getLandmarks(
 				elementChild,
 				thisLandmarkEntry?.contains ?? thisLevel,
 				previousLandmarkEntry
@@ -215,25 +242,25 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Developer mode-specific checks
 	//
 
-	function developerModeChecks() {
-		const _duplicateUnlabelledWarnings = getDuplicateUnlabelledWarnings()
+	developerModeChecks() {
+		const _duplicateUnlabelledWarnings = this.getDuplicateUnlabelledWarnings()
 
-		if (mainElementIndices.length === 0) {
-			_pageWarnings.push('lintNoMain')
+		if (this.#mainElementIndices.length === 0) {
+			this.#pageWarnings.push('lintNoMain')
 		}
 
-		if (mainElementIndices.length > 1) {
-			_pageWarnings.push('lintManyMains')
+		if (this.#mainElementIndices.length > 1) {
+			this.#pageWarnings.push('lintManyMains')
 		}
 
-		for (const landmark of landmarksList) {  // TODO: perf
+		for (const landmark of this.#landmarksList) {  // TODO: perf
 			// TODO: will this always be true?
 			if (!Array.isArray(landmark.warnings)) {
 				landmark.warnings = []
 			}
 
-			if (_visibleMainElements.length > 1
-				&& _visibleMainElements.includes(landmark.element)) {
+			if (this.#visibleMainElements.length > 1
+				&& this.#visibleMainElements.includes(landmark.element)) {
 				landmark.warnings.push('lintManyVisibleMainElements')
 			}
 
@@ -245,10 +272,10 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
-	function getDuplicateUnlabelledWarnings() {
+	getDuplicateUnlabelledWarnings() {
 		// TODO: Make HTMLElement
 		const _duplicateUnlabelledWarnings = new Map<Element, PageWarning>()
-		for (const elements of _unlabelledRoleElements.values()) {  // TODO: prf
+		for (const elements of this.#unlabelledRoleElements.values()) {  // TODO: prf
 			if (elements.length > 1) {
 				for (const element of elements) {  // TODO: prf
 					_duplicateUnlabelledWarnings.set(
@@ -265,11 +292,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	//
 
 	// FIXME: editing these attrs will trigger mutations
-	function tryFindingMain() {
-		if (doc.querySelector('main, [role="main"]')) return
+	tryFindingMain() {
+		if (this.#doc.querySelector('main, [role="main"]')) return
 
 		for (const id of ['main', 'content', 'main-content']) {
-			const element = doc.getElementById(id)
+			const element = this.#doc.getElementById(id)
 			if (element?.innerText) {
 				element.setAttribute('role', 'main')
 				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -278,7 +305,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 
 		// TODO: classMains is only used here - just do the [0] on the gEBCN instead?
-		const classMains = doc.getElementsByClassName('main')
+		const classMains = this.#doc.getElementsByClassName('main')
 		if (classMains.length === 1 && isHTMLElement(classMains[0]) && classMains[0].innerText) {
 			classMains[0].setAttribute('role', 'main')
 			classMains[0].setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -286,11 +313,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	}
 
 	// FIXME: editing these attrs will trigger mutations
-	function tryFindingNavs() {
-		if (doc.querySelector('nav, [role="navigation"]')) return
+	tryFindingNavs() {
+		if (this.#doc.querySelector('nav, [role="navigation"]')) return
 
 		for (const id of ['navigation', 'nav']) {
-			const element = doc.getElementById(id)
+			const element = this.#doc.getElementById(id)
 			if (element?.innerText) {
 				element.setAttribute('role', 'navigation')
 				element.setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -300,7 +327,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		for (const className of ['navigation', 'nav']) {
 			// TODO: perf?
-			for (const element of doc.getElementsByClassName(className)) {
+			for (const element of this.#doc.getElementsByClassName(className)) {
 				if (isHTMLElement(element) && element.innerText) {
 					element.setAttribute('role', 'navigation')
 					element.setAttribute(LANDMARK_GUESSED_ATTR, '')
@@ -309,9 +336,9 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
-	function tryHeuristics() {
-		tryFindingMain()
-		tryFindingNavs()
+	tryHeuristics() {
+		this.tryFindingMain()
+		this.tryFindingNavs()
 	}
 
 
@@ -319,10 +346,10 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Support for finding next landmark from focused element
 	//
 
-	function getIndexOfLandmarkAfter(element: HTMLElement) {
-		for (let i = 0; i < landmarksList.length; i++) {
+	getIndexOfLandmarkAfter(element: HTMLElement) {
+		for (let i = 0; i < this.#landmarksList.length; i++) {
 			const rels =
-				element.compareDocumentPosition(landmarksList[i].element)
+				element.compareDocumentPosition(this.#landmarksList[i].element)
 			// eslint-disable-next-line no-bitwise
 			if (rels & Node.DOCUMENT_POSITION_FOLLOWING) return i
 		}
@@ -330,7 +357,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	}
 
 	// FIXME: if all of them are _after_ return -1 (makes calling code easier)
-	function getIndexOfLandmarkBeforeIn(element: HTMLElement, list: LandmarkEntry[]) {
+	getIndexOfLandmarkBeforeIn(element: HTMLElement, list: LandmarkEntry[]) {
 		for (let i = list.length - 1; i >= 0; i--) {
 			const rels =
 				element.compareDocumentPosition(list[i].element)
@@ -340,8 +367,8 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return null
 	}
 
-	function getIndexOfLandmarkBefore(element: HTMLElement) {
-		return getIndexOfLandmarkBeforeIn(element, landmarksList)
+	getIndexOfLandmarkBefore(element: HTMLElement) {
+		return this.getIndexOfLandmarkBeforeIn(element, this.#landmarksList)
 	}
 
 
@@ -351,24 +378,18 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 	// FIXME: un-need 'debug' field
 	// TODO: should filtered entry contain warnings? and index? too?
-	function filterTree(subtree: LandmarkEntry[]): FilteredLandmarkTreeEntry[] {
+	filterTree(subtree: LandmarkEntry[]): FilteredLandmarkTreeEntry[] {
 		const filteredLevel = []
 
 		for (const entry of subtree) {  // TODO: perf?
 			// FIXME remove this:
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { contains, element, previous, next, debug, level, selectorWasUpdated, ...info } = entry
-			const filteredEntry: FilteredLandmarkTreeEntry = { contains: filterTree(contains), ...info }
+			const filteredEntry: FilteredLandmarkTreeEntry = { contains: this.filterTree(contains), ...info }
 			filteredLevel.push(filteredEntry)
 		}
 
 		return filteredLevel
-	}
-
-	function isBoolean(name: string, value: unknown): asserts value is boolean {
-		if (typeof value !== 'boolean') {
-			throw Error(`${name}() given ${typeof value} value: ${value}`)
-		}
 	}
 
 
@@ -377,40 +398,48 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	//
 
 	// FIXME: Need to deal with main indices, dev warnings, etc.
-	function handleMutations(mutations: MutationRecord[]) {
+	handleMutations(mutations: MutationRecord[]) {
 		for (const mutation of mutations) {  // TODO: perf
 			switch (mutation.type) {
 				case 'childList':
-					handleChildListMutation(mutation)
+					this.handleChildListMutation(mutation)
 					break
 				case 'attributes':
-					handleAttributeMutation(mutation)
+					this.handleAttributeMutation(mutation)
 					break
 			}
 		}
 	}
 
+	debugHandleMutations(mutations: MutationRecord[]) {
+		const start = this.#win.performance.now()
+		this.handleMutations(mutations)
+		const end = this.#win.performance.now()
+		this.#debugMutationHandlingTimes.push(end - start)
+	}
+
 	// NOTE: Sometimes this appears to get both additions and removals.
-	function handleChildListMutation(mutation: MutationRecord) {
+	handleChildListMutation(mutation: MutationRecord) {
 		if (!isHTMLElement(mutation.target)) return  // TODO: perf
 		
 		// Quick path for when there are no landmarks
 
-		if (landmarksList.length === 0) {
+		if (this.#landmarksList.length === 0) {
 			// FIXME: DRY with subtreeLevel added nodes below?
 			if (mutation.addedNodes.length) {
-				if (useHeuristics) tryHeuristics()  // NOTE: only after haindling mutation - but that means OK here
+				if (this.#useHeuristics) this.tryHeuristics()  // NOTE: only after haindling mutation - but that means OK here
+
 				// FIXME: check performance with a for-of loop
 				// eslint-disable-next-line
 				for (let i = 0; i < mutation.addedNodes.length; i++) {
 					// TODO: This pleases TS but is fiddly
 					const thing = mutation.addedNodes[i]
 					if (isHTMLElement(thing)) {
-						getLandmarks(thing, landmarksTree)
+						this.getLandmarks(thing, this.#landmarksTree)
 					}
 				}
 
-				regenerateListIndicesSelectors()
+				this.regenerateListIndicesSelectors()
 			}
 			return  // don't need to worry about removing when 0 landmarks
 		}
@@ -418,30 +447,30 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		// The slower path
 
 		// TODO: use an else so the ! isn't needed?
-		landmarksList.at(-1)!.next = undefined // stop at end of tree walk
+		this.#landmarksList.at(-1)!.next = undefined // stop at end of tree walk
 		let processed = false
 
 		if (mutation.removedNodes.length) {
-			processed = handleChildListMutationRemove(mutation.removedNodes)
+			processed = this.handleChildListMutationRemove(mutation.removedNodes)
 		}
 
 		// NOTE: Assumes addedNodes are encountered in DOM order.
 		if (mutation.addedNodes.length) {
-			processed = handleChildListMutationAdd(mutation.target, mutation.addedNodes)
+			processed = this.handleChildListMutationAdd(mutation.target, mutation.addedNodes)
 		}
 
 		// FIXME: what happens if we didn't process anything, to the selector
 		//        update thing? I think it is still working right becuase the
 		//        tests got faster...
 		if (processed) {
-			regenerateListIndicesSelectors()
+			this.regenerateListIndicesSelectors()
 		} else {
 			// FIXME: used to only do this if we processed some stuff, but if a labelleing element was removed or modified, we need to do it anyway...
-			regenerateListIndicesSelectors()
+			this.regenerateListIndicesSelectors()
 		}
 	}
 
-	function handleChildListMutationRemove(removedNodes: NodeList) {
+	handleChildListMutationRemove(removedNodes: NodeList) {
 		let processed = false
 
 		for (const removed of removedNodes) {  // TODO: perf
@@ -449,7 +478,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			// TODO: How likely is it that precisely a landmark will be removed?
 			if (removed.hasAttribute(LANDMARK_INDEX_ATTR)) {
 				// A landmark was removed
-				removeLandmarkFromTree(removed)
+				this.removeLandmarkFromTree(removed)
 				processed = true
 			} else {
 				// A non-landmark was removed; find and remove the landmarks within
@@ -467,7 +496,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 							continue
 						}
 					}
-					removeLandmarkFromTree(current)
+					this.removeLandmarkFromTree(current)
 					processed = true
 					current.removeAttribute(LANDMARK_INDEX_ATTR)
 					previous = current
@@ -480,48 +509,48 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 	// TODO: perf of doing this
 	// TODO: inline this - check perf
-	function htmlElementsFromNodes(nodes: NodeList): HTMLElement[] {
+	htmlElementsFromNodes(nodes: NodeList): HTMLElement[] {
 		return Array.from(nodes).filter(isHTMLElement)
 	}
 
-	function handleChildListMutationAdd(target: HTMLElement, addedNodes: NodeList) {
+	handleChildListMutationAdd(target: HTMLElement, addedNodes: NodeList) {
 		// Find the nearest parent landmark, if any
 		let found = target
-		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== doc.body) {
+		while (!found.hasAttribute(LANDMARK_INDEX_ATTR) && found !== this.#doc.body) {
 			found = found.parentNode! as HTMLElement
 		}
 
 		// From the parent landmark (if any), work out which subtree level we're at
-		const index = foundLandmarkElementIndex(found)
+		const index = this.foundLandmarkElementIndex(found)
 		let subtreeLevel: LandmarkEntry[]
 		if (index === null) {
-			if (found !== doc.body) {
+			if (found !== this.#doc.body) {
 				console.error("Can't find tree level; full find() needed")
-				find()  // FIXME: TEST
+				this.find()  // FIXME: TEST
 				return false // FIXME: is this what I intended to return when a find() had to be done?
 			}
 			// FIXME: why should this happen? Shirley if the body is a landmark, we put an index on it? So if index is null, it's always an error?
-			subtreeLevel = landmarksTree
+			subtreeLevel = this.#landmarksTree
 		} else {
-			subtreeLevel = landmarksList[index].contains
+			subtreeLevel = this.#landmarksList[index].contains
 		}
 
-		const added = htmlElementsFromNodes(addedNodes)
+		const added = this.htmlElementsFromNodes(addedNodes)
 
 		// If there are other landmarks at this level of the tree, they're
 		// siblings (or we'd be inside of them). We can avoid scanning inside,
 		// and replacing, any siblings.
 		if (subtreeLevel.length) {
-			const before = getIndexOfLandmarkBeforeIn(added[0], subtreeLevel)
+			const before = this.getIndexOfLandmarkBeforeIn(added[0], subtreeLevel)
 
 			const startInsertingAt = before === null ? 0 : before + 1
 
 			let previousLandmarkEntry
 			if (before === null) {
-				if (found === doc.body) {
+				if (found === this.#doc.body) {
 					previousLandmarkEntry = null
 				} else if (index !== null) {
-					previousLandmarkEntry = landmarksList[index]
+					previousLandmarkEntry = this.#landmarksList[index]
 				} else {
 					throw Error("landmark index shouldn't be null") // FIXME: shouldn't need this check
 				}
@@ -530,11 +559,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			}
 
 			const lastEntryInSubTree = previousLandmarkEntry
-				? lastEntryInsideEntrySubtree(previousLandmarkEntry) : undefined
+				? this.lastEntryInsideEntrySubtree(previousLandmarkEntry) : undefined
 			const previousNext = lastEntryInSubTree?.next
 
 			const newBitOfLevel: LandmarkEntry[] = []
-			getLandmarksForSubtreeLevelOrPartThereof(added, newBitOfLevel, lastEntryInSubTree)
+			this.getLandmarksForSubtreeLevelOrPartThereof(added, newBitOfLevel, lastEntryInSubTree)
 			subtreeLevel.splice(startInsertingAt, 0, ...newBitOfLevel)
 
 			if (newBitOfLevel.length) {
@@ -550,9 +579,9 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			}
 		} else {
 			// Any landmarks found can just be added to the level (list).
-			const previousLandmarkEntry = landmarksList.find(entry => entry.element === found)
+			const previousLandmarkEntry = this.#landmarksList.find(entry => entry.element === found)
 			const previousNext = previousLandmarkEntry?.next
-			getLandmarksForSubtreeLevelOrPartThereof(added, subtreeLevel, previousLandmarkEntry)
+			this.getLandmarksForSubtreeLevelOrPartThereof(added, subtreeLevel, previousLandmarkEntry)
 			if (subtreeLevel.length) {
 				// NOTE: what was previousLandmarkEntrywill've been wired up to point ot the start.
 				subtreeLevel.at(-1)!.next = previousNext
@@ -562,26 +591,26 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return true  // FIXME: work out if we actually added any landmarks
 	}
 
-	function getLandmarksForSubtreeLevelOrPartThereof(added: HTMLElement[], level: LandmarkEntry[], pLE?: LandmarkEntry) {
+	getLandmarksForSubtreeLevelOrPartThereof(added: HTMLElement[], level: LandmarkEntry[], pLE?: LandmarkEntry) {
 		const origLen = level.length
-		if (useHeuristics) tryHeuristics()  // FIXME: should we? - NO, DO IT AFTER HANDLING MUTATION
+		if (this.#useHeuristics) this.tryHeuristics()  // FIXME: should we? - NO, DO IT AFTER HANDLING MUTATION
 		// FIXME: check performance with a for-of loop
 		// eslint-disable-next-line
 		for (let i = 0; i < added.length; i++) {
 			// FIXME: Test
 			if (level.length === origLen) {
-				getLandmarks(added[i], level, pLE)
+				this.getLandmarks(added[i], level, pLE)
 			} else {
-				getLandmarks(added[i], level, level.at(-1))
+				this.getLandmarks(added[i], level, level.at(-1))
 			}
 		}
 	}
 
-	function nextNotInSubTree(subTreeStartIndex: number) {
-		const element = landmarksList[subTreeStartIndex].element
+	nextNotInSubTree(subTreeStartIndex: number) {
+		const element = this.#landmarksList[subTreeStartIndex].element
 		let next = null
-		for (let i = subTreeStartIndex + 1; i < landmarksList.length; i++) {
-			const listNext = landmarksList[i]
+		for (let i = subTreeStartIndex + 1; i < this.#landmarksList.length; i++) {
+			const listNext = this.#landmarksList[i]
 			const rels = element.compareDocumentPosition(listNext.element)
 			// eslint-disable-next-line no-bitwise
 			const contained = rels & Node.DOCUMENT_POSITION_CONTAINED_BY
@@ -593,7 +622,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return next
 	}
 
-	function lastEntryInsideEntrySubtree(entry: LandmarkEntry) {
+	lastEntryInsideEntrySubtree(entry: LandmarkEntry) {
 		const subTreeRoot = entry.element
 		let lastKnownContainedEntry = entry
 		let current = entry
@@ -612,53 +641,49 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		return lastKnownContainedEntry
 	}
 
-	function regenerateListIndicesSelectors() {
+	regenerateListIndicesSelectors() {
 		// TODO: test different string syntax for performance
-		for (const el of doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
+		for (const el of this.#doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
 		}
 
-		landmarksList = []
-		walk(landmarksList, landmarksTree)
+		this.#landmarksList = []
+		this.walk(this.#landmarksList, this.#landmarksTree)
 
-		if (landmarksList.length) landmarksList.at(-1)!.next = landmarksTree[0]
-		if (useDevMode) developerModeChecks()
+		if (this.#landmarksList.length) this.#landmarksList.at(-1)!.next = this.#landmarksTree[0]
+		if (this.#useDevMode) this.developerModeChecks()
 
-		for (let i = 0; i < landmarksList.length; i++) {
-			landmarksList[i].index = i
-			landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, String(i))
+		for (let i = 0; i < this.#landmarksList.length; i++) {
+			this.#landmarksList[i].index = i
+			this.#landmarksList[i].element.setAttribute(LANDMARK_INDEX_ATTR, String(i))
 
-			if (!landmarksList[i].selectorWasUpdated) {
-				landmarksList[i].selector = createSelector(landmarksList[i].element)
+			if (!this.#landmarksList[i].selectorWasUpdated) {
+				this.#landmarksList[i].selector = createSelector(this.#landmarksList[i].element)
 			} else {
-				landmarksList[i].selectorWasUpdated = false
+				this.#landmarksList[i].selectorWasUpdated = false
 			}
 
 			// TODO: Can we avoid the need to do this for all elements?
-			landmarksList[i].label = getARIAProvidedLabel(doc, landmarksList[i].element)
+			this.#landmarksList[i].label = getARIAProvidedLabel(this.#doc, this.#landmarksList[i].element)
 		}
 
-		cachedFilteredTree = null
-		cachedAllInfos = null
-		cachedAllElementInfos = null
+		this.#cachedFilteredTree = []
+		this.#cachedAllInfos = []
+		this.#cachedAllElementInfos = []
 	}
 
-	function isHTMLElement(node: Node): node is HTMLElement {
-		return node.nodeType === Node.ELEMENT_NODE
-	}
-
-	function handleAttributeMutation(mutation: MutationRecord) {
+	handleAttributeMutation(mutation: MutationRecord) {
 		const el = mutation.target as HTMLElement  // TODO: remove need for/do more cleverly
 		if (el.hasAttribute(LANDMARK_INDEX_ATTR)) {
-			const index = foundLandmarkElementIndex(el)
+			const index = this.foundLandmarkElementIndex(el)
 			if (index !== null) {
 				switch (mutation.attributeName) {
 					case 'role': {
 						const { hasExplicitRole, role } = getRole(el)
-						if (role && isLandmark(role, hasExplicitRole, landmarksList[index].label)) {
-							landmarksList[index].role = role
+						if (role && isLandmark(role, hasExplicitRole, this.#landmarksList[index].label)) {
+							this.#landmarksList[index].role = role
 							// FIXME: DRY with getLandmarks() or remove:
-							landmarksList[index].debug = el.tagName + '(' + role + ')'
+							this.#landmarksList[index].debug = el.tagName + '(' + role + ')'
 						} else {
 							// FIXME: remove landmark
 							throw Error('Remove landmark (but not its children)')
@@ -666,7 +691,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 						break
 					}
 					case 'aria-roledescription':
-						landmarksList[index].roleDescription = el.getAttribute('aria-roledescription')
+						this.#landmarksList[index].roleDescription = el.getAttribute('aria-roledescription')
 						break
 				}
 			} else {
@@ -676,13 +701,13 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 
 		// FIXME: DRY with regenerateListIndicesSelectors() or something?
-		cachedFilteredTree = null
-		cachedAllInfos = null
-		cachedAllElementInfos = null
+		this.#cachedFilteredTree = []
+		this.#cachedAllInfos = []
+		this.#cachedAllElementInfos = []
 	}
 
 	// FIXME: test
-	function foundLandmarkElementIndex(candidate: HTMLElement) {
+	foundLandmarkElementIndex(candidate: HTMLElement) {
 		const value = candidate.getAttribute(LANDMARK_INDEX_ATTR)
 		if (value === null) return null
 		const number = Number(value)
@@ -690,11 +715,11 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 			console.error(`Index ${number} from attribute is NaN`)
 			return null
 		}
-		if (number < 0 || number > (landmarksList.length - 1)) {
+		if (number < 0 || number > (this.#landmarksList.length - 1)) {
 			console.error(`Index ${number} from attribute is out of range`)
 			return null
 		}
-		if (landmarksList[number].element !== candidate) {
+		if (this.#landmarksList[number].element !== candidate) {
 			console.error(`Landmark at ${number} isn't the found element.`)
 			return null
 		}
@@ -702,7 +727,7 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	}
 
 	// FIXME: test this and/or wider
-	function walk(list: LandmarkEntry[], root: LandmarkEntry[]) {
+	walk(list: LandmarkEntry[], root: LandmarkEntry[]) {
 		let entry = root?.[0]
 		while (entry) {
 			// FIXME: is this clause used?
@@ -713,10 +738,10 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 		}
 	}
 
-	function removeLandmarkFromTree(landmarkElement: HTMLElement) {
-		const index = foundLandmarkElementIndex(landmarkElement)
+	removeLandmarkFromTree(landmarkElement: HTMLElement) {
+		const index = this.foundLandmarkElementIndex(landmarkElement)
 		if (index === null) return
-		const info = landmarksList[index]
+		const info = this.#landmarksList[index]
 		const level = info.level
 
 		// FIXME: PERF: If we were using a real tree, with pointers, this would not be needed.
@@ -734,53 +759,39 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 
 		const next = levelIndex < level.length - 1
 			? level[levelIndex + 1]
-			: nextNotInSubTree(index)
+			: this.nextNotInSubTree(index)
 
 		level.splice(levelIndex, 1)
 
 		if (index > 0) {
-			if (!landmarksList[index - 1]) {
+			if (!this.#landmarksList[index - 1]) {
 				throw Error('element missing from landmark list') // FIXME: shouldn't need this check
 			}
 			if (next === null) {
 				throw Error("couldn't find next landmark") // FIXME: shouldn't need this check
 			}
-			landmarksList[index - 1].next = next
+			this.#landmarksList[index - 1].next = next
 		} else {
 			// The first thing in the tree was removed
 		}
 	}
 
-	let debugMutationHandlingTimes: number[] = []
-
-	function debugWrap(func: (mutations: MutationRecord[]) => void) {
-		return function(mutations: MutationRecord[]) {
-			const start = win.performance.now()
-			func(mutations)
-			const end = win.performance.now()
-			debugMutationHandlingTimes.push(end - start)
-		}
-	}
-
 	// Stringify the tree for debugging
 
-	let debugTreeString = '\n'
-
 	// FIXME
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	function debugTree() {
-		debugTreeCore(landmarksTree, 0)
-		console.log(debugTreeString)
+	debugTree() {
+		this.debugTreeCore(this.#landmarksTree, 0)
+		console.log(this.#debugTreeString)
 	}
 
-	function debugTreeCore(tree: LandmarkEntry[], depth: number) {
+	debugTreeCore(tree: LandmarkEntry[], depth: number) {
 		for (const thing of tree) {
-			debugTreeString += '~ '.repeat(depth) + infoString(thing) + '\n'
-			debugTreeCore(thing.contains, depth + 1)
+			this.#debugTreeString += '~ '.repeat(depth) + this.infoString(thing) + '\n'
+			this.debugTreeCore(thing.contains, depth + 1)
 		}
 	}
 
-	function infoString(entry: LandmarkEntry) {
+	infoString(entry: LandmarkEntry) {
 		// FIXME remove this:
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { previous, next, element, contains, level, ...info } = entry
@@ -792,123 +803,118 @@ export default function LandmarksFinder(win: Window, _useHeuristics?: boolean, _
 	// Public API
 	//
 
-	return {
-		find: find,
+	// FIXME: find is already delcared - make others private
 
-		getNumberOfLandmarks: () => landmarksList.length,
+	getNumberOfLandmarks() {
+		return this.#landmarksList.length
+	}
 
-		// This includes the selector, warnings, everything except the element.
-		// Used by the UI.
-		// FIXME: actually only used by debugging stuff, which needs to use tree instead...
-		allInfos: function() {
-			if (!cachedAllInfos) {
-				cachedAllInfos = landmarksList.map(entry => {
-					// FIXME remove this:
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { element, contains, previous, next, level, ...info } = entry
-					return info
-				})
-			}
-			return cachedAllInfos
-		},
-
-		// As above, but also including the element. Used by the borderDrawer.
-		allElementsInfos: function() {
-			if (!cachedAllElementInfos) {
-				cachedAllElementInfos = landmarksList.map(entry => {
-					// FIXME remove this:
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					const { contains, previous, next, level, ...info } = entry
-					return info
-				})
-			}
-			return cachedAllElementInfos
-		},
-
-		// Just the tree structure, in serialisable form
-		tree: function() {
-			if (!cachedFilteredTree) {
-				cachedFilteredTree = filterTree(landmarksTree)
-			}
-			return cachedFilteredTree
-		},
-
-		pageResults: function() {
-			return useDevMode ? _pageWarnings : null
-		},
-
-		// These all return elements and their related info
-
-		getNextLandmarkElementInfo: function() {
-			if (doc.activeElement !== null && doc.activeElement !== doc.body && isHTMLElement(doc.activeElement)) {  // TODO perf/inline
-				const index = getIndexOfLandmarkAfter(doc.activeElement)
-				if (index !== null) {
-					return updateSelectedAndReturnElementInfo(index)
-				}
-			}
-			return updateSelectedAndReturnElementInfo(
-				(currentlySelectedIndex + 1) % landmarksList.length)
-		},
-
-		getPreviousLandmarkElementInfo: function() {
-			if (doc.activeElement !== null && doc.activeElement !== doc.body && isHTMLElement(doc.activeElement)) {  // TODO perf/inline
-				const index = getIndexOfLandmarkBefore(doc.activeElement)
-				if (index !== null) {
-					return updateSelectedAndReturnElementInfo(index)
-				}
-			}
-			return updateSelectedAndReturnElementInfo(
-				(currentlySelectedIndex <= 0) ?
-					landmarksList.length - 1 : currentlySelectedIndex - 1)
-		},
-
-		// TODO used?
-		getLandmarkElementInfo: function(index: number) {
-			return updateSelectedAndReturnElementInfo(index)
-		},
-
-		// If pages are naughty and have more than one 'main' region, we cycle
-		// betwixt them.
-		getMainElementInfo: function() {
-			if (mainElementIndices.length > 0) {
-				mainIndexPointer =
-					(mainIndexPointer + 1) % mainElementIndices.length
-				const mainElementIndex = mainElementIndices[mainIndexPointer]
-				return updateSelectedAndReturnElementInfo(mainElementIndex)
-			}
-			return null
-		},
-
-		useHeuristics: function(use: unknown) {
-			isBoolean('useHeuristics', use)
-			useHeuristics = use
-		},
-
-		useDevMode: function(use: unknown) {
-			isBoolean('useDevMode', use)
-			useDevMode = use
-		},
-
-		getCurrentlySelectedIndex: function() {
-			return currentlySelectedIndex
-		},
-
-		// TODO: Rename this and the above
-		// TODO: used?
-		getLandmarkElementInfoWithoutUpdatingIndex: function(index: number) {
-			return landmarksList[index]
-		},
-
-		handleMutations: handleMutations,
-
-		debugHandleMutations: debugWrap(handleMutations),
-
-		debugMutationHandlingTimes: function() {
-			return debugMutationHandlingTimes
-		},
-
-		clearDebugMutationHandlingTimes: function() {
-			debugMutationHandlingTimes = []
+	// This includes the selector, warnings, everything except the element.
+	// Used by the UI.
+	// FIXME: actually only used by debugging stuff, which needs to use tree instead...
+	allInfos() {
+		if (!this.#cachedAllInfos) {
+			this.#cachedAllInfos = this.#landmarksList.map(entry => {
+				// FIXME remove this:
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { element, contains, previous, next, level, ...info } = entry
+				return info
+			})
 		}
+		return this.#cachedAllInfos
+	}
+
+	// As above, but also including the element. Used by the borderDrawer.
+	allElementsInfos(): LandmarkElementInfo[] {
+		if (!this.#cachedAllElementInfos) {
+			this.#cachedAllElementInfos = this.#landmarksList.map(entry => {
+				// FIXME remove this:
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { contains, previous, next, level, ...info } = entry
+				return info
+			})
+		}
+		return this.#cachedAllElementInfos
+	}
+
+	// Just the tree structure, in serialisable form
+	tree() {
+		if (!this.#cachedFilteredTree) {
+			this.#cachedFilteredTree = this.filterTree(this.#landmarksTree)
+		}
+		return this.#cachedFilteredTree
+	}
+
+	pageResults() {
+		return this.#useDevMode ? this.#pageWarnings : null
+	}
+
+	// These all return elements and their related info
+
+	getNextLandmarkElementInfo(): LandmarkElementInfo | undefined {
+		if (this.#doc.activeElement !== null && this.#doc.activeElement !== this.#doc.body && isHTMLElement(this.#doc.activeElement)) {  // TODO perf/inline
+			const index = this.getIndexOfLandmarkAfter(this.#doc.activeElement)
+			if (index !== null) {
+				return this.updateSelectedAndReturnElementInfo(index)
+			}
+		}
+		return this.updateSelectedAndReturnElementInfo(
+			(this.#currentlySelectedIndex + 1) % this.#landmarksList.length)
+	}
+
+	getPreviousLandmarkElementInfo() {
+		if (this.#doc.activeElement !== null && this.#doc.activeElement !== this.#doc.body && isHTMLElement(this.#doc.activeElement)) {  // TODO perf/inline
+			const index = this.getIndexOfLandmarkBefore(this.#doc.activeElement)
+			if (index !== null) {
+				return this.updateSelectedAndReturnElementInfo(index)
+			}
+		}
+		return this.updateSelectedAndReturnElementInfo(
+			(this.#currentlySelectedIndex <= 0) ?
+				this.#landmarksList.length - 1 : this.#currentlySelectedIndex - 1)
+	}
+
+	getLandmarkElementInfo(index: number): LandmarkElementInfo | undefined {
+		return this.updateSelectedAndReturnElementInfo(index)
+	}
+
+	// If pages are naughty and have more than one 'main' region, we cycle
+	// betwixt them.
+	getMainElementInfo() {
+		if (this.#mainElementIndices.length > 0) {
+			this.#mainIndexPointer =
+				(this.#mainIndexPointer + 1) % this.#mainElementIndices.length
+			const mainElementIndex = this.#mainElementIndices[this.#mainIndexPointer]
+			return this.updateSelectedAndReturnElementInfo(mainElementIndex)
+		}
+		return null
+	}
+
+	useHeuristics(use: unknown) {
+		isBoolean('useHeuristics', use)
+		this.#useHeuristics = use
+	}
+
+	useDevMode(use: unknown) {
+		isBoolean('useDevMode', use)
+		this.#useDevMode = use
+	}
+
+	getCurrentlySelectedIndex() {
+		return this.#currentlySelectedIndex
+	}
+
+	// TODO: Rename this and the above
+	// TODO: used?
+	getLandmarkElementInfoWithoutUpdatingIndex(index: number) {
+		return this.#landmarksList[index]
+	}
+
+	debugMutationHandlingTimes() {
+		return this.#debugMutationHandlingTimes
+	}
+
+	clearDebugMutationHandlingTimes() {
+		this.#debugMutationHandlingTimes = []
 	}
 }
