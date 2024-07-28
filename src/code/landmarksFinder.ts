@@ -55,10 +55,9 @@ export default class LandmarksFinder {
 	#landmarksList!: LandmarkEntry[]
 
 	// Tracking landmark finding
-	// TODO: switch to ? syntax and undefined
-	#cachedFilteredTree!: FilteredLandmarkTreeEntry[]
-	#cachedAllInfos!: FilteredLandmarkEntry[]
-	#cachedAllElementInfos!: LandmarkElementInfo[]
+	#cachedFilteredTree?: FilteredLandmarkTreeEntry[]
+	#cachedAllInfos?: FilteredLandmarkEntry[]
+	#cachedAllElementInfos?: LandmarkElementInfo[]
 
 	// Tracking landmark finding in developer mode
 	#pageWarnings!: PageWarning[]
@@ -112,9 +111,9 @@ export default class LandmarksFinder {
 	reset() {
 		this.#landmarksTree = []
 		this.#landmarksList = []
-		this.#cachedFilteredTree = []
-		this.#cachedAllInfos = []
-		this.#cachedAllElementInfos = []
+		this.#cachedFilteredTree = undefined
+		this.#cachedAllInfos = undefined
+		this.#cachedAllElementInfos = undefined
 
 		if (this.#useDevMode) {
 			this.#pageWarnings = []
