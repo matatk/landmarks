@@ -15,7 +15,7 @@ const _sidebarNote = {
 	'dismissedSidebarNotAlone': {
 		id: 'note-ui',
 		cta: function() {
-			browser.runtime.openOptionsPage()
+			void browser.runtime.openOptionsPage()
 		},
 		showOrHide: function(wasDismissed: boolean) {
 			// Whether to show the message depends on the interface too
@@ -34,7 +34,7 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			browser.runtime.sendMessage({ name: 'open-help' })
+			void browser.runtime.sendMessage({ name: 'open-help' })
 			if (INTERFACE === 'popup') window.close()
 		}
 	}
@@ -282,7 +282,7 @@ function setupNotes() {
 		document.getElementById(ctaId)!.addEventListener('click', note.cta)
 		document.getElementById(dismissId)!.addEventListener(
 			'click', function() {
-				browser.storage.sync.set({ [dismissalSetting]: true })
+				void browser.storage.sync.set({ [dismissalSetting]: true })
 			})
 	}
 
@@ -320,7 +320,7 @@ function setupNotes() {
 function makeEventHandlers(linkName: 'help' | 'settings') {
 	const link = document.getElementById(linkName)
 	const core = () => {
-		browser.runtime.sendMessage({ name: `open-${linkName}` })
+		void browser.runtime.sendMessage({ name: `open-${linkName}` })
 		if (INTERFACE === 'popup') window.close()
 	}
 
@@ -340,7 +340,7 @@ function send(message: string | object) {
 	} else {
 		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
 		withActiveTab(tab => {
-			browser.tabs.sendMessage(tab.id!, message)
+			void browser.tabs.sendMessage(tab.id!, message)
 		})
 	}
 }
@@ -352,7 +352,7 @@ function debugSend(what: string) {
 		port.postMessage(message)
 	} else {
 		message.from = INTERFACE
-		browser.runtime.sendMessage(message)
+		void browser.runtime.sendMessage(message)
 	}
 }
 
@@ -486,8 +486,8 @@ function startupPopupOrSidebar() {
 				handleLandmarksMessage(null)
 				return
 			}
-			browser.tabs.sendMessage(tab.id!, { name: 'get-landmarks' })
-			browser.tabs.sendMessage(tab.id!, { name: 'get-toggle-state' })
+			void browser.tabs.sendMessage(tab.id!, { name: 'get-landmarks' })
+			void browser.tabs.sendMessage(tab.id!, { name: 'get-toggle-state' })
 		}))
 
 	document.getElementById('version').innerText =

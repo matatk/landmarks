@@ -51,7 +51,6 @@
       "rules": {
         "no-undef": "off",
         "compat/compat": "warn",
-        "@typescript-eslint/no-floating-promises": "warn",
         "@typescript-eslint/restrict-template-expressions": "warn"
       }
     }

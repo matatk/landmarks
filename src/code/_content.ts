@@ -121,7 +121,7 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			}
 			// eslint-disable-this-line no-fallthrough
 		case 'get-toggle-state':
-			browser.runtime.sendMessage({
+			void browser.runtime.sendMessage({
 				name: 'toggle-state-is',
 				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
 			})
@@ -161,7 +161,7 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			}
 			break
 		case 'get-page-warnings':
-			browser.runtime.sendMessage({
+			void browser.runtime.sendMessage({
 				name: 'page-warnings',
 				data: landmarksFinder.pageResults()
 			})
@@ -207,7 +207,7 @@ function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningEle
 function debugSend(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	browser.runtime.sendMessage({ name: 'debug', info: what })
+	void browser.runtime.sendMessage({ name: 'debug', info: what })
 }
 
 
@@ -216,7 +216,7 @@ function debugSend(what: string) {
 //
 
 function sendLandmarks() {
-	browser.runtime.sendMessage({
+	void browser.runtime.sendMessage({
 		name: 'landmarks',
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
@@ -397,7 +397,7 @@ function startUpTasks() {
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
 debugSend(`starting - ${window.location}`)

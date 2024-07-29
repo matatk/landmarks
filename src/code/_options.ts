@@ -43,7 +43,7 @@ const options: Option[] = [{
 }]
 
 function restoreOptions() {
-	browser.storage.sync.get(defaultSettings, function(items) {
+	void browser.storage.sync.get(defaultSettings, function(items) {
 		for (const option of options) {
 			const name = option.name
 			switch (option.kind) {
@@ -67,7 +67,7 @@ function setUpOptionHandlers() {
 			case 'individual':
 				option.element.addEventListener('change', () => {
 					if (option.element.value) {
-						browser.storage.sync.set({
+						void browser.storage.sync.set({
 							[option.name]: option.element.value
 						})
 					} else {
@@ -77,7 +77,7 @@ function setUpOptionHandlers() {
 				break
 			case 'boolean':
 				option.element.addEventListener('change', () => {
-					browser.storage.sync.set({
+					void browser.storage.sync.set({
 						[option.name]: option.element.checked
 					})
 				})
@@ -97,7 +97,7 @@ function setUpOptionHandlers() {
 			if (!pref) {
 				throw Error('BUG: HTML structure not correct: missing data-pref attribute')
 			}
-			browser.storage.sync.set({
+			void browser.storage.sync.set({
 				[pref]: (event.target as HTMLInputElement).value
 			})
 		})
@@ -111,7 +111,7 @@ function updateResetDismissedMessagesButtonState() {
 	const button = document.getElementById('reset-messages')
 	const feedback = document.getElementById('reset-messages-feedback')
 
-	browser.storage.sync.get(defaultDismissalStates, function(items) {
+	void browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in items) {
 			if (items[dismissalState] === true) {
 				button.dataset.someMessagesDismissed = String(true)
@@ -130,7 +130,7 @@ function updateResetDismissedMessagesButtonState() {
 
 function resetMessages(event: Event) {
 	if ((event.target as HTMLInputElement).dataset.someMessagesDismissed === String(true)) {
-		browser.storage.sync.set(defaultDismissalStates)
+		void browser.storage.sync.set(defaultDismissalStates)
 		document.getElementById('reset-messages-feedback')
 			.innerText = browser.i18n.getMessage('prefsResetMessagesDone')
 	}
@@ -141,7 +141,7 @@ function dismissalStateChanged(keyThatChanged: string) {
 }
 
 function resetToDefaults() {
-	browser.storage.sync.clear()
+	void browser.storage.sync.clear()
 	restoreOptions()
 }
 

@@ -43,7 +43,7 @@ function main() {
 	translate()  // to refer to the "go to main" command; main and nav regions
 
 	browser.runtime.onMessage.addListener(messageHandler)
-	browser.runtime.sendMessage({ name: 'get-commands' })
+	void browser.runtime.sendMessage({ name: 'get-commands' })
 
 	if (BROWSER === 'firefox') {
 		document.getElementById('shortcuts-button-wrapper')
@@ -53,7 +53,7 @@ function main() {
 			.remove()
 		document.getElementById('open-browser-shortcuts-settings')
 			.addEventListener('click', () => {
-				browser.runtime.sendMessage({ name: 'open-configure-shortcuts' })
+				void browser.runtime.sendMessage({ name: 'open-configure-shortcuts' })
 			})
 	}
 

@@ -127,7 +127,7 @@ export default class MutationStatsReporter {
 		this.checkedLimitSecondAverages.push(checkedAverage)
 
 		if (!this.quiet) {
-			browser.runtime.sendMessage({
+			void browser.runtime.sendMessage({
 				name: 'mutation-info-window', data: {
 					'mutations-per-second': this.mutationsPerSecond,
 					'average-mutations': this.mutationsLimitSecondAverages,
@@ -139,7 +139,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendMutationUpdate() {
-		browser.runtime.sendMessage({
+		void browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'mutations': this.totalMutations,
 				'checks': this.checkedMutations,
@@ -149,7 +149,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendNonMutationScansUpdate() {
-		browser.runtime.sendMessage({
+		void browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'nonMutationScans': this.nonMutationScans
 			}
@@ -157,7 +157,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendPauseTimeUpdate() {
-		browser.runtime.sendMessage({
+		void browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'pause': this.pauseTime
 			}
@@ -165,7 +165,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendDurationUpdate() {
-		browser.runtime.sendMessage({
+		void browser.runtime.sendMessage({
 			name: 'mutation-info', data: {
 				'duration': this.lastScanDuration,
 				'average': this.averageScanDuration

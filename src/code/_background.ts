@@ -52,9 +52,9 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 
 function setBrowserActionState(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
-		browser.browserAction.enable(tabId)
+		void browser.browserAction.enable(tabId)
 	} else {
-		browser.browserAction.disable(tabId)
+		void browser.browserAction.disable(tabId)
 	}
 }
 
@@ -118,7 +118,7 @@ function devtoolsListenerMaker(port: chrome.runtime.Port) {
 				// page, so we do that here. Other GUIs check themselves.
 				browser.tabs.get(message.from, function(tab) {
 					if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-						browser.tabs.sendMessage(tab.id, message)
+						void browser.tabs.sendMessage(tab.id, message)
 					} else {
 						port.postMessage({ name: 'landmarks', data: null })
 					}
@@ -153,7 +153,7 @@ browser.runtime.onConnect.addListener(function(port) {
 })
 
 function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
-	browser.tabs.sendMessage(tabId, {
+	void browser.tabs.sendMessage(tabId, {
 		name: 'devtools-state',
 		state: panelIsOpen ? 'open' : 'closed'
 	})
@@ -177,7 +177,7 @@ const sidebarToggle = () => browser.sidebarAction.toggle()
 function switchInterface(mode: 'sidebar' | 'popup') {
 	switch (mode) {
 		case 'sidebar':
-			browser.browserAction.setPopup({ popup: '' })
+			void browser.browserAction.setPopup({ popup: '' })
 			if (BROWSER === 'firefox') {
 				browser.browserAction.onClicked.addListener(sidebarToggle)
 			}
@@ -185,7 +185,7 @@ function switchInterface(mode: 'sidebar' | 'popup') {
 		case 'popup':
 			// On Firefox this could be set to null to return to the default
 			// popup. However Chrome/Opera doesn't support this.
-			browser.browserAction.setPopup({ popup: 'popup.html' })
+			void browser.browserAction.setPopup({ popup: 'popup.html' })
 			if (BROWSER === 'firefox') {
 				browser.browserAction.onClicked.removeListener(sidebarToggle)
 			}
@@ -222,7 +222,7 @@ browser.commands.onCommand.addListener(function(command) {
 		case 'toggle-all-landmarks':
 			withActiveTab(tab => {
 				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-					browser.tabs.sendMessage(tab.id, { name: command })
+					void browser.tabs.sendMessage(tab.id, { name: command })
 				}
 			})
 	}
@@ -236,9 +236,9 @@ browser.commands.onCommand.addListener(function(command) {
 // Stop the user from being able to trigger the browser action during page load.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
 	if (details.frameId > 0) return
-	browser.browserAction.disable(details.tabId)
+	void browser.browserAction.disable(details.tabId)
 	if (dismissedUpdate) {
-		browser.browserAction.setBadgeText({
+		void browser.browserAction.setBadgeText({
 			text: '',
 			tabId: details.tabId
 		})
@@ -303,10 +303,10 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 function reflectUpdateDismissalState(dismissed: boolean) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
-		browser.browserAction.setBadgeText({ text: '' })
+		void browser.browserAction.setBadgeText({ text: '' })
 		withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
 	} else {
-		browser.browserAction.setBadgeText(
+		void browser.browserAction.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
 	}
 }
@@ -321,12 +321,12 @@ browser.runtime.onInstalled.addListener(function(details) {
 	// TODO: False positive?
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 	if (details.reason === 'install') {
-		browser.tabs.create({ url: 'help.html#!install' })
-		browser.storage.sync.set({ 'dismissedUpdate': true })
+		void browser.tabs.create({ url: 'help.html#!install' })
+		void browser.storage.sync.set({ 'dismissedUpdate': true })
 	// TODO: False positive?
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 	} else if (details.reason === 'update') {
-		browser.storage.sync.set({ 'dismissedUpdate': false })
+		void browser.storage.sync.set({ 'dismissedUpdate': false })
 	}
 })
 
@@ -341,15 +341,15 @@ function openHelpPage(openInSameTab: boolean) {
 		: browser.runtime.getURL('help.html') + '#!update'
 	if (openInSameTab) {
 		// Link added to Landmarks' home page should open in the same tab
-		browser.tabs.update({ url: helpPage })
+		void browser.tabs.update({ url: helpPage })
 	} else {
 		// When opened from GUIs, it should open in a new tab
 		withActiveTab(tab => {
-			browser.tabs.create({ url: helpPage, openerTabId: tab.id })
+			void browser.tabs.create({ url: helpPage, openerTabId: tab.id })
 		})
 	}
 	if (!dismissedUpdate) {
-		browser.storage.sync.set({ 'dismissedUpdate': true })
+		void browser.storage.sync.set({ 'dismissedUpdate': true })
 	}
 }
 
@@ -359,7 +359,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 		// Content
 		case 'landmarks':
 			if (sender?.tab?.id && dismissedUpdate) {
-				browser.browserAction.setBadgeText({
+				void browser.browserAction.setBadgeText({
 					text: message.number === 0 ? '' : String(message.number),
 					tabId: sender.tab.id
 				})
@@ -376,7 +376,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 		case 'get-commands':
 			browser.commands.getAll(function(commands) {
 				if (sender?.tab?.id) {
-					browser.tabs.sendMessage(sender.tab.id, {
+					void browser.tabs.sendMessage(sender.tab.id, {
 						name: 'populate-commands',
 						commands: commands
 					})
@@ -384,7 +384,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 			})
 			break
 		case 'open-configure-shortcuts':
-			browser.tabs.update({
+			void browser.tabs.update({
 				/* eslint-disable indent */
 				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
 					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
@@ -396,7 +396,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 			})
 			break
 		case 'open-settings':
-			browser.runtime.openOptionsPage()
+			void browser.runtime.openOptionsPage()
 			break
 		// Pop-up, sidebar and big link added to Landmarks' home page
 		case 'open-help':
