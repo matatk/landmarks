@@ -8,5 +8,6 @@ switch (BROWSER) {
 		window.browser = window.chrome
 		break
 	default:
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		throw Error(`Invalid browser "${BROWSER}" given.`)
 }

@@ -50,8 +50,7 @@
       },
       "rules": {
         "no-undef": "off",
-        "compat/compat": "warn",
-        "@typescript-eslint/restrict-template-expressions": "warn"
+        "compat/compat": "warn"
       }
     }
   ],

@@ -32,7 +32,7 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		} else if (thing.from) {
 			// FIXME: sort out messages
 			// eslint-disable-next-line @typescript-eslint/no-base-to-string
-			console.log(`${thing.from}: ${thing.info}`)
+			console.log(`${thing.from.toString()}: ${thing.info}`)
 		} else {
 			console.log(`extension page: ${thing.info}`)
 		}
@@ -175,23 +175,18 @@ function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 const sidebarToggle = () => browser.sidebarAction.toggle()
 
 function switchInterface(mode: 'sidebar' | 'popup') {
-	switch (mode) {
-		case 'sidebar':
-			void browser.browserAction.setPopup({ popup: '' })
-			if (BROWSER === 'firefox') {
-				browser.browserAction.onClicked.addListener(sidebarToggle)
-			}
-			break
-		case 'popup':
-			// On Firefox this could be set to null to return to the default
-			// popup. However Chrome/Opera doesn't support this.
-			void browser.browserAction.setPopup({ popup: 'popup.html' })
-			if (BROWSER === 'firefox') {
-				browser.browserAction.onClicked.removeListener(sidebarToggle)
-			}
-			break
-		default:
-			throw Error(`Invalid interface "${mode}" given.`)
+	if (mode === 'sidebar') {
+		void browser.browserAction.setPopup({ popup: '' })
+		if (BROWSER === 'firefox') {
+			browser.browserAction.onClicked.addListener(sidebarToggle)
+		}
+	} else {
+		// On Firefox this could be set to null to return to the default
+		// popup. However Chrome/Opera doesn't support this.
+		void browser.browserAction.setPopup({ popup: 'popup.html' })
+		if (BROWSER === 'firefox') {
+			browser.browserAction.onClicked.removeListener(sidebarToggle)
+		}
 	}
 }
 

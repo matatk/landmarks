@@ -152,8 +152,6 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				debugSend('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
-			} else {
-				throw Error(`Invalid DevTools state "${message.state}".`)
 			}
 			if (!document.hidden) {
 				debugSend('doc visible; scanning')
@@ -400,7 +398,7 @@ function startUpTasks() {
 	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
-debugSend(`starting - ${window.location}`)
+debugSend(`starting - ${window.location.toString()}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 	landmarksFinder.useHeuristics(items.guessLandmarks)
 	handleMutationsViaTree = Boolean(items.handleMutationsViaTree)

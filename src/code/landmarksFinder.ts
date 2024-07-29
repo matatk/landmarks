@@ -20,6 +20,8 @@ function isHTMLElement(node: Node): node is HTMLElement {
 
 function isBoolean(name: string, value: unknown): asserts value is boolean {
 	if (typeof value !== 'boolean') {
+		// FIXME remove need for:
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		throw Error(`${name}() given ${typeof value} value: ${value}`)
 	}
 }
@@ -38,19 +40,6 @@ export default class LandmarksFinder {
 	// Found landmarks
 	//
 
-	// FIXME: switch to types for documenting this
-	// Each member of these data structures is an object of the form:
-	//   role (string)                   -- the ARIA role
-	//   roleDescription (string | null) -- custom role description
-	//   label (string | null)           -- associated label
-	//   selector (string)               -- CSS selector path of element
-	//   element (HTML*Element)          -- in-memory element
-	//   guessed (bool)                  -- landmark was gathered by heuristic
-	//   contains (self[])               -- array of child landmarks
-	//   debug (string)                  -- tagName and role for element
-	//   selectorWasUpdated (bool)       -- flag to reduce load
-	// and, in developer mode:
-	//   warnings [string]               -- list of warnings about this element
 	#landmarksTree!: LandmarkEntry[]
 	#landmarksList!: LandmarkEntry[]
 

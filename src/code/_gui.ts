@@ -259,20 +259,15 @@ function showOrHideNote(note: Note, dismissed: boolean) {
 // Sidebar-specific: handle the user changing their UI preference (the sidebar
 // may be open, so the note needs to be shown/hidden in real-time).
 function reflectInterfaceChange(ui: 'sidebar' | 'popup') {
-	browser.storage.sync.get(
-		defaultDismissedSidebarNotAlone,
-		function(items) {
-			if (items.dismissedSidebarNotAlone === false) {
-				switch (ui) {
-					case 'sidebar': document.getElementById('note-ui').hidden = true
-						break
-					case 'popup': document.getElementById('note-ui').hidden = false
-						break
-					default:
-						throw Error(`Unexpected interface type "${ui}".`)
-				}
+	browser.storage.sync.get(defaultDismissedSidebarNotAlone, function(items) {
+		if (items.dismissedSidebarNotAlone === false) {
+			if (ui === 'sidebar') {
+				document.getElementById('note-ui').hidden = true
+			} else {
+				document.getElementById('note-ui').hidden = false
 			}
-		})
+		}
+	})
 }
 
 function setupNotes() {
@@ -360,7 +355,6 @@ function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgr
 	return typeof thing === 'object'
 }
 
-// FIXME: Narrow the types of message
 function messageHandlerCore(message: MessageForBackgroundScript) {
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.tree)
@@ -379,16 +373,7 @@ function messageHandlerCore(message: MessageForBackgroundScript) {
 
 function handleToggleStateMessage(state: ToggleState) {
 	const box = document.getElementById('show-all')
-	switch(state) {
-		case 'selected':
-			box.checked = false
-			break
-		case 'all':
-			box.checked = true
-			break
-		default:
-			throw Error(`Unexpected toggle state "${state}" given.`)
-	}
+	box.checked = state === 'selected' ? false : true
 }
 
 function handleMutationMessage(data: MutationInfoMessageData) {
