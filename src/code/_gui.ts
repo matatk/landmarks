@@ -439,7 +439,7 @@ function startupDevTools() {
 		}
 	})
 	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		document.getElementById('handle-mutations-via-tree').innerText =
+		document.getElementById('handling-mutations-via-tree').innerText =
 			String(items.handleMutationsViaTree)
 	})
 }
