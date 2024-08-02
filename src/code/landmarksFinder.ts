@@ -125,6 +125,7 @@ export default class LandmarksFinder {
 		this.getLandmarks(this.#doc.body.parentElement!, this.#landmarksTree)
 		if (this.#useDevMode) this.developerModeChecks()
 
+		// FIXME: only needed if tree is on
 		// TODO: test different string syntax for performance
 		for (const el of this.#doc.querySelectorAll(`[${LANDMARK_INDEX_ATTR}]`)) {
 			el.removeAttribute(LANDMARK_INDEX_ATTR)
@@ -698,6 +699,7 @@ export default class LandmarksFinder {
 
 	// FIXME: test
 	foundLandmarkElementIndex(candidate: HTMLElement) {
+		// FIXME: only needed if tree is on
 		const value = candidate.getAttribute(LANDMARK_INDEX_ATTR)
 		if (value === null) return null
 		const number = Number(value)
