@@ -2,6 +2,7 @@ import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
 function messageHandler(message: PopulateCommandsMessage) {
+	// FIXME: this check is needed, but the types make it look like it isn't
 	if (message.name !== 'populate-commands') return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(

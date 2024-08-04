@@ -58,7 +58,7 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 }
 
 function messageHandler(message: MessageForContentScript | DebugMessage) {
-	if (DEBUG && message.name !== 'debug') debugSend(`rx: ${message.name}`)
+	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page
@@ -145,16 +145,16 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			break
 		case 'devtools-state':
 			if (message.state === 'open') {
-				debugSend('change scanner to dev')
+				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
 			} else if (message.state === 'closed') {
-				debugSend('change scanner to std')
+				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
 			}
 			if (!document.hidden) {
-				debugSend('doc visible; scanning')
+				debugSendContent('doc visible; scanning')
 				findLandmarks(noop, noop)
 			}
 			break
@@ -169,12 +169,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 function doUpdateOutdatedResults() {
 	let outOfDate = false
 	if (observerReconnectionScanTimer !== null) {
-		debugSend('out-of-date: was awaiting reconnection; re-observing now')
+		debugSendContent('out-of-date: was awaiting reconnection; re-observing now')
 		cancelObserverReconnectionScan()
 		observeMutations()
 		outOfDate = true
 	} else if (pauseHandler.isPaused()) {
-		debugSend('out-of-date: scanning pause > default')
+		debugSendContent('out-of-date: scanning pause > default')
 		outOfDate = true
 	}
 
@@ -184,7 +184,7 @@ function doUpdateOutdatedResults() {
 			noop)  // it already calls the send function
 		return true
 	}
-	debugSend('landmarks are up-to-date')
+	debugSendContent('landmarks are up-to-date')
 	return false
 }
 
@@ -202,10 +202,10 @@ function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningEle
 	}
 }
 
-function debugSend(what: string) {
+function debugSendContent(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	void browser.runtime.sendMessage({ name: 'debug', info: what })
+	void browser.runtime.sendMessage({ name: 'debug', info: what, from: 'content' } satisfies DebugMessage)
 }
 
 
@@ -223,7 +223,7 @@ function sendLandmarks() {
 
 function findLandmarks(counterIncrementFunction: () => void, updateSendFunction: () => void) {
 	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
-	debugSend('finding landmarks')
+	debugSendContent('finding landmarks')
 
 	const start = performance.now()
 	landmarksFinder.find()
@@ -297,14 +297,14 @@ function createMutationObserver() {
 			function() {
 				msr.incrementCheckedMutations()
 				if (shouldRefreshLandmarkss(mutations)) {
-					debugSend('scanning due to mutation')
+					debugSendContent('scanning due to mutation')
 					findLandmarksAndSend(() => msr.incrementMutationScans(), noop)
 					// msr.sendMutationUpdate() called below
 				}
 			},
 			// Scheduled task
 			function() {
-				debugSend('scheduled scan')
+				debugSendContent('scheduled scan')
 				findLandmarksAndSend(
 					() => msr.incrementMutationScans(), () => msr.sendMutationUpdate())
 			})
@@ -333,13 +333,13 @@ function cancelObserverReconnectionScan() {
 }
 
 function reflectPageVisibility() {
-	debugSend((document.hidden ? 'hidden' : 'shown') + ' ' + String(window.location))
+	debugSendContent((document.hidden ? 'hidden' : 'shown') + ' ' + String(window.location))
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
 		observer?.disconnect()
 	} else {
 		observerReconnectionScanTimer = setTimeout(function() {
-			debugSend('page remained visible: observing and scanning')
+			debugSendContent('page remained visible: observing and scanning')
 			findLandmarksAndSend(
 				() => msr.incrementNonMutationScans(), noop)  // it will send anyway
 			observeMutations()
@@ -382,13 +382,13 @@ function startUpTasks() {
 
 		if ('handleMutationsViaTree' in changes) {
 			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue) // TODO: check before and ignore?
-			debugSend(`handle mutation via tree: ${handleMutationsViaTree}`)
+			debugSendContent(`handle mutation via tree: ${handleMutationsViaTree}`)
 		}
 	})
 
 	createMutationObserver()
 	if (!document.hidden) {
-		debugSend('document visible at startup; observing')
+		debugSendContent('document visible at startup; observing')
 		observeMutations()
 	}
 
@@ -398,10 +398,10 @@ function startUpTasks() {
 	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
 }
 
-debugSend(`starting - ${window.location.toString()}`)
+debugSendContent(`starting - ${window.location.toString()}`)
 browser.storage.sync.get(defaultFunctionalSettings, function(items) {
 	landmarksFinder.useHeuristics(items.guessLandmarks)
 	handleMutationsViaTree = Boolean(items.handleMutationsViaTree)
-	debugSend(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)
+	debugSendContent(`pre-startup: handle mutation via tree: ${handleMutationsViaTree}`)
 	startUpTasks()
 })

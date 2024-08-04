@@ -132,7 +132,7 @@ function processTreeLevelItem(landmark: LandmarkEntry) {
 				addElementWarnings(item, landmark, landmark.warnings!)
 			}
 		} else {
-			debugSend('no warnings for ' + landmark.role)
+			debugSendGui('no warnings for ' + landmark.role)
 		}
 	}
 
@@ -340,10 +340,11 @@ function send(message: string | object) {
 	}
 }
 
-function debugSend(what: string) {
-	const message: DebugMessageForBackgroundScript = { name: 'debug', info: what }
+function debugSendGui(what: string) {
+	const message: DebugMessage = INTERFACE === 'devtools' 
+		? { name: 'debug', info: what, from: 'devtools', forTabId: browser.devtools.inspectedWindow.tabId }
+		: { name: 'debug', info: what, from: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		message.from = `devtools ${browser.devtools.inspectedWindow.tabId}`
 		port.postMessage(message)
 	} else {
 		message.from = INTERFACE
@@ -502,7 +503,7 @@ function main() {
 	})
 
 	translate()
-	debugSend('started up')
+	debugSendGui('started up')
 }
 
 main()

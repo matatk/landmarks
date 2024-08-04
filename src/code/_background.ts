@@ -27,14 +27,13 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		console.log('bkg:', thing)
 	} else if (thing.name === 'debug') {
 		// Debug message from somewhere
-		if (sender?.tab) {
-			console.log(`${sender.tab.id}: ${thing.info}`)
-		} else if (thing.from) {
-			// FIXME: sort out messages
-			// eslint-disable-next-line @typescript-eslint/no-base-to-string
-			console.log(`${thing.from.toString()}: ${thing.info}`)
+		if (thing.from === 'devtools') {
+			console.log(`${thing.from}: ${thing.info}`)
+		} else if (sender?.tab) {
+			// TODO: This will always report 'content' as that script forwards the messages.
+			console.log(`${sender.tab.id} ${thing.from}: ${thing.info}`)
 		} else {
-			console.log(`extension page: ${thing.info}`)
+			console.log(`Unknown target tab's ${thing.from}: ${thing.info}`)
 		}
 	} else {
 		// A general message from somewhere

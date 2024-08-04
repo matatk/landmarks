@@ -48,10 +48,6 @@ type PopulateCommandsMessage = {
 	commands: chrome.commands.Command[]
 }
 
-type DebugMessage = {
-	name: 'debug'
-}
-
 type MessageForContentScript = {
 	name: 'get-landmarks'
 } | {
@@ -110,12 +106,15 @@ type MessageForBackgroundScript = {
 | {
 	name: 'page-warnings'
 	data: PageWarning[]
-} | DebugMessageForBackgroundScript
+} | DebugMessage
 
-type DebugMessageForBackgroundScript = {
+type DebugMessageFor = typeof INTERFACE | 'content'
+
+type DebugMessage = {
 	name: 'debug'
 	info: string
-	from?: chrome.runtime.MessageSender | string // TODO: using the MessageSender part?
+	from: DebugMessageFor
+	forTabId?: number
 }
 
 type MessageFromDevTools = {
