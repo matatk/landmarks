@@ -221,7 +221,7 @@ async function bundleCode(browser, debug) {
 	logStep('Bundling JavaScript code')
 
 	const ioPairsAndGlobals = [{
-		mainSourceFile: path.join(srcCodeDir, '_background.js'),
+		mainSourceFile: path.join(srcCodeDir, browser === 'chrome' ? '_background.mv3.js' : '_background.js'),
 		bundleFile: 'background.js'
 	}, {
 		mainSourceFile: path.join(srcCodeDir, '_content.js'),
@@ -313,7 +313,9 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.output = {
 				file: cachedScript,
-				format: 'iife'
+				format: browser === 'chrome' && cachedScript === 'background.js'
+					? 'module'
+					: 'iife'
 			}
 
 			bundleOptions.push(bundleOption)
@@ -454,9 +456,14 @@ function mergeManifest(browser) {
 
 	// NOTE: Eventually remove the need for this by moving all to MV3?
 	if (browser === 'chrome') {
-		fs.copyFileSync(
-			path.join(srcAssembleDir, 'manifest.chrome.json'), 
-			path.join(pathToBuild(browser), 'manifest.json'))
+		const manifest = requireJson(path.join('..', srcAssembleDir, 'manifest.chrome.json'))
+		// TODO: DRY the below?
+		manifest.version = extVersion
+		fs.writeFileSync(
+			path.join(pathToBuild(browser), 'manifest.json'),
+			JSON.stringify(manifest, null, 2)
+		)
+		return
 	}
 
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
