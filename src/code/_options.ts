@@ -36,11 +36,11 @@ const options: Option[] = [{
 	name: 'closePopupOnActivate',
 	kind: 'boolean',
 	element: document.getElementById('close-popup-on-activate')
-}, {
+}, /* {
 	name: 'handleMutationsViaTree',
 	kind: 'boolean',
 	element: document.getElementById('handle-mutations-via-tree')
-}]
+} */]
 
 function restoreOptions() {
 	void browser.storage.sync.get(defaultSettings, function(items) {
