@@ -25,8 +25,11 @@ import { isContentScriptablePage } from './isContent.js'
 import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
 import MigrationManager from './migrationManager.js'
 
+// FIXME: MV3
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
+// FIXME: MV3
 const startupCode: (() => void)[]  = []
+// FIXME: MV3
 // TODO: do the typing properly
 let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 
@@ -324,6 +327,7 @@ function reflectUpdateDismissalState(dismissed: boolean) {
 	}
 }
 
+// FIXME: MV3
 startupCode.push(function() {
 	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
 		reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
@@ -439,6 +443,7 @@ withAllTabs(function(tabs) {
 	}
 })
 
+// FIXME: MV3 ?
 if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
@@ -472,6 +477,7 @@ function runStartupCode() {
 	}
 }
 
+// FIXME: MV3 ?
 browser.storage.sync.get(null, function(items) {
 	const changedSettings = migrationManager.migrate(items)
 	if (changedSettings) {
