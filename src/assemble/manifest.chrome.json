@@ -1,88 +1,10 @@
 {
-  "manifest_version": 2,
-  "name": "__MSG_extensionFullName__",
-  "short_name": "__MSG_extensionShortName__",
-  "version": "@version@",
-  "description": "__MSG_extensionDescription__",
   "author": "David Todd, Matthew Tylee Atkinson",
-  "homepage_url": "http://matatk.agrip.org.uk/landmarks/",
-  "default_locale": "en_GB",
-
-  "icons": {
-    "48": "landmarks-48.png"
-  },
-
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    },
-    {
-      "matches": ["http://matatk.agrip.org.uk/landmarks/"],
-      "js": ["addHelpLinkToHomePage.js"]
-    }
-  ],
-
-  "commands": {
-    "toggle-all-landmarks": {
-      "description": "__MSG_toggleAllShortcutDescription__"
-    },
-    "main-landmark": {
-      "suggested_key": {
-        "default": "Alt+Shift+M"
-      },
-      "description": "__MSG_mainLandmarkShortcutDescription__"
-    },
-    "prev-landmark": {
-      "suggested_key": {
-        "default": "Alt+Shift+P"
-      },
-      "description": "__MSG_previousLandmarkShortcutDescription__"
-    },
-    "next-landmark": {
-      "suggested_key": {
-        "default": "Alt+Shift+N"
-      },
-      "description": "__MSG_nextLandmarkShortcutDescription__"
-    },
-    "_execute_browser_action": {
-      "suggested_key": {
-        "default": "Alt+Shift+L"
-      }
-    }
-  },
-
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  },
-
-  "browser_action": {
-    "default_title": "Landmarks",
-    "default_popup": "popup.html"
-  },
-
-  "permissions": [
-    "storage",
-    "webNavigation",
-    "tabs"
-  ],
-
-  "devtools_page": "devtoolsRoot.html",
-
-  "minimum_chrome_version": "80",
-
-  "icons": {
-    "16": "landmarks-16.png",
-    "32": "landmarks-32.png",
-    "48": "landmarks-48.png",
-    "128": "landmarks-128.png"
-  },
-
   "browser_action": {
     "default_icon": {
       "16": "landmarks-16.png",
@@ -90,10 +12,71 @@
       "32": "landmarks-32.png"
     }
   },
-
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      }
+    },
+    "main-landmark": {
+      "description": "__MSG_mainLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      }
+    },
+    "next-landmark": {
+      "description": "__MSG_nextLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      }
+    },
+    "prev-landmark": {
+      "description": "__MSG_previousLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      }
+    },
+    "toggle-all-landmarks": {
+      "description": "__MSG_toggleAllShortcutDescription__"
+    }
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    },
+    {
+      "js": [
+        "addHelpLinkToHomePage.js"
+      ],
+      "matches": [
+        "http://matatk.agrip.org.uk/landmarks/"
+      ]
+    }
+  ],
+  "default_locale": "en_GB",
+  "description": "__MSG_extensionDescription__",
+  "devtools_page": "devtoolsRoot.html",
+  "homepage_url": "http://matatk.agrip.org.uk/landmarks/",
+  "icons": {
+    "128": "landmarks-128.png",
+    "16": "landmarks-16.png",
+    "32": "landmarks-32.png",
+    "48": "landmarks-48.png"
+  },
+  "manifest_version": 2,
+  "minimum_chrome_version": "80",
+  "name": "__MSG_extensionFullName__",
   "options_ui": {
     "chrome_style": false
   },
-
-  "permissions": ["<all_urls>"]
+  "permissions": [
+    "<all_urls>"
+  ],
+  "short_name": "__MSG_extensionShortName__",
+  "version": "@version@"
 }
