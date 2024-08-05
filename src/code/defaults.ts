@@ -35,7 +35,7 @@ interface InterfaceSettings {
 }
 
 export const defaultInterfaceSettings: InterfaceSettings | null =
-	(BROWSER === 'firefox' || BROWSER === 'opera')
+	(BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome')
 		? { interface: 'popup' } as const
 		: null
 
@@ -56,7 +56,7 @@ type Settings =
 	BorderSettings & FunctionalitySettings
 
 export const defaultSettings: Settings =
-	(BROWSER === 'firefox' || BROWSER === 'opera')
+	(BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome')
 		? Object.assign({},
 			defaultBorderSettings,
 			defaultInterfaceSettings,
@@ -77,7 +77,7 @@ export const defaultDismissedUpdate = /* #__PURE__ */Object.freeze(
 	{ dismissedUpdate: false })
 
 export const defaultDismissalStates =
-	(BROWSER === 'firefox' || BROWSER === 'opera')
+	(BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome')
 		? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
 			defaultDismissedSidebarNotAlone,
 			defaultDismissedUpdate))

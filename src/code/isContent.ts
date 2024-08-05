@@ -1,9 +1,9 @@
 /* eslint-disable indent */
 const specialPages
-	= BROWSER === 'chrome' ? /^https:\/\/chrome.google.com\/webstore/
+	= BROWSER === 'chrome' ? /^https:\/\/chromewebstore.google.com/
 	: BROWSER === 'opera' ? /^https:\/\/addons.opera.com/
 	: BROWSER === 'edge' ? /^https:\/\/microsoftedge.microsoft.com\/addons/
-	: /^https:\/\/addons.mozilla.org/
+	: /* Firefox */ /^https:\/\/addons.mozilla.org/
 /* eslint-enable indent */
 
 export function isContentInjectablePage(url?: string) {

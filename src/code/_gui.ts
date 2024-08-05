@@ -329,7 +329,9 @@ function makeEventHandlers(linkName: 'help' | 'settings') {
 function send(message: string | object) {
 	if (INTERFACE === 'devtools') {
 		const messageWithTabId = Object.assign({}, message, {
-			from: browser.devtools.inspectedWindow.tabId
+			// FIXME: this (from -> forTabId) went out of synch - stop that from happening again
+			// FIXME: should include from? Fix via types!
+			forTabId: browser.devtools.inspectedWindow.tabId
 		})
 		port.postMessage(messageWithTabId)
 	} else {
@@ -357,6 +359,7 @@ function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgr
 }
 
 function messageHandlerCore(message: MessageForBackgroundScript) {
+	console.log('devtools rx', message)
 	if (message.name === 'landmarks') {
 		handleLandmarksMessage(message.tree)
 		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
@@ -406,12 +409,14 @@ function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
 // Start-up
 //
 
-// Note: Firefox doesn't use 'devToolsConnectionError' but if it is not
+// NOTE: Firefox doesn't use 'devToolsConnectionError' but if it is not
 //       mentioned here, the build will not pass the unused messages check.
 //       Keeping it in the GUI HTML but hiding it is hacky, as the browser
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
+	console.log('devtools starting')
+	console.log('connecting')
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
 		// DevTools page doesn't get reloaded when the extension does
@@ -422,9 +427,12 @@ function startupDevTools() {
 
 	port.onMessage.addListener(messageHandlerCore)
 
+	// FIXME: this (from -> forTabId) went out of synch - stop that from happening again
+	console.log('sending init msgs')
 	port.postMessage({
 		name: 'init',
-		from: browser.devtools.inspectedWindow.tabId
+		from: INTERFACE,
+		forTabId: browser.devtools.inspectedWindow.tabId
 	})
 
 	// The checking for if the page is scriptable is done at the other end.

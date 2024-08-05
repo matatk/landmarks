@@ -221,7 +221,7 @@ async function bundleCode(browser, debug) {
 	logStep('Bundling JavaScript code')
 
 	const ioPairsAndGlobals = [{
-		mainSourceFile: path.join(srcCodeDir, '_background.js'),
+		mainSourceFile: path.join(srcCodeDir, browser === 'chrome' ? '_background.mv3.js' : '_background.js'),
 		bundleFile: 'background.js'
 	}, {
 		mainSourceFile: path.join(srcCodeDir, '_content.js'),
@@ -246,7 +246,7 @@ async function bundleCode(browser, debug) {
 		globals: { INTERFACE: 'devtools' }
 	}]
 
-	if (browser === 'firefox' || browser === 'opera') {
+	if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 		ioPairsAndGlobals.push({
 			mainSourceFile: path.join(srcCodeDir, '_gui.js'),
 			bundleFile: 'sidebar.js',
@@ -313,7 +313,9 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.output = {
 				file: cachedScript,
-				format: 'iife'
+				format: browser === 'chrome' && ioPair.bundleFile === 'background.js'
+					? 'module'
+					: 'iife'
 			}
 
 			bundleOptions.push(bundleOption)
@@ -353,7 +355,7 @@ function copyStaticFiles(browser) {
 
 	fse.copySync(srcStaticDir, pathToBuild(browser), { filter: skipDots })
 
-	if (browser === 'chrome' || browser === 'edge') {
+	if (browser === 'edge') {
 		removeSidebarStuff(path.join(pathToBuild(browser), 'options.html'))
 		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
@@ -385,7 +387,7 @@ function copyGuiFiles(browser) {
 	copyOneGuiFile('popup', false, false)
 	copyOneGuiFile('devtoolsPanel', false, true)
 
-	if (browser === 'firefox' || browser === 'opera') {
+	if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 		copyOneGuiFile('sidebar', true, false)
 	}
 }
@@ -407,6 +409,8 @@ function mergeMessages(browser) {
 	// https://github.com/matatk/partner-center-linting-bug
 	//
 	// An internal bug (Edge or Partner Center) was filed with ID 31045320
+	//
+	// TODO: Check if this is fixed; remove if so.
 	if (browser === 'edge') {
 		for (const locale of ['en_GB', 'en_US']) {
 			const destinationDir = builtLocaleDir(browser, locale)
@@ -429,7 +433,7 @@ function mergeMessages(browser) {
 
 		fse.ensureDirSync(destinationDir)
 
-		if (browser === 'firefox' || browser === 'opera') {
+		if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
 			const uiMessagesJson = getMessagesOrEmpty(locale, 'interface')
 			const merged = merge(commonMessagesJson, uiMessagesJson)
@@ -438,10 +442,8 @@ function mergeMessages(browser) {
 			// Instead of just copying the common file, write it in the same
 			// way as the merged one, so that diffs between builds are minimal.
 			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
-			if (commonMessagesJson !== {}) {
-				fs.writeFileSync(destinationFile,
-					JSON.stringify(commonMessagesJson, null, 2))
-			}
+			fs.writeFileSync(destinationFile,
+				JSON.stringify(commonMessagesJson, null, 2))
 		}
 
 		ok(`messages.json written for ${browser} in ${locale} locale.`)
@@ -450,7 +452,19 @@ function mergeMessages(browser) {
 
 
 function mergeManifest(browser) {
-	logStep('Merging manifest.json')
+	logStep('Merging/copying manifest.json')
+
+	// NOTE: Eventually remove the need for this by moving all to MV3?
+	if (browser === 'chrome') {
+		const manifest = requireJson(path.join('..', srcAssembleDir, 'manifest.chrome.json'))
+		// TODO: DRY the below?
+		manifest.version = extVersion
+		fs.writeFileSync(
+			path.join(pathToBuild(browser), 'manifest.json'),
+			JSON.stringify(manifest, null, 2)
+		)
+		return
+	}
 
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)

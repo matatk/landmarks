@@ -1,24 +1,93 @@
 {
-  "minimum_chrome_version": "80",
-
-  "icons": {
-    "16": "landmarks-16.png",
-    "32": "landmarks-32.png",
-    "48": "landmarks-48.png",
-    "128": "landmarks-128.png"
-  },
-
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "landmarks-16.png",
       "24": "landmarks-24.png",
       "32": "landmarks-32.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Landmarks"
+  },
+  "author": "David Todd, Matthew Tylee Atkinson",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      }
+    },
+    "main-landmark": {
+      "description": "__MSG_mainLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      }
+    },
+    "next-landmark": {
+      "description": "__MSG_nextLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      }
+    },
+    "prev-landmark": {
+      "description": "__MSG_previousLandmarkShortcutDescription__",
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      }
+    },
+    "toggle-all-landmarks": {
+      "description": "__MSG_toggleAllShortcutDescription__"
     }
   },
-
-  "options_ui": {
-    "chrome_style": false
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    },
+    {
+      "js": [
+        "addHelpLinkToHomePage.js"
+      ],
+      "matches": [
+        "http://matatk.agrip.org.uk/landmarks/"
+      ]
+    }
+  ],
+  "default_locale": "en_GB",
+  "description": "__MSG_extensionDescription__",
+  "devtools_page": "devtoolsRoot.html",
+  "homepage_url": "http://matatk.agrip.org.uk/landmarks/",
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "icons": {
+    "128": "landmarks-128.png",
+    "16": "landmarks-16.png",
+    "32": "landmarks-32.png",
+    "48": "landmarks-48.png"
   },
-
-  "permissions": ["<all_urls>"]
+  "manifest_version": 3,
+  "minimum_chrome_version": "88",
+  "name": "__MSG_extensionFullName__",
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "options.html"
+  },
+  "permissions": [
+    "scripting",
+    "sidePanel",
+    "storage",
+    "webNavigation",
+    "tabs"
+  ],
+  "short_name": "__MSG_extensionShortName__",
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "version": "@version@"
 }

@@ -58,7 +58,7 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 }
 
 function messageHandler(message: MessageForContentScript | DebugMessage) {
-	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)
+	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
 	switch (message.name) {
 		case 'get-landmarks':
 			// A GUI is requesting the list of landmarks on the page

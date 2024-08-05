@@ -83,6 +83,7 @@ type MessageForContentScript = {
 
 type ToggleState = 'selected' | 'all'
 
+// FIXME: This is used by the GUI when _receiving_ a message - naming wrong?
 type MessageForBackgroundScript = {
 	name: 'landmarks'
 	number: number
@@ -111,12 +112,12 @@ type MessageForBackgroundScript = {
 	data: PageWarning[]
 } | DebugMessage
 
-type DebugMessageFor = typeof INTERFACE | 'content'
+type DebugMessageFrom = typeof INTERFACE | 'content'
 
 type DebugMessage = {
 	name: 'debug'
 	info: string
-	from: DebugMessageFor
+	from: DebugMessageFrom
 	forTabId?: number
 }
 
