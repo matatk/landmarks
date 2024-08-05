@@ -15,13 +15,16 @@ type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined
 
 type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
 
+// NOTE: The '| null' pattern is used to keep the shape of the objects consistent, for perf.
+// TODO: Check whether switching to '<key>?: <primary-type>' definitions affects perf.
+// TODO: ...and adjust the '?' properties accordingly.
 type LandmarkEntry = {
 	type: 'landmark'
 	element: HTMLElement
 	selector: string
 	role: string
-	roleDescription: string | null  // TODO: switch to ? syntax
-	label: string | null  // TODO: switch to ? syntax
+	roleDescription: string | null
+	label: string | null
 	guessed: boolean
 	previous?: LandmarkEntry  // TODO: should only be in Tree entry?
 	next?: LandmarkEntry  // TODO: should only be in Tree entry?
