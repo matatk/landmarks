@@ -450,7 +450,14 @@ function mergeMessages(browser) {
 
 
 function mergeManifest(browser) {
-	logStep('Merging manifest.json')
+	logStep('Merging/copying manifest.json')
+
+	// NOTE: Eventually remove the need for this by moving all to MV3?
+	if (browser === 'chrome') {
+		fs.copyFileSync(
+			path.join(srcAssembleDir, 'manifest.chrome.json'), 
+			path.join(pathToBuild(browser), 'manifest.json'))
+	}
 
 	const common = path.join('..', srcAssembleDir, 'manifest.common.json')
 	const extra = path.join('..', srcAssembleDir, `manifest.${browser}.json`)
