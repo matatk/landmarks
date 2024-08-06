@@ -2,6 +2,32 @@
 // @ts-expect-error TODO make this neater
 self.browser = self.chrome
 
+import { isContentScriptablePage } from './isContent.js'
+import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
+import MigrationManager from './migrationManager.js'
+
+const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
+const startupCode: (() => void)[]  = []
+// TODO: do the typing properly
+let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
+
+const migrationManager = new MigrationManager({
+	1: function(settings) {
+		delete settings.debugInfo
+	}
+})
+
+function runStartupCode() {
+	for (const func of startupCode) {
+		func()
+	}
+}
+
+
+//
+// Some new MV3 stuff - FIXME: to file
+//
+
 type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => void
 type DoWithOneTab = (tab: chrome.tabs.Tab) => void
 
@@ -13,6 +39,27 @@ async function withActiveTab(doThis: DoWithOneTab) {
 	await browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
 		doThis(tabs[0])
 	})
+}
+
+const init = browser.storage.sync.get(null).then(items => {
+	const changedSettings = migrationManager.migrate(items)
+	if (changedSettings) {
+		browser.storage.sync.clear(function() {
+			browser.storage.sync.set(items, function() {
+				runStartupCode()
+			})
+		})
+	} else {
+		runStartupCode()
+	}
+})
+
+async function afterInit() {
+	try {
+		await init
+	} catch (err) {
+		throw Error('Initialisation failed!')
+	}
 }
 
 // FIXME: DRY with contentScriptInjector
@@ -33,18 +80,6 @@ async function contentScriptInjector() {
 		}
 	})
 }
-
-import { isContentScriptablePage } from './isContent.js'
-import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
-import MigrationManager from './migrationManager.js'
-
-// FIXME: MV3
-const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
-// FIXME: MV3
-const startupCode: (() => void)[]  = []
-// FIXME: MV3
-// TODO: do the typing properly
-let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 
 
 //
@@ -171,7 +206,8 @@ function devtoolsDisconnectMaker(tabId: number) {
 	}
 }
 
-browser.runtime.onConnect.addListener(function(port) {
+browser.runtime.onConnect.addListener(async function(port) {
+	await afterInit()  // FIXME: <-- needed here?
 	switch (port.name) {
 		case 'devtools':
 			port.onMessage.addListener(devtoolsListenerMaker(port))
@@ -240,7 +276,8 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 // Keyboard shortcut handling
 //
 
-browser.commands.onCommand.addListener(function(command) {
+browser.commands.onCommand.addListener(async function(command) {
+	await afterInit()  // FIXME: <-- needed here?
 	switch (command) {
 		case 'next-landmark':
 		case 'prev-landmark':
@@ -261,6 +298,7 @@ browser.commands.onCommand.addListener(function(command) {
 
 // Stop the user from being able to trigger the browser action during page load.
 browser.webNavigation.onBeforeNavigate.addListener(async function(details) {
+	await afterInit()  // FIXME: <-- needed here?
 	if (details.frameId > 0) return
 	await browser.action.disable(details.tabId)
 	if (dismissedUpdate) {
@@ -272,6 +310,7 @@ browser.webNavigation.onBeforeNavigate.addListener(async function(details) {
 })
 
 browser.webNavigation.onCompleted.addListener(async function(details) {
+	await afterInit()  // FIXME: <-- needed here?
 	if (details.frameId > 0) return
 	await setBrowserActionState(details.tabId, details.url)
 	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
@@ -300,7 +339,8 @@ browser.webNavigation.onCompleted.addListener(async function(details) {
 //   (moving to a repo's Graphs page on GitHub). Seeing as this only sends a
 //   short message to the content script, I've removed the 'same URL'
 //   filtering.
-browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+browser.webNavigation.onHistoryStateUpdated.addListener(async function(details) {
+	await afterInit()  // FIXME: <-- needed here?
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 		debugLog(`tab ${details.tabId} history - ${details.url}`)
@@ -308,7 +348,8 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	}
 })
 
-browser.tabs.onActivated.addListener(function(activeTabInfo) {
+browser.tabs.onActivated.addListener(async function(activeTabInfo) {
+	await afterInit()  // FIXME: <-- needed here?
 	browser.tabs.get(activeTabInfo.tabId, function(tab) {
 		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
 		updateGUIs(tab.id!, tab.url!)
@@ -345,6 +386,7 @@ startupCode.push(function() {
 })
 
 browser.runtime.onInstalled.addListener(async function(details) {
+	await afterInit()  // FIXME: <-- needed here?
 	// TODO: False positive?
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 	if (details.reason === 'install') {
@@ -381,6 +423,7 @@ async function openHelpPage(openInSameTab: boolean) {
 }
 
 browser.runtime.onMessage.addListener(async function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
+	await afterInit()  // FIXME: <-- needed here?
 	debugLog(message, sender)
 	switch (message.name) {
 		// Content
@@ -459,6 +502,7 @@ if (BROWSER !== 'firefox') {
 }
 
 browser.storage.onChanged.addListener(async function(changes) {
+	await afterInit()  // FIXME: <-- needed here? (I THINK SO)
 	if (BROWSER === 'firefox' || BROWSER === 'opera') {
 		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
 		if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
@@ -472,31 +516,5 @@ browser.storage.onChanged.addListener(async function(changes) {
 		// Changing _to_ false means either we've already dismissed and have
 		// since reset the messages, OR we have just been updated.
 		await reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
-	}
-})
-
-const migrationManager = new MigrationManager({
-	1: function(settings) {
-		delete settings.debugInfo
-	}
-})
-
-function runStartupCode() {
-	for (const func of startupCode) {
-		func()
-	}
-}
-
-// FIXME: MV3 ?
-browser.storage.sync.get(null, function(items) {
-	const changedSettings = migrationManager.migrate(items)
-	if (changedSettings) {
-		browser.storage.sync.clear(function() {
-			browser.storage.sync.set(items, function() {
-				runStartupCode()
-			})
-		})
-	} else {
-		runStartupCode()
 	}
 })
