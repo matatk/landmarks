@@ -73,7 +73,8 @@
   "minimum_chrome_version": "88",
   "name": "__MSG_extensionFullName__",
   "options_ui": {
-    "chrome_style": false
+    "open_in_tab": true,
+    "page": "options.html"
   },
   "permissions": [
     "scripting",
