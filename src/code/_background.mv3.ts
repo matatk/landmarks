@@ -68,14 +68,17 @@ import { isContentInjectablePage } from './isContent.js'
 async function contentScriptInjector() {
 	// FIXME: MV3 - does it do this for us?
 	// Inject content script manually
-	await browser.tabs.query({}).then(async tabs => {
+	await browser.tabs.query({}).then(tabs => {
 		for (const tab of tabs) {
 			if (isContentInjectablePage(tab.url)) {
 				if (tab.id !== undefined) {
-					await browser.scripting.executeScript({
+					browser.scripting.executeScript({
 						target: { tabId: tab.id },
 						files: [ 'content.js' ]
 					})
+						.catch(err => {
+							console.error('Error injecting content script:', err, 'on tab', tab.id, tab.url)
+						})
 				}
 			}
 		}
@@ -154,7 +157,7 @@ async function updateGUIs(tabId: number, url: string) {
 		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
-		if (BROWSER === 'firefox' || BROWSER === 'opera') {
+		if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 			await browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		}
 		// DevTools panel doesn't need updating, as it maintains state
@@ -245,25 +248,35 @@ async function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 // These things are only referenced from within browser-conditional blocks, so
 // Terser removes them as appropriate.
 
-const sidebarToggle = () => browser.sidebarAction.toggle()
+const sidebarToggleFirefox = () => browser.sidebarAction.toggle()
 
 async function switchInterface(mode: 'sidebar' | 'popup') {
 	if (mode === 'sidebar') {
 		await browser.action.setPopup({ popup: '' })
 		if (BROWSER === 'firefox') {
-			browser.action.onClicked.addListener(sidebarToggle)
+			browser.action.onClicked.addListener(sidebarToggleFirefox)
+		}
+		if (BROWSER === 'chrome') {
+			chrome.sidePanel
+				.setPanelBehavior({ openPanelOnActionClick: true })
+				.catch((error) => console.error(error))
 		}
 	} else {
 		// On Firefox this could be set to null to return to the default
 		// popup. However Chrome/Opera doesn't support this.
 		await browser.action.setPopup({ popup: 'popup.html' })
 		if (BROWSER === 'firefox') {
-			browser.action.onClicked.removeListener(sidebarToggle)
+			browser.action.onClicked.removeListener(sidebarToggleFirefox)
+		}
+		if (BROWSER === 'chrome') {
+			chrome.sidePanel
+				.setPanelBehavior({ openPanelOnActionClick: false })
+				.catch((error) => console.error(error))
 		}
 	}
 }
 
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
+if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 	startupCode.push(async function() {
 		await browser.storage.sync.get(defaultInterfaceSettings).then(async function(items) {
 			// TODO: Is this the right way to do falling back to default? If so, DRY.
@@ -546,7 +559,7 @@ if (BROWSER !== 'firefox') {
 browser.storage.onChanged.addListener(function(changes) {
 	afterInit()
 		.then(async function() {
-			if (BROWSER === 'firefox' || BROWSER === 'opera') {
+			if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 				// FIXME: rework all of these to fall back to a default value if stored one is invalid?
 				if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
 					await switchInterface(changes.interface.newValue

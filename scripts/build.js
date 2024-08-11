@@ -246,7 +246,7 @@ async function bundleCode(browser, debug) {
 		globals: { INTERFACE: 'devtools' }
 	}]
 
-	if (browser === 'firefox' || browser === 'opera') {
+	if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 		ioPairsAndGlobals.push({
 			mainSourceFile: path.join(srcCodeDir, '_gui.js'),
 			bundleFile: 'sidebar.js',
@@ -355,7 +355,7 @@ function copyStaticFiles(browser) {
 
 	fse.copySync(srcStaticDir, pathToBuild(browser), { filter: skipDots })
 
-	if (browser === 'chrome' || browser === 'edge') {
+	if (browser === 'edge') {
 		removeSidebarStuff(path.join(pathToBuild(browser), 'options.html'))
 		fs.unlinkSync(path.join(pathToBuild(browser), 'sidebar.css'))
 	}
@@ -387,7 +387,7 @@ function copyGuiFiles(browser) {
 	copyOneGuiFile('popup', false, false)
 	copyOneGuiFile('devtoolsPanel', false, true)
 
-	if (browser === 'firefox' || browser === 'opera') {
+	if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 		copyOneGuiFile('sidebar', true, false)
 	}
 }
@@ -409,6 +409,8 @@ function mergeMessages(browser) {
 	// https://github.com/matatk/partner-center-linting-bug
 	//
 	// An internal bug (Edge or Partner Center) was filed with ID 31045320
+	//
+	// TODO: Check if this is fixed; remove if so.
 	if (browser === 'edge') {
 		for (const locale of ['en_GB', 'en_US']) {
 			const destinationDir = builtLocaleDir(browser, locale)
@@ -431,7 +433,7 @@ function mergeMessages(browser) {
 
 		fse.ensureDirSync(destinationDir)
 
-		if (browser === 'firefox' || browser === 'opera') {
+		if (browser === 'firefox' || browser === 'opera' || browser === 'chrome') {
 			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
 			const uiMessagesJson = getMessagesOrEmpty(locale, 'interface')
 			const merged = merge(commonMessagesJson, uiMessagesJson)

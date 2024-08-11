@@ -151,7 +151,7 @@ function resetToDefaults() {
 //
 
 function main() {
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
+	if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 		options.push({
 			// @ts-expect-error defaultSettings aren't defined, according to typescript. to include 'interface' FIXME
 			name: 'interface',

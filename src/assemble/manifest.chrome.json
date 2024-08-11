@@ -80,10 +80,14 @@
   },
   "permissions": [
     "scripting",
+    "sidePanel",
     "storage",
     "webNavigation",
     "tabs"
   ],
   "short_name": "__MSG_extensionShortName__",
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
   "version": "@version@"
 }
