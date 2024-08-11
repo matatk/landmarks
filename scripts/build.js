@@ -440,10 +440,8 @@ function mergeMessages(browser) {
 			// Instead of just copying the common file, write it in the same
 			// way as the merged one, so that diffs between builds are minimal.
 			const commonMessagesJson = getMessagesOrEmpty(locale, 'common')
-			if (commonMessagesJson !== {}) {
-				fs.writeFileSync(destinationFile,
-					JSON.stringify(commonMessagesJson, null, 2))
-			}
+			fs.writeFileSync(destinationFile,
+				JSON.stringify(commonMessagesJson, null, 2))
 		}
 
 		ok(`messages.json written for ${browser} in ${locale} locale.`)
