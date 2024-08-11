@@ -313,7 +313,7 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.output = {
 				file: cachedScript,
-				format: browser === 'chrome' && cachedScript === 'background.js'
+				format: browser === 'chrome' && ioPair.bundleFile === 'background.js'
 					? 'module'
 					: 'iife'
 			}

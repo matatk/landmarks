@@ -30,12 +30,13 @@ async function runStartupCode() {
 
 type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => Promise<void>
 type DoWithOneTab = (tab: chrome.tabs.Tab) => Promise<void>
+type DoWithOneTabSync = (tab: chrome.tabs.Tab) => void
 
 async function withAllTabs(doThis: DoWithAllTabs) {
 	await browser.tabs.query({}).then(doThis)
 }
 
-async function withActiveTab(doThis: DoWithOneTab) {
+async function withActiveTab(doThis: DoWithOneTab | DoWithOneTabSync) {
 	await browser.tabs.query({ active: true, currentWindow: true }).then(async tabs => {
 		await doThis(tabs[0])
 	})
@@ -140,21 +141,19 @@ function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object)
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab(id: number, message: MessageForContentScript) {
-	browser.tabs.sendMessage(id, message, () => browser.runtime.lastError)
+async function wrappedSendToTab(id: number, message: MessageForContentScript) {
+	await browser.tabs.sendMessage(id, message)
 }
 
-function updateGUIs(tabId: number, url: string) {
+async function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting info`)
-		wrappedSendToTab(tabId, { name: 'get-landmarks' })
-		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
+		await wrappedSendToTab(tabId, { name: 'get-landmarks' })
+		await wrappedSendToTab(tabId, { name: 'get-toggle-state' })
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera') {
-			browser.runtime.sendMessage(
-				{ name: 'landmarks', data: null }, () =>
-					browser.runtime.lastError)  // noop
+			await browser.runtime.sendMessage({ name: 'landmarks', data: null })
 		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -289,9 +288,9 @@ browser.commands.onCommand.addListener(function(command) {
 				case 'prev-landmark':
 				case 'main-landmark':
 				case 'toggle-all-landmarks':
-					void withActiveTab(tab => {
+					void withActiveTab(async tab => {
 						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-							void browser.tabs.sendMessage(tab.id, { name: command })
+							await browser.tabs.sendMessage(tab.id, { name: command })
 						}
 					})
 			}
@@ -330,7 +329,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 			if (details.frameId > 0) return
 			await setBrowserActionState(details.tabId, details.url)
 			debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-			updateGUIs(details.tabId, details.url)
+			await updateGUIs(details.tabId, details.url)
 		})
 		.catch(err => {
 			throw err
@@ -361,11 +360,11 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	afterInit()
-		.then(() => {
+		.then(async() => {
 			if (details.frameId > 0) return
 			if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 				debugLog(`tab ${details.tabId} history - ${details.url}`)
-				wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
+				await wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
 			}
 		})
 		.catch(err => {
@@ -375,11 +374,12 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	afterInit()
-		.then(() => {
-			browser.tabs.get(activeTabInfo.tabId, function(tab) {
-				debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-				updateGUIs(tab.id!, tab.url!)
-			})
+		.then(async() => {
+			await browser.tabs.get(activeTabInfo.tabId)
+				.then(async tab => {
+					debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+					await updateGUIs(tab.id!, tab.url!)
+				})
 			// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 			//       back as "about:blank" which makes Landmarks think it can't run on
 			//       that page, and sends the null landmarks message, which appears
@@ -401,7 +401,7 @@ async function reflectUpdateDismissalState(dismissed: boolean) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		await browser.action.setBadgeText({ text: '' })
-		await withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
+		await withActiveTab(async tab => updateGUIs(tab.id!, tab.url!))
 	} else {
 		await browser.action.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
