@@ -528,7 +528,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 // Actions when the extension starts up
 //
 
-await withAllTabs(async function(tabs) {
+void withAllTabs(async function(tabs) {
 	for (const tab of tabs) {
 		if (tab.id && tab.url) {
 			await setBrowserActionState(tab.id, tab.url)
