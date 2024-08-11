@@ -7,7 +7,7 @@ import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } fro
 import MigrationManager from './migrationManager.js'
 
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
-const startupCode: (() => void)[]  = []
+const startupCode: (() => Promise<void>)[]  = []
 // TODO: do the typing properly
 let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 
@@ -17,9 +17,9 @@ const migrationManager = new MigrationManager({
 	}
 })
 
-function runStartupCode() {
+async function runStartupCode() {
 	for (const func of startupCode) {
-		func()
+		await func()
 	}
 }
 
@@ -28,29 +28,29 @@ function runStartupCode() {
 // Some new MV3 stuff - FIXME: to file
 //
 
-type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => void
-type DoWithOneTab = (tab: chrome.tabs.Tab) => void
+type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => Promise<void>
+type DoWithOneTab = (tab: chrome.tabs.Tab) => Promise<void>
 
 async function withAllTabs(doThis: DoWithAllTabs) {
 	await browser.tabs.query({}).then(doThis)
 }
 
 async function withActiveTab(doThis: DoWithOneTab) {
-	await browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
-		doThis(tabs[0])
+	await browser.tabs.query({ active: true, currentWindow: true }).then(async tabs => {
+		await doThis(tabs[0])
 	})
 }
 
-const init = browser.storage.sync.get(null).then(items => {
+const init = browser.storage.sync.get(null).then(async items => {
 	const changedSettings = migrationManager.migrate(items)
 	if (changedSettings) {
-		browser.storage.sync.clear(function() {
-			browser.storage.sync.set(items, function() {
-				runStartupCode()
+		await browser.storage.sync.clear().then(async function() {
+			await browser.storage.sync.set(items).then(async function() {
+				await runStartupCode()
 			})
 		})
 	} else {
-		runStartupCode()
+		await runStartupCode()
 	}
 })
 
@@ -206,17 +206,22 @@ function devtoolsDisconnectMaker(tabId: number) {
 	}
 }
 
-browser.runtime.onConnect.addListener(async function(port) {
-	await afterInit()  // FIXME: <-- needed here?
-	switch (port.name) {
-		case 'devtools':
-			port.onMessage.addListener(devtoolsListenerMaker(port))
-			break
-		case 'disconnect-checker':  // Used on Chrome and Opera
-			break
-		default:
-			throw Error(`Unkown connection type "${port.name}".`)
-	}
+browser.runtime.onConnect.addListener(function(port) {
+	afterInit()
+		.then(() => {
+			switch (port.name) {
+				case 'devtools':
+					port.onMessage.addListener(() => devtoolsListenerMaker(port))
+					break
+				case 'disconnect-checker':  // Used on Chrome and Opera
+					break
+				default:
+					throw Error(`Unkown connection type "${port.name}".`)
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 async function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
@@ -258,8 +263,8 @@ async function switchInterface(mode: 'sidebar' | 'popup') {
 }
 
 if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	startupCode.push(function() {
-		browser.storage.sync.get(defaultInterfaceSettings, async function(items) {
+	startupCode.push(async function() {
+		await browser.storage.sync.get(defaultInterfaceSettings).then(async function(items) {
 			// TODO: Is this the right way to do falling back to default? If so, DRY.
 			if (isInterfaceType(items.interface)) {
 				await switchInterface(items.interface)
@@ -276,19 +281,24 @@ if (BROWSER === 'firefox' || BROWSER === 'opera') {
 // Keyboard shortcut handling
 //
 
-browser.commands.onCommand.addListener(async function(command) {
-	await afterInit()  // FIXME: <-- needed here?
-	switch (command) {
-		case 'next-landmark':
-		case 'prev-landmark':
-		case 'main-landmark':
-		case 'toggle-all-landmarks':
-			void withActiveTab(tab => {
-				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-					void browser.tabs.sendMessage(tab.id, { name: command })
-				}
-			})
-	}
+browser.commands.onCommand.addListener(function(command) {
+	afterInit()
+		.then(() => {
+			switch (command) {
+				case 'next-landmark':
+				case 'prev-landmark':
+				case 'main-landmark':
+				case 'toggle-all-landmarks':
+					void withActiveTab(tab => {
+						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
+							void browser.tabs.sendMessage(tab.id, { name: command })
+						}
+					})
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -297,24 +307,34 @@ browser.commands.onCommand.addListener(async function(command) {
 //
 
 // Stop the user from being able to trigger the browser action during page load.
-browser.webNavigation.onBeforeNavigate.addListener(async function(details) {
-	await afterInit()  // FIXME: <-- needed here?
-	if (details.frameId > 0) return
-	await browser.action.disable(details.tabId)
-	if (dismissedUpdate) {
-		await browser.action.setBadgeText({
-			text: '',
-			tabId: details.tabId
+browser.webNavigation.onBeforeNavigate.addListener(function(details) {
+	afterInit()
+		.then(async() => {
+			if (details.frameId > 0) return
+			await browser.action.disable(details.tabId)
+			if (dismissedUpdate) {
+				await browser.action.setBadgeText({
+					text: '',
+					tabId: details.tabId
+				})
+			}
 		})
-	}
+		.catch(err => {
+			throw err
+		})
 })
 
-browser.webNavigation.onCompleted.addListener(async function(details) {
-	await afterInit()  // FIXME: <-- needed here?
-	if (details.frameId > 0) return
-	await setBrowserActionState(details.tabId, details.url)
-	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-	updateGUIs(details.tabId, details.url)
+browser.webNavigation.onCompleted.addListener(function(details) {
+	afterInit()
+		.then(async() => {
+			if (details.frameId > 0) return
+			await setBrowserActionState(details.tabId, details.url)
+			debugLog(`tab ${details.tabId} navigated - ${details.url}`)
+			updateGUIs(details.tabId, details.url)
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 // If the page uses single-page app techniques to load in new components—as
@@ -339,27 +359,37 @@ browser.webNavigation.onCompleted.addListener(async function(details) {
 //   (moving to a repo's Graphs page on GitHub). Seeing as this only sends a
 //   short message to the content script, I've removed the 'same URL'
 //   filtering.
-browser.webNavigation.onHistoryStateUpdated.addListener(async function(details) {
-	await afterInit()  // FIXME: <-- needed here?
-	if (details.frameId > 0) return
-	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
-		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
-	}
+browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+	afterInit()
+		.then(() => {
+			if (details.frameId > 0) return
+			if (isContentScriptablePage(details.url)) {  // TODO: check needed?
+				debugLog(`tab ${details.tabId} history - ${details.url}`)
+				wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
-browser.tabs.onActivated.addListener(async function(activeTabInfo) {
-	await afterInit()  // FIXME: <-- needed here?
-	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-		updateGUIs(tab.id!, tab.url!)
-	})
-	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
-	//       back as "about:blank" which makes Landmarks think it can't run on
-	//       that page, and sends the null landmarks message, which appears
-	//       briefly before the DOM load event causes webNavigation.onCompleted
-	//       to fire and the content script is asked for and sends back the
-	//       actual landmarks.
+browser.tabs.onActivated.addListener(function(activeTabInfo) {
+	afterInit()
+		.then(() => {
+			browser.tabs.get(activeTabInfo.tabId, function(tab) {
+				debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+				updateGUIs(tab.id!, tab.url!)
+			})
+			// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
+			//       back as "about:blank" which makes Landmarks think it can't run on
+			//       that page, and sends the null landmarks message, which appears
+			//       briefly before the DOM load event causes webNavigation.onCompleted
+			//       to fire and the content script is asked for and sends back the
+			//       actual landmarks.
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -379,24 +409,29 @@ async function reflectUpdateDismissalState(dismissed: boolean) {
 }
 
 // FIXME: MV3
-startupCode.push(function() {
-	browser.storage.sync.get(defaultDismissedUpdate, async function(items) {
+startupCode.push(async function() {
+	await browser.storage.sync.get(defaultDismissedUpdate).then(async function(items) {
 		await reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
 	})
 })
 
-browser.runtime.onInstalled.addListener(async function(details) {
-	await afterInit()  // FIXME: <-- needed here?
-	// TODO: False positive?
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-	if (details.reason === 'install') {
-		await browser.tabs.create({ url: 'help.html#!install' })
-		await browser.storage.sync.set({ 'dismissedUpdate': true })
-	// TODO: False positive?
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-	} else if (details.reason === 'update') {
-		await browser.storage.sync.set({ 'dismissedUpdate': false })
-	}
+browser.runtime.onInstalled.addListener(function(details) {
+	afterInit()
+		.then(async() => {
+			// TODO: False positive?
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+			if (details.reason === 'install') {
+				await browser.tabs.create({ url: 'help.html#!install' })
+				await browser.storage.sync.set({ 'dismissedUpdate': true })
+				// TODO: False positive?
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+			} else if (details.reason === 'update') {
+				await browser.storage.sync.set({ 'dismissedUpdate': false })
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -422,65 +457,70 @@ async function openHelpPage(openInSameTab: boolean) {
 	}
 }
 
-browser.runtime.onMessage.addListener(async function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
-	await afterInit()  // FIXME: <-- needed here?
-	debugLog(message, sender)
-	switch (message.name) {
-		// Content
-		case 'landmarks':
-			if (sender?.tab?.id && dismissedUpdate) {
-				await browser.action.setBadgeText({
-					text: message.number === 0 ? '' : String(message.number),
-					tabId: sender.tab.id
-				})
-			}
-			sendToDevToolsForTab(sender.tab, message)
-			break
-		case 'get-devtools-state':
-			if (sender?.tab?.id) {
-				await sendDevToolsStateMessage(sender.tab.id,
-					devtoolsConnections.hasOwnProperty(sender.tab.id))
-			}
-			break
-		// Help page
-		case 'get-commands':
-			await browser.commands.getAll().then(async function(commands) {
-				if (sender?.tab?.id) {
-					await browser.tabs.sendMessage(sender.tab.id, {
-						name: 'populate-commands',
-						commands: commands
+browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
+	afterInit()
+		.then(async() => {
+			debugLog(message, sender)
+			switch (message.name) {
+			// Content
+				case 'landmarks':
+					if (sender?.tab?.id && dismissedUpdate) {
+						await browser.action.setBadgeText({
+							text: message.number === 0 ? '' : String(message.number),
+							tabId: sender.tab.id
+						})
+					}
+					sendToDevToolsForTab(sender.tab, message)
+					break
+				case 'get-devtools-state':
+					if (sender?.tab?.id) {
+						await sendDevToolsStateMessage(sender.tab.id,
+							devtoolsConnections.hasOwnProperty(sender.tab.id))
+					}
+					break
+					// Help page
+				case 'get-commands':
+					await browser.commands.getAll().then(async function(commands) {
+						if (sender?.tab?.id) {
+							await browser.tabs.sendMessage(sender.tab.id, {
+								name: 'populate-commands',
+								commands: commands
+							})
+						}
 					})
-				}
-			})
-			break
-		case 'open-configure-shortcuts':
-			await browser.tabs.update({
-				/* eslint-disable indent */
-				url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
-					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
-					: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
-					: ''
-				/* eslint-enable indent */
-				// Note: the Chromium URL is now chrome://extensions/shortcuts
-				//       but the original one is redirected.
-			})
-			break
-		case 'open-settings':
-			await browser.runtime.openOptionsPage()
-			break
-		// Pop-up, sidebar and big link added to Landmarks' home page
-		case 'open-help':
-			await openHelpPage(message.openInSameTab === true)
-			break
-		// Messages that need to be passed through to DevTools only
-		case 'toggle-state-is':
-			await withActiveTab(tab => sendToDevToolsForTab(tab, message))
-			break
-		case 'mutation-info':
-		case 'mutation-info-window':
-		case 'page-warnings':
-			sendToDevToolsForTab(sender?.tab, message)
-	}
+					break
+				case 'open-configure-shortcuts':
+					await browser.tabs.update({
+					/* eslint-disable indent */
+					url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
+						: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
+						: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
+						: ''
+					/* eslint-enable indent */
+					// Note: the Chromium URL is now chrome://extensions/shortcuts
+					//       but the original one is redirected.
+					})
+					break
+				case 'open-settings':
+					await browser.runtime.openOptionsPage()
+					break
+					// Pop-up, sidebar and big link added to Landmarks' home page
+				case 'open-help':
+					await openHelpPage(message.openInSameTab === true)
+					break
+					// Messages that need to be passed through to DevTools only
+				case 'toggle-state-is':
+					await withActiveTab(tab => sendToDevToolsForTab(tab, message))
+					break
+				case 'mutation-info':
+				case 'mutation-info-window':
+				case 'page-warnings':
+					sendToDevToolsForTab(sender?.tab, message)
+			}
+		})
+		.catch(err => {
+			throw err 
+		})
 })
 
 
@@ -501,20 +541,25 @@ if (BROWSER !== 'firefox') {
 	startupCode.push(contentScriptInjector)
 }
 
-browser.storage.onChanged.addListener(async function(changes) {
-	await afterInit()  // FIXME: <-- needed here? (I THINK SO)
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
-		if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
-			await switchInterface(changes.interface.newValue
-				// @ts-expect-error defaultInterfaceSettings will have this value
-				?? defaultInterfaceSettings.interface)
-		}
-	}
+browser.storage.onChanged.addListener(function(changes) {
+	afterInit()
+		.then(async function() {
+			if (BROWSER === 'firefox' || BROWSER === 'opera') {
+				// FIXME: rework all of these to fall back to a default value if stored one is invalid?
+				if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
+					await switchInterface(changes.interface.newValue
+							// @ts-expect-error defaultInterfaceSettings will have this value
+							?? defaultInterfaceSettings.interface)
+				}
+			}
 
-	if (changes.hasOwnProperty('dismissedUpdate')) {
-		// Changing _to_ false means either we've already dismissed and have
-		// since reset the messages, OR we have just been updated.
-		await reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
-	}
+			if (changes.hasOwnProperty('dismissedUpdate')) {
+				// Changing _to_ false means either we've already dismissed and have
+				// since reset the messages, OR we have just been updated.
+				await reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
