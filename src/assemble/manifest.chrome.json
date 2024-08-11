@@ -4,7 +4,9 @@
       "16": "landmarks-16.png",
       "24": "landmarks-24.png",
       "32": "landmarks-32.png"
-    }
+    },
+    "default_popup": "popup.html",
+    "default_title": "Landmarks"
   },
   "author": "David Todd, Matthew Tylee Atkinson",
   "background": {
