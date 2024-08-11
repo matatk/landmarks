@@ -59,7 +59,7 @@ async function afterInit() {
 	try {
 		await init
 	} catch (err) {
-		throw Error('Initialisation failed!')
+		throw Error(`Initialisation failed: ${String(err)}`)
 	}
 }
 
@@ -141,15 +141,17 @@ function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object)
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-async function wrappedSendToTab(id: number, message: MessageForContentScript) {
-	await browser.tabs.sendMessage(id, message)
+function wrappedSendToTab(id: number, message: MessageForContentScript) {
+	browser.tabs.sendMessage(id, message).catch(err => {
+		console.error(err)
+	})
 }
 
 async function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting info`)
-		await wrappedSendToTab(tabId, { name: 'get-landmarks' })
-		await wrappedSendToTab(tabId, { name: 'get-toggle-state' })
+		wrappedSendToTab(tabId, { name: 'get-landmarks' })
+		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera') {
@@ -360,11 +362,11 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 	afterInit()
-		.then(async() => {
+		.then(() => {
 			if (details.frameId > 0) return
 			if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 				debugLog(`tab ${details.tabId} history - ${details.url}`)
-				await wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
+				wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
 			}
 		})
 		.catch(err => {
@@ -538,7 +540,7 @@ void withAllTabs(async function(tabs) {
 
 // FIXME: MV3 ?
 if (BROWSER !== 'firefox') {
-	startupCode.push(contentScriptInjector)
+	startupCode.push(() => contentScriptInjector())
 }
 
 browser.storage.onChanged.addListener(function(changes) {
