@@ -42,6 +42,7 @@ async function withActiveTab(doThis: DoWithOneTab | DoWithOneTabSync) {
 	})
 }
 
+// FIXME: if there's an error where receiving end doesn't exist in contnet script injection, it breaks everything
 const init = browser.storage.sync.get(null).then(async items => {
 	const changedSettings = migrationManager.migrate(items)
 	if (changedSettings) {
@@ -118,7 +119,7 @@ function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevToo
 		} else if (isDevToolsMessage(thing)) {
 			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
 		} else {
-			console.log(`bkg: rx from somewhere: ${thing.name}`)
+			console.error(`bkg: rx from somewhere: ${thing.name}`)
 		}
 	}
 }
@@ -170,15 +171,19 @@ async function updateGUIs(tabId: number, url: string) {
 //
 
 function devtoolsListenerMaker(port: chrome.runtime.Port) {
+	console.log('making devtools message handler')
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
-	return async function(message: MessageFromDevTools) {
+	return function(message: MessageFromDevTools) {
+		console.log('message received')
 		debugLog(message)
 		switch (message.name) {
 			case 'init':
 				devtoolsConnections[message.from] = port
 				port.onDisconnect.addListener(devtoolsDisconnectMaker(message.from))
-				await sendDevToolsStateMessage(message.from, true)
+				sendDevToolsStateMessage(message.from, true).catch(err => {
+					throw err
+				})
 				break
 			case 'get-landmarks':
 			case 'get-toggle-state':
@@ -188,13 +193,17 @@ function devtoolsListenerMaker(port: chrome.runtime.Port) {
 			case 'get-page-warnings':
 				// The DevTools panel can't check if it's on a scriptable
 				// page, so we do that here. Other GUIs check themselves.
-				await browser.tabs.get(message.from).then(async function(tab) {
-					if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-						await browser.tabs.sendMessage(tab.id, message)
-					} else {
-						port.postMessage({ name: 'landmarks', data: null })
-					}
-				})
+				browser.tabs.get(message.from)
+					.then(async function(tab) {
+						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
+							await browser.tabs.sendMessage(tab.id, message)
+						} else {
+							port.postMessage({ name: 'landmarks', data: null })
+						}
+					})
+					.catch(err => {
+						throw err
+					})
 		}
 	}
 }
@@ -215,7 +224,7 @@ browser.runtime.onConnect.addListener(function(port) {
 		.then(() => {
 			switch (port.name) {
 				case 'devtools':
-					port.onMessage.addListener(() => devtoolsListenerMaker(port))
+					port.onMessage.addListener(devtoolsListenerMaker(port))
 					break
 				case 'disconnect-checker':  // Used on Chrome and Opera
 					break
@@ -229,6 +238,7 @@ browser.runtime.onConnect.addListener(function(port) {
 })
 
 async function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
+	console.log('sendDevToolsStateMessage():', tabId, panelIsOpen)
 	await browser.tabs.sendMessage(tabId, {
 		name: 'devtools-state',
 		state: panelIsOpen ? 'open' : 'closed'
