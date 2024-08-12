@@ -16,7 +16,8 @@
     "pretest": "tsc --build && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
     "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check-message-passing": "rg '\\.sendMessage|\\.postMessage' src/code"
   },
   "ava": {
     "files": [

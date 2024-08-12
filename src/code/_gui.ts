@@ -1,11 +1,15 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
+// FIXME: don't need to export types - have name below?
+import type { MessagePayload, MessageTypes, MutationInfoMessageData, MutationInfoWindowMessageData, ToggleState, UMessage } from './messages.js'
+
 import './compatibility'
+import { MessageName, postFromDev, sendToExt, sendToTab } from './messages.js' 
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
 import { isContentScriptablePage } from './isContent.js'
-import { withActiveTab } from './withTabs.js'
+import withActiveTab from './withActiveTab.js'
 
 let closePopupOnActivate = INTERFACE === 'popup'
 	? defaultFunctionalSettings.closePopupOnActivate
@@ -34,7 +38,7 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			void browser.runtime.sendMessage({ name: 'open-help' })
+			sendToExt(MessageName.OpenHelp, { openInSameTab: false })
 			if (INTERFACE === 'popup') window.close()
 		}
 	}
@@ -63,7 +67,7 @@ let port: chrome.runtime.Port
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree: LandmarkEntry | null) {
+function handleLandmarksMessage(tree?: FilteredLandmarkTreeEntry[]) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -83,32 +87,36 @@ function handleLandmarksMessage(tree: LandmarkEntry | null) {
 	}
 }
 
-function processTree(treeLevel: LandmarkEntry[]) {
+function processTree(treeLevel: FilteredLandmarkTreeEntry[]) {
 	const thisLevelList = document.createElement('ul')
 
 	for (const landmark of treeLevel) {
-		thisLevelList.appendChild(
-			processTreeLevelItem(landmark))
+		thisLevelList.appendChild(processTreeLevelItem(landmark))
 	}
 
 	return thisLevelList
 }
 
-function processTreeLevelItem(landmark: LandmarkEntry) {
+function processTreeLevelItem(landmark: FilteredLandmarkTreeEntry) {
+	// TODO: better way to gaurantee this?
+	if (!Object.hasOwn(landmark, 'index')) {
+		throw Error('Landmark tree entry missing "index" property.')
+	}
+	
 	// Create the <li> for this landmark
 	const item = document.createElement('li')
 
 	const shower = function() {
-		send({ name: 'show-landmark', index: landmark.index })
+		send(MessageName.ShowLandmark, { index: landmark.index! })
 	}
 
 	const hider = function() {
-		send({ name: 'hide-landmark', index: landmark.index })
+		send(MessageName.HideLandmark, { index: landmark.index! })
 	}
 
 	const button = makeLandmarkButton(
 		function() {
-			send({ name: 'focus-landmark', index: landmark.index })
+			send(MessageName.FocusLandmark, { index: landmark.index! })
 			if (INTERFACE === 'popup' && closePopupOnActivate) {
 				window.close()
 			}
@@ -143,7 +151,7 @@ function processTreeLevelItem(landmark: LandmarkEntry) {
 	return item
 }
 
-function addInspectButton(root: HTMLElement, landmark: LandmarkEntry) {
+function addInspectButton(root: HTMLElement, landmark: FilteredLandmarkTreeEntry) {
 	const inspectButton = makeInspectButton(
 		function() {
 			const inspectorCall = "inspect(document.querySelector('"
@@ -158,7 +166,7 @@ function addInspectButton(root: HTMLElement, landmark: LandmarkEntry) {
 	root.appendChild(inspectButton)
 }
 
-function addElementWarnings(root: HTMLElement, landmark: LandmarkEntry, array: PageWarning[]) {
+function addElementWarnings(root: HTMLElement, landmark: FilteredLandmarkTreeEntry, array: PageWarning[]) {
 	const details = document.createElement('details')
 	details.className = 'tooltip'
 	const summary = document.createElement('summary')
@@ -315,7 +323,11 @@ function setupNotes() {
 function makeEventHandlers(linkName: 'help' | 'settings') {
 	const link = document.getElementById(linkName)
 	const core = () => {
-		void browser.runtime.sendMessage({ name: `open-${linkName}` })
+		if (linkName === 'help') {
+			sendToExt(MessageName.OpenHelp, { openInSameTab: false })
+		} else {
+			sendToExt(MessageName.OpenSettings, null)
+		}
 		if (INTERFACE === 'popup') window.close()
 	}
 
@@ -326,52 +338,44 @@ function makeEventHandlers(linkName: 'help' | 'settings') {
 }
 
 // TODO: this leaves an anonymous code block in the devtools script
-function send(message: string | object) {
+function send<T extends MessageTypes>(name: T, payload: MessagePayload<T>) {
 	if (INTERFACE === 'devtools') {
-		const messageWithTabId = Object.assign({}, message, {
-			// FIXME: this (from -> forTabId) went out of synch - stop that from happening again
-			// FIXME: should include from? Fix via types!
+		const messageWithTabId = Object.assign({}, payload, {
 			forTabId: browser.devtools.inspectedWindow.tabId
 		})
-		port.postMessage(messageWithTabId)
+		// FIXME: this should be a type error? (extra bit in message)
+		postFromDev(port, name, messageWithTabId)
 	} else {
 		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
 		withActiveTab(tab => {
-			void browser.tabs.sendMessage(tab.id!, message)
+			sendToTab(tab.id!, name, payload)
 		})
 	}
 }
 
 function debugSendGui(what: string) {
-	const message: DebugMessage = INTERFACE === 'devtools' 
-		? { name: 'debug', info: what, from: 'devtools', forTabId: browser.devtools.inspectedWindow.tabId }
-		: { name: 'debug', info: what, from: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		port.postMessage(message)
+		postFromDev(port, MessageName.Debug, {
+			info: what, ui: INTERFACE, forTabId: browser.devtools.inspectedWindow.tabId })
 	} else {
-		message.from = INTERFACE
-		void browser.runtime.sendMessage(message)
+		sendToExt(MessageName.Debug, {
+			info: what, ui: INTERFACE })
 	}
 }
 
-function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgroundScript {
-	return typeof thing === 'object'
-}
-
-function messageHandlerCore(message: MessageForBackgroundScript) {
-	console.log('devtools rx', message)
-	if (message.name === 'landmarks') {
-		handleLandmarksMessage(message.tree)
-		if (INTERFACE === 'devtools') send({ name: 'get-page-warnings' })
-	} else if (message.name === 'toggle-state-is') {
-		handleToggleStateMessage(message.data)
-	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info') {
+function messageHandlerCore(message: UMessage) {
+	if (message.name === MessageName.Landmarks) {
+		handleLandmarksMessage(message.payload?.tree)
+		if (INTERFACE === 'devtools') send(MessageName.GetPageWarnings, null)
+	} else if (message.name === MessageName.ToggleStateIs) {
+		handleToggleStateMessage(message.payload.state)
+	} else if (INTERFACE === 'devtools' && message.name === MessageName.MutationInfo) {
 		// FIXME: The message from the msr called 'mutation-info' doesn't match the structure of the typed one.
-		handleMutationMessage(message.data)
-	} else if (INTERFACE === 'devtools' && message.name === 'mutation-info-window') {
-		handleMutationWindowMessage(message.data)
-	} else if (INTERFACE === 'devtools' && message.name === 'page-warnings') {
-		handlePageWarningsMessage(message.data)
+		handleMutationMessage(message.payload)
+	} else if (INTERFACE === 'devtools' && message.name === MessageName.MutationInfoWindow) {
+		handleMutationWindowMessage(message.payload)
+	} else if (INTERFACE === 'devtools' && message.name === MessageName.PageWarnings) {
+		handlePageWarningsMessage(message.payload)
 	}
 }
 
@@ -415,8 +419,6 @@ function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
 //       really isn't using it, but at least it keeps all the code here, rather
 //       than putting some separately in the build script.
 function startupDevTools() {
-	console.log('devtools starting')
-	console.log('connecting')
 	port = browser.runtime.connect({ name: INTERFACE })
 	if (BROWSER !== 'firefox') {
 		// DevTools page doesn't get reloaded when the extension does
@@ -427,18 +429,14 @@ function startupDevTools() {
 
 	port.onMessage.addListener(messageHandlerCore)
 
-	// FIXME: this (from -> forTabId) went out of synch - stop that from happening again
-	console.log('sending init msgs')
-	port.postMessage({
-		name: 'init',
-		from: INTERFACE,
+	postFromDev(port, MessageName.InitDevTools, {
 		forTabId: browser.devtools.inspectedWindow.tabId
 	})
 
 	// The checking for if the page is scriptable is done at the other end.
-	send({ name: 'get-landmarks' })
-	send({ name: 'get-toggle-state' })
-	send({ name: 'get-mutation-info' })
+	send(MessageName.GetLandmarks, null)
+	send(MessageName.GetToggleState, null)
+	send(MessageName.GetMutationInfo, null)
 
 	// TODO: Eventually remove, after sorting out mutation handling
 	browser.storage.onChanged.addListener(function(changes) {
@@ -464,24 +462,25 @@ function startupPopupOrSidebar() {
 		withActiveTab(tab => {
 			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
-				if (isMessageForBackgroundScript(message)) {
-					messageHandlerCore(message)
-				}
+				messageHandlerCore(message as UMessage)  // TODO: type checking?
 			}
 		})
 	})
 
+	// Reflect in the GUI whether the page is content-scriptable, or not.
+	//
 	// Most GUIs can check that they are running on a content-scriptable
 	// page (DevTools doesn't have access to browser.tabs).
+	//
 	// TODO: might this ever be called when the active tab doesn't have an id/url?
 	withActiveTab(tab =>
 		browser.tabs.get(tab.id!, function(tab) {
 			if (!isContentScriptablePage(tab.url!)) {
-				handleLandmarksMessage(null)
+				handleLandmarksMessage(undefined)
 				return
 			}
-			void browser.tabs.sendMessage(tab.id!, { name: 'get-landmarks' })
-			void browser.tabs.sendMessage(tab.id!, { name: 'get-toggle-state' })
+			sendToTab(tab.id!, MessageName.GetLandmarks, null)
+			sendToTab(tab.id!, MessageName.GetToggleState, null)
 		}))
 
 	document.getElementById('version').innerText =
@@ -507,7 +506,7 @@ function main() {
 	}
 
 	document.getElementById('show-all').addEventListener('change', function() {
-		send({ name: 'toggle-all-landmarks' })
+		send(MessageName.ToggleAllLandmarks, null)
 	})
 
 	translate()

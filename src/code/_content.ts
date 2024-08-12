@@ -1,5 +1,8 @@
 // FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
+import type { UMessage } from './messages.js'
+
 import './compatibility'
+import { MessageName, sendToExt } from './messages.js' 
 import LandmarksFinder from './landmarksFinder.js'
 import ElementFocuser from './elementFocuser.js'
 import PauseHandler from './pauseHandler.js'
@@ -17,6 +20,8 @@ const pauseHandler = new PauseHandler((pause: number) => msr.setPauseTime(pause)
 // FIXME find another way
 // eslint-disable-next-line
 const noop = () => {}
+
+type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined  // NOTE: the content script checks there are landmarks
 
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer: ReturnType<typeof setTimeout> | null = null
@@ -57,45 +62,46 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 	}
 }
 
-function messageHandler(message: MessageForContentScript | DebugMessage) {
-	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
-	switch (message.name) {
-		case 'get-landmarks':
+function messageHandler(message: UMessage) {
+	const { name, payload } = message
+
+	switch (name) {
+		case MessageName.GetLandmarks:
 			// A GUI is requesting the list of landmarks on the page
 			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
-		case 'focus-landmark':
+		case MessageName.FocusLandmark:
 			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() =>
-				landmarksFinder.getLandmarkElementInfo(message.index))
+				landmarksFinder.getLandmarkElementInfo(payload.index))
 			break
-		case 'show-landmark':
+		case MessageName.ShowLandmark:
 			handleHighlightMessage(
-				message.index,
+				payload.index,
 				() => borderDrawer.addBorder(
-					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index)
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index)
 				))
 			break
-		case 'hide-landmark':
+		case MessageName.HideLandmark:
 			handleHighlightMessage(
-				message.index,
+				payload.index,
 				() => borderDrawer.removeBorderOn(
-					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index).element
 				))
 			break
-		case 'next-landmark':
+		case MessageName.NextLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getNextLandmarkElementInfo())
 			break
-		case 'prev-landmark':
+		case MessageName.PrevLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getPreviousLandmarkElementInfo())
 			break
-		case 'main-landmark': {
+		case MessageName.MainLandmark: {
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
@@ -106,7 +112,7 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			}
 			break
 		}
-		case 'toggle-all-landmarks':
+		case MessageName.ToggleAllLandmarks:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			if (guiCheckThereAreLandmarks()) {
@@ -120,13 +126,11 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				}
 			}
 			// eslint-disable-this-line no-fallthrough
-		case 'get-toggle-state':
-			void browser.runtime.sendMessage({
-				name: 'toggle-state-is',
-				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
-			})
+		case MessageName.GetToggleState:
+			sendToExt(MessageName.ToggleStateIs,
+				{ state: elementFocuser.isManagingBorders() ? 'selected' : 'all'})
 			break
-		case 'trigger-refresh':
+		case MessageName.TriggerRefresh:
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script
 			// for when the History API is used to update the URL of the page
@@ -143,12 +147,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			highlightLastTouchTimes.clear()
 			highlightTimeouts.clear()
 			break
-		case 'devtools-state':
-			if (message.state === 'open') {
+		case MessageName.DevToolsStateIs:
+			if (payload.state === 'open') {
 				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
-			} else if (message.state === 'closed') {
+			} else if (payload.state === 'closed') {
 				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
@@ -158,11 +162,8 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				findLandmarks(noop, noop)
 			}
 			break
-		case 'get-page-warnings':
-			void browser.runtime.sendMessage({
-				name: 'page-warnings',
-				data: landmarksFinder.pageResults()
-			})
+		case MessageName.GetPageWarnings:
+			sendToExt(MessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
 	}
 }
 
@@ -205,7 +206,7 @@ function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningEle
 function debugSendContent(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	void browser.runtime.sendMessage({ name: 'debug', info: what, from: 'content' } satisfies DebugMessage)
+	sendToExt(MessageName.Debug, { info: what, ui: 'content' })
 }
 
 
@@ -214,8 +215,7 @@ function debugSendContent(what: string) {
 //
 
 function sendLandmarks() {
-	void browser.runtime.sendMessage({
-		name: 'landmarks',
+	sendToExt(MessageName.Landmarks, {
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
 	})
@@ -395,7 +395,7 @@ function startUpTasks() {
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	sendToExt(MessageName.GetDevToolsState, null)
 }
 
 debugSendContent(`starting - ${window.location.toString()}`)

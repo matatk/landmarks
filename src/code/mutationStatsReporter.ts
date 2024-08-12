@@ -1,3 +1,5 @@
+import { MessageName, sendToExt } from './messages.js'
+
 const LIMIT = 10
 
 // TODO: make this like the mutation observer—disconnect when DevTools isn't
@@ -127,50 +129,40 @@ export default class MutationStatsReporter {
 		this.checkedLimitSecondAverages.push(checkedAverage)
 
 		if (!this.quiet) {
-			void browser.runtime.sendMessage({
-				name: 'mutation-info-window', data: {
-					'mutations-per-second': this.mutationsPerSecond,
-					'average-mutations': this.mutationsLimitSecondAverages,
-					'checked-per-second': this.checkedPerSecond,
-					'average-checked': this.checkedLimitSecondAverages
-				}
-			} satisfies MutationInfoWindowMessage)
+			sendToExt(MessageName.MutationInfoWindow, {
+				'mutations-per-second': this.mutationsPerSecond,
+				'average-mutations': this.mutationsLimitSecondAverages,
+				'checked-per-second': this.checkedPerSecond,
+				'average-checked': this.checkedLimitSecondAverages
+			})
 		}
 	}
 
 	#sendMutationUpdate() {
-		void browser.runtime.sendMessage({
-			name: 'mutation-info', data: {
-				'mutations': this.totalMutations,
-				'checks': this.checkedMutations,
-				'mutationScans': this.mutationScans
-			}
-		} satisfies MutationInfoMessage)
+		sendToExt(MessageName.MutationInfo, {
+			'mutations': this.totalMutations,
+			'checks': this.checkedMutations,
+			'mutationScans': this.mutationScans
+		})
 	}
 
 	#sendNonMutationScansUpdate() {
-		void browser.runtime.sendMessage({
-			name: 'mutation-info', data: {
-				'nonMutationScans': this.nonMutationScans
-			}
-		} satisfies MutationInfoMessage)
+		sendToExt(MessageName.MutationInfo, {
+			'nonMutationScans': this.nonMutationScans
+		})
 	}
 
 	#sendPauseTimeUpdate() {
-		void browser.runtime.sendMessage({
-			name: 'mutation-info', data: {
-				'pause': this.pauseTime
-			}
-		} satisfies MutationInfoMessage)
+		sendToExt(MessageName.MutationInfo, {
+			'pause': this.pauseTime
+		})
 	}
 
 	#sendDurationUpdate() {
-		void browser.runtime.sendMessage({
-			name: 'mutation-info', data: {
-				'duration': this.lastScanDuration,
-				'average': this.averageScanDuration
-			}
-		} satisfies MutationInfoMessage)
+		sendToExt(MessageName.MutationInfo, {
+			'duration': this.lastScanDuration,
+			'average': this.averageScanDuration
+		})
 	}
 
 	#sendAllUpdates() {

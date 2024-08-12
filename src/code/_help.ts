@@ -1,12 +1,13 @@
+import { MessageName, MessagePayload, sendToExt } from './messages.js' 
 import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
-function messageHandler(message: PopulateCommandsMessage) {
+function messageHandler(message: { name: MessageName.PopulateCommands, payload: MessagePayload<MessageName.PopulateCommands>}) {
 	// FIXME: this check is needed, but the types make it look like it isn't
-	if (message.name !== 'populate-commands') return
+	if (message.name !== MessageName.PopulateCommands) return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(
-		message, 'keyboard-shortcuts-table')
+		message.payload, 'keyboard-shortcuts-table')
 
 	document.getElementById('warning-shortcuts').hidden = allShortcutsAreSet
 
@@ -44,7 +45,7 @@ function main() {
 	translate()  // to refer to the "go to main" command; main and nav regions
 
 	browser.runtime.onMessage.addListener(messageHandler)
-	void browser.runtime.sendMessage({ name: 'get-commands' })
+	sendToExt(MessageName.GetCommands, null)
 
 	if (BROWSER === 'firefox') {
 		document.getElementById('shortcuts-button-wrapper')
@@ -54,7 +55,7 @@ function main() {
 			.remove()
 		document.getElementById('open-browser-shortcuts-settings')
 			.addEventListener('click', () => {
-				void browser.runtime.sendMessage({ name: 'open-configure-shortcuts' })
+				sendToExt(MessageName.OpenConfigureShortcuts, null)
 			})
 	}
 

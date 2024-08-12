@@ -220,8 +220,10 @@ function clean(browser) {
 async function bundleCode(browser, debug) {
 	logStep('Bundling JavaScript code')
 
+	// NOTE: Have to reference JS files as Rollup doesn't grok TS.
+	//       If the TS files are changed, they need to be rebuilt.
 	const ioPairsAndGlobals = [{
-		mainSourceFile: path.join(srcCodeDir, browser === 'chrome' ? '_background.mv3.js' : '_background.js'),
+		mainSourceFile: path.join(srcCodeDir, '_background.js'),
 		bundleFile: 'background.js'
 	}, {
 		mainSourceFile: path.join(srcCodeDir, '_content.js'),
@@ -313,7 +315,7 @@ async function bundleCode(browser, debug) {
 
 			bundleOption.output = {
 				file: cachedScript,
-				format: browser === 'chrome' && ioPair.bundleFile === 'background.js'
+				format: ioPair.bundleFile === 'background.js'
 					? 'module'
 					: 'iife'
 			}

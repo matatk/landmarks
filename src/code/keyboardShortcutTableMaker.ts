@@ -1,3 +1,5 @@
+import { MessageName, MessagePayload } from './messages.js'
+
 // TODO localise fully
 let allShortcutsAreSet
 
@@ -107,7 +109,7 @@ function firefoxShortcutElements(shortcut: string) {
 	return shortcutElements
 }
 
-export default function handlePopulateCommandsMessage(message: PopulateCommandsMessage, id: string) {
+export default function handlePopulateCommandsMessage(payload: MessagePayload<MessageName.PopulateCommands>, id: string) {
 	// Chrome allows only four keyboard shortcuts to be specified in the
 	// manifest; Firefox allows many.
 	//
@@ -126,8 +128,8 @@ export default function handlePopulateCommandsMessage(message: PopulateCommandsM
 	allShortcutsAreSet = true
 
 	const commandsInOrder = (BROWSER === 'firefox')
-		? message.commands.reverse()
-		: message.commands
+		? payload.reverse()
+		: payload
 
 	for (const command of commandsInOrder) {
 		addCommandRowAndReportIfMissing(command)
