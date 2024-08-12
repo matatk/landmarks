@@ -27,6 +27,15 @@ const LIMITER = 350
 
 let handleMutationsViaTree = null
 
+// NOTE: Thank you https://timon.la/blog/background-script-message-typing/ :-)
+// FIXME: make it elegant when payload is 'null'
+// FIXME: DRY
+const sendMessage = <T extends FromContentMessageTypes>(name: T, payload: FromContentMessagePayload<T>): void => {
+	chrome.runtime.sendMessage({ name, payload }).catch(err => {
+		throw err 
+	})
+}
+
 
 //
 // Extension message management
@@ -57,45 +66,70 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 	}
 }
 
-function messageHandler(message: MessageForContentScript | DebugMessage) {
-	if (DEBUG && message.name !== 'debug') debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
-	switch (message.name) {
-		case 'get-landmarks':
+function isDebugMessage(message: unknown): message is DebugMessage {
+	// @ts-expect-error FIXME
+	return Object.hasOwn(message, 'from') && message.name === 'debug'
+}
+
+// FIXME: DRY?
+// NOTE: Thank you https://matiashernandez.dev/blog/post/typescript-create-a-union-from-a-type or https://effectivetypescript.com/2020/05/12/unionize-objectify/ for the basis of this :-).
+type ForContent = {
+	[k in keyof ForContentMessages]: {
+		name: k,
+		payload: ForContentMessages[k] extends { payload: unknown }
+			? ForContentMessages[k]['payload']
+			: null
+	}
+}[keyof ForContentMessages]
+
+function messageHandler(message: DebugMessage | ForContent) {
+	// FIXME: Make this efficient when the rest of the messages are sorted out
+	if (isDebugMessage(message)) {
+		if (DEBUG) {
+			debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
+		}
+		return
+	}
+
+	const { name, payload } = message
+
+	switch (name) {
+		case ForContentMessageName.GetLandmarks:
 			// A GUI is requesting the list of landmarks on the page
 			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
-		case 'focus-landmark':
+		case ForContentMessageName.FocusLandmark:
 			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() =>
-				landmarksFinder.getLandmarkElementInfo(message.index))
+				landmarksFinder.getLandmarkElementInfo(payload.index))
 			break
-		case 'show-landmark':
+		case ForContentMessageName.ShowLandmark:
 			handleHighlightMessage(
-				message.index,
+				payload.index,
 				() => borderDrawer.addBorder(
-					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index)
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index)
 				))
 			break
-		case 'hide-landmark':
+		case ForContentMessageName.HideLandmark:
 			handleHighlightMessage(
-				message.index,
+				payload.index,
 				() => borderDrawer.removeBorderOn(
-					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(message.index).element
+					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index).element
 				))
 			break
-		case 'next-landmark':
+		case ForContentMessageName.NextLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getNextLandmarkElementInfo())
 			break
-		case 'prev-landmark':
+		case ForContentMessageName.PrevLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getPreviousLandmarkElementInfo())
 			break
-		case 'main-landmark': {
+		case ForContentMessageName.MainLandmark: {
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
@@ -106,7 +140,7 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			}
 			break
 		}
-		case 'toggle-all-landmarks':
+		case ForContentMessageName.ToggleAllLandmarks:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			if (guiCheckThereAreLandmarks()) {
@@ -120,13 +154,11 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				}
 			}
 			// eslint-disable-this-line no-fallthrough
-		case 'get-toggle-state':
-			void browser.runtime.sendMessage({
-				name: 'toggle-state-is',
-				data: elementFocuser.isManagingBorders() ? 'selected' : 'all'
-			})
+		case ForContentMessageName.GetToggleState:
+			sendMessage(FromContentMessageName.ToggleStateIs,
+				{ state: elementFocuser.isManagingBorders() ? 'selected' : 'all'})
 			break
-		case 'trigger-refresh':
+		case ForContentMessageName.TriggerRefresh:
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script
 			// for when the History API is used to update the URL of the page
@@ -143,12 +175,12 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 			highlightLastTouchTimes.clear()
 			highlightTimeouts.clear()
 			break
-		case 'devtools-state':
-			if (message.state === 'open') {
+		case ForContentMessageName.DevToolsState:
+			if (payload.state === 'open') {
 				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
-			} else if (message.state === 'closed') {
+			} else if (payload.state === 'closed') {
 				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
@@ -158,11 +190,8 @@ function messageHandler(message: MessageForContentScript | DebugMessage) {
 				findLandmarks(noop, noop)
 			}
 			break
-		case 'get-page-warnings':
-			void browser.runtime.sendMessage({
-				name: 'page-warnings',
-				data: landmarksFinder.pageResults()
-			})
+		case ForContentMessageName.GetPageWarnings:
+			sendMessage(FromContentMessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
 	}
 }
 
@@ -214,8 +243,7 @@ function debugSendContent(what: string) {
 //
 
 function sendLandmarks() {
-	void browser.runtime.sendMessage({
-		name: 'landmarks',
+	sendMessage(FromContentMessageName.Landmarks, {
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
 	})
@@ -395,7 +423,7 @@ function startUpTasks() {
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	void browser.runtime.sendMessage({ name: 'get-devtools-state' })
+	sendMessage(FromContentMessageName.GetDevToolsState, null)
 }
 
 debugSendContent(`starting - ${window.location.toString()}`)

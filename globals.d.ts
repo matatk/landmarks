@@ -121,6 +121,112 @@ type DebugMessage = {
 	forTabId?: number
 }
 
+enum FromContentMessageName {
+	ToggleStateIs = 'toggle-state-is',
+	Landmarks = 'landmarks',
+	GetDevToolsState = 'get-devtools-state',
+	PageWarnings = 'page-warnings',
+}
+
+interface FromContentMessage {
+	name: unknown
+	payload: unknown
+}
+
+interface FromContentMessages extends Partial<Record<FromContentMessageName, FromContentMessage>> {
+  [FromContentMessageName.ToggleStateIs]: {
+    payload: {
+    	state: 'selected' | 'all'
+    }
+  }
+  [FromContentMessageName.Landmarks]: {
+  	payload: {
+			number: number
+			tree: FilteredLandmarkTreeEntry[]
+		}
+  }
+  [FromContentMessageName.PageWarnings]: {
+		payload: PageWarning[]
+  }
+}
+
+type FromContentMessageTypes = keyof FromContentMessages;
+type FromContentMessagePayload<T extends FromContentMessageTypes> = FromContentMessages[T]['payload']
+
+
+enum ForContentMessageName {
+	GetLandmarks = 'get-landmarks',
+	FocusLandmark = 'focus-landmark',
+	ShowLandmark = 'show-landmark',
+	HideLandmark = 'hide-landmark',
+	NextLandmark = 'next-landmark',
+	PrevLandmark = 'prev-landmark',
+	MainLandmark = 'main-landmark',
+	ToggleAllLandmarks = 'toggle-all-landmarks',
+	GetToggleState = 'get-toggle-state',
+	TriggerRefresh = 'trigger-refresh',
+	DevToolsState = 'devtools-state',
+	GetPageWarnings = 'get-page-warnings',
+}
+
+interface ForContentMessage {
+	name: unknown
+	payload: unknown
+}
+
+interface ForContentMessages extends Partial<Record<ForContentMessageName, ForContentMessage>> {
+	[ForContentMessageName.GetLandmarks]: {
+		paylaod: null
+	}
+	[ForContentMessageName.NextLandmark]: {
+		paylaod: null
+	}
+	[ForContentMessageName.PrevLandmark]: {
+		paylaod: null
+	}
+	[ForContentMessageName.MainLandmark]: {
+		paylaod: null
+	}
+	[ForContentMessageName.ToggleAllLandmarks]: {
+		paylaod: null
+	}
+	[ForContentMessageName.GetToggleState]: {
+		paylaod: null
+	}
+	[ForContentMessageName.GetPageWarnings]: {
+		paylaod: null
+	}
+	[ForContentMessageName.TriggerRefresh]: {
+		paylaod: null
+	}
+  [ForContentMessageName.FocusLandmark]: {
+    payload: {
+    	index: number
+    }
+  }
+  [ForContentMessageName.ShowLandmark]: {
+    payload: {
+    	index: number
+    }
+  }
+  [ForContentMessageName.HideLandmark]: {
+    payload: {
+    	index: number
+    }
+  }
+  [ForContentMessageName.DevToolsState]: {
+  	payload: {
+  		state: 'open' | 'closed'
+		}
+  }
+}
+
+type ForContentMessageTypes = keyof ForContentMessages;
+type ForContentMessagePayload<T extends ForContentMessageTypes> = ForContentMessages[T]['payload']
+
+
+
+
 type MessageFromDevTools = {
 	name: 'init'
 	from: number
