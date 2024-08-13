@@ -64,7 +64,11 @@ export function sendMessage<T extends MessageTypes>(name: T, payload: MessagePay
 	})
 }
 
-export function sendMessageToContent<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
+export function postMessage<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayload<T>): void {
+	port.postMessage({ name, payload })
+}
+
+export function sendMessageToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
 	browser.tabs.sendMessage(tabId, { name, payload }).catch(err => {
 		throw err 
 	})

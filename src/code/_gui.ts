@@ -1,7 +1,7 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import { MessageName, sendMessage, sendMessageToContent } from './messages.js' 
+import { MessageName, postMessage, sendMessage, sendMessageToTab } from './messages.js' 
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
@@ -348,12 +348,13 @@ function debugSendGui(what: string) {
 		? { info: what, ui: INTERFACE, forTabId: browser.devtools.inspectedWindow.tabId }
 		: { info: what, ui: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		port.postMessage(payload)
+		postMessage(port, MessageName.Debug, payload)
 	} else {
 		sendMessage(MessageName.Debug, payload)
 	}
 }
 
+// FIXME: remove or fix
 function isMessageForBackgroundScript(thing: unknown): thing is MessageForBackgroundScript {
 	return typeof thing === 'object'
 }
@@ -480,8 +481,8 @@ function startupPopupOrSidebar() {
 				handleLandmarksMessage(null)
 				return
 			}
-			sendMessageToContent(tab.id!, MessageName.GetLandmarks, null)
-			sendMessageToContent(tab.id!, MessageName.GetToggleState, null)
+			sendMessageToTab(tab.id!, MessageName.GetLandmarks, null)
+			sendMessageToTab(tab.id!, MessageName.GetToggleState, null)
 		}))
 
 	document.getElementById('version').innerText =
