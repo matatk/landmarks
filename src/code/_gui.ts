@@ -1,7 +1,7 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
-import { MessageName, sendMessageToContent } from './messages.js' 
+import { MessageName, sendMessage, sendMessageToContent } from './messages.js' 
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
@@ -344,14 +344,13 @@ function send(message: object) {
 }
 
 function debugSendGui(what: string) {
-	const message: DebugMessage = INTERFACE === 'devtools' 
-		? { name: 'debug', info: what, from: 'devtools', forTabId: browser.devtools.inspectedWindow.tabId }
-		: { name: 'debug', info: what, from: INTERFACE }
+	const payload = INTERFACE === 'devtools' 
+		? { info: what, ui: INTERFACE, forTabId: browser.devtools.inspectedWindow.tabId }
+		: { info: what, ui: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		port.postMessage(message)
+		port.postMessage(payload)
 	} else {
-		message.from = INTERFACE
-		void browser.runtime.sendMessage(message)
+		sendMessage(MessageName.Debug, payload)
 	}
 }
 

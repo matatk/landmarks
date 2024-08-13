@@ -60,17 +60,9 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 	}
 }
 
-function isDebugMessage(message: unknown): message is DebugMessage {
-	// @ts-expect-error FIXME
-	return Object.hasOwn(message, 'from') && message.name === 'debug'
-}
-
-function messageHandler(message: DebugMessage | ObjectyMessages) {
-	// FIXME: Make this efficient when the rest of the messages are sorted out
-	if (isDebugMessage(message)) {
-		if (DEBUG) {
-			debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
-		}
+function messageHandler(message: ObjectyMessages) {
+	if (DEBUG && message.name === MessageName.Debug) {
+		debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
 		return
 	}
 
@@ -217,7 +209,7 @@ function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningEle
 function debugSendContent(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	void browser.runtime.sendMessage({ name: 'debug', info: what, from: 'content' } satisfies DebugMessage)
+	sendMessage(MessageName.Debug, { info: what, ui: 'content' })
 }
 
 

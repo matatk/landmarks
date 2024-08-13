@@ -1,5 +1,6 @@
 // FIXME: somehow specify which messages can come from/to content script (and other scripts)
 export enum MessageName {
+	Debug = 'debug',
 	DevToolsStateIs = 'devtools-state-is',
 	FocusLandmark = 'focus-landmark',
 	GetDevToolsState = 'get-devtools-state',
@@ -23,6 +24,7 @@ interface Message {
 }
 
 interface Messages extends Partial<Record<MessageName, Message>> {
+	[MessageName.Debug]: { payload: { ui: typeof INTERFACE | 'content'; info: string; forTabId?: number } }
 	[MessageName.DevToolsStateIs]: { payload: { state: 'open' | 'closed' } }
 	[MessageName.FocusLandmark]: { payload: { index: number } }
 	[MessageName.GetDevToolsState]: { payload: null }
