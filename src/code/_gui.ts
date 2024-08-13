@@ -54,6 +54,19 @@ const notes: Notes = (INTERFACE === 'sidebar')
 
 let port: chrome.runtime.Port
 
+// FIXME: naming
+// FIXME: make it elegant when payload is 'null'
+// FIXME: DRY
+// FIXME: inline
+const sendMessageToContent = <T extends Extract<ForContentMessageTypes,
+	ForContentMessageName.GetLandmarks |
+	ForContentMessageName.GetToggleState>
+>(tabId: number, name: T, payload: ForContentMessagePayload<T>): void => {
+	browser.tabs.sendMessage(tabId, { name, payload }).catch(err => {
+		throw err
+	})
+}
+
 
 //
 // Creating a landmarks tree in response to info from content script
@@ -326,7 +339,7 @@ function makeEventHandlers(linkName: 'help' | 'settings') {
 }
 
 // TODO: this leaves an anonymous code block in the devtools script
-function send(message: string | object) {
+function send(message: object) {
 	if (INTERFACE === 'devtools') {
 		const messageWithTabId = Object.assign({}, message, {
 			// FIXME: this (from -> forTabId) went out of synch - stop that from happening again
@@ -480,8 +493,8 @@ function startupPopupOrSidebar() {
 				handleLandmarksMessage(null)
 				return
 			}
-			void browser.tabs.sendMessage(tab.id!, { name: 'get-landmarks' })
-			void browser.tabs.sendMessage(tab.id!, { name: 'get-toggle-state' })
+			sendMessageToContent(tab.id!, ForContentMessageName.GetLandmarks, null)
+			sendMessageToContent(tab.id!, ForContentMessageName.GetToggleState, null)
 		}))
 
 	document.getElementById('version').innerText =

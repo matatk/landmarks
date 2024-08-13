@@ -30,8 +30,9 @@ let handleMutationsViaTree = null
 // NOTE: Thank you https://timon.la/blog/background-script-message-typing/ :-)
 // FIXME: make it elegant when payload is 'null'
 // FIXME: DRY
+// FIXME: inline
 const sendMessage = <T extends FromContentMessageTypes>(name: T, payload: FromContentMessagePayload<T>): void => {
-	chrome.runtime.sendMessage({ name, payload }).catch(err => {
+	browser.runtime.sendMessage({ name, payload }).catch(err => {
 		throw err 
 	})
 }
