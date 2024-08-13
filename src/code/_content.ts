@@ -1,5 +1,8 @@
 // FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
+import type { ObjectyMessages } from './messages.js'
+
 import './compatibility'
+import { MessageName, sendMessage } from './messages.js' 
 import LandmarksFinder from './landmarksFinder.js'
 import ElementFocuser from './elementFocuser.js'
 import PauseHandler from './pauseHandler.js'
@@ -26,16 +29,6 @@ const highlightTimeouts = new Map<number, ReturnType<typeof setTimeout>>()
 const LIMITER = 350
 
 let handleMutationsViaTree = null
-
-// NOTE: Thank you https://timon.la/blog/background-script-message-typing/ :-)
-// FIXME: make it elegant when payload is 'null'
-// FIXME: DRY
-// FIXME: inline
-const sendMessage = <T extends FromContentMessageTypes>(name: T, payload: FromContentMessagePayload<T>): void => {
-	browser.runtime.sendMessage({ name, payload }).catch(err => {
-		throw err 
-	})
-}
 
 
 //
@@ -72,18 +65,7 @@ function isDebugMessage(message: unknown): message is DebugMessage {
 	return Object.hasOwn(message, 'from') && message.name === 'debug'
 }
 
-// FIXME: DRY?
-// NOTE: Thank you https://matiashernandez.dev/blog/post/typescript-create-a-union-from-a-type or https://effectivetypescript.com/2020/05/12/unionize-objectify/ for the basis of this :-).
-type ForContent = {
-	[k in keyof ForContentMessages]: {
-		name: k,
-		payload: ForContentMessages[k] extends { payload: unknown }
-			? ForContentMessages[k]['payload']
-			: null
-	}
-}[keyof ForContentMessages]
-
-function messageHandler(message: DebugMessage | ForContent) {
+function messageHandler(message: DebugMessage | ObjectyMessages) {
 	// FIXME: Make this efficient when the rest of the messages are sorted out
 	if (isDebugMessage(message)) {
 		if (DEBUG) {
@@ -95,42 +77,42 @@ function messageHandler(message: DebugMessage | ForContent) {
 	const { name, payload } = message
 
 	switch (name) {
-		case ForContentMessageName.GetLandmarks:
+		case MessageName.GetLandmarks:
 			// A GUI is requesting the list of landmarks on the page
 			if (!doUpdateOutdatedResults()) sendLandmarks()
 			break
-		case ForContentMessageName.FocusLandmark:
+		case MessageName.FocusLandmark:
 			// Triggered by activating an item in a GUI, or indirectly via one
 			// of the keyboard shortcuts (if landmarks are present)
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() =>
 				landmarksFinder.getLandmarkElementInfo(payload.index))
 			break
-		case ForContentMessageName.ShowLandmark:
+		case MessageName.ShowLandmark:
 			handleHighlightMessage(
 				payload.index,
 				() => borderDrawer.addBorder(
 					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index)
 				))
 			break
-		case ForContentMessageName.HideLandmark:
+		case MessageName.HideLandmark:
 			handleHighlightMessage(
 				payload.index,
 				() => borderDrawer.removeBorderOn(
 					landmarksFinder.getLandmarkElementInfoWithoutUpdatingIndex(payload.index).element
 				))
 			break
-		case ForContentMessageName.NextLandmark:
+		case MessageName.NextLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getNextLandmarkElementInfo())
 			break
-		case ForContentMessageName.PrevLandmark:
+		case MessageName.PrevLandmark:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			guiCheckFocusElement(() => landmarksFinder.getPreviousLandmarkElementInfo())
 			break
-		case ForContentMessageName.MainLandmark: {
+		case MessageName.MainLandmark: {
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			const mainElementInfo = landmarksFinder.getMainElementInfo()
@@ -141,7 +123,7 @@ function messageHandler(message: DebugMessage | ForContent) {
 			}
 			break
 		}
-		case ForContentMessageName.ToggleAllLandmarks:
+		case MessageName.ToggleAllLandmarks:
 			// Triggered by keyboard shortcut
 			doUpdateOutdatedResults()
 			if (guiCheckThereAreLandmarks()) {
@@ -155,11 +137,11 @@ function messageHandler(message: DebugMessage | ForContent) {
 				}
 			}
 			// eslint-disable-this-line no-fallthrough
-		case ForContentMessageName.GetToggleState:
-			sendMessage(FromContentMessageName.ToggleStateIs,
+		case MessageName.GetToggleState:
+			sendMessage(MessageName.ToggleStateIs,
 				{ state: elementFocuser.isManagingBorders() ? 'selected' : 'all'})
 			break
-		case ForContentMessageName.TriggerRefresh:
+		case MessageName.TriggerRefresh:
 			// On sites that use single-page style techniques to transition
 			// (such as YouTube and GitHub) we monitor in the background script
 			// for when the History API is used to update the URL of the page
@@ -176,7 +158,7 @@ function messageHandler(message: DebugMessage | ForContent) {
 			highlightLastTouchTimes.clear()
 			highlightTimeouts.clear()
 			break
-		case ForContentMessageName.DevToolsState:
+		case MessageName.DevToolsStateIs:
 			if (payload.state === 'open') {
 				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
@@ -191,8 +173,8 @@ function messageHandler(message: DebugMessage | ForContent) {
 				findLandmarks(noop, noop)
 			}
 			break
-		case ForContentMessageName.GetPageWarnings:
-			sendMessage(FromContentMessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
+		case MessageName.GetPageWarnings:
+			sendMessage(MessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
 	}
 }
 
@@ -244,7 +226,7 @@ function debugSendContent(what: string) {
 //
 
 function sendLandmarks() {
-	sendMessage(FromContentMessageName.Landmarks, {
+	sendMessage(MessageName.Landmarks, {
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
 	})
@@ -424,7 +406,7 @@ function startUpTasks() {
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	sendMessage(FromContentMessageName.GetDevToolsState, null)
+	sendMessage(MessageName.GetDevToolsState, null)
 }
 
 debugSendContent(`starting - ${window.location.toString()}`)

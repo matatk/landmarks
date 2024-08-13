@@ -1,6 +1,7 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 import './compatibility'
+import { MessageName, sendMessageToContent } from './messages.js' 
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
@@ -53,19 +54,6 @@ const notes: Notes = (INTERFACE === 'sidebar')
 	: _updateNote
 
 let port: chrome.runtime.Port
-
-// FIXME: naming
-// FIXME: make it elegant when payload is 'null'
-// FIXME: DRY
-// FIXME: inline
-const sendMessageToContent = <T extends Extract<ForContentMessageTypes,
-	ForContentMessageName.GetLandmarks |
-	ForContentMessageName.GetToggleState>
->(tabId: number, name: T, payload: ForContentMessagePayload<T>): void => {
-	browser.tabs.sendMessage(tabId, { name, payload }).catch(err => {
-		throw err
-	})
-}
 
 
 //
@@ -493,8 +481,8 @@ function startupPopupOrSidebar() {
 				handleLandmarksMessage(null)
 				return
 			}
-			sendMessageToContent(tab.id!, ForContentMessageName.GetLandmarks, null)
-			sendMessageToContent(tab.id!, ForContentMessageName.GetToggleState, null)
+			sendMessageToContent(tab.id!, MessageName.GetLandmarks, null)
+			sendMessageToContent(tab.id!, MessageName.GetToggleState, null)
 		}))
 
 	document.getElementById('version').innerText =
