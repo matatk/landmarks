@@ -171,11 +171,9 @@ async function updateGUIs(tabId: number, url: string) {
 //
 
 function devtoolsListenerMaker(port: chrome.runtime.Port) {
-	console.log('making devtools message handler')
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
 	return function(message: MessageFromDevTools) {
-		console.log('message received')
 		debugLog(message)
 		switch (message.name) {
 			case 'init':
@@ -238,7 +236,6 @@ browser.runtime.onConnect.addListener(function(port) {
 })
 
 async function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
-	console.log('sendDevToolsStateMessage():', tabId, panelIsOpen)
 	await browser.tabs.sendMessage(tabId, {
 		name: 'devtools-state',
 		state: panelIsOpen ? 'open' : 'closed'

@@ -1,4 +1,4 @@
-// FIXME: somehow specify which messages can come from/to content script (and other scripts)
+// TODO: somehow specify which messages can come from/to content script (and other scripts)?
 export enum MessageName {
 	Debug = 'debug',
 	DevToolsStateIs = 'devtools-state-is',
@@ -6,11 +6,17 @@ export enum MessageName {
 	GetDevToolsState = 'get-devtools-state',
 	GetLandmarks = 'get-landmarks',
 	GetPageWarnings = 'get-page-warnings',
+	GetMutationInfo = 'get-mutation-info',
 	GetToggleState = 'get-toggle-state',
 	HideLandmark = 'hide-landmark',
+	Init = 'init',
 	Landmarks = 'landmarks',
 	MainLandmark = 'main-landmark',
+	MutationInfo = 'mutation-info',
+	MutationInfoWindow = 'mutation-info-window',
 	NextLandmark = 'next-landmark',
+	OpenHelp = 'open-help',
+	OpenSettings = 'open-settings',
 	PageWarnings = 'page-warnings',
 	PrevLandmark = 'prev-landmark',
 	ShowLandmark = 'show-landmark',
@@ -30,11 +36,17 @@ interface Messages extends Partial<Record<MessageName, Message>> {
 	[MessageName.GetDevToolsState]: { payload: null }
 	[MessageName.GetLandmarks]: { payload: null }
 	[MessageName.GetPageWarnings]: { payload: null }
+	[MessageName.GetMutationInfo]: { payload: null }
 	[MessageName.GetToggleState]: { payload: null }
 	[MessageName.HideLandmark]: { payload: { index: number } }
+	[MessageName.Init]: { payload: { forTabId: number } }
 	[MessageName.Landmarks]: { payload: { number: number; tree: FilteredLandmarkTreeEntry[] } }
 	[MessageName.MainLandmark]: { payload: null }
+	[MessageName.MutationInfo]: { payload: MutationInfoMessageData }
+	[MessageName.MutationInfoWindow]: { payload: MutationInfoWindowMessageData }
 	[MessageName.NextLandmark]: { payload: null }
+	[MessageName.OpenHelp]: { payload: { openInSameTab: boolean } }
+	[MessageName.OpenSettings]: { payload: null }
 	[MessageName.PageWarnings]: { payload: PageWarning[] }
 	[MessageName.PrevLandmark]: { payload: null }
 	[MessageName.ShowLandmark]: { payload: { index: number } }
@@ -43,8 +55,8 @@ interface Messages extends Partial<Record<MessageName, Message>> {
 	[MessageName.TriggerRefresh]: { payload: null }
 }
 
-type MessageTypes = keyof Messages;
-type MessagePayload<T extends MessageTypes> = Messages[T]['payload']
+export type MessageTypes = keyof Messages;
+export type MessagePayload<T extends MessageTypes> = Messages[T]['payload']
 
 // FIXME: DRY?
 // NOTE: Thank you https://matiashernandez.dev/blog/post/typescript-create-a-union-from-a-type or https://effectivetypescript.com/2020/05/12/unionize-objectify/ for the basis of this :-).
