@@ -1,3 +1,4 @@
+import { MessageName, sendMessage } from './messages.js' 
 import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
@@ -44,7 +45,7 @@ function main() {
 	translate()  // to refer to the "go to main" command; main and nav regions
 
 	browser.runtime.onMessage.addListener(messageHandler)
-	void browser.runtime.sendMessage({ name: 'get-commands' })
+	sendMessage(MessageName.GetCommands, null)
 
 	if (BROWSER === 'firefox') {
 		document.getElementById('shortcuts-button-wrapper')
@@ -54,7 +55,7 @@ function main() {
 			.remove()
 		document.getElementById('open-browser-shortcuts-settings')
 			.addEventListener('click', () => {
-				void browser.runtime.sendMessage({ name: 'open-configure-shortcuts' })
+				sendMessage(MessageName.OpenConfigureShortcuts, null)
 			})
 	}
 

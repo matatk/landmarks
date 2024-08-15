@@ -1,7 +1,7 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 // FIXME: don't need to export types - have name below?
-import type { MessagePayload, MessageTypes, ObjectyMessages as ObjectyMessage } from './messages.js'
+import type { MessagePayload, MessageTypes, ObjectyMessage } from './messages.js'
 
 import './compatibility'
 import { MessageName, postMessage, sendMessage, sendMessageToTab } from './messages.js' 
@@ -67,7 +67,7 @@ let port: chrome.runtime.Port
 //
 // If we got some landmarks from the page, make the tree of them. If there was
 // an error, let the user know.
-function handleLandmarksMessage(tree: FilteredLandmarkTreeEntry[] | null) {
+function handleLandmarksMessage(tree?: FilteredLandmarkTreeEntry[]) {
 	const display = document.getElementById('landmarks')
 	const showAllContainer = document.getElementById('show-all-label')
 	removeChildNodes(display)
@@ -343,6 +343,7 @@ function send<T extends MessageTypes>(name: T, payload: MessagePayload<T>) {
 		const messageWithTabId = Object.assign({}, payload, {
 			forTabId: browser.devtools.inspectedWindow.tabId
 		})
+		// FIXME: this should be a type error? (extra bit in message)
 		postMessage(port, name, messageWithTabId)
 	} else {
 		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
@@ -365,7 +366,7 @@ function debugSendGui(what: string) {
 
 function messageHandlerCore(message: ObjectyMessage) {
 	if (message.name === MessageName.Landmarks) {
-		handleLandmarksMessage(message.payload.tree)
+		handleLandmarksMessage(message.payload?.tree)
 		if (INTERFACE === 'devtools') send(MessageName.GetPageWarnings, null)
 	} else if (message.name === MessageName.ToggleStateIs) {
 		handleToggleStateMessage(message.payload.state)
@@ -476,7 +477,7 @@ function startupPopupOrSidebar() {
 	withActiveTab(tab =>
 		browser.tabs.get(tab.id!, function(tab) {
 			if (!isContentScriptablePage(tab.url!)) {
-				handleLandmarksMessage(null)
+				handleLandmarksMessage(undefined)
 				return
 			}
 			sendMessageToTab(tab.id!, MessageName.GetLandmarks, null)

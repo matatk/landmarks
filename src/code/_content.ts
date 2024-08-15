@@ -1,5 +1,5 @@
 // FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
-import type { ObjectyMessages } from './messages.js'
+import type { ObjectyMessage } from './messages.js'
 
 import './compatibility'
 import { MessageName, sendMessage } from './messages.js' 
@@ -60,7 +60,7 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 	}
 }
 
-function messageHandler(message: ObjectyMessages) {
+function messageHandler(message: ObjectyMessage) {
 	if (DEBUG && message.name === MessageName.Debug) {
 		debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
 		return

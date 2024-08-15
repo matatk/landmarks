@@ -1,12 +1,13 @@
 /* eslint-disable no-prototype-builtins */
-// @ts-expect-error TODO make this neater
-self.browser = self.chrome
-
+import { MessageName, MessagePayload, MessageTypes, ObjectyMessage, postMessage, sendMessage, sendMessageToTab } from './messages.js'
 import { isContentScriptablePage } from './isContent.js'
 import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
 import MigrationManager from './migrationManager.js'
 
-const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
+// @ts-expect-error TODO make this neater
+self.browser = self.chrome
+
+const devtoolsConnections: Record<number, chrome.runtime.Port> = {}  // FIXME: MV3?
 const startupCode: (() => Promise<void>)[]  = []
 // TODO: do the typing properly
 let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
@@ -91,35 +92,31 @@ async function contentScriptInjector() {
 // Utilities
 //
 
-// FIXME: really the best way? Also, message should be unknown?
-function isDevToolsMessage(message: object): message is MessageFromDevTools {
-	return Object.hasOwn(message, 'from')
-}
-
-function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevTools, sender?: chrome.runtime.MessageSender) {
+function debugLog(thing: string | ObjectyMessage, sender?: chrome.runtime.MessageSender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
 		console.log('bkg:', thing)
-	} else if (thing.name === 'debug') {
-		// Debug message from somewhere
-		if (thing.from === 'devtools') {
-			console.log(`${thing.from}: ${thing.info}`)
-		} else if (sender?.tab) {
-			// TODO: This will always report 'content' as that script forwards the messages.
-			console.log(`${sender.tab.id} ${thing.from}: ${thing.info}`)
-		} else {
-			console.log(`Unknown target tab's ${thing.from}: ${thing.info}`)
-		}
 	} else {
-		// A general message from somewhere
-		// TODO: does this exist?
-		// eslint-disable-next-line no-lonely-if
-		if (sender?.tab) {
-			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
-		} else if (isDevToolsMessage(thing)) {
-			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
+		const { name, payload } = thing
+		if (name === MessageName.Debug) {
+			// Debug message from somewhere
+			if (payload.ui === 'devtools') {
+				console.log(`${payload.forTabId} ${payload.ui}: ${payload.info}`)
+			} else if (sender?.tab) {
+			// TODO: This will always report 'content' as that script forwards the messages.
+				console.log(`${sender.tab.id} ${payload.ui}: ${payload.info}`)
+			} else {
+				console.log(`Unknown target tab's ${payload.ui}: ${payload.info}`)
+			}
 		} else {
-			console.error(`bkg: rx from somewhere: ${thing.name}`)
+			// A general message from somewhere
+			// TODO: does this exist?
+			// eslint-disable-next-line no-lonely-if
+			if (sender?.tab) {
+				console.log(`bkg: rx from ${sender.tab.id}: ${name}`)
+			} else {
+				console.error(`bkg: rx from somewhere: ${thing.name}`)
+			}
 		}
 	}
 }
@@ -132,10 +129,11 @@ async function setBrowserActionState(tabId: number, url: string) {
 	}
 }
 
-function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object) {
+// FIXME: how can the tab be undefined?
+function sendToDevToolsForTab<T extends MessageTypes>(tab: chrome.tabs.Tab | undefined, name: T, payload: MessagePayload<T>) {
 	if (tab?.id) {
 		if (devtoolsConnections.hasOwnProperty(tab.id)) {
-			devtoolsConnections[tab.id].postMessage(message)
+			postMessage(devtoolsConnections[tab.id], name, payload)
 		}
 	} // TODO: else: log an error or something?
 }
@@ -145,21 +143,20 @@ function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object)
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab(id: number, message: MessageForContentScript) {
-	browser.tabs.sendMessage(id, message).catch(err => {
-		console.error(err)
-	})
+function wrappedSendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
+	// FIXME: not actually doing any ignoring specifically here - should we not not ignore usually?
+	sendMessageToTab(tabId, name, payload)
 }
 
-async function updateGUIs(tabId: number, url: string) {
+function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting info`)
-		wrappedSendToTab(tabId, { name: 'get-landmarks' })
-		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
+		wrappedSendToTab(tabId, MessageName.GetLandmarks, null)
+		wrappedSendToTab(tabId, MessageName.GetToggleState, null)
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
-			await browser.runtime.sendMessage({ name: 'landmarks', data: null })
+			sendMessage(MessageName.Landmarks, null)
 		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -173,30 +170,32 @@ async function updateGUIs(tabId: number, url: string) {
 function devtoolsListenerMaker(port: chrome.runtime.Port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
-	return function(message: MessageFromDevTools) {
+	return function(message: ObjectyMessage) {
+		const { name, payload } = message
 		debugLog(message)
-		switch (message.name) {
-			case 'init':
-				devtoolsConnections[message.from] = port
-				port.onDisconnect.addListener(devtoolsDisconnectMaker(message.from))
-				sendDevToolsStateMessage(message.from, true).catch(err => {
+		switch (name) {
+			case MessageName.Init:
+				devtoolsConnections[payload.forTabId] = port
+				port.onDisconnect.addListener(devtoolsDisconnectMaker(payload.forTabId))
+				sendDevToolsStateMessage(payload.forTabId, true).catch(err => {
 					throw err
 				})
 				break
-			case 'get-landmarks':
-			case 'get-toggle-state':
-			case 'focus-landmark':
-			case 'toggle-all-landmarks':
-			case 'get-mutation-info':
-			case 'get-page-warnings':
+			case MessageName.GetLandmarks:
+			case MessageName.GetDevToolsState:
+			case MessageName.FocusLandmark:
+			case MessageName.ToggleAllLandmarks:
+			case MessageName.GetMutationInfo:
+			case MessageName.GetPageWarnings:
 				// The DevTools panel can't check if it's on a scriptable
 				// page, so we do that here. Other GUIs check themselves.
-				browser.tabs.get(message.from)
-					.then(async function(tab) {
+				// FIXME: can we work out the tabId from the port instead?
+				browser.tabs.get(payload.forTabId)
+					.then(function(tab) {
 						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-							await browser.tabs.sendMessage(tab.id, message)
+							sendMessageToTab(tab.id, name, payload)
 						} else {
-							port.postMessage({ name: 'landmarks', data: null })
+							postMessage(port, MessageName.Landmarks, null)
 						}
 					})
 					.catch(err => {
@@ -351,7 +350,7 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 			if (details.frameId > 0) return
 			await setBrowserActionState(details.tabId, details.url)
 			debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-			await updateGUIs(details.tabId, details.url)
+			updateGUIs(details.tabId, details.url)
 		})
 		.catch(err => {
 			throw err
@@ -386,7 +385,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
 			if (details.frameId > 0) return
 			if (isContentScriptablePage(details.url)) {  // TODO: check needed?
 				debugLog(`tab ${details.tabId} history - ${details.url}`)
-				wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
+				wrappedSendToTab(details.tabId, MessageName.TriggerRefresh, null)
 			}
 		})
 		.catch(err => {
@@ -398,9 +397,9 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 	afterInit()
 		.then(async() => {
 			await browser.tabs.get(activeTabInfo.tabId)
-				.then(async tab => {
+				.then(tab => {
 					debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-					await updateGUIs(tab.id!, tab.url!)
+					updateGUIs(tab.id!, tab.url!)
 				})
 			// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
 			//       back as "about:blank" which makes Landmarks think it can't run on
@@ -423,7 +422,7 @@ async function reflectUpdateDismissalState(dismissed: boolean) {
 	dismissedUpdate = dismissed
 	if (dismissedUpdate) {
 		await browser.action.setBadgeText({ text: '' })
-		await withActiveTab(async tab => updateGUIs(tab.id!, tab.url!))
+		await withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
 	} else {
 		await browser.action.setBadgeText(
 			{ text: browser.i18n.getMessage('badgeNew') })
@@ -479,29 +478,30 @@ async function openHelpPage(openInSameTab: boolean) {
 	}
 }
 
-browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
+browser.runtime.onMessage.addListener(function(message: ObjectyMessage, sender: chrome.runtime.MessageSender) {
 	afterInit()
 		.then(async() => {
+			const { name, payload } = message
 			debugLog(message, sender)
-			switch (message.name) {
+			switch (name) {
 			// Content
-				case 'landmarks':
+				case MessageName.Landmarks:
 					if (sender?.tab?.id && dismissedUpdate) {
 						await browser.action.setBadgeText({
-							text: message.number === 0 ? '' : String(message.number),
+							text: payload.number === 0 ? '' : String(payload.number),
 							tabId: sender.tab.id
 						})
 					}
-					sendToDevToolsForTab(sender.tab, message)
+					sendToDevToolsForTab(sender.tab, name, payload)
 					break
-				case 'get-devtools-state':
+				case MessageName.GetDevToolsState:
 					if (sender?.tab?.id) {
 						await sendDevToolsStateMessage(sender.tab.id,
 							devtoolsConnections.hasOwnProperty(sender.tab.id))
 					}
 					break
 					// Help page
-				case 'get-commands':
+				case MessageName.GetCommands:
 					await browser.commands.getAll().then(async function(commands) {
 						if (sender?.tab?.id) {
 							await browser.tabs.sendMessage(sender.tab.id, {
@@ -511,7 +511,7 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 						}
 					})
 					break
-				case 'open-configure-shortcuts':
+				case MessageName.OpenConfigureShortcuts:
 					await browser.tabs.update({
 					/* eslint-disable indent */
 					url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
@@ -523,21 +523,21 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 					//       but the original one is redirected.
 					})
 					break
-				case 'open-settings':
+				case MessageName.OpenSettings:
 					await browser.runtime.openOptionsPage()
 					break
 					// Pop-up, sidebar and big link added to Landmarks' home page
-				case 'open-help':
-					await openHelpPage(message.openInSameTab === true)
+				case MessageName.OpenHelp:
+					await openHelpPage(payload.openInSameTab === true)
 					break
 					// Messages that need to be passed through to DevTools only
-				case 'toggle-state-is':
-					await withActiveTab(tab => sendToDevToolsForTab(tab, message))
+				case MessageName.ToggleStateIs:
+					await withActiveTab(tab => sendToDevToolsForTab(tab, name, payload))
 					break
-				case 'mutation-info':
-				case 'mutation-info-window':
-				case 'page-warnings':
-					sendToDevToolsForTab(sender?.tab, message)
+				case MessageName.MutationInfo:
+				case MessageName.MutationInfoWindow:
+				case MessageName.PageWarnings:
+					sendToDevToolsForTab(sender?.tab, name, payload)
 			}
 		})
 		.catch(err => {
