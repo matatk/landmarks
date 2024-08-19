@@ -1,4 +1,4 @@
-import { MessageName, sendMessage } from './messages.js'
+import { MessageName, sendToExt } from './messages.js'
 
 const LIMIT = 10
 
@@ -129,7 +129,7 @@ export default class MutationStatsReporter {
 		this.checkedLimitSecondAverages.push(checkedAverage)
 
 		if (!this.quiet) {
-			sendMessage(MessageName.MutationInfoWindow, {
+			sendToExt(MessageName.MutationInfoWindow, {
 				'mutations-per-second': this.mutationsPerSecond,
 				'average-mutations': this.mutationsLimitSecondAverages,
 				'checked-per-second': this.checkedPerSecond,
@@ -139,7 +139,7 @@ export default class MutationStatsReporter {
 	}
 
 	#sendMutationUpdate() {
-		sendMessage(MessageName.MutationInfo, {
+		sendToExt(MessageName.MutationInfo, {
 			'mutations': this.totalMutations,
 			'checks': this.checkedMutations,
 			'mutationScans': this.mutationScans
@@ -147,19 +147,19 @@ export default class MutationStatsReporter {
 	}
 
 	#sendNonMutationScansUpdate() {
-		sendMessage(MessageName.MutationInfo, {
+		sendToExt(MessageName.MutationInfo, {
 			'nonMutationScans': this.nonMutationScans
 		})
 	}
 
 	#sendPauseTimeUpdate() {
-		sendMessage(MessageName.MutationInfo, {
+		sendToExt(MessageName.MutationInfo, {
 			'pause': this.pauseTime
 		})
 	}
 
 	#sendDurationUpdate() {
-		sendMessage(MessageName.MutationInfo, {
+		sendToExt(MessageName.MutationInfo, {
 			'duration': this.lastScanDuration,
 			'average': this.averageScanDuration
 		})

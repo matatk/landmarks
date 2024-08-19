@@ -1,8 +1,8 @@
 // FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
-import type { ObjectyMessage } from './messages.js'
+import type { UMessage } from './messages.js'
 
 import './compatibility'
-import { MessageName, sendMessage } from './messages.js' 
+import { MessageName, sendToExt } from './messages.js' 
 import LandmarksFinder from './landmarksFinder.js'
 import ElementFocuser from './elementFocuser.js'
 import PauseHandler from './pauseHandler.js'
@@ -60,12 +60,7 @@ function handleHighlightMessageCore(index: number, action: () => void) {
 	}
 }
 
-function messageHandler(message: ObjectyMessage) {
-	if (DEBUG && message.name === MessageName.Debug) {
-		debugSendContent(`rx: ${message.name}`)  // FIXME: correct?
-		return
-	}
-
+function messageHandler(message: UMessage) {
 	const { name, payload } = message
 
 	switch (name) {
@@ -130,7 +125,7 @@ function messageHandler(message: ObjectyMessage) {
 			}
 			// eslint-disable-this-line no-fallthrough
 		case MessageName.GetToggleState:
-			sendMessage(MessageName.ToggleStateIs,
+			sendToExt(MessageName.ToggleStateIs,
 				{ state: elementFocuser.isManagingBorders() ? 'selected' : 'all'})
 			break
 		case MessageName.TriggerRefresh:
@@ -166,7 +161,7 @@ function messageHandler(message: ObjectyMessage) {
 			}
 			break
 		case MessageName.GetPageWarnings:
-			sendMessage(MessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
+			sendToExt(MessageName.PageWarnings, landmarksFinder.pageResults() ?? [])
 	}
 }
 
@@ -209,7 +204,7 @@ function guiCheckFocusElement(callbackReturningElementInfo: CallbackReturningEle
 function debugSendContent(what: string) {
 	// When sending from a contenet script, the tab's ID will be noted by the
 	// background script, so no need to specify a 'from' key here.
-	sendMessage(MessageName.Debug, { info: what, ui: 'content' })
+	sendToExt(MessageName.Debug, { info: what, ui: 'content' })
 }
 
 
@@ -218,7 +213,7 @@ function debugSendContent(what: string) {
 //
 
 function sendLandmarks() {
-	sendMessage(MessageName.Landmarks, {
+	sendToExt(MessageName.Landmarks, {
 		tree: landmarksFinder.tree(),
 		number: landmarksFinder.getNumberOfLandmarks()
 	})
@@ -398,7 +393,7 @@ function startUpTasks() {
 	// Requesting the DevTools' state will eventually cause the correct scanner
 	// to be set, the observer to be hooked up, and the document to be scanned,
 	// if visible.
-	sendMessage(MessageName.GetDevToolsState, null)
+	sendToExt(MessageName.GetDevToolsState, null)
 }
 
 debugSendContent(`starting - ${window.location.toString()}`)

@@ -1,10 +1,10 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 // FIXME: don't need to export types - have name below?
-import type { MessagePayload, MessageTypes, ObjectyMessage } from './messages.js'
+import type { MessagePayload, MessageTypes, UMessage } from './messages.js'
 
 import './compatibility'
-import { MessageName, postMessage, sendMessage, sendMessageToTab } from './messages.js' 
+import { MessageName, postFromDev, sendToExt, sendToTab } from './messages.js' 
 import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
@@ -38,7 +38,7 @@ const _updateNote = {
 	'dismissedUpdate': {
 		id: 'note-update',
 		cta: function() {
-			sendMessage(MessageName.OpenHelp, { openInSameTab: false })
+			sendToExt(MessageName.OpenHelp, { openInSameTab: false })
 			if (INTERFACE === 'popup') window.close()
 		}
 	}
@@ -324,9 +324,9 @@ function makeEventHandlers(linkName: 'help' | 'settings') {
 	const link = document.getElementById(linkName)
 	const core = () => {
 		if (linkName === 'help') {
-			sendMessage(MessageName.OpenHelp, { openInSameTab: false })
+			sendToExt(MessageName.OpenHelp, { openInSameTab: false })
 		} else {
-			sendMessage(MessageName.OpenSettings, null)
+			sendToExt(MessageName.OpenSettings, null)
 		}
 		if (INTERFACE === 'popup') window.close()
 	}
@@ -344,27 +344,26 @@ function send<T extends MessageTypes>(name: T, payload: MessagePayload<T>) {
 			forTabId: browser.devtools.inspectedWindow.tabId
 		})
 		// FIXME: this should be a type error? (extra bit in message)
-		postMessage(port, name, messageWithTabId)
+		postFromDev(port, name, messageWithTabId)
 	} else {
 		// TODO: Is this ever going to be called with an active tab that doesn't have an id?
 		withActiveTab(tab => {
-			sendMessageToTab(tab.id!, name, payload)
+			sendToTab(tab.id!, name, payload)
 		})
 	}
 }
 
 function debugSendGui(what: string) {
-	const payload = INTERFACE === 'devtools' 
-		? { info: what, ui: INTERFACE, forTabId: browser.devtools.inspectedWindow.tabId }
-		: { info: what, ui: INTERFACE }
 	if (INTERFACE === 'devtools') {
-		postMessage(port, MessageName.Debug, payload)
+		postFromDev(port, MessageName.Debug, {
+			info: what, ui: INTERFACE, forTabId: browser.devtools.inspectedWindow.tabId })
 	} else {
-		sendMessage(MessageName.Debug, payload)
+		sendToExt(MessageName.Debug, {
+			info: what, ui: INTERFACE })
 	}
 }
 
-function messageHandlerCore(message: ObjectyMessage) {
+function messageHandlerCore(message: UMessage) {
 	if (message.name === MessageName.Landmarks) {
 		handleLandmarksMessage(message.payload?.tree)
 		if (INTERFACE === 'devtools') send(MessageName.GetPageWarnings, null)
@@ -430,7 +429,7 @@ function startupDevTools() {
 
 	port.onMessage.addListener(messageHandlerCore)
 
-	postMessage(port, MessageName.Init, {
+	postFromDev(port, MessageName.InitDevTools, {
 		forTabId: browser.devtools.inspectedWindow.tabId
 	})
 
@@ -463,7 +462,7 @@ function startupPopupOrSidebar() {
 		withActiveTab(tab => {
 			const activeTabId = tab.id
 			if (!sender.tab || sender.tab.id === activeTabId) {
-				messageHandlerCore(message as ObjectyMessage)  // TODO: type checking?
+				messageHandlerCore(message as UMessage)  // TODO: type checking?
 			}
 		})
 	})
@@ -480,8 +479,8 @@ function startupPopupOrSidebar() {
 				handleLandmarksMessage(undefined)
 				return
 			}
-			sendMessageToTab(tab.id!, MessageName.GetLandmarks, null)
-			sendMessageToTab(tab.id!, MessageName.GetToggleState, null)
+			sendToTab(tab.id!, MessageName.GetLandmarks, null)
+			sendToTab(tab.id!, MessageName.GetToggleState, null)
 		}))
 
 	document.getElementById('version').innerText =
