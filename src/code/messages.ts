@@ -87,25 +87,59 @@ export type UMessageWithTabId = {
 	}
 }[keyof Messages]
 
-// NOTE: Thank you https://timon.la/blog/background-script-message-typing/ :-)
+// NOTE: Strong message typing; thank you https://timon.la/blog/background-script-message-typing/ :-)
 // FIXME: make it elegant when payload is 'null'
-// FIXME: inline
-export function sendToExt<T extends MessageTypes>(name: T, payload: MessagePayload<T>): void {
-	browser.runtime.sendMessage({ name, payload }).catch(err => {
-		throw err 
-	})
+// FIXME: inline the send functions
+
+let sendToExt: <T extends MessageTypes>(name: T, payload: MessagePayload<T>) => void
+let sendToTab: <T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>) => void
+let postToDev: <T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayload<T>) => void
+let postFromDev: <T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayloadWithTabId<T>) => void
+
+if (BROWSER === 'chrome') {
+	sendToExt = function<T extends MessageTypes>(name: T, payload: MessagePayload<T>): void {
+		browser.runtime.sendMessage({ name, payload }).catch(err => {
+			throw err 
+		})
+	}
+
+	sendToTab = function<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
+		browser.tabs.sendMessage(tabId, { name, payload }).catch(err => {
+			throw err 
+		})
+	}
+
+	postToDev = function<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayload<T>): void {
+		port.postMessage({ name, payload })
+	}
+
+	postFromDev = function<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayloadWithTabId<T>): void {
+		port.postMessage({ name, payload })
+	}
+} else {
+	sendToExt = function<T extends MessageTypes>(name: T, payload: MessagePayload<T>): void {
+		browser.runtime.sendMessage({ name, payload }, () => {
+			if (browser.runtime.lastError) {
+				console.log(browser.runtime.lastError)
+			}
+		})
+	}
+
+	sendToTab = function<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
+		browser.tabs.sendMessage(tabId, { name, payload }, () => {
+			if (browser.runtime.lastError) {
+				console.log(browser.runtime.lastError)
+			}
+		})
+	}
+
+	postToDev = function<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayload<T>): void {
+		port.postMessage({ name, payload })
+	}
+
+	postFromDev = function<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayloadWithTabId<T>): void {
+		port.postMessage({ name, payload })
+	}	
 }
 
-export function sendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
-	browser.tabs.sendMessage(tabId, { name, payload }).catch(err => {
-		throw err 
-	})
-}
-
-export function postToDev<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayload<T>): void {
-	port.postMessage({ name, payload })
-}
-
-export function postFromDev<T extends MessageTypes>(port: chrome.runtime.Port, name: T, payload: MessagePayloadWithTabId<T>): void {
-	port.postMessage({ name, payload })
-}
+export { sendToExt, sendToTab, postToDev, postFromDev }
