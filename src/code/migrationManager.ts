@@ -1,5 +1,5 @@
 interface Settings {
-	[key: string]: string | number | undefined
+	[key: string]: string | number | undefined  // TODO: can undefined be here?
 	version?: number
 }
 

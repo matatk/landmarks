@@ -9,13 +9,7 @@ import translate from './translate.js'
 import landmarkName from './landmarkName.js'
 import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSidebarNotAlone, defaultFunctionalSettings, isInterfaceType } from './defaults.js'
 import { isContentScriptablePage } from './isContent.js'
-
-// FIXME: DRY with background - especially types
-function withActiveTab(doThis: (tab: chrome.tabs.Tab) => void) {
-	browser.tabs.query({ active: true, currentWindow: true }, tabs => {
-		doThis(tabs[0])
-	})
-}
+import withActiveTab from './withActiveTab.js'
 
 let closePopupOnActivate = INTERFACE === 'popup'
 	? defaultFunctionalSettings.closePopupOnActivate

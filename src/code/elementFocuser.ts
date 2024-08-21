@@ -44,7 +44,7 @@ export default class ElementFocuser {
 	// Set focus on the selected landmark element. It takes an element info
 	// object, as returned by the various LandmarksFinder functions.
 	//
-	// Note: this should only be called if landmarks were found. The check
+	// NOTE: this should only be called if landmarks were found. The check
 	//       for this is done in the main content script, as it involves UI
 	//       activity, and couples finding and focusing.
 	focusElement(elementInfo: LandmarkElementInfo) {
@@ -114,7 +114,7 @@ export default class ElementFocuser {
 
 	// When the document is changed, the currently-focused element may have
 	// been removed, or at least changed size/position.
-	// Note: this doesn't call the border drawer to refresh all borders, as
+	// NOTE: this doesn't call the border drawer to refresh all borders, as
 	//       this object is mainly concerned with just the current one, but
 	//       after a mutation, any borders that are drawn should be refreshed.
 	refreshFocusedElement() {
