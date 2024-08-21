@@ -1,15 +1,15 @@
 {
-  "meta": {
-    "name": "Guess main only if there is none"
-  },
   "expected": [
     {
-      "type": "landmark",
+      "guessed": false,
+      "label": null,
       "role": "main",
       "roleDescription": null,
-      "label": null,
       "selector": "body > main",
-      "guessed": false
+      "type": "landmark"
     }
-  ]
+  ],
+  "meta": {
+    "name": "Guess main only if there is none"
+  }
 }

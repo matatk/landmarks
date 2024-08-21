@@ -1,33 +1,28 @@
 {
-  "minimum_opera_version": "67",
-
-  "icons": {
-    "16": "landmarks-16.png",
-    "48": "landmarks-48.png",
-    "128": "landmarks-128.png"
-  },
-
   "browser_action": {
     "default_icon": {
       "19": "landmarks-19.png",
       "38": "landmarks-38.png"
     }
   },
-
-  "sidebar_action": {
-    "default_title": "Landmarks",
-    "default_panel": "sidebar.html",
-    "default_icon": {
-      "19": "landmarks-19.png",
-      "38": "landmarks-38.png"
-    }
+  "icons": {
+    "16": "landmarks-16.png",
+    "48": "landmarks-48.png",
+    "128": "landmarks-128.png"
   },
-
+  "minimum_opera_version": "57",
   "options_ui": {
     "chrome_style": false
   },
-
-  "minimum_opera_version": "57",
-
-  "permissions": ["<all_urls>"]
+  "permissions": [
+    "<all_urls>"
+  ],
+  "sidebar_action": {
+    "default_icon": {
+      "19": "landmarks-19.png",
+      "38": "landmarks-38.png"
+    },
+    "default_panel": "sidebar.html",
+    "default_title": "Landmarks"
+  }
 }

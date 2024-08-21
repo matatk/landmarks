@@ -1,40 +1,29 @@
 {
-  "prefsHeadingInterface": {
-    "message": "Interface"
-  },
-
-  "prefsInterface": {
-    "message": "Show landmarks in"
-  },
-
-  "prefsPopup": {
-    "message": "Toolbar pop-up and sidebar"
-  },
-
-  "prefsPopupExplanation": {
-    "message": "Activating the toolbar button or shortcut key will display landmarks in a pop-up. If you have the sidebar open, they will be shown there too."
-  },
-
-  "prefsSidebar": {
-    "message": "Sidebar only"
-  },
-
-  "prefsSidebarExplanation": {
-    "message": "Landmarks will be shown in the sidebar, which can be opened via the toolbar button or shortcut key."
-  },
-
-
-
-
   "hintSidebarIsNotPrimary": {
     "message": "Landmarks is set up to use a pop-up. The sidebar will still work, but using the shortcut key will make the pop-up appear, not the sidebar."
   },
-
   "hintSidebarIsNotPrimaryCTA": {
     "message": "Change preferences"
   },
-
   "hintSidebarIsNotPrimaryDismiss": {
     "message": "Dismiss UI note"
+  },
+  "prefsHeadingInterface": {
+    "message": "Interface"
+  },
+  "prefsInterface": {
+    "message": "Show landmarks in"
+  },
+  "prefsPopup": {
+    "message": "Toolbar pop-up and sidebar"
+  },
+  "prefsPopupExplanation": {
+    "message": "Activating the toolbar button or shortcut key will display landmarks in a pop-up. If you have the sidebar open, they will be shown there too."
+  },
+  "prefsSidebar": {
+    "message": "Sidebar only"
+  },
+  "prefsSidebarExplanation": {
+    "message": "Landmarks will be shown in the sidebar, which can be opened via the toolbar button or shortcut key."
   }
 }

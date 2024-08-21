@@ -6,7 +6,9 @@
   "scripts": {
     "prebuild:all": "npm test",
     "build:all": "node scripts/build.js --browser all",
+    "check-message-passing": "rg '\\.sendMessage|\\.postMessage' src/code",
     "clean:builds": "node scripts/build.js --browser all --clean",
+    "prepare": "husky",
     "profile": "node scripts/profile.js",
     "start:_core": "web-ext --no-config-discovery run --start-url https://matatk.agrip.org.uk/landmarks/world-of-wombats/ --browser-console",
     "start:chrome": "npm run start:_core -- --source-dir build/chrome --target chromium",
@@ -15,9 +17,7 @@
     "start:opera": "npm run start:_core -- --source-dir build/opera --target chromium --chromium-binary /Applications/Opera.app/Contents/MacOS/opera",
     "pretest": "tsc --build && eslint .",
     "test": "npx c8 --reporter text --reporter html ava && npm run test:css",
-    "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css",
-    "prepare": "husky",
-    "check-message-passing": "rg '\\.sendMessage|\\.postMessage' src/code"
+    "test:css": "npx stylelint --config .stylelintrc.json src/**/*.css"
   },
   "ava": {
     "files": [

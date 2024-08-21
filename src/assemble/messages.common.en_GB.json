@@ -1,394 +1,281 @@
 {
-  "extensionShortName": {
-    "message": "Landmarks"
-  },
-
-  "extensionFullName": {
-    "message": "Landmark Navigation via Keyboard or Pop-up"
-  },
-
-  "extensionDescription": {
-    "message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
-  },
-
-
-
-
-  "nextLandmarkShortcutDescription": {
-    "message": "Move to and highlight the next landmark"
-  },
-
-  "previousLandmarkShortcutDescription": {
-    "message": "Move to and highlight the previous landmark"
-  },
-
-  "mainLandmarkShortcutDescription": {
-    "message": "Move to and highlight the main landmark"
-  },
-
-  "toggleAllShortcutDescription": {
-    "message": "Toggle the display of all landmarks on the page"
-  },
-
-
-
-
-  "popupShowAllLandmarks": {
-    "message": "Show all landmarks"
-  },
-
-  "forbiddenPage": {
-    "message": "Landmarks is not allowed to run on this page."
-  },
-
-  "noLandmarksFound": {
-    "message": "No landmarks found."
-  },
-
-  "noMainLandmarkFound": {
-    "message": "No main landmark found."
-  },
-
-  "popupHelpButton": {
-    "message": "Help"
-  },
-
-  "popupPreferencesButton": {
-    "message": "Preferences"
-  },
-
   "badgeNew": {
     "message": "NEW"
   },
-
-  "guessed": {
-    "message": "guessed"
-  },
-
-
-
-
-  "prefsTitle": {
-    "message": "Landmarks preferences"
-  },
-
-  "prefsHeadingBorder": {
-    "message": "Border and label appearance"
-  },
-
-  "prefsBorderType": {
-    "message": "Border type"
-  },
-
-  "prefsMomentary": {
-    "message": "Momentary"
-  },
-
-  "prefsPersistent": {
-    "message": "Persistent"
-  },
-
-  "prefsNone": {
-    "message": "None"
-  },
-
-  "prefsBorderColour": {
-    "message": "Border colour:"
-  },
-
-  "prefsBorderFontSize": {
-    "message": "Border label font size (pixels):"
-  },
-
-  "prefsHeadingFunctionality": {
-    "message": "Functionality"
-  },
-
-  "prefsGuessLandmarks": {
-    "message": "Try to guess some landmarks if they're not provided"
-  },
-
-  "prefsGuessLandmarksInfo": {
-    "message": "If you're a developer or accessibility auditor, you may wish to disable this, as guessed landmarks are counted in the toolbar badge. Regardless of this setting, relevant warnings are always shown in the Landmarks DevTools side pane."
-  },
-
-  "prefsClosePopupOnActivate": {
-    "message": "Close the pop-up immediately when activating a landmark button"
-  },
-
-  "prefsClosePopupOnActivateInfo": {
-    "message": "Instead of having to manually close the pop-up before continuing to navigate the page, turning this on closes the pop-up automatically."
-  },
-
-  "prefsHandleMutationsViaTree": {
-    "message": "Handle mutations via tree (experimental)"
-  },
-
-  "prefsHandleMutationsViaTreeInfo": {
-    "message": "Try out the under-development new way of handling changes on the page: changes are handled more efficiently, without a full-page scan, as soon as they arise. Eventually this will become the default, but only after the performance is tuned. It's likely that a back-off will be introduced, as with the current method of handling changes to the page."
-  },
-
-  "prefsHeadingReset": {
-    "message": "Resetting stuff"
-  },
-
-  "prefsResetAll": {
-    "message": "Reset everything to defaults"
-  },
-
-  "prefsResetMessages": {
-    "message": "Reinstate dismissed messages"
-  },
-
-  "prefsResetMessagesNone": {
-    "message": "No messages to reinstate."
-  },
-
-  "prefsResetMessagesDone": {
-    "message": "Help messages have been reinstated."
-  },
-
-
-
-
-  "roleBanner": {
-    "message": "Banner"
-  },
-
-  "roleComplementary": {
-    "message": "Complementary"
-  },
-
-  "roleContentinfo": {
-    "message": "Content information"
-  },
-
-  "roleForm": {
-    "message": "Form"
-  },
-
-  "roleMain": {
-    "message": "Main"
-  },
-
-  "roleNavigation": {
-    "message": "Navigation"
-  },
-
-  "roleRegion": {
-    "message": "Region"
-  },
-
-  "roleSearch": {
-    "message": "Search"
-  },
-
-  "roleAcknowledgments": {
-    "message": "Acknowledgements"
-  },
-
-  "roleAfterword": {
-    "message": "Afterword"
-  },
-
-  "roleAppendix": {
-    "message": "Appendix"
-  },
-
-  "roleBibliography": {
-    "message": "Bibliography"
-  },
-
-  "roleChapter": {
-    "message": "Chapter"
-  },
-
-  "roleConclusion": {
-    "message": "Conclusion"
-  },
-
-  "roleCredits": {
-    "message": "Credits"
-  },
-
-  "roleEndnotes": {
-    "message": "Endnotes"
-  },
-
-  "roleEpilogue": {
-    "message": "Epilogue"
-  },
-
-  "roleErrata": {
-    "message": "Errata"
-  },
-
-  "roleForeword": {
-    "message": "Foreword"
-  },
-
-  "roleGlossary": {
-    "message": "Glossary"
-  },
-
-  "roleIndex": {
-    "message": "Index"
-  },
-
-  "roleIntroduction": {
-    "message": "Introduction"
-  },
-
-  "rolePagelist": {
-    "message": "Pagelist"
-  },
-
-  "rolePart": {
-    "message": "Part"
-  },
-
-  "rolePreface": {
-    "message": "Preface"
-  },
-
-  "rolePrologue": {
-    "message": "Prologue"
-  },
-
-  "roleToc": {
-    "message": "Table of contents"
-  },
-
-
-
-
-  "inspectButtonName": {
-    "message": "Inspect"
-  },
-
   "devToolsConnectionError": {
     "message": "Warning: This DevTools frame has become disconnected, probably due to the extension being reloaded. You'll need to reload this frame (e.g. via its context menu) for it to recieve updates again."
   },
-
-  "statsInfo": {
-    "message": "This info relates to how the extension is scanning the page for landmarks. When DevTools is open, the page will be scanned using the more detailed and slightly slower \"developer\" version of the scanner."
+  "extensionDescription": {
+    "message": "Allows you to navigate a web page via WAI-ARIA landmarks, using the keyboard or a pop-up menu."
   },
-
-  "statsHeading": {
-    "message": "Mutation information"
+  "extensionFullName": {
+    "message": "Landmark Navigation via Keyboard or Pop-up"
   },
-
-  "statsMutationsTerm": {
-    "message": "Mutations:"
+  "extensionShortName": {
+    "message": "Landmarks"
   },
-
-  "statsMutationsDefinition": {
-    "message": "Total number of changes to the page."
+  "forbiddenPage": {
+    "message": "Landmarks is not allowed to run on this page."
   },
-
-  "statsCheckedMutationsTerm": {
-    "message": "Checked mutations:"
+  "guessed": {
+    "message": "guessed"
   },
-
-  "statsCheckedMutationsDefinition": {
-    "message": "Mutations that Landmarks has tested to see if they are relevant (mutations that happen during a pause in scanning are ignored)."
-  },
-
-  "statsMutationScansTerm": {
-    "message": "Mutation scans:"
-  },
-
-  "statsMutationScansDefinition": {
-    "message": "Number of times the page has been scanned for landmarks due to mutations. Includes scans triggered directly by mutations, as well as scans scheduled for after a pause brought on by multiple successive mutations."
-  },
-
-  "statsNonMutationScansTerm": {
-    "message": "Non-mutation scans:"
-  },
-
-  "statsNonMutationScansDefinition": {
-    "message": "Number of times the page has been scanned for landmarks for other reasons, such as: page load; use of History API; user command whilst scanning is paused due to prior mutations."
-  },
-
-  "statsPauseTerm": {
-    "message": "Pause time:"
-  },
-
-  "statsPauseDefinition": {
-    "message": "Time window during which subsequent changes to the page will be ignored."
-  },
-
-  "statsDurationTerm": {
-    "message": "Last scan took:"
-  },
-
-  "statsDurationDefinition": {
-    "message": "Number of milliseconds the last landmark scan took."
-  },
-
-  "statsAverageDurationTerm": {
-    "message": "Average scan took:"
-  },
-
-  "statsAverageDurationDefinition": {
-    "message": "Number of milliseconds the average landmark scan took."
-  },
-
-  "statsDefine": {
-    "message": "Define"
-  },
-
-
-
-
   "hintWhatIsNew": {
     "message": "Landmarks was updated to version"
   },
-
   "hintWhatIsNewCTA": {
     "message": "What's new?"
   },
-
   "hintWhatIsNewDismiss": {
     "message": "Dismiss update note"
   },
-
-
-
-
-  "lintPageWarnings": {
-    "message": "Page warnings"
+  "inspectButtonName": {
+    "message": "Inspect"
   },
-
-  "lintWarningPrefix": {
-    "message": "Warning for"
-  },
-
   "lintAbout": {
     "message": "About warnings and further info"
   },
-
-  "lintAboutNature": {
-    "message": "Warnings given above are best practice suggestions: following them can significantly improve the experience of people using assistive technologies. These warnings are not necessarily Web Content Accessibility Guidelines (WCAG) failures. However, using landmarks in a way that misrepresents the structure of the page can be a WCAG failure."
-  },
-
   "lintAboutLinkText": {
     "message": "All about landmark regions, and some golden rules (story and slides for my a11yTOConf talk)"
   },
-
-  "lintNoMain": {
-    "message": "No main element/region."
+  "lintAboutNature": {
+    "message": "Warnings given above are best practice suggestions: following them can significantly improve the experience of people using assistive technologies. These warnings are not necessarily Web Content Accessibility Guidelines (WCAG) failures. However, using landmarks in a way that misrepresents the structure of the page can be a WCAG failure."
   },
-
+  "lintDuplicateUnlabelled": {
+    "message": "Duplicate unlabelled landmark with this role."
+  },
   "lintManyMains": {
     "message": "More than one main element/region."
   },
-
   "lintManyVisibleMainElements": {
     "message": "More than one visible <main> element."
   },
-
-  "lintDuplicateUnlabelled": {
-    "message": "Duplicate unlabelled landmark with this role."
+  "lintNoMain": {
+    "message": "No main element/region."
+  },
+  "lintPageWarnings": {
+    "message": "Page warnings"
+  },
+  "lintWarningPrefix": {
+    "message": "Warning for"
+  },
+  "mainLandmarkShortcutDescription": {
+    "message": "Move to and highlight the main landmark"
+  },
+  "nextLandmarkShortcutDescription": {
+    "message": "Move to and highlight the next landmark"
+  },
+  "noLandmarksFound": {
+    "message": "No landmarks found."
+  },
+  "noMainLandmarkFound": {
+    "message": "No main landmark found."
+  },
+  "popupHelpButton": {
+    "message": "Help"
+  },
+  "popupPreferencesButton": {
+    "message": "Preferences"
+  },
+  "popupShowAllLandmarks": {
+    "message": "Show all landmarks"
+  },
+  "prefsBorderColour": {
+    "message": "Border colour:"
+  },
+  "prefsBorderFontSize": {
+    "message": "Border label font size (pixels):"
+  },
+  "prefsBorderType": {
+    "message": "Border type"
+  },
+  "prefsClosePopupOnActivate": {
+    "message": "Close the pop-up immediately when activating a landmark button"
+  },
+  "prefsClosePopupOnActivateInfo": {
+    "message": "Instead of having to manually close the pop-up before continuing to navigate the page, turning this on closes the pop-up automatically."
+  },
+  "prefsGuessLandmarks": {
+    "message": "Try to guess some landmarks if they're not provided"
+  },
+  "prefsGuessLandmarksInfo": {
+    "message": "If you're a developer or accessibility auditor, you may wish to disable this, as guessed landmarks are counted in the toolbar badge. Regardless of this setting, relevant warnings are always shown in the Landmarks DevTools side pane."
+  },
+  "prefsHandleMutationsViaTree": {
+    "message": "Handle mutations via tree (experimental)"
+  },
+  "prefsHandleMutationsViaTreeInfo": {
+    "message": "Try out the under-development new way of handling changes on the page: changes are handled more efficiently, without a full-page scan, as soon as they arise. Eventually this will become the default, but only after the performance is tuned. It's likely that a back-off will be introduced, as with the current method of handling changes to the page."
+  },
+  "prefsHeadingBorder": {
+    "message": "Border and label appearance"
+  },
+  "prefsHeadingFunctionality": {
+    "message": "Functionality"
+  },
+  "prefsHeadingReset": {
+    "message": "Resetting stuff"
+  },
+  "prefsMomentary": {
+    "message": "Momentary"
+  },
+  "prefsNone": {
+    "message": "None"
+  },
+  "prefsPersistent": {
+    "message": "Persistent"
+  },
+  "prefsResetAll": {
+    "message": "Reset everything to defaults"
+  },
+  "prefsResetMessages": {
+    "message": "Reinstate dismissed messages"
+  },
+  "prefsResetMessagesDone": {
+    "message": "Help messages have been reinstated."
+  },
+  "prefsResetMessagesNone": {
+    "message": "No messages to reinstate."
+  },
+  "prefsTitle": {
+    "message": "Landmarks preferences"
+  },
+  "previousLandmarkShortcutDescription": {
+    "message": "Move to and highlight the previous landmark"
+  },
+  "roleAcknowledgments": {
+    "message": "Acknowledgements"
+  },
+  "roleAfterword": {
+    "message": "Afterword"
+  },
+  "roleAppendix": {
+    "message": "Appendix"
+  },
+  "roleBanner": {
+    "message": "Banner"
+  },
+  "roleBibliography": {
+    "message": "Bibliography"
+  },
+  "roleChapter": {
+    "message": "Chapter"
+  },
+  "roleComplementary": {
+    "message": "Complementary"
+  },
+  "roleConclusion": {
+    "message": "Conclusion"
+  },
+  "roleContentinfo": {
+    "message": "Content information"
+  },
+  "roleCredits": {
+    "message": "Credits"
+  },
+  "roleEndnotes": {
+    "message": "Endnotes"
+  },
+  "roleEpilogue": {
+    "message": "Epilogue"
+  },
+  "roleErrata": {
+    "message": "Errata"
+  },
+  "roleForeword": {
+    "message": "Foreword"
+  },
+  "roleForm": {
+    "message": "Form"
+  },
+  "roleGlossary": {
+    "message": "Glossary"
+  },
+  "roleIndex": {
+    "message": "Index"
+  },
+  "roleIntroduction": {
+    "message": "Introduction"
+  },
+  "roleMain": {
+    "message": "Main"
+  },
+  "roleNavigation": {
+    "message": "Navigation"
+  },
+  "rolePagelist": {
+    "message": "Pagelist"
+  },
+  "rolePart": {
+    "message": "Part"
+  },
+  "rolePreface": {
+    "message": "Preface"
+  },
+  "rolePrologue": {
+    "message": "Prologue"
+  },
+  "roleRegion": {
+    "message": "Region"
+  },
+  "roleSearch": {
+    "message": "Search"
+  },
+  "roleToc": {
+    "message": "Table of contents"
+  },
+  "statsAverageDurationDefinition": {
+    "message": "Number of milliseconds the average landmark scan took."
+  },
+  "statsAverageDurationTerm": {
+    "message": "Average scan took:"
+  },
+  "statsCheckedMutationsDefinition": {
+    "message": "Mutations that Landmarks has tested to see if they are relevant (mutations that happen during a pause in scanning are ignored)."
+  },
+  "statsCheckedMutationsTerm": {
+    "message": "Checked mutations:"
+  },
+  "statsDefine": {
+    "message": "Define"
+  },
+  "statsDurationDefinition": {
+    "message": "Number of milliseconds the last landmark scan took."
+  },
+  "statsDurationTerm": {
+    "message": "Last scan took:"
+  },
+  "statsHeading": {
+    "message": "Mutation information"
+  },
+  "statsInfo": {
+    "message": "This info relates to how the extension is scanning the page for landmarks. When DevTools is open, the page will be scanned using the more detailed and slightly slower \"developer\" version of the scanner."
+  },
+  "statsMutationScansDefinition": {
+    "message": "Number of times the page has been scanned for landmarks due to mutations. Includes scans triggered directly by mutations, as well as scans scheduled for after a pause brought on by multiple successive mutations."
+  },
+  "statsMutationScansTerm": {
+    "message": "Mutation scans:"
+  },
+  "statsMutationsDefinition": {
+    "message": "Total number of changes to the page."
+  },
+  "statsMutationsTerm": {
+    "message": "Mutations:"
+  },
+  "statsNonMutationScansDefinition": {
+    "message": "Number of times the page has been scanned for landmarks for other reasons, such as: page load; use of History API; user command whilst scanning is paused due to prior mutations."
+  },
+  "statsNonMutationScansTerm": {
+    "message": "Non-mutation scans:"
+  },
+  "statsPauseDefinition": {
+    "message": "Time window during which subsequent changes to the page will be ignored."
+  },
+  "statsPauseTerm": {
+    "message": "Pause time:"
+  },
+  "toggleAllShortcutDescription": {
+    "message": "Toggle the display of all landmarks on the page"
   }
 }

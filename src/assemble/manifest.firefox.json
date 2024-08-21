@@ -1,9 +1,4 @@
 {
-  "icons": {
-    "48": "landmarks-48.png",
-    "96": "landmarks-96.png"
-  },
-
   "browser_action": {
     "browser_style": true,
     "default_icon": {
@@ -11,34 +6,34 @@
       "32": "landmarks-32.png"
     }
   },
-
-  "sidebar_action": {
-    "browser_style": true,
-    "default_title": "Landmarks",
-    "default_panel": "sidebar.html",
-    "default_icon": {
-      "16": "landmarks-16.png",
-      "32": "landmarks-32.png"
-    },
-    "open_at_install": false
-  },
-
-  "options_ui": {
-    "browser_style": false
-  },
-
   "browser_specific_settings": {
     "gecko": {
       "id": "ariaLandmarkNav@ibm.com",
       "strict_min_version": "73.0"
     }
   },
-
   "commands": {
     "toggle-all-landmarks": {
       "suggested_key": {
         "default": "Alt+Shift+A"
       }
     }
+  },
+  "icons": {
+    "48": "landmarks-48.png",
+    "96": "landmarks-96.png"
+  },
+  "options_ui": {
+    "browser_style": false
+  },
+  "sidebar_action": {
+    "browser_style": true,
+    "default_icon": {
+      "16": "landmarks-16.png",
+      "32": "landmarks-32.png"
+    },
+    "default_panel": "sidebar.html",
+    "default_title": "Landmarks",
+    "open_at_install": false
   }
 }
