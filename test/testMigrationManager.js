@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import test from 'ava'
 import MigrationManager from '../src/code/migrationManager.js'
 
@@ -40,7 +39,7 @@ test('renaming one field (implied v0)', t => {
 	const settings = { likedNumber: 42 }
 	const migrations = {
 		1: function(settings) {
-			if (settings.hasOwnProperty('likedNumber')) {
+			if (Object.hasOwn(settings, 'likedNumber')) {
 				settings.favouriteNumber = settings.likedNumber
 				delete settings.likedNumber
 			}

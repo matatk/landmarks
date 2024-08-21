@@ -1,41 +1,41 @@
 {
-  "meta": {
-    "name": "Guess navigation regions with a main"
-  },
   "expected": [
     {
-      "type": "landmark",
+      "guessed": true,
+      "label": null,
       "role": "navigation",
       "roleDescription": null,
-      "label": null,
       "selector": "#nav",
-      "guessed": true
+      "type": "landmark"
     },
     {
-      "type": "landmark",
-      "role": "main",
-      "roleDescription": null,
-      "label": null,
-      "selector": "#main",
-      "guessed": true,
       "contains": [
         {
-          "type": "landmark",
+          "guessed": true,
+          "label": null,
           "role": "navigation",
           "roleDescription": null,
-          "label": null,
           "selector": "#main > div.nav:nth-child(1)",
-          "guessed": true
+          "type": "landmark"
         },
         {
-          "type": "landmark",
+          "guessed": true,
+          "label": null,
           "role": "navigation",
           "roleDescription": null,
-          "label": null,
           "selector": "#main > div.navigation:nth-child(2)",
-          "guessed": true
+          "type": "landmark"
         }
-      ]
+      ],
+      "guessed": true,
+      "label": null,
+      "role": "main",
+      "roleDescription": null,
+      "selector": "#main",
+      "type": "landmark"
     }
-  ]
+  ],
+  "meta": {
+    "name": "Guess navigation regions with a main"
+  }
 }

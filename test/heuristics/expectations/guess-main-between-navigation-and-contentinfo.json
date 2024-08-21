@@ -1,31 +1,31 @@
 {
-  "meta": {
-    "name": "Guess main region that is between navigation and contentinfo regions"
-  },
   "expected": [
     {
-      "type": "landmark",
+      "guessed": false,
+      "label": null,
       "role": "navigation",
       "roleDescription": null,
-      "label": null,
       "selector": "body > nav",
-      "guessed": false
+      "type": "landmark"
     },
     {
-      "type": "landmark",
+      "guessed": true,
+      "label": null,
       "role": "main",
       "roleDescription": null,
-      "label": null,
       "selector": "#main",
-      "guessed": true
+      "type": "landmark"
     },
     {
-      "type": "landmark",
+      "guessed": false,
+      "label": null,
       "role": "contentinfo",
       "roleDescription": null,
-      "label": null,
       "selector": "body > footer",
-      "guessed": false
+      "type": "landmark"
     }
-  ]
+  ],
+  "meta": {
+    "name": "Guess main region that is between navigation and contentinfo regions"
+  }
 }

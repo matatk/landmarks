@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import { MessageName, MessagePayload, MessageTypes, UMessage, UMessageWithTabId, postToDev, sendToExt, sendToTab } from './messages.js'
 import { isContentScriptablePage, isContentInjectablePage } from './isContent.js'
 import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
@@ -7,11 +6,8 @@ import withActiveTab from './withActiveTab.js'
 
 type UIMode = 'popup' | 'sidebar'
 
-// @ts-expect-error TODO make this neater
 if (BROWSER === 'chrome') self.browser = self.chrome
-
 // NOTE: This is done here rather than in compatibility.ts becuase of the extra check for (MV3) Chrome.
-// @ts-expect-error Firefox and Opera add sidebarAction (per global defns)
 if (BROWSER !== 'firefox' && BROWSER !== 'chrome') window.browser = window.chrome
 
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
@@ -44,10 +40,10 @@ function debugLog(thing: string | UMessage | UMessageWithTabId, sender?: chrome.
 			// A general message from somewhere
 			// eslint-disable-next-line no-lonely-if
 			if (payload && Object.hasOwn(payload, 'forTabId')) {
-				// @ts-expect-error FIXME narrowing
+				// @ts-expect-error https://github.com/microsoft/TypeScript/issues/44253
 				console.log(`${payload.forTabId} devtools: ${name}`)
 			} else if (sender?.tab) {
-				console.log(`${sender.tab.id}: ${name}`)
+				console.log(`${sender.tab.id} content msg: ${name}`)
 			} else {
 				console.error(`bkg: rx from somewhere: ${thing.name}`)
 			}
@@ -75,27 +71,17 @@ function setBrowserActionState(tabId: number, url: string) {
 // FIXME: how can the tab be undefined?
 function sendToDevToolsForTab<T extends MessageTypes>(tab: chrome.tabs.Tab | undefined, name: T, payload: MessagePayload<T>) {
 	if (tab?.id) {
-		if (devtoolsConnections.hasOwnProperty(tab.id)) {
+		if (Object.hasOwn(devtoolsConnections, tab.id)) {
 			postToDev(devtoolsConnections[tab.id], name, payload)
 		}
 	} // TODO: else: log an error or something?
 }
 
-// If the content script hasn't started yet (e.g. on browser load, restoring
-// many tabs), ignore an error when trying to talk to it. It'll talk to us.
-//
-// I tried avoiding sending to tabs whose status was not 'complete' but that
-// resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>) {
-	// FIXME: not actually doing any error ignoring specifically here - should we not not ignore usually?
-	sendToTab(tabId, name, payload)
-}
-
 function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
-		debugLog(`update UI for ${tabId}: requesting info`)
-		wrappedSendToTab(tabId, MessageName.GetLandmarks, null)
-		wrappedSendToTab(tabId, MessageName.GetToggleState, null)
+		debugLog(`update UI for ${tabId}: requesting landmarks and toggle state`)
+		sendToTab(tabId, MessageName.GetLandmarks, null)
+		sendToTab(tabId, MessageName.GetToggleState, null)
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
@@ -113,6 +99,7 @@ function withAllTabs(doThis: (tabs: chrome.tabs.Tab[]) => void) {
 
 function contentScriptInjector() {
 	// Inject content script manually
+	// NOTE: This is only added to startupCode in !Firefox
 	withAllTabs(function(tabs) {
 		for (const tab of tabs) {
 			if (isContentInjectablePage(tab.url)) {
@@ -213,7 +200,7 @@ function handleRuntimeOnConnect(port: chrome.runtime.Port) {
 	}
 }
 
-// FIXME: un-factor-out? put inline manually?
+// TODO: inline
 function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 	sendToTab(tabId, MessageName.DevToolsStateIs, { state: panelIsOpen ? 'open' : 'closed' })
 }
@@ -281,7 +268,7 @@ function handleCommandsOnCommand(command: string, tab: chrome.tabs.Tab) {
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
 			if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-				sendToTab(tab.id, command as MessageName, null)  // FIXME
+				sendToTab(tab.id, command as MessageName, null)  // TODO nicer typing
 			}
 	}
 }
@@ -341,8 +328,7 @@ if (BROWSER === 'chrome') {
 function handleWebNavigationOnCompleted(details: chrome.webNavigation.WebNavigationFramedCallbackDetails) {
 	if (details.frameId > 0) return
 	setBrowserActionState(details.tabId, details.url)
-	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-	updateGUIs(details.tabId, details.url)
+	debugLog(`${details.tabId} navigated - ${details.url} (however, not sending any messages, as the content script should tell us)`)
 }
 
 // If the page uses single-page app techniques to load in new components—as
@@ -382,8 +368,8 @@ if (BROWSER === 'chrome') {
 function handleWebNavigationOnHistoryStateUpdated(details: chrome.webNavigation.WebNavigationTransitionCallbackDetails) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
-		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		wrappedSendToTab(details.tabId, MessageName.TriggerRefresh, null)
+		debugLog(`${details.tabId} history state updated - ${details.url}`)
+		sendToTab(details.tabId, MessageName.TriggerRefresh, null)
 	}
 }
 
@@ -401,7 +387,7 @@ if (BROWSER === 'chrome') {
 
 function handleTabsOnActivated(activeTabInfo: chrome.tabs.TabActiveInfo) {
 	browser.tabs.get(activeTabInfo.tabId, tab => {
-		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+		debugLog(`${activeTabInfo.tabId} activated - ${tab.url}`)
 		updateGUIs(tab.id!, tab.url!)
 	})
 	// NOTE: on Firefox, if the tab hasn't started loading yet, its URL comes
@@ -424,8 +410,7 @@ function reflectUpdateDismissalState(dismissed: boolean) {
 			void browser.action.setBadgeText({ text: '' })
 			withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
 		} else {
-			browser.browserAction.setBadgeText({ text: '' }, () => 
-				browser.runtime.lastError)
+			void browser.browserAction.setBadgeText({ text: '' })
 			withActiveTab(tab => updateGUIs(tab.id!, tab.url!))			
 		}
 	} else {	 
@@ -484,18 +469,19 @@ if (BROWSER === 'chrome') {
 
 function handleStorageOnChanged(changes: Record<string, chrome.storage.StorageChange>) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
-		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
-		if (Object.hasOwn(changes, 'interface') && isInterfaceType(changes.interface.newValue)) {
-			switchInterface(changes.interface.newValue
-				// @ts-expect-error defaultInterfaceSettings will have this value
-				?? defaultInterfaceSettings.interface)
+		// NOTE: .newValue will not exist if storage has been cleared.
+		if (Object.hasOwn(changes, 'interface')) {
+			switchInterface(isInterfaceType(changes.interface.newValue)
+				? changes.interface.newValue
+				: defaultInterfaceSettings!.interface)
 		}
 	}
 
-	if (changes.hasOwnProperty('dismissedUpdate')) {
-		// Changing _to_ false means either we've already dismissed and have
-		// since reset the messages, OR we have just been updated.
-		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
+	if (Object.hasOwn(changes, 'dismissedUpdate')) {
+		// User can't change to false ('show me the message') through the UI.
+		// When message dismissal states are reset, .newValue will not be present.
+		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue ??
+			defaultDismissedUpdate.dismissedUpdate))
 	}
 }
 
@@ -558,7 +544,7 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 		case MessageName.GetDevToolsState:
 			if (sender?.tab?.id) {
 				sendDevToolsStateMessage(sender.tab.id,
-					devtoolsConnections.hasOwnProperty(sender.tab.id))
+					Object.hasOwn(devtoolsConnections, sender.tab.id))
 			}
 			break
 		// Help page
@@ -579,8 +565,7 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 				/* eslint-enable indent */
 				// NOTE: the Chromium URL is now chrome://extensions/shortcuts
 				//       but the original one is redirected.
-				// FIXME: Update that and require latest Chromium (127?)
-				// FIXME: Firefox?
+				// TODO: Update the URL and require latest Chromium (127)?
 			})
 			break
 		case MessageName.OpenSettings:
@@ -603,13 +588,31 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 
 
 //
-// Actions when the extension starts up
+// Permissions
 //
 
-// NOTE: MV3
-const init = BROWSER === 'chrome'
-	? browser.storage.sync.get(null).then(theRealStartup)
-	: undefined  // code run synchronously instead
+if (DEBUG && BROWSER === 'chrome') {
+	browser.permissions.onAdded.addListener(function(permisssions) {
+		afterInit()
+			.then(() => console.log('permissions added:', permisssions))
+			.catch(err => {
+				throw err
+			})
+	})
+
+	browser.permissions.onRemoved.addListener(function(permisssions) {
+		afterInit()
+			.then(() => console.log('permissions removed:', permisssions))
+			.catch(err => {
+				throw err
+			})
+	})
+}
+
+
+//
+// Actions when the extension starts up
+//
 
 const migrationManager = new MigrationManager({
 	1: function(settings) {
@@ -620,12 +623,14 @@ const migrationManager = new MigrationManager({
 function runStartupCode() {
 	debugLog('Running startup code')
 	for (const func of startupCode as (() => void)[]) {
+		if (DEBUG) console.log('running', func)
 		func()
 	}
 }	
 
 function theRealStartup(items: Record<string, string | number>) {
 	const changedSettings = migrationManager.migrate(items)
+	if (DEBUG) console.log('theRealStartup(): changedSettings?', changedSettings)
 	if (changedSettings) {
 		browser.storage.sync.clear(function() {
 			browser.storage.sync.set(items, function() {
@@ -637,15 +642,17 @@ function theRealStartup(items: Record<string, string | number>) {
 	}
 }
 
-// NOTE: MV3
-// FIXME: ends up as empty function in non-MV3 builds
+const init = BROWSER === 'chrome'
+	? browser.storage.sync.get(null).then(theRealStartup)
+	: null
+
 async function afterInit() {
-	if (BROWSER === 'chrome') {		
-		try {
-			await init
-		} catch (err) {
-			throw Error(`Initialisation failed: ${String(err)}`)
-		}
+	// NOTE: Stripped by build script on non-Chrome builds.
+	// NOTE: Pattern: https://developer.chrome.com/docs/extensions/reference/api/storage#asynchronous-preload-from-storage
+	try {
+		await init
+	} catch (err) {
+		throw Error(`Initialisation failed: ${String(err)}`)
 	}
 }
 
@@ -667,24 +674,22 @@ if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 	})
 }
 
-// FIXME: will this work in MV3?
 startupCode.push(function() {
 	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
 		reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
 	})
 })
 
+startupCode.push(function() {
+	withAllTabs(function(tabs) {
+		for (const tab of tabs) {
+			if (tab.id && tab.url) {
+				setBrowserActionState(tab.id, tab.url)
+			}
+		}
+	})
+})
+
 if (BROWSER !== 'chrome') {
-	// NOTE: MV2
-	// FIXME: recombine these? Remove need for sync/async startup code?
 	browser.storage.sync.get(null, theRealStartup)
 }
-
-// FIXME: put in startup func?
-withAllTabs(function(tabs) {
-	for (const tab of tabs) {
-		if (tab.id && tab.url) {
-			setBrowserActionState(tab.id, tab.url)
-		}
-	}
-})

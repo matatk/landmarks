@@ -1,6 +1,3 @@
-// hasOwnProperty is only used on browser-provided objects and landmarks
-/* eslint-disable no-prototype-builtins */
-// FIXME: don't need to export types - have name below?
 import type { MessagePayload, MessageTypes, MutationInfoMessageData, MutationInfoWindowMessageData, ToggleState, UMessage } from './messages.js'
 
 import './compatibility'
@@ -11,50 +8,58 @@ import { defaultInterfaceSettings, defaultDismissalStates, defaultDismissedSideb
 import { isContentScriptablePage } from './isContent.js'
 import withActiveTab from './withActiveTab.js'
 
-let closePopupOnActivate = INTERFACE === 'popup'
-	? defaultFunctionalSettings.closePopupOnActivate
-	: null
-
-const _sidebarNote = {
-	'dismissedSidebarNotAlone': {
-		id: 'note-ui',
-		cta: function() {
-			void browser.runtime.openOptionsPage()
-		},
-		showOrHide: function(wasDismissed: boolean) {
-			// Whether to show the message depends on the interface too
-			browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-				if (items.interface === 'popup' && !wasDismissed) {
-					document.getElementById('note-ui').hidden = false
-				} else {
-					document.getElementById('note-ui').hidden = true
-				}
-			})
-		}
-	}
-}
-
-const _updateNote = {
-	'dismissedUpdate': {
-		id: 'note-update',
-		cta: function() {
-			sendToExt(MessageName.OpenHelp, { openInSameTab: false })
-			if (INTERFACE === 'popup') window.close()
-		}
-	}
-}
-
+// TODO: Improve strength of typing.
 interface Note {
 	id: string
-	cta: () => void
+	cta?: () => void
 	showOrHide?: (wasDismissed: boolean) => void
 }
 
-type Notes = Record<string, Note>;
+const _sidebarNote: Note = {
+	id: 'note-ui',
+	cta: function() {
+		void browser.runtime.openOptionsPage()
+	},
+	showOrHide: function(wasDismissed: boolean) {
+		// Whether to show the message depends on the interface too
+		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+			if (items.interface === 'popup' && !wasDismissed) {
+				document.getElementById('note-ui').hidden = false
+			} else {
+				document.getElementById('note-ui').hidden = true
+			}
+		})
+	}
+}
 
-const notes: Notes = (INTERFACE === 'sidebar')
-	? Object.assign({}, _sidebarNote, _updateNote)
-	: _updateNote
+const _widthNote: Note = {
+	id: 'note-width'
+}
+
+const _updateNote: Note = {
+	id: 'note-update',
+	cta: function() {
+		sendToExt(MessageName.OpenHelp, { openInSameTab: false })
+		if (INTERFACE === 'popup') window.close()
+	}
+}
+
+const notes: Record<string, Note> = INTERFACE === 'sidebar'
+	? BROWSER === 'chrome'
+		? {
+			'dismissedSidebarNotAlone': _sidebarNote,
+			'dismissedSidebarWidth': _widthNote,
+			'dismissedUpdate': _updateNote
+		}
+		: {
+			'dismissedSidebarNotAlone': _sidebarNote,
+			'dismissedUpdate': _updateNote
+		}
+	: { 'dismissedUpdate': _updateNote }
+
+let closePopupOnActivate = INTERFACE === 'popup'
+	? defaultFunctionalSettings.closePopupOnActivate
+	: null
 
 let port: chrome.runtime.Port
 
@@ -135,7 +140,7 @@ function processTreeLevelItem(landmark: FilteredLandmarkTreeEntry) {
 		// aren't open. The background script will request a GUI update and
 		// whilst unlikely, this might happen before the content script has
 		// learnt that DevTools are open.
-		if (landmark.hasOwnProperty('warnings')) {
+		if (Object.hasOwn(landmark, 'warnings')) {
 			if (landmark.warnings!.length > 0) {
 				addElementWarnings(item, landmark, landmark.warnings!)
 			}
@@ -260,16 +265,18 @@ function showOrHideNote(note: Note, dismissed: boolean) {
 	} else if (dismissed) {
 		document.getElementById(note.id)!.hidden = true
 	} else {
-		document.getElementById(note.id)!.hidden = true
+		document.getElementById(note.id)!.hidden = false
 	}
 }
 
+// FIXME: this doesn't work if the user is on sidebar, in prefs page, then restores all settings and dismissals
+// TODO: This is too hardcoded.
 // Sidebar-specific: handle the user changing their UI preference (the sidebar
 // may be open, so the note needs to be shown/hidden in real-time).
-function reflectInterfaceChange(ui: 'sidebar' | 'popup') {
+function reflectInterfaceChange(to: 'sidebar' | 'popup') {
 	browser.storage.sync.get(defaultDismissedSidebarNotAlone, function(items) {
 		if (items.dismissedSidebarNotAlone === false) {
-			if (ui === 'sidebar') {
+			if (to === 'sidebar') {
 				document.getElementById('note-ui').hidden = true
 			} else {
 				document.getElementById('note-ui').hidden = false
@@ -282,7 +289,7 @@ function setupNotes() {
 	for (const [dismissalSetting, note] of Object.entries(notes)) {
 		const ctaId = `${note.id}-cta`
 		const dismissId = `${note.id}-dismiss`
-		document.getElementById(ctaId)!.addEventListener('click', note.cta)
+		if (note.cta) document.getElementById(ctaId)!.addEventListener('click', note.cta)
 		document.getElementById(dismissId)!.addEventListener(
 			'click', function() {
 				void browser.storage.sync.set({ [dismissalSetting]: true })
@@ -291,14 +298,16 @@ function setupNotes() {
 
 	browser.storage.onChanged.addListener(function(changes) {
 		if (INTERFACE === 'sidebar') {
-			if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
-				reflectInterfaceChange(changes.interface.newValue ??
-					defaultInterfaceSettings!.interface)
+			// NOTE: .newValue will not exist if storage has been cleared.
+			if (Object.hasOwn(changes, 'interface')) {
+				reflectInterfaceChange(isInterfaceType(changes.interface.newValue)
+					? changes.interface.newValue
+					: defaultInterfaceSettings!.interface)
 			}
 		}
 
 		for (const dismissalState in defaultDismissalStates) {
-			if (changes.hasOwnProperty(dismissalState)) {
+			if (Object.hasOwn(changes, dismissalState)) {
 				showOrHideNote(
 					notes[dismissalState],
 					Boolean(changes[dismissalState].newValue))  // TODO: ensure at source and ignore, or check here
@@ -308,7 +317,7 @@ function setupNotes() {
 
 	browser.storage.sync.get(defaultDismissalStates, function(items) {
 		for (const dismissalState in defaultDismissalStates) {
-			if (notes.hasOwnProperty(dismissalState)) {
+			if (Object.hasOwn(notes, dismissalState)) {
 				showOrHideNote(notes[dismissalState], Boolean(items[dismissalState]))  // TODO: ensure at source and ignore, or check here
 			}
 		}
@@ -391,10 +400,6 @@ function handleMutationMessage(data: MutationInfoMessageData) {
 			: String(data[key as keyof typeof data]!)
 		document.getElementById(key)!.textContent = string
 	}
-	if ('duration' in data && 'average' in data) {
-		document.getElementById('was-last-scan-longer-than-average').innerText = 
-			data.duration! > data.average! ? 'yes' : 'no'
-	}
 }
 
 function handleMutationWindowMessage(data: MutationInfoWindowMessageData) {
@@ -438,17 +443,15 @@ function startupDevTools() {
 	send(MessageName.GetToggleState, null)
 	send(MessageName.GetMutationInfo, null)
 
-	// TODO: Eventually remove, after sorting out mutation handling
-	browser.storage.onChanged.addListener(function(changes) {
-		if ('handleMutationsViaTree' in changes) {
-			document.getElementById('handling-mutations-via-tree').innerText =
-				String(changes.handleMutationsViaTree.newValue)
-		}
-	})
-	browser.storage.sync.get(defaultFunctionalSettings, function(items) {
-		document.getElementById('handling-mutations-via-tree').innerText =
-			String(items.handleMutationsViaTree)
-	})
+	// TODO: Reinstate (though eventually remove, after sorting out mutation handling).
+	// browser.storage.onChanged.addListener(function(changes) {
+	// 	if (Object.hasOwn(changes, 'handleMutationsViaTree')) {
+	// 		// ???
+	// 	}
+	// })
+	// browser.storage.sync.get(defaultFunctionalSettings, function(items) {
+	// 	// ???
+	// })
 }
 
 function startupPopupOrSidebar() {
@@ -483,6 +486,7 @@ function startupPopupOrSidebar() {
 			sendToTab(tab.id!, MessageName.GetToggleState, null)
 		}))
 
+	// TODO: Should be in setupNotes?
 	document.getElementById('version').innerText =
 		browser.runtime.getManifest().version
 

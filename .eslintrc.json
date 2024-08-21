@@ -1,18 +1,16 @@
 {
-  "extends": "eslint:recommended",
   "env": {
     "browser": false,
     "es6": true,
     "node": true
   },
-  "parserOptions": {
-    "ecmaVersion": 2022,
-    "project": true
-  },
-  "reportUnusedDisableDirectives": true,
-  "root": true,
+  "extends": "eslint:recommended",
   "overrides": [
     {
+      "env": {
+        "browser": true,
+        "node": true
+      },
       "files": [
         "scripts/*.js",
         "scripts/profile-lib/*.js",
@@ -20,40 +18,44 @@
       ],
       "parserOptions": {
         "sourceType": "module"
-      },
-      "env": {
-        "browser": true,
-        "node": true
       }
     },
     {
-      "files": ["src/static/*.js"],
-      "globals": {
-        "browser": "readonly"
-      },
       "env": {
         "browser": true,
         "node": false
+      },
+      "files": [
+        "src/static/*.js"
+      ],
+      "globals": {
+        "browser": "readonly"
       }
     },
     {
-      "files": "src/code/*.ts",
-      "parser": "@typescript-eslint/parser",
+      "env": {
+        "browser": true,
+        "node": false
+      },
       "extends": [
         "plugin:@typescript-eslint/recommended-type-checked",
         "plugin:@typescript-eslint/stylistic-type-checked",
         "plugin:compat/recommended"
       ],
-      "env": {
-        "browser": true,
-        "node": false
-      },
+      "files": "src/code/*.ts",
+      "parser": "@typescript-eslint/parser",
       "rules": {
-        "no-undef": "off",
-        "compat/compat": "warn"
+        "compat/compat": "warn",
+        "no-undef": "off"
       }
     }
   ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "project": true
+  },
+  "reportUnusedDisableDirectives": true,
+  "root": true,
   "rules": {
     "arrow-spacing": "error",
     "block-scoped-var": "error",

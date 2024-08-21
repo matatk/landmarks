@@ -1,15 +1,15 @@
 {
-  "meta": {
-    "name": "Guess main alone by id of 'main'"
-  },
   "expected": [
     {
-      "type": "landmark",
+      "guessed": true,
+      "label": null,
       "role": "main",
       "roleDescription": null,
-      "label": null,
       "selector": "#main",
-      "guessed": true
+      "type": "landmark"
     }
-  ]
+  ],
+  "meta": {
+    "name": "Guess main alone by id of 'main'"
+  }
 }

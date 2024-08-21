@@ -1,5 +1,3 @@
-// hasOwnProperty is only used on browser-provided objects
-/* eslint-disable no-prototype-builtins */
 import './compatibility'
 import translate from './translate.js'
 import { defaultSettings, defaultDismissalStates } from './defaults.js'
@@ -136,10 +134,6 @@ function resetMessages(event: Event) {
 	}
 }
 
-function dismissalStateChanged(keyThatChanged: string) {
-	return defaultDismissalStates.hasOwnProperty(keyThatChanged)
-}
-
 function resetToDefaults() {
 	void browser.storage.sync.clear()
 	restoreOptions()
@@ -162,7 +156,9 @@ function main() {
 	updateResetDismissedMessagesButtonState()
 
 	browser.storage.onChanged.addListener(function(changes) {
-		if (Object.keys(changes).some(dismissalStateChanged)) {
+		if (Object.keys(changes).some(
+			(keyThatChanged: string) => Object.hasOwn(defaultDismissalStates, keyThatChanged))
+		) {
 			updateResetDismissedMessagesButtonState()
 		}
 	})

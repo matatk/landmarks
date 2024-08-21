@@ -34,6 +34,10 @@
 				<button id="note-ui-cta" data-message="hintSidebarIsNotPrimaryCTA"></button>
 				<button id="note-ui-dismiss" data-message="hintSidebarIsNotPrimaryDismiss"></button>
 			</div>
+			<div id="note-width" class="warning" hidden>
+				<p data-message="hintSidebarWidth"></p>
+				<button id="note-width-dismiss" data-message="hintSidebarWidthDismiss"></button>
+			</div>
 			<!-- /sidebar -->
 			<div id="note-update" class="warning" hidden>
 				<p><span data-message="hintWhatIsNew"></span> <span id="version"></span>.</p>
@@ -77,8 +81,6 @@
 
 		<details class="department" id="mutation-observation-station">
 			<summary><h1 data-message="statsHeading"></h1></summary>
-			<p>Handling via tree? <span id="handling-mutations-via-tree"></span></p>
-			<p>Last scan longer than average? <span id="was-last-scan-longer-than-average"></span></p>
 			<dl>
 				<dt id="statsMutationsTerm" data-message="statsMutationsTerm"></dt>
 				<dd>

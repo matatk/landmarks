@@ -5,6 +5,7 @@ const LIMIT = 10
 // TODO: make this like the mutation observer—disconnect when DevTools isn't
 //       open? (Would need to manage expectations in that case.)
 export default class MutationStatsReporter {
+	// FIXME: Make these member vars private, matching BorderDrawer.
 	totalMutations = 0
 	checkedMutations = 0
 	mutationScans = 0

@@ -40,7 +40,7 @@ button {
 	font-weight: bold;
 }
 
-.warning + .warning button {
+.warning:nth-child(even) button {
 	background-color: var(--accent-3);
 }
 

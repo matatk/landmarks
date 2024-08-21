@@ -299,18 +299,17 @@ async function bundleCode(browser, debug) {
 				defines[global] = ioPair.globals[global]
 			}
 
+			const stripFuncs = []
+			if (browser !== 'chrome') stripFuncs.push('afterInit')
+			if (!debug) stripFuncs.push('debugSend', 'debugLog')
+
 			bundleOption.input = {
 				input: ioPair.mainSourceFile,
-				plugins: debug
-					? [
-						terser(makeTerserOptions(defines)),
-						prettier({ parser: 'babel' })
-					]
-					: [
-						strip({ functions: ['debugSend', 'debugLog'] }),
-						terser(makeTerserOptions(defines)),
-						prettier({ parser: 'babel' })
-					]
+				plugins: [
+					strip({ functions: stripFuncs }),
+					terser(makeTerserOptions(defines)),
+					prettier({ parser: 'babel' })
+				]
 			}
 
 			bundleOption.output = {

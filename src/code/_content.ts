@@ -1,4 +1,3 @@
-// FIXME: Go back and use binding (or arrow funcs) to un-redirect event listener adding
 import type { UMessage } from './messages.js'
 
 import './compatibility'
@@ -152,14 +151,14 @@ function messageHandler(message: UMessage) {
 				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
-			} else if (payload.state === 'closed') {
+			} else {
 				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()
 			}
 			if (!document.hidden) {
 				debugSendContent('doc visible; scanning')
-				findLandmarks(noop, noop)
+				findLandmarksAndSend(() => msr.incrementMutationScans(), noop)
 			}
 			break
 		case MessageName.GetPageWarnings:
@@ -221,6 +220,7 @@ function sendLandmarks() {
 	})
 }
 
+// FIXME: there's nothing to say the counter increment is what it says (same with t'other)
 function findLandmarks(counterIncrementFunction: () => void, updateSendFunction: () => void) {
 	if (DEBUG) console.timeStamp(`findLandmarks() on ${window.location.href}`)
 	debugSendContent('finding landmarks')
@@ -332,7 +332,7 @@ function cancelObserverReconnectionScan() {
 	}
 }
 
-function reflectPageVisibility() {
+function reflectPageVisibilityChange() {
 	debugSendContent((document.hidden ? 'hidden' : 'shown') + ' ' + String(window.location))
 	if (document.hidden) {
 		cancelObserverReconnectionScan()
@@ -357,11 +357,11 @@ function disconnectHandler() {
 	console.log('Landmarks: content script disconnected ' +
 		'due to extension unload/reload.')
 	observer?.disconnect()
-	document.removeEventListener('visibilitychange', reflectPageVisibility)
+	document.removeEventListener('visibilitychange', reflectPageVisibilityChange)
 }
 
 function startUpTasks() {
-	document.addEventListener('visibilitychange', reflectPageVisibility)
+	document.addEventListener('visibilitychange', reflectPageVisibilityChange)
 
 	browser.runtime.onMessage.addListener(messageHandler)
 
@@ -371,17 +371,19 @@ function startUpTasks() {
 	}
 
 	browser.storage.onChanged.addListener(function(changes) {
-		if ('guessLandmarks' in changes) {
-			const setting = Boolean(changes.guessLandmarks.newValue) ??  // TODO: TS: check before and ignore?
-				defaultFunctionalSettings.guessLandmarks
+		if (Object.hasOwn(changes, 'guessLandmarks')) {
+			const setting = Boolean(changes.guessLandmarks.newValue ??
+				defaultFunctionalSettings.guessLandmarks)
+			// TODO: When would this test fail?
 			if (setting !== changes.guessLandmarks.oldValue) {
 				landmarksFinder.useHeuristics(setting)
 				findLandmarks(noop, noop)
 			}
 		}
 
-		if ('handleMutationsViaTree' in changes) {
-			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue) // TODO: check before and ignore?
+		if (Object.hasOwn(changes, 'handleMutationsViaTree')) {
+			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue ??
+				defaultFunctionalSettings.handleMutationsViaTree)
 			debugSendContent(`handle mutation via tree: ${handleMutationsViaTree}`)
 		}
 	})
