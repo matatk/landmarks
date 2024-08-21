@@ -1,13 +1,13 @@
-import { MessageName, sendToExt } from './messages.js' 
+import { MessageName, MessagePayload, sendToExt } from './messages.js' 
 import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
-function messageHandler(message: PopulateCommandsMessage) {
+function messageHandler(message: { name: MessageName.PopulateCommands, payload: MessagePayload<MessageName.PopulateCommands>}) {
 	// FIXME: this check is needed, but the types make it look like it isn't
-	if (message.name !== 'populate-commands') return
+	if (message.name !== MessageName.PopulateCommands) return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(
-		message, 'keyboard-shortcuts-table')
+		message.payload, 'keyboard-shortcuts-table')
 
 	document.getElementById('warning-shortcuts').hidden = allShortcutsAreSet
 

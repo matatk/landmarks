@@ -1,7 +1,7 @@
 // hasOwnProperty is only used on browser-provided objects and landmarks
 /* eslint-disable no-prototype-builtins */
 // FIXME: don't need to export types - have name below?
-import type { MessagePayload, MessageTypes, UMessage } from './messages.js'
+import type { MessagePayload, MessageTypes, MutationInfoMessageData, MutationInfoWindowMessageData, ToggleState, UMessage } from './messages.js'
 
 import './compatibility'
 import { MessageName, postFromDev, sendToExt, sendToTab } from './messages.js' 

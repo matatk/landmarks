@@ -1,4 +1,24 @@
 // TODO: somehow specify which messages can come from/to content script (and other scripts)?
+
+export interface MutationInfoWindowMessageData {
+	'average-checked': number[]
+	'average-mutations': number[]
+	'checked-per-second': number[]
+	'mutations-per-second': number[]
+}
+
+export interface MutationInfoMessageData {
+	'average'?: number
+	'checks'?: number
+	'duration'?: number
+	'mutationScans'?: number
+	'mutations'?: number
+	'nonMutationScans'?: number
+	'pause'?: number
+}
+
+export type ToggleState = 'selected' | 'all'
+
 export enum MessageName {
 	Debug = 'debug',
 	DevToolsStateIs = 'devtools-state-is',
