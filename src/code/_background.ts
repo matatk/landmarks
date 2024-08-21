@@ -1,66 +1,139 @@
 /* eslint-disable no-prototype-builtins */
-import './compatibility'
-import contentScriptInjector from './contentScriptInjector.js'
-import { isContentScriptablePage } from './isContent.js'
+import { MessageName, MessagePayload, MessageTypes, UMessage, UMessageWithTabId, postToDev, sendToExt, sendToTab } from './messages.js'
+import { isContentScriptablePage, isContentInjectablePage } from './isContent.js'
 import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
-import { withActiveTab, withAllTabs } from './withTabs.js'
 import MigrationManager from './migrationManager.js'
 
+// @ts-expect-error TODO make this neater
+if (BROWSER === 'chrome') self.browser = self.chrome
+
+// NOTE: This is done here rather than in compatibility.ts becuase of the extra check for (MV3) Chrome.
+// @ts-expect-error Firefox and Opera add sidebarAction (per global defns)
+if (BROWSER !== 'firefox' && BROWSER !== 'chrome') window.browser = window.chrome
+
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
-const startupCode: (() => void)[]  = []
-// TODO: do the typing properly
+const startupCode: ((() => Promise<void>) | (() => void))[] = []
 let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
+
+
+//
+// Some new MV3 stuff - FIXME: to file
+//
+
+type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => Promise<void> | void
+type DoWithOneTab = (tab: chrome.tabs.Tab) => Promise<void> | void
+
+const withAllTabs: ((doThis: DoWithAllTabs) => Promise<void> | void) = BROWSER === 'chrome'
+	? async function(doThis: DoWithAllTabs) {
+		await browser.tabs.query({}).then(doThis)
+	}
+	: function(doThis: DoWithAllTabs) {
+		browser.tabs.query({}, tabs => {
+			void doThis(tabs)
+		})
+	}
+
+// FIXME: DRY with gui
+const withActiveTab: ((doThis: DoWithOneTab) => Promise<void> | void) = BROWSER === 'chrome'
+	?	async function(doThis: DoWithOneTab) {
+		await browser.tabs.query({ active: true, currentWindow: true }).then(async tabs => {
+			await doThis(tabs[0])
+		})
+	}
+	: function(doThis: DoWithOneTab) {
+		browser.tabs.query({ active: true, currentWindow: true }, tabs => {
+			void doThis(tabs[0])
+		})
+	}
+
+const contentScriptInjector: (() => Promise<void> | void) = BROWSER === 'chrome'
+	? async function() {
+		await withAllTabs(async tabs => {
+			for (const tab of tabs) {
+				if (isContentInjectablePage(tab.url)) {
+					if (tab.id !== undefined) {
+						await browser.scripting.executeScript({
+							target: { tabId: tab.id },
+							files: [ 'content.js' ]
+						})
+					}
+				}
+			}
+		})
+	}
+	: function() {
+		// Inject content script manually
+		void withAllTabs(function(tabs) {
+			for (const tab of tabs) {
+				if (isContentInjectablePage(tab.url)) {
+					if (tab.id !== undefined) {
+						browser.tabs.executeScript(tab.id, { file: 'content.js' },
+							() => browser.runtime.lastError)
+					}
+				}
+			}
+		})
+	}
 
 
 //
 // Utilities
 //
 
-// FIXME: really the best way? Also, message should be unknown?
-function isDevToolsMessage(message: object): message is MessageFromDevTools {
-	return Object.hasOwn(message, 'from')
-}
-
-function debugLog(thing: string | MessageForBackgroundScript | MessageFromDevTools, sender?: chrome.runtime.MessageSender) {
+function debugLog(thing: string | UMessage | UMessageWithTabId, sender?: chrome.runtime.MessageSender) {
 	if (typeof thing === 'string') {
 		// Debug message from this script
 		console.log('bkg:', thing)
-	} else if (thing.name === 'debug') {
-		// Debug message from somewhere
-		if (thing.from === 'devtools') {
-			console.log(`${thing.from}: ${thing.info}`)
-		} else if (sender?.tab) {
+	} else {
+		const { name, payload } = thing
+		if (name === MessageName.Debug) {
+			// Debug message from somewhere
+			if (Object.hasOwn(payload, 'forTabId')) {
+				// @ts-expect-error TODO: find a neater way of narrowing
+				console.log(`${payload.forTabId} ${payload.ui}: ${payload.info}`)
+			} else if (sender?.tab) {
 			// TODO: This will always report 'content' as that script forwards the messages.
-			console.log(`${sender.tab.id} ${thing.from}: ${thing.info}`)
+				console.log(`${sender.tab.id} ${payload.ui}: ${payload.info}`)
+			} else {
+				console.log(`${payload.ui}: ${payload.info}`)
+			}
 		} else {
-			console.log(`Unknown target tab's ${thing.from}: ${thing.info}`)
-		}
-	} else {
-		// A general message from somewhere
-		// TODO: does this exist?
-		// eslint-disable-next-line no-lonely-if
-		if (sender?.tab) {
-			console.log(`bkg: rx from ${sender.tab.id}: ${thing.name}`)
-		} else if (isDevToolsMessage(thing)) {
-			console.log(`bkg: rx from ${thing.from} devtools: ${thing.name}`)
-		} else {
-			console.log(`bkg: rx from somewhere: ${thing.name}`)
+			// A general message from somewhere
+			// eslint-disable-next-line no-lonely-if
+			if (payload && Object.hasOwn(payload, 'forTabId')) {
+				// @ts-expect-error FIXME narrowing
+				console.log(`${payload.forTabId} devtools: ${name}`)
+			} else if (sender?.tab) {
+				console.log(`${sender.tab.id}: ${name}`)
+			} else {
+				console.error(`bkg: rx from somewhere: ${thing.name}`)
+			}
 		}
 	}
 }
 
-function setBrowserActionState(tabId: number, url: string) {
+async function setBrowserActionState(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
-		void browser.browserAction.enable(tabId)
+		if (BROWSER === 'chrome') {
+			await browser.action.enable(tabId)			
+		} else {			
+			await browser.browserAction.enable(tabId)			
+		}
 	} else {
-		void browser.browserAction.disable(tabId)
+		// eslint-disable-next-line no-lonely-if
+		if (BROWSER === 'chrome') {
+			await browser.action.disable(tabId)			
+		} else {			
+			await browser.browserAction.disable(tabId)			
+		}
 	}
 }
 
-function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object) {
+// FIXME: how can the tab be undefined?
+function sendToDevToolsForTab<T extends MessageTypes>(tab: chrome.tabs.Tab | undefined, name: T, payload: MessagePayload<T>) {
 	if (tab?.id) {
 		if (devtoolsConnections.hasOwnProperty(tab.id)) {
-			devtoolsConnections[tab.id].postMessage(message)
+			postToDev(devtoolsConnections[tab.id], name, payload)
 		}
 	} // TODO: else: log an error or something?
 }
@@ -70,21 +143,20 @@ function sendToDevToolsForTab(tab: chrome.tabs.Tab | undefined, message: object)
 //
 // I tried avoiding sending to tabs whose status was not 'complete' but that
 // resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab(id: number, message: MessageForContentScript) {
-	browser.tabs.sendMessage(id, message, () => browser.runtime.lastError)
+function wrappedSendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
+	// FIXME: not actually doing any ignoring specifically here - should we not not ignore usually?
+	sendToTab(tabId, name, payload)
 }
 
 function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting info`)
-		wrappedSendToTab(tabId, { name: 'get-landmarks' })
-		wrappedSendToTab(tabId, { name: 'get-toggle-state' })
+		wrappedSendToTab(tabId, MessageName.GetLandmarks, null)
+		wrappedSendToTab(tabId, MessageName.GetToggleState, null)
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
-		if (BROWSER === 'firefox' || BROWSER === 'opera') {
-			browser.runtime.sendMessage(
-				{ name: 'landmarks', data: null }, () =>
-					browser.runtime.lastError)  // noop
+		if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
+			sendToExt(MessageName.Landmarks, null)
 		}
 		// DevTools panel doesn't need updating, as it maintains state
 	}
@@ -95,44 +167,54 @@ function updateGUIs(tabId: number, url: string) {
 // Setting up and handling DevTools connections
 //
 
+// TODO: PERF: general perf, plus inline?
+function stripTabId(payload: { index?: number, forTabId: number}) {
+	return payload.index !== undefined ? { index: payload.index } : null
+}
+
 function devtoolsListenerMaker(port: chrome.runtime.Port) {
 	// DevTools connections come from the DevTools panel, but the panel is
 	// inspecting a particular web page, which has a different tab ID.
-	return function(message: MessageFromDevTools) {
+	return function(message: UMessageWithTabId) {
+		const { name, payload } = message
 		debugLog(message)
-		switch (message.name) {
-			case 'init':
-				devtoolsConnections[message.from] = port
-				port.onDisconnect.addListener(
-					devtoolsDisconnectMaker(message.from))
-				sendDevToolsStateMessage(message.from, true)
+		switch (name) {
+			case MessageName.InitDevTools:
+				devtoolsConnections[payload.forTabId] = port
+				port.onDisconnect.addListener(devtoolsDisconnectMaker(payload.forTabId))
+				sendDevToolsStateMessage(payload.forTabId, true)
 				break
-			case 'get-landmarks':
-			case 'get-toggle-state':
-			case 'focus-landmark':
-			case 'toggle-all-landmarks':
-			case 'get-mutation-info':
-			case 'get-page-warnings':
+			case MessageName.FocusLandmark:
+			case MessageName.GetDevToolsState:
+			case MessageName.GetLandmarks:
+			case MessageName.GetMutationInfo:
+			case MessageName.GetPageWarnings:
+			case MessageName.HideLandmark:
+			case MessageName.ShowLandmark:
+			case MessageName.ToggleAllLandmarks:
 				// The DevTools panel can't check if it's on a scriptable
 				// page, so we do that here. Other GUIs check themselves.
-				browser.tabs.get(message.from, function(tab) {
-					if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-						void browser.tabs.sendMessage(tab.id, message)
-					} else {
-						port.postMessage({ name: 'landmarks', data: null })
-					}
-				})
+				browser.tabs.get(payload.forTabId)
+					.then(function(tab) {
+						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
+							sendToTab(tab.id, name, stripTabId(payload))
+						} else {
+							postToDev(port, MessageName.Landmarks, null)
+						}
+					})
+					.catch(err => {
+						throw err
+					})
 		}
 	}
 }
 
+// TODO: Not the same as https://github.com/GoogleChrome/developer.chrome.com//blob/main/site/en/docs/extensions/mv3/devtools/index.md#send-messages-between-content-scripts-and-the-devtools-page--content-script-to-devtools-
 function devtoolsDisconnectMaker(tabId: number) {
 	return function() {
-		browser.tabs.get(tabId, function(tab) {
-			if (!browser.runtime.lastError) {  // check tab was not closed
-				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-					sendDevToolsStateMessage(tab.id, false)
-				}
+		void browser.tabs.get(tabId).then(function(tab) {
+			if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
+				sendDevToolsStateMessage(tab.id, false)
 			}
 		})
 		delete devtoolsConnections[tabId]
@@ -140,22 +222,26 @@ function devtoolsDisconnectMaker(tabId: number) {
 }
 
 browser.runtime.onConnect.addListener(function(port) {
-	switch (port.name) {
-		case 'devtools':
-			port.onMessage.addListener(devtoolsListenerMaker(port))
-			break
-		case 'disconnect-checker':  // Used on Chrome and Opera
-			break
-		default:
-			throw Error(`Unkown connection type "${port.name}".`)
-	}
+	afterInit()
+		.then(() => {
+			switch (port.name) {
+				case 'devtools':
+					port.onMessage.addListener(devtoolsListenerMaker(port))
+					break
+				case 'disconnect-checker':  // Used on Chrome and Opera
+					break
+				default:
+					throw Error(`Unkown connection type "${port.name}".`)
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
+// FIXME: un-factor-out? put inline manually?
 function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
-	void browser.tabs.sendMessage(tabId, {
-		name: 'devtools-state',
-		state: panelIsOpen ? 'open' : 'closed'
-	})
+	sendToTab(tabId, MessageName.DevToolsStateIs, { state: panelIsOpen ? 'open' : 'closed' })
 }
 
 
@@ -167,59 +253,66 @@ function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 // will receive events, which we can then use to open the sidebar.
 //
 // Opera doesn't have open().
-//
-// These things are only referenced from within browser-conditional blocks, so
-// Terser removes them as appropriate.
 
-const sidebarToggle = () => browser.sidebarAction.toggle()
+const sidebarToggleFirefox = () => browser.sidebarAction.toggle()
 
-function switchInterface(mode: 'sidebar' | 'popup') {
-	if (mode === 'sidebar') {
-		void browser.browserAction.setPopup({ popup: '' })
-		if (BROWSER === 'firefox') {
-			browser.browserAction.onClicked.addListener(sidebarToggle)
-		}
-	} else {
-		// On Firefox this could be set to null to return to the default
-		// popup. However Chrome/Opera doesn't support this.
-		void browser.browserAction.setPopup({ popup: 'popup.html' })
-		if (BROWSER === 'firefox') {
-			browser.browserAction.onClicked.removeListener(sidebarToggle)
+// FIXME: check for no switchInterface in Edge builds
+const switchInterface: ((mode: UIMode) => Promise<void> | void) = BROWSER === 'chrome'
+	? async function(mode: UIMode) {
+		if (mode === 'sidebar') {
+			await browser.action.setPopup({ popup: '' })
+			chrome.sidePanel
+				.setPanelBehavior({ openPanelOnActionClick: true })
+				.catch((error) => console.error(error))
+		} else {
+			// On Firefox this could be set to null to return to the default
+			// popup. However Chrome/Opera doesn't support this.
+			await browser.action.setPopup({ popup: 'popup.html' })
+			chrome.sidePanel
+				.setPanelBehavior({ openPanelOnActionClick: false })
+				.catch((error) => console.error(error))
 		}
 	}
-}
-
-if (BROWSER === 'firefox' || BROWSER === 'opera') {
-	startupCode.push(function() {
-		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
-			// TODO: Is this the right way to do falling back to default? If so, DRY.
-			if (isInterfaceType(items.interface)) {
-				switchInterface(items.interface)
-			} else {
-				// FIXME: how to know that interface is there if browser matches?
-				switchInterface(defaultInterfaceSettings!.interface)
+	: function(mode: UIMode) {
+		if (mode === 'sidebar') {
+			browser.browserAction.setPopup({ popup: '' }, () =>
+				browser.runtime.lastError)
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.addListener(sidebarToggleFirefox)
 			}
-		})
-	})
-}
-
+		} else {
+			// On Firefox this could be set to null to return to the default
+			// popup. However Chrome/Opera doesn't support this.
+			browser.browserAction.setPopup({ popup: 'popup.html' }, () =>
+				browser.runtime.lastError)
+			if (BROWSER === 'firefox') {
+				browser.browserAction.onClicked.removeListener(sidebarToggleFirefox)
+			}
+		}
+	}
 
 //
 // Keyboard shortcut handling
 //
 
 browser.commands.onCommand.addListener(function(command) {
-	switch (command) {
-		case 'next-landmark':
-		case 'prev-landmark':
-		case 'main-landmark':
-		case 'toggle-all-landmarks':
-			withActiveTab(tab => {
-				if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-					void browser.tabs.sendMessage(tab.id, { name: command })
-				}
-			})
-	}
+	afterInit()
+		.then(() => {
+			switch (command) {
+				case 'next-landmark':
+				case 'prev-landmark':
+				case 'main-landmark':
+				case 'toggle-all-landmarks':
+					void withActiveTab(tab => {
+						if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
+							sendToTab(tab.id, command as MessageName, null)  // FIXME
+						}
+					})
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -229,21 +322,44 @@ browser.commands.onCommand.addListener(function(command) {
 
 // Stop the user from being able to trigger the browser action during page load.
 browser.webNavigation.onBeforeNavigate.addListener(function(details) {
-	if (details.frameId > 0) return
-	void browser.browserAction.disable(details.tabId)
-	if (dismissedUpdate) {
-		void browser.browserAction.setBadgeText({
-			text: '',
-			tabId: details.tabId
+	afterInit()
+		.then(async() => {
+			if (details.frameId > 0) return
+			if (BROWSER === 'chrome') {
+				await browser.action.disable(details.tabId)
+			} else {
+				await browser.browserAction.disable(details.tabId)
+			}
+			if (dismissedUpdate) {
+				if (BROWSER === 'chrome') {
+					await browser.action.setBadgeText({
+						text: '',
+						tabId: details.tabId
+					})
+				} else {
+					await browser.browserAction.setBadgeText({
+						text: '',
+						tabId: details.tabId
+					})
+				}
+			}
 		})
-	}
+		.catch(err => {
+			throw err
+		})
 })
 
 browser.webNavigation.onCompleted.addListener(function(details) {
-	if (details.frameId > 0) return
-	setBrowserActionState(details.tabId, details.url)
-	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-	updateGUIs(details.tabId, details.url)
+	afterInit()
+		.then(async() => {
+			if (details.frameId > 0) return
+			await setBrowserActionState(details.tabId, details.url)
+			debugLog(`tab ${details.tabId} navigated - ${details.url}`)
+			updateGUIs(details.tabId, details.url)
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 // If the page uses single-page app techniques to load in new components—as
@@ -269,24 +385,37 @@ browser.webNavigation.onCompleted.addListener(function(details) {
 //   short message to the content script, I've removed the 'same URL'
 //   filtering.
 browser.webNavigation.onHistoryStateUpdated.addListener(function(details) {
-	if (details.frameId > 0) return
-	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
-		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		wrappedSendToTab(details.tabId, { name: 'trigger-refresh' })
-	}
+	afterInit()
+		.then(() => {
+			if (details.frameId > 0) return
+			if (isContentScriptablePage(details.url)) {  // TODO: check needed?
+				debugLog(`tab ${details.tabId} history - ${details.url}`)
+				wrappedSendToTab(details.tabId, MessageName.TriggerRefresh, null)
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 browser.tabs.onActivated.addListener(function(activeTabInfo) {
-	browser.tabs.get(activeTabInfo.tabId, function(tab) {
-		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
-		updateGUIs(tab.id!, tab.url!)
-	})
-	// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
-	//       back as "about:blank" which makes Landmarks think it can't run on
-	//       that page, and sends the null landmarks message, which appears
-	//       briefly before the DOM load event causes webNavigation.onCompleted
-	//       to fire and the content script is asked for and sends back the
-	//       actual landmarks.
+	afterInit()
+		.then(async() => {
+			await browser.tabs.get(activeTabInfo.tabId)
+				.then(tab => {
+					debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+					updateGUIs(tab.id!, tab.url!)
+				})
+			// Note: on Firefox, if the tab hasn't started loading yet, its URL comes
+			//       back as "about:blank" which makes Landmarks think it can't run on
+			//       that page, and sends the null landmarks message, which appears
+			//       briefly before the DOM load event causes webNavigation.onCompleted
+			//       to fire and the content script is asked for and sends back the
+			//       actual landmarks.
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -294,34 +423,75 @@ browser.tabs.onActivated.addListener(function(activeTabInfo) {
 // Install and update
 //
 
-function reflectUpdateDismissalState(dismissed: boolean) {
-	dismissedUpdate = dismissed
-	if (dismissedUpdate) {
-		void browser.browserAction.setBadgeText({ text: '' })
-		withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
-	} else {
-		void browser.browserAction.setBadgeText(
-			{ text: browser.i18n.getMessage('badgeNew') })
+const reflectUpdateDismissalState: ((dismissed: boolean) => Promise<void> | void) = BROWSER === 'chrome'
+	? async function(dismissed: boolean) {
+		dismissedUpdate = dismissed
+		if (dismissedUpdate) {
+			await browser.action.setBadgeText({ text: '' })
+			await withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
+		} else {	 
+			await browser.action.setBadgeText(
+				{ text: browser.i18n.getMessage('badgeNew') })
+		}
 	}
-}
-
-startupCode.push(function() {
-	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
-		reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
-	})
-})
+	: function(dismissed: boolean) {
+		dismissedUpdate = dismissed
+		if (dismissedUpdate) {
+			browser.browserAction.setBadgeText({ text: '' }, () => 
+				browser.runtime.lastError)
+			void withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
+		} else {
+			browser.browserAction.setBadgeText(
+				{ text: browser.i18n.getMessage('badgeNew') }, () =>
+					browser.runtime.lastError)
+		}
+	}
 
 browser.runtime.onInstalled.addListener(function(details) {
-	// TODO: False positive?
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-	if (details.reason === 'install') {
-		void browser.tabs.create({ url: 'help.html#!install' })
-		void browser.storage.sync.set({ 'dismissedUpdate': true })
-	// TODO: False positive?
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-	} else if (details.reason === 'update') {
-		void browser.storage.sync.set({ 'dismissedUpdate': false })
-	}
+	afterInit()
+		.then(async() => {
+			// TODO: False positive?
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+			if (details.reason === 'install') {
+				await browser.tabs.create({ url: 'help.html#!install' })
+				await browser.storage.sync.set({ 'dismissedUpdate': true })
+				// TODO: False positive?
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+			} else if (details.reason === 'update') {
+				await browser.storage.sync.set({ 'dismissedUpdate': false })
+			}
+		})
+		.catch(err => {
+			throw err
+		})
+})
+
+
+//
+// Handling changes to non-UI user preferences
+//
+
+browser.storage.onChanged.addListener(function(changes) {
+	afterInit()
+		.then(async function() {
+			if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
+				// FIXME: rework all of these to fall back to a default value if stored one is invalid?
+				if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
+					await switchInterface(changes.interface.newValue
+							// @ts-expect-error defaultInterfaceSettings will have this value
+							?? defaultInterfaceSettings.interface)
+				}
+			}
+
+			if (changes.hasOwnProperty('dismissedUpdate')) {
+				// Changing _to_ false means either we've already dismissed and have
+				// since reset the messages, OR we have just been updated.
+				await reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
+			}
+		})
+		.catch(err => {
+			throw err
+		})
 })
 
 
@@ -329,82 +499,93 @@ browser.runtime.onInstalled.addListener(function(details) {
 // Message handling
 //
 
-function openHelpPage(openInSameTab: boolean) {
+async function openHelpPage(openInSameTab: boolean) {
 	const helpPage = dismissedUpdate
 		? browser.runtime.getURL('help.html')
 		: browser.runtime.getURL('help.html') + '#!update'
 	if (openInSameTab) {
 		// Link added to Landmarks' home page should open in the same tab
-		void browser.tabs.update({ url: helpPage })
+		await browser.tabs.update({ url: helpPage })
 	} else {
 		// When opened from GUIs, it should open in a new tab
-		withActiveTab(tab => {
-			void browser.tabs.create({ url: helpPage, openerTabId: tab.id })
+		await withActiveTab(async tab => {
+			await browser.tabs.create({ url: helpPage, openerTabId: tab.id })
 		})
 	}
 	if (!dismissedUpdate) {
-		void browser.storage.sync.set({ 'dismissedUpdate': true })
+		await browser.storage.sync.set({ 'dismissedUpdate': true })
 	}
 }
 
-browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScript, sender: chrome.runtime.MessageSender) {
-	debugLog(message, sender)
-	switch (message.name) {
-		// Content
-		case 'landmarks':
-			if (sender?.tab?.id && dismissedUpdate) {
-				void browser.browserAction.setBadgeText({
-					text: message.number === 0 ? '' : String(message.number),
-					tabId: sender.tab.id
-				})
-			}
-			sendToDevToolsForTab(sender.tab, message)
-			break
-		case 'get-devtools-state':
-			if (sender?.tab?.id) {
-				sendDevToolsStateMessage(sender.tab.id,
-					devtoolsConnections.hasOwnProperty(sender.tab.id))
-			}
-			break
-		// Help page
-		case 'get-commands':
-			browser.commands.getAll(function(commands) {
-				if (sender?.tab?.id) {
-					void browser.tabs.sendMessage(sender.tab.id, {
-						name: 'populate-commands',
-						commands: commands
+browser.runtime.onMessage.addListener(function(message: UMessage, sender: chrome.runtime.MessageSender) {
+	afterInit()
+		.then(async() => {
+			const { name, payload } = message
+			debugLog(message, sender)
+			switch (name) {
+			// Content
+				case MessageName.Landmarks:
+					if (sender?.tab?.id && dismissedUpdate) {
+						if (BROWSER === 'chrome') {
+							await browser.action.setBadgeText({
+								text: payload?.number === 0 ? '' : String(payload?.number),
+								tabId: sender.tab.id
+							})
+						} else {
+							await browser.browserAction.setBadgeText({
+								text: payload?.number === 0 ? '' : String(payload?.number),
+								tabId: sender.tab.id
+							})
+						}
+					}
+					sendToDevToolsForTab(sender.tab, name, payload)
+					break
+				case MessageName.GetDevToolsState:
+					if (sender?.tab?.id) {
+						sendDevToolsStateMessage(sender.tab.id,
+							devtoolsConnections.hasOwnProperty(sender.tab.id))
+					}
+					break
+					// Help page
+				case MessageName.GetCommands:
+					await browser.commands.getAll().then(function(commands) {
+						if (sender?.tab?.id) {
+							sendToTab(sender.tab.id, MessageName.PopulateCommands, commands)
+						}
 					})
-				}
-			})
-			break
-		case 'open-configure-shortcuts':
-			void browser.tabs.update({
-				/* eslint-disable indent */
-				url:  BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
-					: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
-					: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
-					: ''
-				/* eslint-enable indent */
-				// Note: the Chromium URL is now chrome://extensions/shortcuts
-				//       but the original one is redirected.
-			})
-			break
-		case 'open-settings':
-			void browser.runtime.openOptionsPage()
-			break
-		// Pop-up, sidebar and big link added to Landmarks' home page
-		case 'open-help':
-			openHelpPage(message.openInSameTab === true)
-			break
-		// Messages that need to be passed through to DevTools only
-		case 'toggle-state-is':
-			withActiveTab(tab => sendToDevToolsForTab(tab, message))
-			break
-		case 'mutation-info':
-		case 'mutation-info-window':
-		case 'page-warnings':
-			sendToDevToolsForTab(sender?.tab, message)
-	}
+					break
+				case MessageName.OpenConfigureShortcuts:
+					await browser.tabs.update({
+						url: BROWSER === 'chrome' ? 'chrome://extensions/configureCommands'
+							: BROWSER === 'opera' ? 'opera://settings/keyboardShortcuts'
+								: BROWSER === 'edge' ? 'edge://extensions/shortcuts'
+									: ''
+						// NOTE: the Chromium URL is now chrome://extensions/shortcuts
+						//       but the original one is redirected.
+						// FIXME: Update that and require latest Chromium (127?)
+						// FIXME: Firefox?
+					})
+					break
+				case MessageName.OpenSettings:
+					await browser.runtime.openOptionsPage()
+					break
+					// Pop-up, sidebar and big link added to Landmarks' home page
+				case MessageName.OpenHelp:
+					await openHelpPage(payload.openInSameTab === true)
+					break
+					// Messages that need to be passed through to DevTools only
+				case MessageName.ToggleStateIs:
+					void withActiveTab(tab => sendToDevToolsForTab(tab, name, payload))
+					break
+				case MessageName.MutationInfo:
+				case MessageName.MutationInfoWindow:
+				case MessageName.PageWarnings:
+					sendToDevToolsForTab(sender?.tab, name, payload)
+			}
+		})
+		.catch(err => {
+			throw err 
+		})
 })
 
 
@@ -412,32 +593,25 @@ browser.runtime.onMessage.addListener(function(message: MessageForBackgroundScri
 // Actions when the extension starts up
 //
 
-withAllTabs(function(tabs) {
+const runStartupCode: (() => Promise<void> | void) = BROWSER === 'chrome'
+	? async function() {
+		debugLog('Running startup code')
+		for (const func of startupCode as (() => Promise<void>)[]) {
+			await func()
+		}
+	}
+	: function() {
+		debugLog('Running startup code')
+		for (const func of startupCode as (() => void)[]) {
+			func()
+		}
+	}	
+
+void withAllTabs(async function(tabs) {
 	for (const tab of tabs) {
 		if (tab.id && tab.url) {
-			setBrowserActionState(tab.id, tab.url)
+			await setBrowserActionState(tab.id, tab.url)
 		}
-	}
-})
-
-if (BROWSER !== 'firefox') {
-	startupCode.push(contentScriptInjector)
-}
-
-browser.storage.onChanged.addListener(function(changes) {
-	if (BROWSER === 'firefox' || BROWSER === 'opera') {
-		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
-		if (changes.hasOwnProperty('interface') && isInterfaceType(changes.interface.newValue)) {
-			switchInterface(changes.interface.newValue
-				// @ts-expect-error defaultInterfaceSettings will have this value
-				?? defaultInterfaceSettings.interface)
-		}
-	}
-
-	if (changes.hasOwnProperty('dismissedUpdate')) {
-		// Changing _to_ false means either we've already dismissed and have
-		// since reset the messages, OR we have just been updated.
-		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
 	}
 })
 
@@ -447,21 +621,90 @@ const migrationManager = new MigrationManager({
 	}
 })
 
-function runStartupCode() {
-	for (const func of startupCode) {
-		func()
+// FIXME: MV3 ?
+if (BROWSER === 'chrome' || BROWSER === 'edge' || BROWSER === 'opera') {
+	startupCode.push(contentScriptInjector)
+}
+
+if (BROWSER === 'firefox' || BROWSER === 'opera') {
+	startupCode.push(function() {
+		browser.storage.sync.get(defaultInterfaceSettings, function(items) {
+			// TODO: Is this the right way to do falling back to default? If so, DRY.
+			if (isInterfaceType(items.interface)) {
+				void switchInterface(items.interface)
+			} else {
+				// FIXME: how to know that interface is there if browser matches?
+				void switchInterface(defaultInterfaceSettings!.interface)
+			}
+		})
+	})
+} else if (BROWSER === 'chrome') {
+	startupCode.push(async function() {
+		await browser.storage.sync.get(defaultInterfaceSettings).then(async function(items) {
+			// TODO: Is this the right way to do falling back to default? If so, DRY.
+			if (isInterfaceType(items.interface)) {
+				await switchInterface(items.interface)
+			} else {
+				// FIXME: how to know that interface is there if browser matches?
+				await switchInterface(defaultInterfaceSettings!.interface)
+			}
+		})
+	})
+}
+
+if (BROWSER === 'chrome') {
+	startupCode.push(async function() {
+		await browser.storage.sync.get(defaultDismissedUpdate).then(async function(items) {
+			await reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
+		})
+	})
+} else {
+	startupCode.push(function() {
+		browser.storage.sync.get(defaultDismissedUpdate, function(items) {
+			void reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
+		})
+	})
+}
+
+// NOTE: MV3
+const init = BROWSER === 'chrome'
+	? browser.storage.sync.get(null).then(async items => {
+		const changedSettings = migrationManager.migrate(items)
+		if (changedSettings) {
+			await browser.storage.sync.clear().then(async function() {
+				await browser.storage.sync.set(items).then(async function() {
+					await (runStartupCode as () => Promise<void>)()
+				})
+			})
+		} else {
+			await (runStartupCode as () => Promise<void>)()
+		}
+	})
+	: undefined  // code run synchronously instead - FIXME tree shake?
+
+// NOTE: MV3
+async function afterInit() {
+	if (BROWSER === 'chrome') {		
+		try {
+			await init
+		} catch (err) {
+			throw Error(`Initialisation failed: ${String(err)}`)
+		}
 	}
 }
 
-browser.storage.sync.get(null, function(items) {
-	const changedSettings = migrationManager.migrate(items)
-	if (changedSettings) {
-		browser.storage.sync.clear(function() {
-			browser.storage.sync.set(items, function() {
-				runStartupCode()
+// NOTE: MV2
+if (BROWSER !== 'chrome') {
+	browser.storage.sync.get(null, items => {
+		const changedSettings = migrationManager.migrate(items)
+		if (changedSettings) {
+			browser.storage.sync.clear(function() {
+				browser.storage.sync.set(items, function() {
+					(runStartupCode as () => void)()
+				})
 			})
-		})
-	} else {
-		runStartupCode()
-	}
-})
+		} else {
+			(runStartupCode as () => void)()
+		}
+	})
+}

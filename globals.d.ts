@@ -8,6 +8,8 @@ var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
 var DEBUG: boolean
 
+type UIMode = 'popup' | 'sidebar'
+
 type LabelFontColour = 'black' | 'white'
 
 // NOTE: the content script checks there are landmarks
