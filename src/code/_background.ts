@@ -20,6 +20,8 @@ let dismissedUpdate: boolean = defaultDismissedUpdate.dismissedUpdate
 // Some new MV3 stuff - FIXME: to file
 //
 
+type UIMode = 'popup' | 'sidebar'
+
 type DoWithAllTabs = (tabs: chrome.tabs.Tab[]) => Promise<void> | void
 type DoWithOneTab = (tab: chrome.tabs.Tab) => Promise<void> | void
 

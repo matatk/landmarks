@@ -21,6 +21,8 @@ const pauseHandler = new PauseHandler((pause: number) => msr.setPauseTime(pause)
 // eslint-disable-next-line
 const noop = () => {}
 
+type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined  // NOTE: the content script checks there are landmarks
+
 const observerReconnectionGrace = 2e3  // wait after page becomes visible again
 let observerReconnectionScanTimer: ReturnType<typeof setTimeout> | null = null
 let observer: MutationObserver | null = null

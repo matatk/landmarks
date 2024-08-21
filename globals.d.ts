@@ -8,9 +8,7 @@ var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
 var DEBUG: boolean
 
-type UIMode = 'popup' | 'sidebar'
 type LabelFontColour = 'black' | 'white'
-type CallbackReturningElementInfo = () => LandmarkElementInfo | undefined  // NOTE: the content script checks there are landmarks
 type PageWarning = 'lintNoMain' | 'lintManyMains' | 'lintManyVisibleMainElements' | 'lintDuplicateUnlabelled'
 
 // NOTE: The '| null' pattern is used to keep the shape of the objects consistent, for perf.
@@ -36,7 +34,6 @@ type LandmarkEntry = {
 }
 
 type LandmarkElementInfo = Pick<LandmarkEntry, "element" | "role" | "roleDescription" | "label" | "guessed">
-type LandmarkInfo = Omit<LandmarkElementInfo, "element">
 
 type FilteredLandmarkEntry = Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next" | "contains">
 interface FilteredLandmarkTreeEntry extends Omit<LandmarkEntry, "debug" | "level" | "element" | "selectorWasUpdated" | "previous" | "next"> {
