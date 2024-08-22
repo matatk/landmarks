@@ -34,7 +34,6 @@ export default class MigrationManager {
 			console.log(`Landmarks: migrated user settings from version ${startingVersion} to version ${settings.version}`)
 			return true
 		}
-		console.log(`Landmarks: no need to migrate user settings from version ${startingVersion} to version ${settings.version}`)
 		return false
 	}
 }

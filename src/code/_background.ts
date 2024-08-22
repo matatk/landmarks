@@ -424,8 +424,7 @@ function reflectUpdateDismissalState(dismissed: boolean) {
 			void browser.action.setBadgeText({ text: '' })
 			withActiveTab(tab => updateGUIs(tab.id!, tab.url!))
 		} else {
-			browser.browserAction.setBadgeText({ text: '' }, () => 
-				browser.runtime.lastError)
+			void browser.browserAction.setBadgeText({ text: '' })
 			withActiveTab(tab => updateGUIs(tab.id!, tab.url!))			
 		}
 	} else {	 
@@ -606,11 +605,6 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 // Actions when the extension starts up
 //
 
-// NOTE: MV3
-const init = BROWSER === 'chrome'
-	? browser.storage.sync.get(null).then(theRealStartup)
-	: undefined  // code run synchronously instead
-
 const migrationManager = new MigrationManager({
 	1: function(settings) {
 		delete settings.debugInfo
@@ -620,12 +614,14 @@ const migrationManager = new MigrationManager({
 function runStartupCode() {
 	debugLog('Running startup code')
 	for (const func of startupCode as (() => void)[]) {
+		if (DEBUG) console.log('running', func)
 		func()
 	}
 }	
 
 function theRealStartup(items: Record<string, string | number>) {
 	const changedSettings = migrationManager.migrate(items)
+	if (DEBUG) console.log('theRealStartup(): changedSettings?', changedSettings)
 	if (changedSettings) {
 		browser.storage.sync.clear(function() {
 			browser.storage.sync.set(items, function() {
@@ -637,15 +633,17 @@ function theRealStartup(items: Record<string, string | number>) {
 	}
 }
 
-// NOTE: MV3
-// FIXME: ends up as empty function in non-MV3 builds
+const init = BROWSER === 'chrome'
+	? browser.storage.sync.get(null).then(theRealStartup)
+	: null
+
 async function afterInit() {
-	if (BROWSER === 'chrome') {		
-		try {
-			await init
-		} catch (err) {
-			throw Error(`Initialisation failed: ${String(err)}`)
-		}
+	// NOTE: Stripped by build script on non-Chrome builds.
+	// NOTE: Pattern: https://developer.chrome.com/docs/extensions/reference/api/storage#asynchronous-preload-from-storage
+	try {
+		await init
+	} catch (err) {
+		throw Error(`Initialisation failed: ${String(err)}`)
 	}
 }
 
@@ -667,24 +665,22 @@ if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 	})
 }
 
-// FIXME: will this work in MV3?
 startupCode.push(function() {
 	browser.storage.sync.get(defaultDismissedUpdate, function(items) {
 		reflectUpdateDismissalState(Boolean(items.dismissedUpdate))
 	})
 })
 
+startupCode.push(function() {
+	withAllTabs(function(tabs) {
+		for (const tab of tabs) {
+			if (tab.id && tab.url) {
+				setBrowserActionState(tab.id, tab.url)
+			}
+		}
+	})
+})
+
 if (BROWSER !== 'chrome') {
-	// NOTE: MV2
-	// FIXME: recombine these? Remove need for sync/async startup code?
 	browser.storage.sync.get(null, theRealStartup)
 }
-
-// FIXME: put in startup func?
-withAllTabs(function(tabs) {
-	for (const tab of tabs) {
-		if (tab.id && tab.url) {
-			setBrowserActionState(tab.id, tab.url)
-		}
-	}
-})
