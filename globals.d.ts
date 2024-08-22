@@ -1,9 +1,12 @@
-var browser: typeof chrome & {
-	sidebarAction: {
-		toggle: () => void
+declare namespace chrome {
+	declare namespace sidebarAction {
+		function toggle(): void
 	}
 }
 
+var browser: typeof chrome
+
+// NOTE: Must match build script
 var BROWSER: 'firefox' | 'chrome' | 'opera' | 'edge'
 var INTERFACE: 'popup' | 'sidebar' | 'devtools'
 var DEBUG: boolean

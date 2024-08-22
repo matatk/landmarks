@@ -6,11 +6,8 @@ import withActiveTab from './withActiveTab.js'
 
 type UIMode = 'popup' | 'sidebar'
 
-// @ts-expect-error: Support running as a service worker
 if (BROWSER === 'chrome') self.browser = self.chrome
-
 // NOTE: This is done here rather than in compatibility.ts becuase of the extra check for (MV3) Chrome.
-// @ts-expect-error: Firefox and Opera add sidebarAction (per global defns)
 if (BROWSER !== 'firefox' && BROWSER !== 'chrome') window.browser = window.chrome
 
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
