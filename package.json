@@ -8,7 +8,7 @@
     "build:all": "node scripts/build.js --browser all",
     "check-message-passing": "rg '\\.sendMessage|\\.postMessage' src/code",
     "clean:builds": "node scripts/build.js --browser all --clean",
-    "prepare": "husky",
+    "prepare": "husky && tsx scripts/generate-valid-elements.ts",
     "profile": "node scripts/profile.js",
     "start:_core": "web-ext --no-config-discovery run --start-url https://matatk.agrip.org.uk/landmarks/world-of-wombats/ --browser-console",
     "start:chrome": "npm run start:_core -- --source-dir build/chrome --target chromium",

@@ -1,5 +1,3 @@
-/* eslint-disable no-prototype-builtins */
-
 //
 // Constants
 //
@@ -105,7 +103,7 @@ export function getRoleFromTagNameAndContainment(element: HTMLElement) {
 	let role = null
 
 	if (name) {
-		if (implicitRoles.hasOwnProperty(name)) {
+		if (Object.hasOwn(implicitRoles, name)) {
 			role = implicitRoles[name as keyof typeof implicitRoles]
 		}
 

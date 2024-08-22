@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import { MessageName, MessagePayload, MessageTypes, UMessage, UMessageWithTabId, postToDev, sendToExt, sendToTab } from './messages.js'
 import { isContentScriptablePage, isContentInjectablePage } from './isContent.js'
 import { defaultInterfaceSettings, defaultDismissedUpdate, isInterfaceType } from './defaults.js'
@@ -7,11 +6,11 @@ import withActiveTab from './withActiveTab.js'
 
 type UIMode = 'popup' | 'sidebar'
 
-// @ts-expect-error TODO make this neater
+// @ts-expect-error: Support running as a service worker
 if (BROWSER === 'chrome') self.browser = self.chrome
 
 // NOTE: This is done here rather than in compatibility.ts becuase of the extra check for (MV3) Chrome.
-// @ts-expect-error Firefox and Opera add sidebarAction (per global defns)
+// @ts-expect-error: Firefox and Opera add sidebarAction (per global defns)
 if (BROWSER !== 'firefox' && BROWSER !== 'chrome') window.browser = window.chrome
 
 const devtoolsConnections: Record<number, chrome.runtime.Port> = {}
@@ -44,7 +43,7 @@ function debugLog(thing: string | UMessage | UMessageWithTabId, sender?: chrome.
 			// A general message from somewhere
 			// eslint-disable-next-line no-lonely-if
 			if (payload && Object.hasOwn(payload, 'forTabId')) {
-				// @ts-expect-error FIXME narrowing
+				// @ts-expect-error https://github.com/microsoft/TypeScript/issues/44253
 				console.log(`${payload.forTabId} devtools: ${name}`)
 			} else if (sender?.tab) {
 				console.log(`${sender.tab.id}: ${name}`)
@@ -75,7 +74,7 @@ function setBrowserActionState(tabId: number, url: string) {
 // FIXME: how can the tab be undefined?
 function sendToDevToolsForTab<T extends MessageTypes>(tab: chrome.tabs.Tab | undefined, name: T, payload: MessagePayload<T>) {
 	if (tab?.id) {
-		if (devtoolsConnections.hasOwnProperty(tab.id)) {
+		if (Object.hasOwn(devtoolsConnections, tab.id)) {
 			postToDev(devtoolsConnections[tab.id], name, payload)
 		}
 	} // TODO: else: log an error or something?
@@ -213,7 +212,7 @@ function handleRuntimeOnConnect(port: chrome.runtime.Port) {
 	}
 }
 
-// FIXME: un-factor-out? put inline manually?
+// TODO: inline
 function sendDevToolsStateMessage(tabId: number, panelIsOpen: boolean) {
 	sendToTab(tabId, MessageName.DevToolsStateIs, { state: panelIsOpen ? 'open' : 'closed' })
 }
@@ -281,7 +280,7 @@ function handleCommandsOnCommand(command: string, tab: chrome.tabs.Tab) {
 		case 'main-landmark':
 		case 'toggle-all-landmarks':
 			if (tab.url && tab.id && isContentScriptablePage(tab.url)) {
-				sendToTab(tab.id, command as MessageName, null)  // FIXME
+				sendToTab(tab.id, command as MessageName, null)  // TODO nicer typing
 			}
 	}
 }
@@ -491,7 +490,7 @@ function handleStorageOnChanged(changes: Record<string, chrome.storage.StorageCh
 		}
 	}
 
-	if (changes.hasOwnProperty('dismissedUpdate')) {
+	if (Object.hasOwn(changes, 'dismissedUpdate')) {
 		// Changing _to_ false means either we've already dismissed and have
 		// since reset the messages, OR we have just been updated.
 		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
@@ -557,7 +556,7 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 		case MessageName.GetDevToolsState:
 			if (sender?.tab?.id) {
 				sendDevToolsStateMessage(sender.tab.id,
-					devtoolsConnections.hasOwnProperty(sender.tab.id))
+					Object.hasOwn(devtoolsConnections, sender.tab.id))
 			}
 			break
 		// Help page
@@ -578,8 +577,7 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 				/* eslint-enable indent */
 				// NOTE: the Chromium URL is now chrome://extensions/shortcuts
 				//       but the original one is redirected.
-				// FIXME: Update that and require latest Chromium (127?)
-				// FIXME: Firefox?
+				// TODO: Update the URL and require latest Chromium (127)?
 			})
 			break
 		case MessageName.OpenSettings:
