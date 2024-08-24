@@ -152,7 +152,7 @@ function messageHandler(message: UMessage) {
 				debugSendContent('change scanner to dev')
 				landmarksFinder.useDevMode(true)
 				msr.beVerbose()
-			} else if (payload.state === 'closed') {
+			} else {
 				debugSendContent('change scanner to std')
 				landmarksFinder.useDevMode(false)
 				msr.beQuiet()

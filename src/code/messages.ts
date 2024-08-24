@@ -112,7 +112,7 @@ export type UMessageWithTabId = {
 export function sendToExt<T extends MessageTypes>(name: T, payload: MessagePayload<T>): void {
 	browser.runtime.sendMessage({ name, payload }, () => {
 		if (browser.runtime.lastError) {
-			if (DEBUG) console.error(browser.runtime.lastError.message)
+			if (DEBUG) console.error(browser.runtime.lastError.message, 'when sending:', name, payload)
 		}
 	})
 }
@@ -120,7 +120,7 @@ export function sendToExt<T extends MessageTypes>(name: T, payload: MessagePaylo
 export function sendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>): void {
 	browser.tabs.sendMessage(tabId, { name, payload }, () => {
 		if (browser.runtime.lastError) {
-			if (DEBUG) console.error(browser.runtime.lastError.message)
+			if (DEBUG) console.error(browser.runtime.lastError.message, 'when sending:', name, payload, 'to', tabId)
 		}
 	})
 }

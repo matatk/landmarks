@@ -43,7 +43,7 @@ function debugLog(thing: string | UMessage | UMessageWithTabId, sender?: chrome.
 				// @ts-expect-error https://github.com/microsoft/TypeScript/issues/44253
 				console.log(`${payload.forTabId} devtools: ${name}`)
 			} else if (sender?.tab) {
-				console.log(`${sender.tab.id}: ${name}`)
+				console.log(`${sender.tab.id} content msg: ${name}`)
 			} else {
 				console.error(`bkg: rx from somewhere: ${thing.name}`)
 			}
@@ -89,7 +89,7 @@ function wrappedSendToTab<T extends MessageTypes>(tabId: number, name: T, payloa
 
 function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
-		debugLog(`update UI for ${tabId}: requesting info`)
+		debugLog(`update UI for ${tabId}: requesting landmarks and toggle state`)
 		wrappedSendToTab(tabId, MessageName.GetLandmarks, null)
 		wrappedSendToTab(tabId, MessageName.GetToggleState, null)
 	} else {
