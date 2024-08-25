@@ -597,6 +597,29 @@ function handleRuntimeOnMessage(message: UMessage, sender: chrome.runtime.Messag
 
 
 //
+// Permissions
+//
+
+if (DEBUG && BROWSER === 'chrome') {
+	browser.permissions.onAdded.addListener(function(permisssions) {
+		afterInit()
+			.then(() => console.log('permissions added:', permisssions))
+			.catch(err => {
+				throw err
+			})
+	})
+
+	browser.permissions.onRemoved.addListener(function(permisssions) {
+		afterInit()
+			.then(() => console.log('permissions removed:', permisssions))
+			.catch(err => {
+				throw err
+			})
+	})
+}
+
+
+//
 // Actions when the extension starts up
 //
 
