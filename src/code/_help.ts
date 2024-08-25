@@ -3,7 +3,7 @@ import handlePopulateCommandsMessage from './keyboardShortcutTableMaker.js'
 import translate from './translate.js'
 
 function messageHandler(message: { name: MessageName.PopulateCommands, payload: MessagePayload<MessageName.PopulateCommands>}) {
-	// FIXME: this check is needed, but the types make it look like it isn't
+	// NOTE: This check is needed, but the types make it look like it isn't.
 	if (message.name !== MessageName.PopulateCommands) return
 
 	const allShortcutsAreSet = handlePopulateCommandsMessage(

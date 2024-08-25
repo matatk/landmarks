@@ -1,8 +1,5 @@
 import { MessageName, MessagePayload } from './messages.js'
 
-// TODO localise fully
-let allShortcutsAreSet
-
 type StructuralElement = {
 	kind: 'element'
 	element: string
@@ -15,6 +12,8 @@ type StructuralElement = {
 	text: string
 }
 
+const actionCommandName = BROWSER === 'chrome' ? '_execute_action' : '_execute_browser_action'
+const actionCommandDescription = BROWSER !== 'edge' ? 'Show pop-up or sidebar' : 'Show pop-up'  // FIXME: localise
 const shortcutTableRows: StructuralElement[] = [
 	{
 		kind: 'element',
@@ -25,6 +24,8 @@ const shortcutTableRows: StructuralElement[] = [
 		]
 	}
 ]
+
+let allShortcutsAreSet
 
 function makeHTML(structure: StructuralElement, root: HTMLElement) {
 	if (structure.kind === 'element') {
@@ -60,8 +61,8 @@ function makeHTML(structure: StructuralElement, root: HTMLElement) {
 
 function addCommandRowAndReportIfMissing(command: chrome.commands.Command) {
 	// Work out the command's friendly name
-	const action = command.name === '_execute_browser_action'
-		? 'Show pop-up'
+	const effect = command.name === actionCommandName
+		? actionCommandDescription
 		: command.description
 
 	// Work out the command's shortcut
@@ -88,7 +89,7 @@ function addCommandRowAndReportIfMissing(command: chrome.commands.Command) {
 		kind: 'element',
 		element: 'tr',
 		contains: [
-			{ kind: 'element', element: 'td', content: action },
+			{ kind: 'element', element: 'td', content: effect },
 			shortcutCellElement
 		]
 	})
@@ -127,7 +128,7 @@ export default function handlePopulateCommandsMessage(payload: MessagePayload<Me
 
 	allShortcutsAreSet = true
 
-	const commandsInOrder = (BROWSER === 'firefox')
+	const commandsInOrder = BROWSER === 'firefox'
 		? payload.reverse()
 		: payload
 
