@@ -77,21 +77,11 @@ function sendToDevToolsForTab<T extends MessageTypes>(tab: chrome.tabs.Tab | und
 	} // TODO: else: log an error or something?
 }
 
-// If the content script hasn't started yet (e.g. on browser load, restoring
-// many tabs), ignore an error when trying to talk to it. It'll talk to us.
-//
-// I tried avoiding sending to tabs whose status was not 'complete' but that
-// resulted in messages not being sent even when the content script was ready.
-function wrappedSendToTab<T extends MessageTypes>(tabId: number, name: T, payload: MessagePayload<T>) {
-	// FIXME: not actually doing any error ignoring specifically here - should we not not ignore usually?
-	sendToTab(tabId, name, payload)
-}
-
 function updateGUIs(tabId: number, url: string) {
 	if (isContentScriptablePage(url)) {
 		debugLog(`update UI for ${tabId}: requesting landmarks and toggle state`)
-		wrappedSendToTab(tabId, MessageName.GetLandmarks, null)
-		wrappedSendToTab(tabId, MessageName.GetToggleState, null)
+		sendToTab(tabId, MessageName.GetLandmarks, null)
+		sendToTab(tabId, MessageName.GetToggleState, null)
 	} else {
 		debugLog(`update UI for ${tabId}: non-scriptable page`)
 		if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
@@ -109,6 +99,7 @@ function withAllTabs(doThis: (tabs: chrome.tabs.Tab[]) => void) {
 
 function contentScriptInjector() {
 	// Inject content script manually
+	// NOTE: This is only added to startupCode in !Firefox
 	withAllTabs(function(tabs) {
 		for (const tab of tabs) {
 			if (isContentInjectablePage(tab.url)) {
@@ -337,8 +328,7 @@ if (BROWSER === 'chrome') {
 function handleWebNavigationOnCompleted(details: chrome.webNavigation.WebNavigationFramedCallbackDetails) {
 	if (details.frameId > 0) return
 	setBrowserActionState(details.tabId, details.url)
-	debugLog(`tab ${details.tabId} navigated - ${details.url}`)
-	updateGUIs(details.tabId, details.url)
+	debugLog(`${details.tabId} navigated - ${details.url} (however, not sending any messages, as the content script should tell us)`)
 }
 
 // If the page uses single-page app techniques to load in new components—as
@@ -378,8 +368,8 @@ if (BROWSER === 'chrome') {
 function handleWebNavigationOnHistoryStateUpdated(details: chrome.webNavigation.WebNavigationTransitionCallbackDetails) {
 	if (details.frameId > 0) return
 	if (isContentScriptablePage(details.url)) {  // TODO: check needed?
-		debugLog(`tab ${details.tabId} history - ${details.url}`)
-		wrappedSendToTab(details.tabId, MessageName.TriggerRefresh, null)
+		debugLog(`${details.tabId} history state updated - ${details.url}`)
+		sendToTab(details.tabId, MessageName.TriggerRefresh, null)
 	}
 }
 
@@ -397,7 +387,7 @@ if (BROWSER === 'chrome') {
 
 function handleTabsOnActivated(activeTabInfo: chrome.tabs.TabActiveInfo) {
 	browser.tabs.get(activeTabInfo.tabId, tab => {
-		debugLog(`tab ${activeTabInfo.tabId} activated - ${tab.url}`)
+		debugLog(`${activeTabInfo.tabId} activated - ${tab.url}`)
 		updateGUIs(tab.id!, tab.url!)
 	})
 	// NOTE: on Firefox, if the tab hasn't started loading yet, its URL comes

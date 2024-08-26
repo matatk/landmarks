@@ -488,6 +488,7 @@ function startupPopupOrSidebar() {
 			sendToTab(tab.id!, MessageName.GetToggleState, null)
 		}))
 
+	// TODO: Should be in setupNotes?
 	document.getElementById('version').innerText =
 		browser.runtime.getManifest().version
 
