@@ -371,17 +371,19 @@ function startUpTasks() {
 	}
 
 	browser.storage.onChanged.addListener(function(changes) {
-		if ('guessLandmarks' in changes) {
-			const setting = Boolean(changes.guessLandmarks.newValue) ??  // TODO: TS: check before and ignore?
-				defaultFunctionalSettings.guessLandmarks
+		if (Object.hasOwn(changes, 'guessLandmarks')) {
+			const setting = Boolean(changes.guessLandmarks.newValue ??
+				defaultFunctionalSettings.guessLandmarks)
+			// TODO: When would this test fail?
 			if (setting !== changes.guessLandmarks.oldValue) {
 				landmarksFinder.useHeuristics(setting)
 				findLandmarks(noop, noop)
 			}
 		}
 
-		if ('handleMutationsViaTree' in changes) {
-			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue) // TODO: check before and ignore?
+		if (Object.hasOwn(changes, 'handleMutationsViaTree')) {
+			handleMutationsViaTree = Boolean(changes.handleMutationsViaTree.newValue ??
+				defaultFunctionalSettings.handleMutationsViaTree)
 			debugSendContent(`handle mutation via tree: ${handleMutationsViaTree}`)
 		}
 	})

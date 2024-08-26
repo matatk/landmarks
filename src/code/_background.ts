@@ -471,18 +471,17 @@ function handleStorageOnChanged(changes: Record<string, chrome.storage.StorageCh
 	if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
 		// NOTE: .newValue will not exist if storage has been cleared.
 		if (Object.hasOwn(changes, 'interface')) {
-			if (isInterfaceType(changes.interface.newValue)) {
-				switchInterface(changes.interface.newValue)
-			} else {
-				switchInterface(defaultInterfaceSettings!.interface)
-			}
+			switchInterface(isInterfaceType(changes.interface.newValue)
+				? changes.interface.newValue
+				: defaultInterfaceSettings!.interface)
 		}
 	}
 
 	if (Object.hasOwn(changes, 'dismissedUpdate')) {
-		// Changing _to_ false means either we've already dismissed and have
-		// since reset the messages, OR we have just been updated.
-		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue))
+		// User can't change to false ('show me the message') through the UI.
+		// When message dismissal states are reset, .newValue will not be present.
+		reflectUpdateDismissalState(Boolean(changes.dismissedUpdate.newValue ??
+			defaultDismissedUpdate.dismissedUpdate))
 	}
 }
 

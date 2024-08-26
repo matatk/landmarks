@@ -5,6 +5,7 @@ import type BorderDrawer from './borderDrawer.js'
 const momentaryBorderTime = 2000
 
 export default class ElementFocuser {
+	// FIXME: Make these member vars private, matching BorderDrawer.
 	borderType = defaultBorderSettings.borderType  // cached for simplicity
 	managingBorders = true  // draw and remove borders by default
 
@@ -24,13 +25,16 @@ export default class ElementFocuser {
 		// that 'gets' of options don't need to be done asynchronously in the rest
 		// of the code).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			if (isBorderType(items.borderType)) this.borderType = items.borderType
+			this.borderType = isBorderType(items.borderType)
+				? items.borderType
+				: defaultBorderSettings.borderType
 		})
 
 		browser.storage.onChanged.addListener(changes => {
-			if ('borderType' in changes && isBorderType(changes.borderType.newValue)) {
-				this.borderType =
-					changes.borderType.newValue ?? defaultBorderSettings.borderType
+			if (Object.hasOwn(changes, 'borderType')) {
+				this.borderType = isBorderType(changes.borderType.newValue)
+					? changes.borderType.newValue
+					: defaultBorderSettings.borderType
 				this.#borderTypeChange()
 			}
 		})

@@ -300,11 +300,9 @@ function setupNotes() {
 		if (INTERFACE === 'sidebar') {
 			// NOTE: .newValue will not exist if storage has been cleared.
 			if (Object.hasOwn(changes, 'interface')) {
-				if (isInterfaceType(changes.interface.newValue)) {
-					reflectInterfaceChange(changes.interface.newValue)
-				} else {
-					reflectInterfaceChange(defaultInterfaceSettings!.interface)
-				}
+				reflectInterfaceChange(isInterfaceType(changes.interface.newValue)
+					? changes.interface.newValue
+					: defaultInterfaceSettings!.interface)
 			}
 		}
 
@@ -445,9 +443,9 @@ function startupDevTools() {
 	send(MessageName.GetToggleState, null)
 	send(MessageName.GetMutationInfo, null)
 
-	// TODO: Eventually remove, after sorting out mutation handling
+	// TODO: Reinstate (though eventually remove, after sorting out mutation handling).
 	// browser.storage.onChanged.addListener(function(changes) {
-	// 	if ('handleMutationsViaTree' in changes) {
+	// 	if (Object.hasOwn(changes, 'handleMutationsViaTree')) {
 	// 		// ???
 	// 	}
 	// })

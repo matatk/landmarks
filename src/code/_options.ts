@@ -134,10 +134,6 @@ function resetMessages(event: Event) {
 	}
 }
 
-function dismissalStateChanged(keyThatChanged: string) {
-	return Object.hasOwn(defaultDismissalStates, keyThatChanged)
-}
-
 function resetToDefaults() {
 	void browser.storage.sync.clear()
 	restoreOptions()
@@ -160,7 +156,9 @@ function main() {
 	updateResetDismissedMessagesButtonState()
 
 	browser.storage.onChanged.addListener(function(changes) {
-		if (Object.keys(changes).some(dismissalStateChanged)) {
+		if (Object.keys(changes).some(
+			(keyThatChanged: string) => Object.hasOwn(defaultDismissalStates, keyThatChanged))
+		) {
 			updateResetDismissedMessagesButtonState()
 		}
 	})

@@ -2,7 +2,7 @@ import landmarkName from './landmarkName.js'
 import { defaultBorderSettings } from './defaults.js'
 import type ContrastChecker from './contrastChecker.js'
 
-const borderWidthPx = 4
+const BORDER_WIDTH_PX = 4
 
 interface BorderInfo {
 	border: HTMLElement
@@ -39,19 +39,19 @@ export default class BorderDrawer {
 		// the code). This also computes the initial label font colour (as it
 		// depends on the border colour, which forms the label's background).
 		browser.storage.sync.get(defaultBorderSettings, items => {
-			this.#borderColour = String(items.borderColour)  // TODO: TS: Wouldn't they be returned as strings?
-			this.#borderFontSize = String(items.borderFontSize)  // TODO: TS: Wouldn't they be returned as strings?
+			this.#borderColour = String(items.borderColour)
+			this.#borderFontSize = String(items.borderFontSize)
 			this.#updateLabelFontColour()
 		})
 
 		browser.storage.onChanged.addListener(changes => {
 			let needUpdate = false
 			if ('borderColour' in changes) {
-				this.#borderColour = String(changes.borderColour.newValue) // TODO: TS: wouldn't they be returned as strings?
+				this.#borderColour = String(changes.borderColour.newValue ?? defaultBorderSettings.borderColour)
 				needUpdate = true
 			}
 			if ('borderFontSize' in changes) {
-				this.#borderFontSize = String(changes.borderFontSize.newValue) // TODO: TS: wouldn't they be returned as strings?
+				this.#borderFontSize = String(changes.borderFontSize.newValue ?? defaultBorderSettings.borderColour)
 				needUpdate = true
 			}
 			if (needUpdate) {
@@ -153,7 +153,7 @@ export default class BorderDrawer {
 
 		const borderDiv = document.createElement('div')
 		const style = guessed ? 'dashed' : 'solid'
-		borderDiv.style.border = borderWidthPx + 'px ' + style + ' ' + colour
+		borderDiv.style.border = BORDER_WIDTH_PX + 'px ' + style + ' ' + colour
 		borderDiv.style.boxSizing = 'border-box'
 		borderDiv.style.margin = '0'
 		borderDiv.style.padding = '0'
