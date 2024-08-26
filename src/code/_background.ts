@@ -469,11 +469,13 @@ if (BROWSER === 'chrome') {
 
 function handleStorageOnChanged(changes: Record<string, chrome.storage.StorageChange>) {
 	if (BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome') {
-		// FIXME: rework all of these to fall back to a default value if stored one is invalid?
-		if (Object.hasOwn(changes, 'interface') && isInterfaceType(changes.interface.newValue)) {
-			switchInterface(changes.interface.newValue
-				// @ts-expect-error defaultInterfaceSettings will have this value
-				?? defaultInterfaceSettings.interface)
+		// NOTE: .newValue will not exist if storage has been cleared.
+		if (Object.hasOwn(changes, 'interface')) {
+			if (isInterfaceType(changes.interface.newValue)) {
+				switchInterface(changes.interface.newValue)
+			} else {
+				switchInterface(defaultInterfaceSettings!.interface)
+			}
 		}
 	}
 
