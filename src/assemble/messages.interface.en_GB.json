@@ -8,6 +8,12 @@
   "hintSidebarIsNotPrimaryDismiss": {
     "message": "Dismiss UI note"
   },
+  "hintSidebarWidth": {
+    "message": "The minimum width of the this panel is controlled by the browser, not the Landmarks extension."
+  },
+  "hintSidebarWidthDismiss": {
+    "message": "Dismiss width note"
+  },
   "prefsHeadingInterface": {
     "message": "Interface"
   },

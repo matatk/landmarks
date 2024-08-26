@@ -164,9 +164,12 @@ details.floaty > div {
 	align-items: center;
 }
 
+.warning:nth-child(even) {
+	background-color: var(--accent-3);
+}
+
 .warning + .warning {
 	margin-top: var(--sibling-gap);
-	background-color: var(--accent-3);
 }
 
 .warning > .warning-symbol {
@@ -191,10 +194,10 @@ details.floaty > div {
 	outline-color: var(--background-1);
 }
 
-.warning + .warning a:focus,
-.warning + .warning a:hover,
-.warning + .warning button:focus,
-.warning + .warning button:hover {
+.warning:nth-child(even) a:focus,
+.warning:nth-child(even) a:hover,
+.warning:nth-child(even) button:focus,
+.warning:nth-child(even) button:hover {
 	background-color: var(--background-1);
 	color: var(--accent-3);
 }

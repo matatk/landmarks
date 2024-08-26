@@ -76,9 +76,18 @@ export const defaultDismissedSidebarNotAlone = /* #__PURE__ */Object.freeze(
 export const defaultDismissedUpdate = /* #__PURE__ */Object.freeze(
 	{ dismissedUpdate: false })
 
+// FIXME: Not yet used
+export const defaultDismissedSidebarWidth = /* #__PURE__ */Object.freeze(
+	{ dismissedSidebarWidth: false })
+
 export const defaultDismissalStates =
-	(BROWSER === 'firefox' || BROWSER === 'opera' || BROWSER === 'chrome')
+	BROWSER === 'firefox' || BROWSER === 'opera'
 		? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
 			defaultDismissedSidebarNotAlone,
 			defaultDismissedUpdate))
-		: defaultDismissedUpdate
+		: BROWSER === 'chrome'
+			? /* #__PURE__ */Object.freeze(/* #__PURE__ */Object.assign({},
+				defaultDismissedSidebarNotAlone,
+				defaultDismissedUpdate,
+				defaultDismissedSidebarWidth))				
+			: defaultDismissedUpdate
