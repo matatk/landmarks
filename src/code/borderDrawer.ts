@@ -46,11 +46,11 @@ export default class BorderDrawer {
 
 		browser.storage.onChanged.addListener(changes => {
 			let needUpdate = false
-			if ('borderColour' in changes) {
+			if (Object.hasOwn(changes, 'borderColour')) {
 				this.#borderColour = String(changes.borderColour.newValue ?? defaultBorderSettings.borderColour)
 				needUpdate = true
 			}
-			if ('borderFontSize' in changes) {
+			if (Object.hasOwn(changes, 'borderFontSize')) {
 				this.#borderFontSize = String(changes.borderFontSize.newValue ?? defaultBorderSettings.borderColour)
 				needUpdate = true
 			}
