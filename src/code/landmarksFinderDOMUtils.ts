@@ -133,9 +133,14 @@ export function isChildOfTopLevelSection(element: HTMLElement) {
 	return true
 }
 
+// TODO: Should this check for trim()ed value being truthy (or >0 length)?
+//       The check for presence of ' ' was an indexOf() >= 0 check at first,
+//       but this was tripping up linting. However, the idea of the space
+//       character needing to be somewhere _after_ the first char is good.
+//       Should this come out through tests?
 export function getValidExplicitRole(value: string) {
 	if (value) {
-		if (value.indexOf(' ') >= 0) {
+		if (value.includes(' ')) {
 			const roles = value.split(' ')
 			for (const role of roles) {
 				if (regionTypes.includes(role)) {
