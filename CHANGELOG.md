@@ -1,5 +1,42 @@
 # Changelog
 
+## [2.13.0](https://github.com/matatk/landmarks/compare/2.12.0...2.13.0) (2024-11-09)
+
+
+### Features
+
+* Add option to handle via tree (does nothing functional) ([a7bafe9](https://github.com/matatk/landmarks/commit/a7bafe9f46575e00ac9d330702228c8ea7e5fa5a))
+* Better DevTools mutation reporting ([2e2034b](https://github.com/matatk/landmarks/commit/2e2034bd68ff665163ff65f0f695a11928d9f963))
+* Chrome 'Manifest V3' support ([6a09399](https://github.com/matatk/landmarks/commit/6a0939946bf6c7d4ec4285cd7ef625a938b1d3ba))
+* Improve tree robustosity ([b3ed9bd](https://github.com/matatk/landmarks/commit/b3ed9bd130f925018293f927dd202aa774e6c13f))
+
+
+### Bug fixes
+
+* Fix a range of deeper TypeScript isseus ([562d9cc](https://github.com/matatk/landmarks/commit/562d9cc9f1a418eafc30ceea9b3b6c64161dfb9a))
+* Robust message handling ([90f38d1](https://github.com/matatk/landmarks/commit/90f38d1c2e9623c00d45aa5805a9256fff3efa32))
+* Tidy-ups, fix more bugs (some long-standing) ([1c10394](https://github.com/matatk/landmarks/commit/1c1039437cde0ba02c9455403928fb7e226510e5))
+
+
+### Documentation
+
+* **Help:** Release notes for 2.13.0 ([b8841ca](https://github.com/matatk/landmarks/commit/b8841cab27c7feadc8024433f95059f6e9b1ca7f))
+* Update Chrome API usage info ([ed06f96](https://github.com/matatk/landmarks/commit/ed06f9688d202c4fe4decf6d09d323222a82fd92))
+
+
+### Code refactoring
+
+* Combine scanners; Split profiling script ([fb9acdb](https://github.com/matatk/landmarks/commit/fb9acdb2eb31c0a215608bb7c9c63226024e13aa))
+* Switch to TypeScript ([96531f0](https://github.com/matatk/landmarks/commit/96531f0ee377d0de27ade743a29a76dcf0cad1b5))
+* Use a tree structure in LandmarksFinder ([e1308f7](https://github.com/matatk/landmarks/commit/e1308f7aa1dbe144fd32849e15df450df521b5c6))
+* Use tree structure in UI code ([38ee039](https://github.com/matatk/landmarks/commit/38ee039dd12ce02d8cd3bfe2c02a73297487219d))
+
+
+### Tests
+
+* More tests; More perf ([680f8bd](https://github.com/matatk/landmarks/commit/680f8bd46a724ac86475102c0b2538578476cb60))
+* Tree-based mutation handling & tests ([aee65fd](https://github.com/matatk/landmarks/commit/aee65fd71a65fac20798eacea77ebac208a2b430))
+
 ## [2.12.0](https://github.com/matatk/landmarks/compare/2.11.1...2.12.0) (2022-10-10)
 
 
